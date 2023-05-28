@@ -1,0 +1,17 @@
+{
+  "name": "@pumpking/root",
+  "private": true,
+  "version": "1.0.0",
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "start:api": "npm start --prefix packages/api",
+    "start:web": "npm start --prefix packages/web"
+  },
+  "author": "grumd",
+  "license": "MIT",
+  "dependencies": {
+    "prettier": "^2.8.8"
+  }
+}
