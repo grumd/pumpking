@@ -11,6 +11,7 @@ import formData from 'express-form-data';
 const debug = require('debug')('backend-ts:app');
 
 import routes from './routes';
+import { expressRouter } from 'trpc/router';
 
 import { StatusError } from 'utils/errors';
 
@@ -57,36 +58,31 @@ app.use(
 );
 
 app.use(auth);
-app.use((req, res, next) => {
+app.use((req, _res, next) => {
   debug(`[${req.method}] ${req.path}`);
   next();
 });
 
 app.use('/', routes);
 
+app.use('/trpc', expressRouter);
+
 // error handler
-app.use(
-  (
-    err: Error | StatusError<unknown>,
-    req: express.Request,
-    res: express.Response,
-    next: express.NextFunction
-  ) => {
-    debug(err);
+app.use((err: Error | StatusError<unknown>, req: express.Request, res: express.Response) => {
+  debug(err);
 
-    // set locals, only providing error in development
-    res.locals.message = err.message;
-    res.locals.error = req.app.get('env') === 'development' ? err : {};
+  // set locals, only providing error in development
+  res.locals.message = err.message;
+  res.locals.error = req.app.get('env') === 'development' ? err : {};
 
-    if (err instanceof StatusError) {
-      res.status(err.status).json({
-        message: err.message,
-        data: err.data,
-      });
-    } else {
-      res.status(500).json({
-        message: 'Internal Server Error: ' + err.message,
-      });
-    }
+  if (err instanceof StatusError) {
+    res.status(err.status).json({
+      message: err.message,
+      data: err.data,
+    });
+  } else {
+    res.status(500).json({
+      message: 'Internal Server Error: ' + err.message,
+    });
   }
-);
+});

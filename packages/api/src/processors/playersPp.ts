@@ -13,14 +13,14 @@ type ScoreRecord = {
   pp: number;
 };
 
-type PlayersMap = Record<
-  string,
-  {
-    nickname: string;
-    pp: number;
-    bestScores: ScoreRecord[];
-  }
->;
+// type PlayersMap = Record<
+//   string,
+//   {
+//     nickname: string;
+//     pp: number;
+//     bestScores: ScoreRecord[];
+//   }
+// >;
 
 const getPlayerResultsQuery = ({ playerId }: { playerId: number }) => {
   return knex

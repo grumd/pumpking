@@ -1,5 +1,3 @@
-import type { Response } from 'express';
-
 import path from 'path';
 
 import { knex } from 'db';

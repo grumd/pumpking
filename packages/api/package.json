@@ -10,6 +10,7 @@
     "exec": "ts-node ./src/index.ts",
     "ext": "ts, js",
     "env": {
+      "NODE_ENV": "development",
       "DEBUG": "backend-ts:*"
     }
   },
@@ -36,6 +37,7 @@
   "author": "grumd",
   "license": "MIT",
   "dependencies": {
+    "@trpc/server": "^10.28.0",
     "@wwwouter/typed-knex": "^4.14.1",
     "cors": "^2.8.5",
     "cross-env": "^7.0.3",

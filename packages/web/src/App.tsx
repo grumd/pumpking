@@ -1,30 +1,60 @@
-import { useState } from 'react';
-import reactLogo from './assets/react.svg';
-import viteLogo from '/vite.svg';
 import './App.css';
 
-function App() {
-  const [count, setCount] = useState(0);
+import { GoogleOAuthProvider } from '@react-oauth/google';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { httpBatchLink } from '@trpc/client';
+import { LoginScreen } from 'pages/login/Login';
+import { useState } from 'react';
+import { api } from 'utils/trpc';
+
+const Test = () => {
+  const { data, isLoading } = api.profile.useQuery();
+
+  if (!isLoading && !data) {
+    return <LoginScreen />;
+  }
 
   return (
-    <>
-      <div>
-        <a href="https://vitejs.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>count is {count}</button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">Click on the Vite and React logos to learn more</p>
-    </>
+    <div>
+      <h1>Profile</h1>
+      {isLoading ? (
+        <p>Loading...</p>
+      ) : (
+        <pre>
+          <code>{JSON.stringify(data, null, 4)}</code>
+        </pre>
+      )}
+    </div>
+  );
+};
+
+function App() {
+  const [queryClient] = useState(
+    () =>
+      new QueryClient({
+        defaultOptions: {
+          queries: {
+            staleTime: 1000 * 60 * 5,
+            refetchOnWindowFocus: false,
+          },
+        },
+      })
+  );
+
+  const [trpcClient] = useState(() =>
+    api.createClient({
+      links: [httpBatchLink({ url: `${import.meta.env.VITE_API_BASE_PATH}/trpc` })],
+    })
+  );
+
+  return (
+    <GoogleOAuthProvider clientId="197132042723-cmibep21qf6dald9l2l01rif7l5dtd4s.apps.googleusercontent.com">
+      <api.Provider client={trpcClient} queryClient={queryClient}>
+        <QueryClientProvider client={queryClient}>
+          <Test />
+        </QueryClientProvider>
+      </api.Provider>
+    </GoogleOAuthProvider>
   );
 }
 
