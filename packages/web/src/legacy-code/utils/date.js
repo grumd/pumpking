@@ -1,3 +1,3 @@
 export const parseDate = (textDate) => {
-    return new Date(textDate);
+  return new Date(textDate);
 };

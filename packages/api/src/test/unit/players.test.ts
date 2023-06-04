@@ -1,4 +1,4 @@
-const debug = require('debug')('backend-ts:test:players');
+// const debug = require('debug')('backend-ts:test:players');
 
 import { req } from 'test/helpers';
 import { assert } from 'chai';

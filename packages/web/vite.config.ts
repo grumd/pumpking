@@ -5,14 +5,14 @@ import tsconfigPaths from 'vite-tsconfig-paths';
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react(), tsconfigPaths()],
+  worker: {
+    plugins: [tsconfigPaths()],
+  },
   server: {
     port: 3000,
   },
-  optimizeDeps: {
-    esbuildOptions: {
-      loader: {
-        '.js': 'jsx',
-      },
-    },
+  build: {
+    sourcemap: true,
+    outDir: './build',
   },
 });
