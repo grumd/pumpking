@@ -2,7 +2,10 @@
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     "composite": true,
+    "allowJs": true,
+    "checkJs": false,
     "baseUrl": "./src",
+    "noEmit": true,
     "paths": {
       "@/api/*": ["../../api/src/*"]
     },

@@ -2,16 +2,27 @@
   "name": "@pumpking/root",
   "private": true,
   "version": "1.0.0",
+  "engines": {
+    "npm": ">=9.5.0",
+    "node": ">=18.6.0"
+  },
   "workspaces": [
     "packages/*"
   ],
   "scripts": {
     "start:api": "npm start --prefix packages/api",
-    "start:web": "npm start --prefix packages/web"
+    "start:web": "npm start --prefix packages/web",
+    "clean": "rm -rf node_modules && rm -rf packages/*/node_modules"
   },
   "author": "grumd",
   "license": "MIT",
   "dependencies": {
     "prettier": "^2.8.8"
+  },
+  "overrides": {
+    "react-google-login": {
+      "react": "^18.0",
+      "react-dom": "^18.0"
+    }
   }
 }

@@ -1,0 +1,52 @@
+.top-bar {
+  width: 100%;
+  max-width: 950px;
+  align-items: center;
+  border-bottom: 1px solid #444;
+  display: flex;
+  ul {
+    font-size: 22px;
+    display: flex;
+    align-items: center;
+    list-style-type: none;
+    flex-flow: row wrap;
+    padding-left: 0;
+    margin: 6px 0;
+    > li > a {
+      color: #555;
+      margin: 5px;
+      &.active {
+        color: #fff;
+      }
+      &:hover {
+        color: #fff;
+        cursor: pointer;
+      }
+    }
+    > li + li::before {
+      color: #555;
+      content: '•';
+    }
+  }
+
+  .login-container {
+    padding: 7px;
+    display: flex;
+    flex-flow: row nowrap;
+    align-items: center;
+    .player-info {
+      margin-right: 10px;
+      font-size: 14px;
+      font-weight: 600;
+    }
+  }
+}
+
+@media screen and (max-width: 500px) {
+  .top-bar > nav > ul {
+    font-size: 4.4vw;
+    > li > a {
+      margin: 1vw;
+    }
+  }
+}

@@ -1,0 +1,154 @@
+@import url(https://fonts.googleapis.com/css?family=Nunito&amp;display=swap);
+@import './colors.scss';
+
+body {
+  background: #2d2d2d;
+  color: #eee;
+  margin: 0;
+  font-size: 18px;
+  padding: 0;
+  font-family: 'Nunito'; // 'Exo', 'Exo 2', 'Helvetica', 'Arial', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+@media screen and (max-width: 900px) {
+  body {
+    font-size: 2vw;
+  }
+}
+
+html,
+body {
+  height: 100%;
+  width: 100%;
+
+  a,
+  a:hover {
+    color: #fff; // #e0b074;
+  }
+  a:visited,
+  a:active {
+    color: #d2d2d2;
+  }
+  input {
+    background-color: #555 !important;
+    color: #fff;
+    &.form-control {
+      height: 30px;
+    }
+  }
+  input[type='number']::-webkit-outer-spin-button,
+  input[type='number']::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  input[type='number'] {
+    -moz-appearance: textfield;
+  }
+
+  button {
+    &.btn-dark {
+      background-color: #444;
+      &:hover {
+        background-color: #555;
+        color: #ddd;
+      }
+      &:focus {
+        color: #ccc;
+      }
+    }
+    &.btn-icon {
+      display: flex;
+      align-items: center;
+      > svg {
+        margin-right: 0.3em;
+      }
+    }
+  }
+
+  .select {
+    width: 272px;
+    font-size: 12px;
+    outline: none;
+    .select__placeholder {
+      margin-left: 5px;
+    }
+    .select__control {
+      min-height: 30px;
+    }
+    .select__input {
+      color: white;
+    }
+    .select__menu {
+      margin-top: 1px;
+      background-color: #555;
+      color: #fff;
+      z-index: 3;
+      .select__menu-list {
+        max-height: 320px;
+        text-align: left;
+      }
+      .select__option--is-selected {
+        background-color: #777;
+      }
+      .select__option--is-focused {
+        background-color: #999;
+      }
+    }
+    .select__indicators {
+      .select__indicator-separator {
+        background-color: #999;
+      }
+      .select__clear-indicator,
+      .select__dropdown-indicator {
+        width: 22px;
+        padding: 3px;
+      }
+    }
+    .select__single-value {
+      color: #ddd;
+    }
+    .select__multi-value__label {
+      font-size: 100%;
+      padding: 2px 2px 2px 6px;
+    }
+    .select__multi-value__remove {
+      color: #777;
+      &:hover {
+        color: #de350b;
+      }
+    }
+  }
+
+  .btn {
+    outline: none !important;
+  }
+
+  .label {
+    color: #ddd;
+    display: block;
+    text-align: left;
+    font-weight: 400;
+    padding: 0;
+  }
+
+  .spacer {
+    flex: 1 1 auto;
+  }
+
+  .form-control,
+  .select__control {
+    border: 1px solid #292929;
+    background-color: #555;
+    color: #fff;
+  }
+
+  .search-control {
+    margin: 0;
+  }
+}
+#root {
+  height: 100%;
+  width: 100%;
+}

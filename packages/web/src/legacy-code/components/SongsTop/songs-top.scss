@@ -1,0 +1,84 @@
+.songs-top-page {
+  width: 100%;
+  max-width: 940px;
+  display: flex;
+  flex-flow: row wrap;
+  font-size: 18px;
+  justify-content: center;
+  > .top-songs-list {
+    width: 460px;
+    padding: 5px;
+    margin: 5px;
+    border-radius: 10px;
+    background: #353535;
+    &.-placeholder {
+      visibility: hidden;
+    }
+    > .top-songs-header {
+      font-weight: 600;
+      padding: 0 8px 10px 8px;
+      > span {
+        padding-bottom: 2px;
+        border-bottom: 1px solid #ccc4;
+      }
+    }
+    > .top-songs-item {
+      line-height: 1;
+      background: #424242;
+      border-radius: 5px;
+      padding: 7px 9px;
+      display: flex;
+      flex-flow: row nowrap;
+      align-items: center;
+
+      + .top-songs-item {
+        margin-top: 5px;
+      }
+
+      > .place {
+        color: #888;
+        flex: 0 0 1.6em;
+        display: flex;
+        align-items: center;
+        &.best {
+          font-weight: 600;
+        }
+        &.top-1 {
+          color: gold;
+        }
+        &.top-2 {
+          color: #dedeee;
+        }
+        &.top-3 {
+          color: #cd7f32;
+        }
+      }
+
+      > .song-name {
+        flex: 1 1 auto;
+      }
+
+      > .playcount {
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        text-align: right;
+        > svg {
+          font-size: 60%;
+          margin-right: 0.5em;
+        }
+      }
+
+      > .date {
+        font-size: 80%;
+      }
+    }
+  }
+}
+
+@media screen and (max-width: 480px) {
+  .songs-top-page {
+    font-size: 3.79vw;
+  }
+}

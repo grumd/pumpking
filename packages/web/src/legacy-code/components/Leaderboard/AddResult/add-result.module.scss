@@ -1,0 +1,65 @@
+.addResultPage {
+  width: 100%;
+  padding: 0.4em 0;
+  max-width: 400px;
+  padding: 0.4em;
+  font-size: 16px;
+}
+
+.addResultForm {
+  display: flex;
+  flex-flow: column nowrap;
+  gap: 0.5em;
+
+  label {
+    display: flex;
+    flex-flow: column nowrap;
+    gap: 0.25em;
+  }
+
+  .fileInput {
+    height: auto;
+  }
+}
+
+.confirmation {
+  .splitPanels {
+    display: flex;
+    flex-flow: row wrap;
+    gap: 1em;
+
+    > .screenshotPanel {
+      max-width: min(100%, 440px);
+    }
+
+    > .formPanel {
+      flex: 1 1 220px;
+    }
+  }
+
+  .chartName {
+    font-size: 130%;
+    font-weight: bold;
+    padding-bottom: 0.2em;
+  }
+
+  .grid {
+    padding: 0.5em 0;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.1em;
+  }
+
+  .warning {
+    padding: 0.75em 0;
+    display: flex;
+    flex-flow: row nowrap;
+    align-items: center;
+    gap: 0.5em;
+
+    > svg {
+      font-size: 38px;
+      color: #ff9800;
+    }
+  }
+}

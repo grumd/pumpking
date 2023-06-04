@@ -1,0 +1,105 @@
+.tournaments-page {
+  width: 100%;
+  padding: 0.4em 0;
+  max-width: 1000px;
+  header {
+    font-size: 150%;
+    font-weight: bold;
+    padding: 1em;
+    text-align: center;
+  }
+  .description {
+    display: flex;
+    flex-flow: row wrap;
+    padding: 0.8em;
+    .labeled-item {
+      display: flex;
+      flex-flow: row nowrap;
+      margin-right: 1.2em;
+      .title {
+        margin-right: 0.3em;
+        color: #aaa;
+      }
+      .text {
+        font-weight: 600;
+      }
+    }
+  }
+  .brackets-title {
+    padding: 0.3em 0.8em;
+    font-weight: 600;
+  }
+  .brackets {
+    display: flex;
+    flex-flow: row nowrap;
+    justify-content: space-between;
+    padding: 0.4em;
+    .bracket {
+      flex: 1 1 0px;
+      background: #444;
+      border: 1px solid #333;
+      cursor: pointer;
+      margin: 0.4em;
+      padding: 0.5em;
+      border-radius: 0.5em;
+      &:hover,
+      &.active {
+        background: #5b5b5b;
+        border: 1px solid #777;
+      }
+      &.active {
+        box-shadow: 0 0 8px -3px black;
+      }
+      .bracket-name {
+        font-size: 110%;
+        font-weight: 600;
+        text-align: center;
+        margin-bottom: 0.4em;
+      }
+      .chart {
+        display: flex;
+        flex-flow: row nowrap;
+        + .chart {
+          margin-top: 5px;
+        }
+      }
+    }
+  }
+  .results-title {
+    padding: 0.3em 0.8em;
+    font-weight: 600;
+  }
+  .results {
+    padding: 0.8em;
+    table {
+      font-size: 80%;
+      width: 100%;
+      th {
+        max-width: 10em;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        .chart-header {
+          display: flex;
+          flex-flow: row nowrap;
+        }
+      }
+      td {
+        text-align: right;
+      }
+      td,
+      th {
+        padding: 0.3em 0.5em;
+        border: 1px solid #555;
+        &.player-name {
+          text-align: left;
+          font-size: 110%;
+        }
+        &.total {
+          font-size: 110%;
+          font-weight: bold;
+        }
+      }
+    }
+  }
+}

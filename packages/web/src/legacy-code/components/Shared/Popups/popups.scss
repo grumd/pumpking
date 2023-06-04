@@ -1,0 +1,138 @@
+.popup {
+  background: #353535;
+  padding: 40px;
+  border-radius: 20px;
+  box-shadow: 0 0 20px 0 black;
+  font-size: 30px;
+  width: 55%;
+
+  .player {
+    font-weight: bold;
+    text-align: center;
+    font-size: 200%;
+    display: flex;
+    flex-flow: row nowrap;
+    align-items: center;
+    justify-content: space-between;
+    > svg {
+      color: gold;
+      font-size: 150%;
+    }
+    > span {
+      color: white;
+    }
+  }
+}
+
+.rank-up-popup {
+  display: flex;
+  flex-flow: column nowrap;
+  align-items: center;
+  > .player {
+    width: 100%;
+  }
+  .ranking-holder {
+    width: 450px;
+    height: 420px;
+    overflow: hidden;
+    display: flex;
+    flex-flow: column nowrap;
+    justify-content: center;
+    position: relative;
+    .player-block {
+      width: 450px;
+      height: 60px;
+      padding: 3px;
+      &.current {
+        position: relative;
+        z-index: 2;
+      }
+    }
+    > .moving-list {
+      position: absolute;
+    }
+    .closest-player {
+      height: 100%;
+      padding: 5px;
+      border-radius: 8px;
+      font-size: 100%;
+      display: flex;
+      align-items: center;
+      flex-flow: row nowrap;
+      background: #424242;
+      &.current-player {
+        background: #646464;
+        color: white;
+        font-weight: 600;
+      }
+      > .place {
+        flex: 0 0 65px;
+        margin-right: 8px;
+        color: #aaa;
+      }
+      > .name {
+        flex: 1 1 0px;
+      }
+      > .elo {
+        font-weight: 600;
+      }
+    }
+  }
+}
+
+.achievement-popup {
+  .description {
+    text-align: center;
+  }
+  .ach-holder {
+    display: flex;
+    flex-flow: row nowrap;
+    align-items: center;
+    width: 100%;
+    justify-content: center;
+    > svg {
+      font-size: 200%;
+      margin: 0 40px;
+    }
+  }
+  .ach-block {
+    flex: 0 0 60%;
+    font-size: 180%;
+    margin: 5px;
+    display: flex;
+    flex-flow: column nowrap;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid #ccc4;
+    border-radius: 20px;
+    position: relative;
+    height: auto;
+    padding: 40px 0;
+    > .ach-icon {
+      font-size: 220%;
+      line-height: 100%;
+    }
+    > .ach-name {
+      text-align: center;
+    }
+    > .progress-background {
+      border-bottom-left-radius: 20px;
+      border-bottom-right-radius: 20px;
+      position: absolute;
+      border-bottom: 6px solid #88d3ff;
+      border-left: 6px solid #88d3ff;
+      border-right: 6px solid #88d3ff;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      transition: 5s height ease-out;
+      &.complete {
+        border-top: 6px solid #88d3ff;
+        border-radius: 20px;
+      }
+      &.zero {
+        border: none;
+      }
+    }
+  }
+}

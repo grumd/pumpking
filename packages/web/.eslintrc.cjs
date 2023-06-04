@@ -1,5 +1,8 @@
 module.exports = {
   env: { browser: true, es2020: true },
+  globals: {
+    ComlinkWorker: 'readonly',
+  },
   extends: [
     'eslint:recommended',
     'plugin:@typescript-eslint/recommended',
@@ -11,4 +14,4 @@ module.exports = {
   rules: {
     'react-refresh/only-export-components': 'warn',
   },
-}
+};
