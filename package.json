@@ -12,6 +12,7 @@
   "scripts": {
     "start:api": "npm start --prefix packages/api",
     "start:web": "npm start --prefix packages/web",
+    "build:web": "npm run build --prefix packages/web",
     "clean": "rm -rf node_modules && rm -rf packages/*/node_modules"
   },
   "author": "grumd",

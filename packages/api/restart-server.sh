@@ -10,10 +10,8 @@ npm run ts-check
 echo "-- Run migrations"
 npm run migrate:latest
 echo "-- Build TS -> JS"
-pwd
 npm run build
 echo "-- Restart server"
-pwd
 npm run pm2
 
 echo "-- Server restarted successfully"

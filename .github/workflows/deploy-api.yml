@@ -1,0 +1,23 @@
+name: Build and deploy Web
+on:
+  push:
+    branches: ['master']
+    paths: ['packages/api/**']
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Connect to server and deploy API
+        uses: appleboy/ssh-action@v0.1.10
+        with:
+          host: api.pumpking.top
+          username: piutop
+          password: ${{ secrets.PIUTOP_PASSWORD }}
+          script: |
+            cd ~/pumpking
+            git status
+            git pull
+            cd ./packages/api
+            bash ./restart-server.sh
