@@ -1,4 +1,4 @@
-name: Build and deploy Web
+name: Deploy API
 on:
   push:
     branches: ['master']
