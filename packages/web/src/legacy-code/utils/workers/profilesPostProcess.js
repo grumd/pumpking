@@ -1,3 +1,4 @@
+import * as Comlink from 'comlink';
 import _ from 'lodash/fp';
 
 import { ranks as expRanks } from 'legacy-code/utils/expRanks';
@@ -172,4 +173,4 @@ export const getProcessedProfiles = ({ profiles, sharedCharts, tracklist, debug 
   return { profiles, sharedCharts, logText: '' };
 };
 
-export default getProcessedProfiles;
+Comlink.expose(getProcessedProfiles);
