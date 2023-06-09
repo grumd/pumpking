@@ -10,6 +10,7 @@
     "target": "ES2022",
     "module": "commonjs",
     "baseUrl": "./src",
+    "rootDir": "./src",
     "sourceMap": true,
     "outDir": "./build"
   },
