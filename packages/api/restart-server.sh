@@ -3,8 +3,6 @@
 # abort if any command fails
 set -e
 
-echo "-- Install dependencies"
-npm install
 echo "-- Check Typescript errors"
 npm run ts-check
 echo "-- Run migrations"

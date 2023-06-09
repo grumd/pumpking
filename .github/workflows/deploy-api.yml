@@ -20,5 +20,6 @@ jobs:
             cd ~/pumpking
             git status
             git pull
+            npm install --no-save
             cd ./packages/api
             bash ./restart-server.sh
