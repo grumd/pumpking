@@ -16,6 +16,7 @@ jobs:
           username: piutop
           password: ${{ secrets.PIUTOP_PASSWORD }}
           script: |
+            set -e
             cd ~/pumpking
             git status
             git pull
