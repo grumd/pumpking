@@ -1,0 +1,2 @@
+var c=Object.defineProperty;var r=(s,t,e)=>t in s?c(s,t,{enumerable:!0,configurable:!0,writable:!0,value:e}):s[t]=e;var n=(s,t,e)=>(r(s,typeof t!="symbol"?t+"":t,e),e);import{R as i,t as o,j as l,c as g}from"./index-179573be.js";class p extends i.PureComponent{render(){const{active:t,onToggle:e,text:a}=this.props;return l.jsx("div",{className:g("toggle-button",{active:t}),onClick:()=>e(!t),children:a})}}n(p,"propTypes",{text:o.string,onToggle:o.func,active:o.bool});export{p as T};
+//# sourceMappingURL=ToggleButton-2185ae40.js.map
