@@ -1,7 +1,7 @@
 module.exports = {
   apps: [
     {
-      name: 'api',
+      name: 'pumpking-api',
       script: './build/index.js',
     },
   ],

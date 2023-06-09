@@ -18,7 +18,7 @@
     "start": "nodemon",
     "start:ts-node": "ts-node --transpile-only ./src/index.ts",
     "pm2": "cross-env NODE_PATH=./build pm2 startOrRestart ./pm2.config.js",
-    "build": "rimraf ./build && tsc",
+    "build": "rimraf ./build && tsc --project ./tsconfig.build.json",
     "ts-check": "tsc --noEmit --pretty",
     "test:run": "cross-env NODE_ENV=test mocha -r tsconfig-paths/register -r ts-node/register -r ./src/test/helpers/rootHooks.ts ./src/test/**/*.test.ts",
     "test": "cross-env DEBUG=backend-ts:test:* npm run test:run",

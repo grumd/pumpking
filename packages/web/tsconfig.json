@@ -2,6 +2,7 @@
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     "composite": true,
+    "incremental": true,
     "allowJs": true,
     "checkJs": false,
     "baseUrl": "./src",
@@ -18,5 +19,5 @@
     "jsx": "react-jsx"
   },
   "include": ["./src"],
-  "references": [{ "path": "../api" }]
+  "references": [{ "path": "../api/tsconfig.ref.json" }]
 }
