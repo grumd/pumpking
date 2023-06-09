@@ -67,8 +67,8 @@ app.use('/', routes);
 
 app.use('/trpc', expressRouter);
 
-app.use((req, res) => {
-  res.sendStatus(404);
+app.use((req, res, next) => {
+  next(new StatusError(404, 'Not Found'));
 });
 
 // error handler
@@ -79,14 +79,14 @@ app.use(
     res: express.Response,
     _next: express.NextFunction
   ) => {
-    debug(err);
-
     if (err instanceof StatusError) {
+      debug(err.status, err.message);
       res.status(err.status).json({
         message: err.message,
         data: err.data,
       });
     } else {
+      debug(err);
       res.status(500).json({
         message: 'Internal Server Error: ' + err.message,
       });
