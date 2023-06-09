@@ -67,22 +67,29 @@ app.use('/', routes);
 
 app.use('/trpc', expressRouter);
 
-// error handler
-app.use((err: Error | StatusError<unknown>, req: express.Request, res: express.Response) => {
-  debug(err);
-
-  // set locals, only providing error in development
-  res.locals.message = err.message;
-  res.locals.error = req.app.get('env') === 'development' ? err : {};
-
-  if (err instanceof StatusError) {
-    res.status(err.status).json({
-      message: err.message,
-      data: err.data,
-    });
-  } else {
-    res.status(500).json({
-      message: 'Internal Server Error: ' + err.message,
-    });
-  }
+app.use((req, res) => {
+  res.sendStatus(404);
 });
+
+// error handler
+app.use(
+  (
+    err: Error | StatusError<unknown>,
+    _req: express.Request,
+    res: express.Response,
+    _next: express.NextFunction
+  ) => {
+    debug(err);
+
+    if (err instanceof StatusError) {
+      res.status(err.status).json({
+        message: err.message,
+        data: err.data,
+      });
+    } else {
+      res.status(500).json({
+        message: 'Internal Server Error: ' + err.message,
+      });
+    }
+  }
+);
