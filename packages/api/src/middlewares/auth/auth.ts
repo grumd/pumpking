@@ -1,8 +1,7 @@
-import { knex } from 'db';
+import { db } from 'db';
 import type { Response, Request, NextFunction } from 'express';
 
 import { StatusError } from 'utils/errors';
-import { Session } from 'models/Session';
 
 const debug = require('debug')('backend-ts:middleware:auth');
 
@@ -10,21 +9,24 @@ export const auth = async (request: Request, response: Response, next: NextFunct
   const session = request.headers['session'];
 
   if (typeof session === 'string') {
-    const sessionDb = await knex
-      .query(Session)
-      .select(
-        'id',
-        'player.nickname',
-        'player.id',
-        'player.is_admin',
-        'player.can_add_results_manually'
-      )
-      .where('id', session)
-      .innerJoinColumn('player')
-      .getFirstOrNull();
+    const sessionDb = await db
+      .selectFrom('sessions')
+      .innerJoin('players', 'players.id', 'sessions.player')
+      .select([
+        'player as id',
+        'players.nickname',
+        'players.is_admin',
+        'players.can_add_results_manually',
+      ])
+      .where('sessions.id', '=', session)
+      .executeTakeFirst();
 
     if (sessionDb) {
-      request.user = sessionDb.player;
+      request.user = {
+        ...sessionDb,
+        is_admin: sessionDb.is_admin === 1,
+        can_add_results_manually: sessionDb.can_add_results_manually === 1,
+      };
       debug(`Authenticated as ${JSON.stringify(request.user)}`);
     }
   }

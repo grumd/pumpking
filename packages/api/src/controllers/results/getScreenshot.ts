@@ -1,9 +1,7 @@
 import path from 'path';
 import fs from 'fs';
 
-import { knex } from 'db';
-
-import { Result } from 'models/Result';
+import { db } from 'db';
 
 import { StatusError } from 'utils/errors';
 
@@ -14,11 +12,11 @@ export const getScreenshotPath = async (resultId: number) => {
     );
   }
 
-  const result = await knex
-    .query(Result)
-    .select('screen_file', 'agent')
-    .where('id', resultId)
-    .getFirstOrNull();
+  const result = await db
+    .selectFrom('results')
+    .select(['screen_file', 'agent'])
+    .where('id', '=', resultId)
+    .executeTakeFirst();
 
   if (!result) {
     throw new StatusError(404, 'Result not found');

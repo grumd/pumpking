@@ -1,8 +1,10 @@
 import { Router } from 'express';
+import type { Response, Request, NextFunction } from 'express';
 
-import { onResultAdded, getTopResults, getGroupedResults } from 'controllers/results';
 import { addResult } from 'controllers/results/addResult';
 import { getScreenshotPath } from 'controllers/results/getScreenshot';
+
+import { resultAddedEffect } from 'processors/resultAddedEffect';
 
 import { validate } from 'utils';
 
@@ -21,24 +23,12 @@ const router = Router();
 router.post(
   '/result-added-effect/:resultId',
   validate({ params: { resultId: 'required|integer' } }),
-  onResultAdded
+  async (request: Request, response: Response, next: NextFunction) => {
+    const resultId = Number(request.params.resultId);
+    await resultAddedEffect(resultId);
+    response.sendStatus(200);
+  }
 );
-
-/**
- * GET /results/top
- * @summary Top results per chart
- * @tags results top pp
- * @return {string} 200 - success response
- */
-router.get('/top', getTopResults);
-
-/**
- * GET /results/grouped
- * @summary Top results per chart
- * @tags results top pp
- * @return {string} 200 - success response
- */
-router.get('/grouped', getGroupedResults);
 
 /**
  * POST /results/add-result

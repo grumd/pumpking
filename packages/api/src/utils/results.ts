@@ -33,13 +33,17 @@ export const getGroupedBestResults = <
 };
 
 export const getAccuracyPercent = (r: {
-  perfects: number;
-  greats: number;
-  goods: number;
-  bads: number;
-  misses: number;
+  perfects: number | null;
+  greats: number | null;
+  goods: number | null;
+  bads: number | null;
+  misses: number | null;
 }): number | null => {
-  return r.perfects
+  return !_.isNil(r.perfects) &&
+    !_.isNil(r.greats) &&
+    !_.isNil(r.goods) &&
+    !_.isNil(r.bads) &&
+    !_.isNil(r.misses)
     ? Math.floor(
         ((r.perfects * 100 + r.greats * 85 + r.goods * 60 + r.bads * 20 + r.misses * -25) /
           (r.perfects + r.greats + r.goods + r.bads + r.misses)) *

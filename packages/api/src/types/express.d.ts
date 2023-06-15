@@ -13,7 +13,12 @@ declare module 'express' {
     ReqQuery = core.Query,
     Locals extends Record<string, any> = Record<string, any>
   > extends express.Request<P, ResBody, ReqBody, ReqQuery, Locals> {
-    user?: null | Pick<Player, 'id' | 'nickname' | 'is_admin' | 'can_add_results_manually'>;
+    user?: null | {
+      id: number;
+      nickname: string;
+      is_admin: boolean;
+      can_add_results_manually: boolean;
+    };
     files?: Record<string, FileField>;
   }
 }

@@ -1,80 +1,68 @@
 import _ from 'lodash/fp';
 
-import { knex } from 'db';
-import { Knex } from 'knex';
-import { ResultHighestScoreNoRank } from 'models/ResultHighestScoreNoRank';
-import { Player } from 'models/Player';
+import { db, type Transaction } from 'db';
 
 type ScoreRecord = {
   id: number;
-  song: string;
+  song: string | null;
   label: string;
-  diff: number;
+  diff: number | null;
   pp: number;
 };
 
-// type PlayersMap = Record<
-//   string,
-//   {
-//     nickname: string;
-//     pp: number;
-//     bestScores: ScoreRecord[];
-//   }
-// >;
+const getPlayerResults = async ({
+  playerId,
+  transaction,
+}: {
+  playerId: number;
+  transaction?: Transaction;
+}) => {
+  const results = await (transaction ?? db)
+    .selectFrom('results_highest_score_no_rank as best')
+    .innerJoin('results', 'results.id', 'result_id')
+    .innerJoin('chart_instances', 'chart_instances.id', 'results.chart_instance')
+    .innerJoin('players', 'players.id', 'best.player_id')
+    .innerJoin('tracks', 'tracks.id', 'chart_instances.track')
+    .select([
+      'results.id as result_id',
+      'results.score_xx',
+      'results.grade',
+      'results.perfects',
+      'results.greats',
+      'results.goods',
+      'results.bads',
+      'results.misses',
+      'results.pp',
+      'results.player_name',
+      'results.shared_chart as shared_chart_id',
+      'best.player_id',
+      'chart_instances.level',
+      'chart_instances.label',
+      'chart_instances.interpolated_difficulty',
+      'tracks.short_name',
+      'players.nickname',
+    ])
+    .where('best.player_id', '=', playerId)
+    .where('chart_instances.label', 'not like', 'COOP%')
+    .where('results.pp', 'is not', null)
+    .orderBy('results.pp', 'desc')
+    .limit(100)
+    .execute();
 
-const getPlayerResultsQuery = ({ playerId }: { playerId: number }) => {
-  return knex
-    .query(ResultHighestScoreNoRank)
-    .innerJoinColumn('result')
-    .innerJoinColumn('result.chart_instance')
-    .innerJoinColumn('shared_chart')
-    .innerJoinColumn('shared_chart.track')
-    .innerJoinColumn('player')
-    .select(
-      'result_id',
-      'result.score_xx',
-      'result.grade',
-      'result.perfects',
-      'result.greats',
-      'result.goods',
-      'result.bads',
-      'result.misses',
-      'result.pp',
-      'result.player_name',
-      'shared_chart_id',
-      'player_id',
-      'result.chart_instance.level',
-      'result.chart_instance.label',
-      'result.chart_instance.interpolated_difficulty',
-      'shared_chart.track.short_name',
-      'player.nickname'
-    )
-    .where('player_id', playerId)
-    .where('result.chart_label', 'NOT LIKE', 'COOP%')
-    .whereNotNull('result.pp')
-    .orderBy('result.pp', 'desc')
-    .limit(100);
+  // Assert that PP is not null because we had a "where" clause
+  return results as ((typeof results)[number] & { pp: number })[];
 };
 
 const getPlayerPpFromResults = (
   bestResults: {
     result_id: number;
     shared_chart_id: number;
-    player_id: number;
-    result: {
-      chart_instance: {
-        label: string;
-        interpolated_difficulty: number;
-      };
-      pp: number;
-      player_name: string;
-    };
-    shared_chart: {
-      track: { short_name: string };
-    };
-    player: {
-      nickname: string;
-    };
+    label: string;
+    interpolated_difficulty: number | null;
+    pp: number;
+    player_name: string;
+    short_name: string | null;
+    nickname: string;
   }[]
 ) => {
   if (!bestResults || !bestResults.length) {
@@ -82,20 +70,20 @@ const getPlayerPpFromResults = (
   }
 
   const player = {
-    nickname: bestResults[0].player.nickname,
+    nickname: bestResults[0].nickname,
     pp: 0,
     bestScores: [] as ScoreRecord[],
   };
 
   bestResults.forEach((res, index) => {
-    player.pp += 0.95 ** index * res.result.pp;
+    player.pp += 0.95 ** index * res.pp;
     if (index < 20) {
       player.bestScores.push({
         id: res.result_id,
-        song: res.shared_chart.track.short_name,
-        label: res.result.chart_instance.label,
-        diff: res.result.chart_instance.interpolated_difficulty,
-        pp: res.result.pp,
+        song: res.short_name,
+        label: res.label,
+        diff: res.interpolated_difficulty,
+        pp: res.pp,
       });
     }
   });
@@ -103,27 +91,18 @@ const getPlayerPpFromResults = (
   return player;
 };
 
-export const getSinglePlayerPpData = async (
-  playerId: number,
-  transaction?: null | Knex.Transaction<any, any[]>
-) => {
-  let query = getPlayerResultsQuery({ playerId });
-  if (transaction) {
-    query = query.transacting(transaction);
-  }
-  const playerData = getPlayerPpFromResults(await query.getMany());
+export const getSinglePlayerPpData = async (playerId: number, transaction?: Transaction) => {
+  const results = await getPlayerResults({ playerId, transaction });
+  const playerData = getPlayerPpFromResults(results);
   return playerData;
 };
 
-export const getSinglePlayerTotalPp = async (
-  playerId: number,
-  transaction?: null | Knex.Transaction<any, any[]>
-) => {
+export const getSinglePlayerTotalPp = async (playerId: number, transaction?: Transaction) => {
   return (await getSinglePlayerPpData(playerId, transaction))?.pp;
 };
 
 export const getPlayersTotalPp = async () => {
-  const playerIds = await knex.query(Player).select('id').where('hidden', 0).getMany();
+  const playerIds = await db.selectFrom('players').select('id').where('hidden', '=', 0).execute();
   const players = await Promise.all(playerIds.map(({ id }) => getSinglePlayerPpData(id)));
   return players;
 };
