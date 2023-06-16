@@ -15,6 +15,9 @@ export enum Grade {
   Unknown = '?',
 }
 
+export const isValidGrade = (grade: string | null): grade is Grade =>
+  grade ? Object.values(Grade).includes(grade as Grade) : false;
+
 export const gradeSortValue: Record<Grade, number> = {
   [Grade.SSS]: 12,
   [Grade.SS]: 11,

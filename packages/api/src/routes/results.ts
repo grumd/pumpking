@@ -1,13 +1,12 @@
 import { Router } from 'express';
 
-import { onResultAdded, getTopResults, getGroupedResults } from 'controllers/results';
-import { addResult } from 'controllers/results/addResult';
-import { getScreenshotPath } from 'controllers/results/getScreenshot';
+import { resultAddedEffectController } from 'controllers/results/resultAddedEffect';
+import { screenshotController } from 'controllers/results/screenshot';
+import { addResultController } from 'controllers/results/addResult';
 
 import { validate } from 'utils';
 
 import { addResultsAuth } from 'middlewares/auth/auth';
-import { getFirstFrameFromMp4 } from 'utils/mp4';
 
 const router = Router();
 
@@ -21,24 +20,8 @@ const router = Router();
 router.post(
   '/result-added-effect/:resultId',
   validate({ params: { resultId: 'required|integer' } }),
-  onResultAdded
+  resultAddedEffectController
 );
-
-/**
- * GET /results/top
- * @summary Top results per chart
- * @tags results top pp
- * @return {string} 200 - success response
- */
-router.get('/top', getTopResults);
-
-/**
- * GET /results/grouped
- * @summary Top results per chart
- * @tags results top pp
- * @return {string} 200 - success response
- */
-router.get('/grouped', getGroupedResults);
 
 /**
  * POST /results/add-result
@@ -46,7 +29,7 @@ router.get('/grouped', getGroupedResults);
  * @tags results add result
  * @return {string} 200 - success response
  */
-router.post('/add-result', addResultsAuth, addResult);
+router.post('/add-result', addResultsAuth, addResultController);
 
 /**
  * GET /results/screenshot
@@ -57,31 +40,7 @@ router.post('/add-result', addResultsAuth, addResult);
 router.get(
   '/:resultId/screenshot',
   validate({ params: { resultId: 'required|integer' } }),
-  async (request, response, next) => {
-    try {
-      const resultId = parseInt(request.params.resultId, 10);
-      const filePath = await getScreenshotPath(resultId);
-      if (filePath.endsWith('.mp4')) {
-        getFirstFrameFromMp4(filePath, (buffer, err) => {
-          if (err) {
-            next(err);
-          } else if (!buffer) {
-            next(new Error('Extracting image from mp4 failed, empty buffer'));
-          } else {
-            response.writeHead(200, {
-              'Content-Type': 'image/jpg',
-              'Content-Length': buffer.length,
-            });
-            response.end(buffer);
-          }
-        });
-      } else {
-        response.sendFile(filePath);
-      }
-    } catch (e) {
-      next(e);
-    }
-  }
+  screenshotController
 );
 
 export default router;

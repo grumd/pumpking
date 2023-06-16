@@ -1,7 +1,5 @@
 import { RootHookObject, AsyncFunc, Context } from 'mocha';
-import knexCleaner from 'knex-cleaner';
 
-import { knexEx } from 'db';
 import { initialSeed } from 'test/seeds/initialSeed';
 import { createTestDatabase, deleteTestDatabase } from 'test/testDatabaseUtils';
 
@@ -16,7 +14,6 @@ const afterAll: AsyncFunc = async function (this: Context) {
 };
 
 const beforeEach: AsyncFunc = async function (this: Context) {
-  await knexCleaner.clean(knexEx);
   await initialSeed();
 };
 

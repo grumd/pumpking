@@ -11,7 +11,7 @@ export const replacePatterns = <T extends object>(str: string, data: T): string 
 export interface ScreenshotBasePathData {
   playerId: number;
   nickname: string;
-  email: string;
+  email: string | null;
 }
 
 export const getScreenshotBasePath = (pattern: string, data: ScreenshotBasePathData): string => {

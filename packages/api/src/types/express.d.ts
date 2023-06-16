@@ -1,8 +1,6 @@
 import type * as express from 'express';
 import type * as core from 'express-serve-static-core';
 
-import type { Player } from 'models/Player';
-
 import type { FileField } from './fileUpload';
 
 declare module 'express' {
@@ -13,7 +11,12 @@ declare module 'express' {
     ReqQuery = core.Query,
     Locals extends Record<string, any> = Record<string, any>
   > extends express.Request<P, ResBody, ReqBody, ReqQuery, Locals> {
-    user?: null | Pick<Player, 'id' | 'nickname' | 'is_admin' | 'can_add_results_manually'>;
+    user?: null | {
+      id: number;
+      nickname: string;
+      is_admin: boolean;
+      can_add_results_manually: boolean;
+    };
     files?: Record<string, FileField>;
   }
 }

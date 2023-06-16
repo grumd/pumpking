@@ -1,30 +1,66 @@
 import _ from 'lodash/fp';
 
 import { Grade } from 'constants/grades';
-import { knex, knexEx } from 'db';
-import { ChartInstance } from 'models/ChartInstance';
-import { Player } from 'models/Player';
-import { Result } from 'models/Result';
-import { SharedChart } from 'models/SharedChart';
-import { Track } from 'models/Track';
-import { mix } from 'constants/currentMix';
+import { db } from 'db';
 
-export const players: Partial<Player>[] = [
+import { mix } from 'constants/currentMix';
+import { addResultsSession, adminSession } from 'test/helpers/sessions';
+
+export const sessions = [
+  {
+    id: adminSession,
+    player: 6,
+    established: new Date(),
+    valid_until: new Date(),
+  },
+  {
+    id: addResultsSession,
+    player: 7,
+    established: new Date(),
+    valid_until: new Date(),
+  },
+];
+
+export const players = [
   { id: 1, nickname: 'Dummy 1', arcade_name: 'DUMMY1', hidden: 0 },
   { id: 2, nickname: 'Dummy 2', arcade_name: 'DUMMY2', hidden: 0 },
   { id: 3, nickname: 'Dummy 3', arcade_name: 'DUMMY3', hidden: 0 },
   { id: 4, nickname: 'Dummy 4', arcade_name: 'DUMMY4', hidden: 0 },
   { id: 5, nickname: 'Dummy 5 Hidden', arcade_name: 'DUMMY5HIDDEN', hidden: 1 },
+  { id: 6, nickname: 'Admin', arcade_name: 'ADMIN', hidden: 0, is_admin: 1 },
+  {
+    id: 7,
+    nickname: 'Add Results',
+    arcade_name: 'ADDRESULTS',
+    hidden: 0,
+    can_add_results_manually: 1,
+  },
 ];
 
-export const tracks: Partial<Track>[] = [
-  { id: 1, full_name: 'Track 1', short_name: 'Track 1', duration: 'Standard', external_id: 1 },
+export const tracks = [
+  {
+    id: 1,
+    full_name: 'Track 1',
+    short_name: 'Track 1',
+    duration: 'Standard' as const,
+    external_id: '1',
+  },
 ];
 
-export const sharedCharts: Partial<SharedChart>[] = [{ id: 1, track_id: 1, index_in_track: 1 }];
+export const sharedCharts = [{ id: 1, track: 1, index_in_track: 1 }];
 
-export const chartInstances: Partial<ChartInstance>[] = [
-  { id: 1, track_id: 1, shared_chart_id: 1, mix, label: 'S20', level: 20 },
+export const chartInstances = [
+  {
+    id: 1,
+    track: 1,
+    shared_chart: 1,
+    mix,
+    label: 'S20',
+    level: 20,
+    max_possible_score_norank: 1000000,
+    max_total_steps: 100,
+    min_total_steps: 100,
+  },
 ];
 
 export const getResultDefaults = ({ playerId = 1, score = 1000000 }) => ({
@@ -36,8 +72,8 @@ export const getResultDefaults = ({ playerId = 1, score = 1000000 }) => ({
   mix_name: '',
   mix,
   chart_label: '',
-  shared_chart_id: 1,
-  chart_instance_id: 1,
+  shared_chart: 1,
+  chart_instance: 1,
   player_name: '',
   recognized_player_id: playerId,
   actual_player_id: playerId,
@@ -57,7 +93,7 @@ export const getResultDefaults = ({ playerId = 1, score = 1000000 }) => ({
   is_new_best_score: 1 as const,
 });
 
-export const results: Partial<Result>[] = [
+export const results = [
   {
     ...getResultDefaults({
       playerId: 1,
@@ -89,13 +125,20 @@ export const results: Partial<Result>[] = [
 ];
 
 export const initialSeed = async () => {
-  await knex.query(Player).insertItems(players);
-  await knex.query(Track).insertItems(tracks);
-  await knex.query(SharedChart).insertItems(sharedCharts);
-  await knex.query(ChartInstance).insertItems(chartInstances);
-  await knex.query(Result).insertItems(results);
-  while ((await knexEx.migrate.status()) < 0) {
-    await knexEx.migrate.up();
-  }
-  // await knexEx.migrate.latest(); // this does all migrations in parallel for some reason
+  await db.deleteFrom('results_best_grade').execute();
+  await db.deleteFrom('results_highest_score_no_rank').execute();
+  await db.deleteFrom('results_highest_score_rank').execute();
+  await db.deleteFrom('results').execute();
+  await db.deleteFrom('chart_instances').execute();
+  await db.deleteFrom('shared_charts').execute();
+  await db.deleteFrom('tracks').execute();
+  await db.deleteFrom('sessions').execute();
+  await db.deleteFrom('players').execute();
+
+  await db.insertInto('players').values(players).execute();
+  await db.insertInto('sessions').values(sessions).execute();
+  await db.insertInto('tracks').values(tracks).execute();
+  await db.insertInto('shared_charts').values(sharedCharts).execute();
+  await db.insertInto('chart_instances').values(chartInstances).execute();
+  await db.insertInto('results').values(results).execute();
 };

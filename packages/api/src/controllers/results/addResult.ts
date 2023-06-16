@@ -3,19 +3,14 @@ import { z } from 'zod';
 import fs from 'fs';
 import path from 'path';
 
-import { knex, knexEx } from 'db';
+import { db } from 'db';
 
 import { Grade } from 'constants/grades';
 
 import { error } from 'utils';
 import { prepareForKnexUtc } from 'utils/date';
 
-import { Player } from 'models/Player';
-import { SharedChart } from 'models/SharedChart';
-import { ChartInstance } from 'models/ChartInstance';
-import { Result } from 'models/Result';
-
-import { resultAddedEffect } from 'processors/resultAddedEffect';
+import { resultAddedEffect } from 'services/results/resultAddedEffect';
 
 import type { FileField } from 'types/fileUpload';
 
@@ -76,7 +71,11 @@ const mixIdByName = {
 
 type TManualResult = z.infer<typeof ManualResult>;
 
-export const addResult = async (request: Request, response: Response, next: NextFunction) => {
+export const addResultController = async (
+  request: Request,
+  response: Response,
+  next: NextFunction
+) => {
   try {
     if (!request.files || !request.files.screenshot) {
       return next(error(400, 'Bad Request: No screenshot uploaded'));
@@ -89,7 +88,15 @@ export const addResult = async (request: Request, response: Response, next: Next
 
     const { data: result } = zodResult;
 
-    const player = await knex.query(Player).where('id', result.playerId).getFirstOrNull();
+    if (request.user?.id !== result.playerId) {
+      return next(error(403, 'Forbidden: You can only add results for yourself'));
+    }
+
+    const player = await db
+      .selectFrom('players')
+      .where('id', '=', result.playerId)
+      .selectAll()
+      .executeTakeFirst();
 
     if (!player) {
       return next(error(400, `Bad Request: Player ${result.playerId} does not exist`));
@@ -98,25 +105,26 @@ export const addResult = async (request: Request, response: Response, next: Next
       return next(error(400, `Bad Request: Player ${result.playerId}'s results are discarded`));
     }
 
-    const sharedChart = await knex
-      .query(SharedChart)
-      .select('track.duration', 'track.short_name')
-      .where('id', result.sharedChartId)
-      .innerJoinColumn('track')
-      .getFirstOrNull();
-    const chartInstance = await knex
-      .query(ChartInstance)
-      .select(
+    const sharedChart = await db
+      .selectFrom('shared_charts')
+      .innerJoin('tracks', 'tracks.id', 'shared_charts.track')
+      .where('shared_charts.id', '=', result.sharedChartId)
+      .select(['tracks.duration', 'tracks.short_name'])
+      .executeTakeFirst();
+
+    const chartInstance = await db
+      .selectFrom('chart_instances')
+      .where('shared_chart', '=', result.sharedChartId)
+      .where('mix', '=', mixIdByName[result.mix])
+      .select([
         'id',
         'level',
         'label',
         'max_possible_score_norank',
         'max_total_steps',
-        'min_total_steps'
-      )
-      .where('shared_chart_id', result.sharedChartId)
-      .andWhere('mix', mixIdByName[result.mix])
-      .getFirstOrNull();
+        'min_total_steps',
+      ])
+      .executeTakeFirst();
 
     if (!sharedChart || !chartInstance) {
       return next(error(400, `Bad Request: Chart not found`));
@@ -124,7 +132,8 @@ export const addResult = async (request: Request, response: Response, next: Next
 
     if (result.mod === 'VJ') {
       if (
-        sharedChart.track.duration !== 'Standard' ||
+        sharedChart.duration !== 'Standard' ||
+        !chartInstance.level ||
         chartInstance.level < 13 ||
         chartInstance.label.startsWith('SP') ||
         chartInstance.label.startsWith('DP') ||
@@ -133,8 +142,6 @@ export const addResult = async (request: Request, response: Response, next: Next
         return next(error(400, `Bad Request: Rank Mode can not be used on this chart`));
       }
     }
-
-    // TODO: Check for max possible score?
 
     const scoreError = getScoreError(result, chartInstance);
     if (scoreError) {
@@ -154,52 +161,54 @@ export const addResult = async (request: Request, response: Response, next: Next
       dateTime: dateToFileName(result.date, { withTime: true }),
     });
 
-    const maxScoreResult = await knex
-      .query(Result)
-      .max('score', 'maxScore')
-      .where('shared_chart_id', result.sharedChartId)
-      .andWhere('player_id', result.playerId)
-      .getFirstOrNull();
+    const maxScoreResult = await db
+      .selectFrom('results')
+      .select(({ fn }) => [fn.max('score').as('maxScore')])
+      .where('shared_chart', '=', result.sharedChartId)
+      .where('player_id', '=', result.playerId)
+      .executeTakeFirst();
 
-    const [newId] = await knexEx<
-      Omit<Result, 'shared_chart' | 'chart_instance'> & {
-        shared_chart: number;
-        chart_instance: number;
-      }
-    >('results').insert({
-      token,
-      screen_file: screenshotPath,
-      recognition_notes: 'manual',
-      added: prepareForKnexUtc(new Date()),
-      agent: -1,
-      track_name: sharedChart.track.short_name,
-      mix_name: result.mix,
-      mix: mixIdByName[result.mix],
-      chart_label: chartInstance.label,
-      shared_chart: result.sharedChartId,
-      chart_instance: chartInstance.id,
-      player_name: player.nickname,
-      recognized_player_id: result.playerId,
-      gained: result.date,
-      exact_gain_date: result.isExactDate ? 1 : 0,
-      rank_mode: result.mod === 'VJ' ? 1 : 0,
-      mods_list: result.mod,
-      score: result.score,
-      score_xx: result.score,
-      misses: result.miss,
-      bads: result.bad,
-      goods: result.good,
-      greats: result.great,
-      perfects: result.perfect,
-      grade: result.grade,
-      max_combo: result.combo,
-      is_new_best_score: !maxScoreResult || result.score > maxScoreResult.maxScore ? 1 : 0,
-      is_manual_input: 1,
-    });
+    const insertResult = await db
+      .insertInto('results')
+      .values({
+        token,
+        screen_file: screenshotPath,
+        recognition_notes: 'manual',
+        added: prepareForKnexUtc(new Date()),
+        agent: -1,
+        track_name: sharedChart.short_name || '',
+        mix_name: result.mix,
+        mix: mixIdByName[result.mix],
+        chart_label: chartInstance.label,
+        shared_chart: result.sharedChartId,
+        chart_instance: chartInstance.id,
+        player_name: player.nickname,
+        recognized_player_id: result.playerId,
+        gained: result.date,
+        exact_gain_date: result.isExactDate ? 1 : 0,
+        rank_mode: result.mod === 'VJ' ? 1 : 0,
+        mods_list: result.mod,
+        score: result.score,
+        score_xx: result.score,
+        misses: result.miss,
+        bads: result.bad,
+        goods: result.good,
+        greats: result.great,
+        perfects: result.perfect,
+        grade: result.grade,
+        max_combo: result.combo,
+        is_new_best_score: !maxScoreResult || result.score > (maxScoreResult.maxScore ?? 0) ? 1 : 0,
+        is_manual_input: 1,
+      })
+      .executeTakeFirst();
 
-    debug('Manually added a new result id ', newId);
+    if (!insertResult) {
+      return next(error(500, 'Failed to insert result in the database'));
+    }
 
-    await resultAddedEffect(newId);
+    debug('Manually added a new result id ', insertResult.insertId);
+
+    await resultAddedEffect(Number(insertResult.insertId));
 
     response.json({ success: true });
   } catch (e) {
@@ -264,9 +273,10 @@ const saveScreenshot = (file: FileField, data: ScreenshotFileData): string => {
   const baseDirectory = getScreenshotFilePath(process.env.SCREENSHOT_BASE_FOLDER, data);
   const fullPath = path.join(baseDirectory, fileRelativePath);
 
-  fs.mkdirSync(path.dirname(fullPath), { recursive: true });
-
-  fs.copyFileSync(file.path, fullPath);
+  if (process.env.NODE_ENV !== 'test') {
+    fs.mkdirSync(path.dirname(fullPath), { recursive: true });
+    fs.copyFileSync(file.path, fullPath);
+  }
 
   return fileRelativePath;
 };

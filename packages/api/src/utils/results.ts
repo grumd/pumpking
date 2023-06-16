@@ -7,22 +7,22 @@ import { Grade, gradeSortValue } from 'constants/grades';
  */
 export const getGroupedBestResults = <
   ArgItem extends {
-    shared_chart: { id: number };
-    player: { id: number };
+    shared_chart_id: number;
+    player_id: number | null;
   }
 >(
   allResults: ArgItem[]
 ): Dictionary<ArgItem[]> => {
-  const resultsByChart = _.flow<[ArgItem[]], Dictionary<ArgItem[]>, Dictionary<ArgItem[]>>(
-    _.groupBy((result) => result.shared_chart.id),
+  const resultsByChart = _.flow(
+    _.groupBy((result: ArgItem) => result.shared_chart_id),
     _.mapValues((results) => {
       const hasPlayerScore: Record<number, boolean> = {};
       // Remove results that are not best player's result on chart
       return _.filter((res) => {
-        if (hasPlayerScore[res.player.id]) {
+        if (!res.player_id || hasPlayerScore[res.player_id]) {
           return false;
         } else {
-          hasPlayerScore[res.player.id] = true;
+          hasPlayerScore[res.player_id] = true;
           return true;
         }
       }, results);
@@ -33,13 +33,17 @@ export const getGroupedBestResults = <
 };
 
 export const getAccuracyPercent = (r: {
-  perfects: number;
-  greats: number;
-  goods: number;
-  bads: number;
-  misses: number;
+  perfects: number | null;
+  greats: number | null;
+  goods: number | null;
+  bads: number | null;
+  misses: number | null;
 }): number | null => {
-  return r.perfects
+  return !_.isNil(r.perfects) &&
+    !_.isNil(r.greats) &&
+    !_.isNil(r.goods) &&
+    !_.isNil(r.bads) &&
+    !_.isNil(r.misses)
     ? Math.floor(
         ((r.perfects * 100 + r.greats * 85 + r.goods * 60 + r.bads * 20 + r.misses * -25) /
           (r.perfects + r.greats + r.goods + r.bads + r.misses)) *

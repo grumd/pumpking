@@ -2,21 +2,21 @@ import _ from 'lodash/fp';
 import regression from 'regression';
 import { DataPoint } from 'regression';
 
-import { knex } from 'db';
+import { db } from 'db';
 
 import { mix } from 'constants/currentMix';
+
 import { getGroupedBestResults, getAccuracyPercent } from 'utils/results';
-import { Result } from 'models/Result';
 
 type AccPoint = { level: number; scorePercent: number };
 
 export default async () => {
-  const allResults = await knex
-    .query(Result)
-    .innerJoinColumn('shared_chart')
-    .innerJoinColumn('chart_instance')
-    .innerJoinColumn('player')
-    .select(
+  let allResults = await db
+    .selectFrom('results')
+    .innerJoin('chart_instances', 'chart_instances.id', 'results.chart_instance')
+    .innerJoin('players', 'players.id', 'results.player_id')
+    .innerJoin('tracks', 'tracks.id', 'chart_instances.track')
+    .select([
       'id',
       'score_xx',
       'grade',
@@ -26,18 +26,19 @@ export default async () => {
       'bads',
       'misses',
       'rank_mode',
-      'shared_chart.id',
-      'player.id',
-      'player.nickname',
-      'chart_instance.level'
-    )
-    .where('player.hidden', 0)
-    .where('is_new_best_score', 1)
-    .where('rank_mode', 0)
-    .where('mix', mix)
-    .where('chart_label', 'NOT LIKE', 'COOP%')
+      'shared_chart as shared_chart_id',
+      'player_id',
+      'players.nickname',
+      'chart_instances.level',
+      'tracks.short_name as track_short_name',
+    ])
+    .where('players.hidden', '=', 0)
+    .where('is_new_best_score', '=', 1)
+    .where('rank_mode', '=', 0)
+    .where('mix', '=', mix)
+    .where('chart_label', 'not like', 'COOP%')
     .orderBy('gained', 'desc')
-    .getMany();
+    .execute();
 
   /**
    * Group results by chart
@@ -51,14 +52,14 @@ export default async () => {
   _.forEach((chartResults) => {
     _.forEach((result) => {
       const percents = getAccuracyPercent(result);
-      if (percents) {
-        profiles[result.player.id] ??= {
-          nickname: result.player.nickname,
+      if (percents && result.player_id && result.level) {
+        profiles[result.player_id] ??= {
+          nickname: result.nickname,
           accuracyPointsRaw: [],
         };
 
-        profiles[result.player.id].accuracyPointsRaw.push({
-          level: result.chart_instance.level,
+        profiles[result.player_id].accuracyPointsRaw.push({
+          level: result.level,
           scorePercent: percents,
         });
       }
@@ -106,20 +107,26 @@ export default async () => {
   const charts = _.mapValues((chartResults) => {
     // Looping through every chart result to find weights
     const resultsData = chartResults
-      .filter((r) => !!profiles[r.player.id])
+      .filter((r) => r.player_id && !!profiles[r.player_id])
       .map((r) => {
-        const profile = profilesInterpolated[r.player.id];
+        if (!r.player_id || !r.level) return null;
+
+        const profile = profilesInterpolated[r.player_id];
         const scorePercent = getAccuracyPercent(r);
+
         if (profile === null || scorePercent === null) {
           return null;
         }
+
         const interpolatedPoint = _.minBy(
           (pair) => Math.abs(pair[1] - scorePercent),
           profile.pointsInterpolated
         );
+
         if (interpolatedPoint === undefined) {
           return null;
         }
+
         const difficulty = interpolatedPoint[0];
         let weight =
           scorePercent > 98
@@ -127,10 +134,9 @@ export default async () => {
             : scorePercent < 80
             ? Math.max(0, (scorePercent - 50) / (80 - 50))
             : 1;
-        weight *= Math.min(
-          1,
-          Math.max(0.1, (8 - Math.abs(difficulty - r.chart_instance.level)) / 8)
-        );
+
+        weight *= Math.min(1, Math.max(0.1, (8 - Math.abs(difficulty - r.level)) / 8));
+
         return { difficulty, weight, r };
       });
 
@@ -146,17 +152,17 @@ export default async () => {
       },
       { diffSum: 0, weightSum: 0 }
     );
-    sums.diffSum += _.toNumber(chartResults[0].chart_instance.level) * 2;
+    sums.diffSum += _.toNumber(chartResults[0].level) * 2;
     sums.weightSum += 2;
     return {
       level: chartResults[0].level,
-      name: chartResults[0].track_name,
+      name: chartResults[0].track_short_name,
       difficulty: sums.diffSum / sums.weightSum,
       affectedBy: resultsData
         .filter((res) => res)
         .map((res) => {
           return {
-            player: res?.r.player.nickname,
+            player: res?.r.nickname,
             difficultyGuess: res?.difficulty,
             weight: res?.weight,
           };

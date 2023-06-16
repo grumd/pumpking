@@ -1,6 +1,6 @@
 import { Router } from 'express';
 
-import { getPlayersPp, getPlayersPpCalc } from 'controllers/players';
+import { getPlayersStatsController, getPlayersAllController } from 'controllers/players';
 
 const router = Router();
 
@@ -13,19 +13,26 @@ const router = Router();
  */
 
 /**
- * GET /players/pp
- * @summary Player list with pp values
+ * GET /players/stats
+ * @summary Player list with stats
  * @tags players
  * @return {array<PlayerPp>} 200 - success response - application/json
  */
-router.get('/pp', getPlayersPp);
+router.get('/stats', getPlayersStatsController);
 
 /**
- * GET /players/pp-calc
- * @summary Player list with pp values (calculated on the fly)
- * @tags players
- * @return {array<PlayerPp>} 200 - success response - application/json
+ * Player data
+ * @typedef {object} Player
+ * @property {string} id.required - Player's id
+ * @property {string} nickname.required - Player's nickname
  */
-router.get('/pp-calc', getPlayersPpCalc);
+
+/**
+ * GET /players/all
+ * @summary Player list
+ * @tags players
+ * @return {array<Player>} 200 - success response - application/json
+ */
+router.get('/all', getPlayersAllController);
 
 export default router;
