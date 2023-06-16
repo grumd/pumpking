@@ -1,8 +1,6 @@
 import type * as express from 'express';
 import type * as core from 'express-serve-static-core';
 
-import type { Player } from 'models/Player';
-
 import type { FileField } from './fileUpload';
 
 declare module 'express' {

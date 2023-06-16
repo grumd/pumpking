@@ -6,7 +6,7 @@ import { db } from 'db';
 import { gradeSortValue, isValidGrade } from 'constants/grades';
 import { error } from 'utils';
 
-import { getSinglePlayerTotalPp } from './playersPp';
+import { getSinglePlayerTotalPp } from 'services/players/playersPp';
 import { calculateResultsPp } from './resultsPp';
 
 const debug = require('debug')('backend-ts:processor:on-result-added');

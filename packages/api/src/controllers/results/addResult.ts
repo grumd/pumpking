@@ -10,7 +10,7 @@ import { Grade } from 'constants/grades';
 import { error } from 'utils';
 import { prepareForKnexUtc } from 'utils/date';
 
-import { resultAddedEffect } from 'processors/resultAddedEffect';
+import { resultAddedEffect } from 'services/results/resultAddedEffect';
 
 import type { FileField } from 'types/fileUpload';
 
@@ -71,7 +71,11 @@ const mixIdByName = {
 
 type TManualResult = z.infer<typeof ManualResult>;
 
-export const addResult = async (request: Request, response: Response, next: NextFunction) => {
+export const addResultController = async (
+  request: Request,
+  response: Response,
+  next: NextFunction
+) => {
   try {
     if (!request.files || !request.files.screenshot) {
       return next(error(400, 'Bad Request: No screenshot uploaded'));

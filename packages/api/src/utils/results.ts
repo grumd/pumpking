@@ -7,22 +7,22 @@ import { Grade, gradeSortValue } from 'constants/grades';
  */
 export const getGroupedBestResults = <
   ArgItem extends {
-    shared_chart: { id: number };
-    player: { id: number };
+    shared_chart_id: number;
+    player_id: number | null;
   }
 >(
   allResults: ArgItem[]
 ): Dictionary<ArgItem[]> => {
-  const resultsByChart = _.flow<[ArgItem[]], Dictionary<ArgItem[]>, Dictionary<ArgItem[]>>(
-    _.groupBy((result) => result.shared_chart.id),
+  const resultsByChart = _.flow(
+    _.groupBy((result: ArgItem) => result.shared_chart_id),
     _.mapValues((results) => {
       const hasPlayerScore: Record<number, boolean> = {};
       // Remove results that are not best player's result on chart
       return _.filter((res) => {
-        if (hasPlayerScore[res.player.id]) {
+        if (!res.player_id || hasPlayerScore[res.player_id]) {
           return false;
         } else {
-          hasPlayerScore[res.player.id] = true;
+          hasPlayerScore[res.player_id] = true;
           return true;
         }
       }, results);

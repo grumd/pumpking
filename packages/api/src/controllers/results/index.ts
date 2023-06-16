@@ -3,7 +3,7 @@ import type { Response, Request, NextFunction } from 'express';
 
 import { error } from 'utils';
 
-import { resultAddedEffect } from 'processors/resultAddedEffect';
+import { resultAddedEffect } from 'services/results/resultAddedEffect';
 
 const debug = require('debug')('backend-ts:controller:results');
 

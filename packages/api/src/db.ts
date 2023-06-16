@@ -1,16 +1,7 @@
-import Knex from 'knex';
-import { TypedKnex } from '@wwwouter/typed-knex';
-
 import { createPool } from 'mysql2';
 import { Kysely, MysqlDialect, Transaction as ITransaction } from 'kysely';
 import type { DB } from './types/database';
 
-// Knex
-const config = require('./dbconfig');
-export const knexEx = Knex(config);
-export const knex = new TypedKnex(knexEx);
-
-// Kysely
 const dialect = new MysqlDialect({
   pool: createPool({
     database:
