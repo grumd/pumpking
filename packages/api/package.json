@@ -21,8 +21,9 @@
     "build": "rimraf ./build && tsc --project ./tsconfig.build.json",
     "ts-check": "tsc --noEmit --pretty",
     "test:run": "cross-env NODE_ENV=test mocha -r tsconfig-paths/register -r ts-node/register -r ./src/test/helpers/rootHooks.ts ./src/test/**/*.test.ts",
-    "test": "cross-env DEBUG=backend-ts:test:* npm run test:run",
-    "test:trace": "cross-env DEBUG=backend-ts:* npm run test:run",
+    "test": "cross-env DEBUG=backend-ts:test:* npm run test:run -- --exit",
+    "test:trace": "cross-env DEBUG=backend-ts:* npm run test:run -- --exit",
+    "test:watch": "cross-env DEBUG=backend-ts:test:* npm run test:run -- --watch --watch-files ./src/**/*",
     "migrate:make": "ts-node --transpile-only ./scripts/migrationMake.ts",
     "migrate:latest": "ts-node --transpile-only ./scripts/migrateToLatest.ts",
     "migrate:rollback": "ts-node --transpile-only ./scripts/migrationRollback.ts"

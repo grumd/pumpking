@@ -1,7 +1,4 @@
 import _ from 'lodash/fp';
-import { promises as fs } from 'fs';
-import * as path from 'path';
-import { FileMigrationProvider, Migrator } from 'kysely';
 
 import { Grade } from 'constants/grades';
 import { db } from 'db';
@@ -144,20 +141,4 @@ export const initialSeed = async () => {
   await db.insertInto('shared_charts').values(sharedCharts).execute();
   await db.insertInto('chart_instances').values(chartInstances).execute();
   await db.insertInto('results').values(results).execute();
-
-  const migrator = new Migrator({
-    db,
-    provider: new FileMigrationProvider({
-      fs,
-      path,
-      // This needs to be an absolute path.
-      migrationFolder: path.join(__dirname, '../../migrations'),
-    }),
-  });
-
-  const { error } = await migrator.migrateToLatest();
-
-  if (error) {
-    throw error;
-  }
 };

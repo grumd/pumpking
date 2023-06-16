@@ -1,3 +1,5 @@
+import './envconfig';
+
 import { createPool } from 'mysql2';
 import { Kysely, MysqlDialect, Transaction as ITransaction } from 'kysely';
 import type { DB } from './types/database';
