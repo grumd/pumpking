@@ -212,7 +212,6 @@ export const addResultController = async (
 
     response.json({ success: true });
   } catch (e) {
-    console.log('ERROR', e);
     next(e);
   }
 };

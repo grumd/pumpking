@@ -1,6 +1,6 @@
 import { Router } from 'express';
 
-import { getPlayersPpController, getPlayersAllController } from 'controllers/players';
+import { getPlayersStatsController, getPlayersAllController } from 'controllers/players';
 
 const router = Router();
 
@@ -13,12 +13,12 @@ const router = Router();
  */
 
 /**
- * GET /players/pp
- * @summary Player list with pp values
+ * GET /players/stats
+ * @summary Player list with stats
  * @tags players
  * @return {array<PlayerPp>} 200 - success response - application/json
  */
-router.get('/pp', getPlayersPpController);
+router.get('/stats', getPlayersStatsController);
 
 /**
  * Player data

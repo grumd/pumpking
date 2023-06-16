@@ -7,7 +7,11 @@ export const resultAddedEffectController = async (
   response: Response,
   next: NextFunction
 ) => {
-  const resultId = Number(request.params.resultId);
-  await resultAddedEffect(resultId);
-  response.sendStatus(200);
+  try {
+    const resultId = Number(request.params.resultId);
+    await resultAddedEffect(resultId);
+    response.sendStatus(200);
+  } catch (error) {
+    next(error);
+  }
 };

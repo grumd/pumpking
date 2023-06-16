@@ -8,14 +8,21 @@ export const getPlayersAllController = async (
   response: Response,
   next: NextFunction
 ) => {
-  const players = getPlayers();
-  response.json(players);
+  try {
+    response.json(await getPlayers());
+  } catch (error) {
+    next(error);
+  }
 };
 
-export const getPlayersPpController = async (
+export const getPlayersStatsController = async (
   request: Request,
   response: Response,
   next: NextFunction
 ) => {
-  response.json(await getPlayersGradeStats());
+  try {
+    response.json(await getPlayersGradeStats());
+  } catch (error) {
+    next(error);
+  }
 };
