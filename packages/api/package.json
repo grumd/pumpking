@@ -26,7 +26,8 @@
     "test:watch": "cross-env DEBUG=backend-ts:test:* npm run test:run -- --watch --watch-files ./src/**/*",
     "migrate:make": "ts-node --transpile-only ./scripts/migrationMake.ts",
     "migrate:latest": "ts-node --transpile-only ./scripts/migrateToLatest.ts",
-    "migrate:rollback": "ts-node --transpile-only ./scripts/migrationRollback.ts"
+    "migrate:rollback": "ts-node --transpile-only ./scripts/migrationRollback.ts",
+    "generate-kysely": "kysely-codegen --url mysql://piutop:@localhost/piutop --outFile ./src/types/database.ts"
   },
   "keywords": [],
   "author": "grumd",
