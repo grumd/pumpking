@@ -16,7 +16,7 @@ const timeStyle = {
 };
 export const getTimeAgo = (lang, date) => {
   const dayDiff = moment().startOf('day').diff(moment(date).startOf('day'), 'days');
-  return dayDiff === 0
+  return dayDiff <= 0
     ? lang.TODAY
     : dayDiff === 1
     ? lang.YESTERDAY
