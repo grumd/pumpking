@@ -175,6 +175,7 @@ const getFilteredData = (data, filter = defaultFilter, preferences) => {
           latestScoreDate,
           latestAddedScoreDate,
           results,
+          songFullName: `${row.song} ${row.chartType}${row.chartLevel}`,
         };
       }),
       filter.chartRange && ((items) => filterCharts(filter.chartRange, items)),
@@ -189,7 +190,8 @@ const getFilteredData = (data, filter = defaultFilter, preferences) => {
         }),
       _.filter((row) => _.size(row.results)),
       ...sortingFunctions,
-      filter.song && ((items) => matchSorter(items, filter.song.trim(), { keys: ['song'] })),
+      filter.song &&
+        ((items) => matchSorter(items, filter.song.trim(), { keys: ['songFullName'] })),
     ])
   )(data);
   console.log('Sorting took', performance.now() - start, 'ms');
