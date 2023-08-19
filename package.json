@@ -14,7 +14,8 @@
     "start:web": "npm start --prefix packages/web",
     "build:web": "npm run build --prefix packages/web",
     "test:api": "npm test --prefix packages/api",
-    "clean": "rm -rf node_modules && rm -rf packages/*/node_modules"
+    "clean": "rm -rf node_modules && rm -rf packages/*/node_modules",
+    "prettier": "prettier --write \"packages/**/*.{js,jsx,ts,tsx}\""
   },
   "author": "grumd",
   "license": "MIT",

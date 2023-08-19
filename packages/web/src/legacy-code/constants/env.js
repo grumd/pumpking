@@ -1,4 +1,3 @@
-
 export let DEBUG = localStorage && localStorage.getItem('debug');
 
 if (localStorage) {
@@ -11,4 +10,3 @@ if (localStorage) {
     DEBUG = 0;
   };
 }
-

@@ -123,7 +123,8 @@ export const achievements = {
     },
     resultFunction: (result, chart, state) => {
       const playedSongs = state.songsToPlay.some(
-        songToPlay => chart.song === songToPlay.song && songToPlay.charts.includes(chart.chartLabel)
+        (songToPlay) =>
+          chart.song === songToPlay.song && songToPlay.charts.includes(chart.chartLabel)
       )
         ? _.uniq([...state.playedSongs, chart.song])
         : state.playedSongs;

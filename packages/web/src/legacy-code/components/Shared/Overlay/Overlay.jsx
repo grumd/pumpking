@@ -7,10 +7,12 @@ import listensToClickOutside from 'react-onclickoutside';
 
 import './overlay.scss';
 
-const POPPER_MODIFIERS = [{
-  name: 'preventOverflow',
-  enabled: true,
-}];
+const POPPER_MODIFIERS = [
+  {
+    name: 'preventOverflow',
+    enabled: true,
+  },
+];
 
 const PLACEMENT_ARROW_MAPPING = {
   right: 'left',
@@ -19,7 +21,7 @@ const PLACEMENT_ARROW_MAPPING = {
   bottom: 'top',
 };
 
-const getArrowPlacement = placement => {
+const getArrowPlacement = (placement) => {
   return placement && PLACEMENT_ARROW_MAPPING[placement.split('-')[0]];
 };
 
