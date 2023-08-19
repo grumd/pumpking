@@ -13,7 +13,7 @@
     "start:api": "npm start --prefix packages/api",
     "start:web": "npm start --prefix packages/web",
     "build:web": "npm run build --prefix packages/web",
-    "test:api": "npm test --prefix packages/api",
+    "test:api": "npm run test:trace --prefix packages/api",
     "clean": "rm -rf node_modules && rm -rf packages/*/node_modules",
     "prettier": "prettier --write \"packages/**/*.{js,jsx,ts,tsx}\""
   },
