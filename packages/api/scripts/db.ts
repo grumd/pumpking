@@ -1,7 +1,8 @@
 import { createPool } from 'mysql2';
 import * as path from 'path';
-import { promises as fs } from 'fs';
-import { FileMigrationProvider, Kysely, Migrator, MysqlDialect } from 'kysely';
+import { Kysely, Migrator, MysqlDialect } from 'kysely';
+
+import { MigrationProvider } from '../src/utils/MigrationProvider';
 
 import * as dotenv from 'dotenv';
 
@@ -26,10 +27,7 @@ export const db = new Kysely<unknown>({
 
 export const migrator = new Migrator({
   db,
-  provider: new FileMigrationProvider({
-    fs,
-    path,
-    // This needs to be an absolute path.
-    migrationFolder: path.join(__dirname, '../migrations'),
+  provider: new MigrationProvider({
+    folder: path.join(__dirname, '../migrations'),
   }),
 });

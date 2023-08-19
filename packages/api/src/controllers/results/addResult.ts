@@ -20,7 +20,8 @@ import {
   type ScreenshotFileData,
 } from 'utils/pathPatterns';
 
-const debug = require('debug')('backend-ts:controller:results');
+import createDebug from 'debug';
+const debug = createDebug('backend-ts:controller:results');
 
 const dateToFileName = (date: Date, opts: { withTime?: boolean } = {}) => {
   if (opts?.withTime) {

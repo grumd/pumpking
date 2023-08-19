@@ -8,7 +8,8 @@ import lusca from 'lusca';
 import bodyParser from 'body-parser';
 import formData from 'express-form-data';
 
-const debug = require('debug')('backend-ts:app');
+import createDebug from 'debug';
+const debug = createDebug('backend-ts:app');
 
 import routes from './routes';
 import { expressRouter } from 'trpc/router';

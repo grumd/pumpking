@@ -37,12 +37,18 @@ export interface ApschedulerJobs {
   job_state: Buffer;
 }
 
-export interface BestResults {
-  shared_chart_id: number;
+export interface ArcadePlayerNames {
+  mix_id: number;
   player_id: number;
-  best_score_no_rank_result_id: number | null;
-  best_score_rank_result_id: number | null;
-  best_grade_result_id: number | null;
+  name: string;
+  name_edist: Generated<number>;
+}
+
+export interface ArcadeTrackNames {
+  mix_id: number;
+  track_id: number;
+  name: string;
+  name_edist: Generated<number>;
 }
 
 export interface ChartInstances {
@@ -92,14 +98,6 @@ export interface KnexMigrationsLock {
   is_locked: number | null;
 }
 
-export interface LeaderboardPlaceHistory {
-  id: Generated<number>;
-  player_id: number;
-  place: number;
-  date: Date;
-  retention_level: Generated<number>;
-}
-
 export interface Mixes {
   id: Generated<number>;
   name: string;
@@ -110,11 +108,19 @@ export interface Operators {
   token: string;
 }
 
+export interface PhoenixTrackNames {
+  track: number;
+  name: string;
+  max_edit_distance: Generated<number>;
+}
+
 export interface Players {
   id: Generated<number>;
   nickname: string;
-  arcade_name: string;
-  arcade_name_edit_dist: Generated<number>;
+  arcade_xx_name: string | null;
+  arcade_xx_name_edist: Generated<number | null>;
+  arcade_phoenix_name: string | null;
+  arcade_phoenix_name_edist: Generated<number | null>;
   email: string | null;
   region: string | null;
   hidden: Generated<number>;
@@ -132,6 +138,7 @@ export interface Players {
   pp: number | null;
   is_admin: Generated<number | null>;
   can_add_results_manually: Generated<number | null>;
+  arcade_name: string | null;
 }
 
 export interface Purgatory {
@@ -158,6 +165,8 @@ export interface Purgatory {
   perfects: number | null;
   steps_sum: number | null;
   grade: string | null;
+  is_pass: number | null;
+  plate: string | null;
   max_combo: number | null;
   calories: number | null;
 }
@@ -185,6 +194,7 @@ export interface Results {
   mods_list: string | null;
   score: number | null;
   score_xx: number | null;
+  score_phoenix: number | null;
   score_increase: number | null;
   misses: number | null;
   bads: number | null;
@@ -192,6 +202,8 @@ export interface Results {
   greats: number | null;
   perfects: number | null;
   grade: string | null;
+  is_pass: number | null;
+  plate: string | null;
   max_combo: number | null;
   calories: number | null;
   is_new_best_score: number | null;
@@ -284,14 +296,15 @@ export interface DB {
   agent_sessions: AgentSessions;
   agents: Agents;
   apscheduler_jobs: ApschedulerJobs;
-  best_results: BestResults;
+  arcade_player_names: ArcadePlayerNames;
+  arcade_track_names: ArcadeTrackNames;
   chart_instances: ChartInstances;
   draft_scores: DraftScores;
   knex_migrations: KnexMigrations;
   knex_migrations_lock: KnexMigrationsLock;
-  leaderboard_place_history: LeaderboardPlaceHistory;
   mixes: Mixes;
   operators: Operators;
+  phoenix_track_names: PhoenixTrackNames;
   players: Players;
   purgatory: Purgatory;
   results: Results;
