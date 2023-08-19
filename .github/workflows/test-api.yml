@@ -1,0 +1,41 @@
+name: Test API
+
+on:
+  workflow_call:
+  pull_request:
+    branches: ['master']
+    paths: ['packages/api/**']
+
+jobs:
+  test_api:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Setup MySQL
+        run: sudo systemctl start mysql.service
+
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Setup node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 20
+          cache: 'npm'
+      - run: npm ci
+
+      - name: 'Create .env file'
+        uses: iamsauravsharma/create-dotenv@v1.2.2
+        with:
+          file-name: '.env'
+          directory: 'packages/api'
+        env:
+          DB_DATABASE_TEST: test
+          DB_USERNAME: root
+          DB_PASSWORD: root
+          SCREENSHOT_BASE_FOLDER: ~/test-screenshots
+          SCREENSHOT_AGENT_BASE_FOLDER: ~/test-screenshots
+          SCREENSHOT_FILE_PATH_DB: '{nickname}/{dateAdded}/{dateTimeAdded}.jpg'
+
+      - name: Test API
+        run: npm run test:api

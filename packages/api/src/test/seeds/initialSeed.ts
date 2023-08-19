@@ -22,18 +22,62 @@ export const sessions = [
 ];
 
 export const players = [
-  { id: 1, nickname: 'Dummy 1', arcade_name: 'DUMMY1', hidden: 0 },
-  { id: 2, nickname: 'Dummy 2', arcade_name: 'DUMMY2', hidden: 0 },
-  { id: 3, nickname: 'Dummy 3', arcade_name: 'DUMMY3', hidden: 0 },
-  { id: 4, nickname: 'Dummy 4', arcade_name: 'DUMMY4', hidden: 0 },
-  { id: 5, nickname: 'Dummy 5 Hidden', arcade_name: 'DUMMY5HIDDEN', hidden: 1 },
-  { id: 6, nickname: 'Admin', arcade_name: 'ADMIN', hidden: 0, is_admin: 1 },
+  { id: 1, nickname: 'Dummy 1', hidden: 0 },
+  { id: 2, nickname: 'Dummy 2', hidden: 0 },
+  { id: 3, nickname: 'Dummy 3', hidden: 0 },
+  { id: 4, nickname: 'Dummy 4', hidden: 0 },
+  { id: 5, nickname: 'Dummy 5 Hidden', hidden: 1 },
+  { id: 6, nickname: 'Admin', hidden: 0, is_admin: 1 },
   {
     id: 7,
     nickname: 'Add Results',
-    arcade_name: 'ADDRESULTS',
     hidden: 0,
     can_add_results_manually: 1,
+  },
+];
+
+export const arcade_player_names = [
+  {
+    mix_id: 26,
+    player_id: 1,
+    name: 'DUMMY1',
+    name_edist: 0,
+  },
+  {
+    mix_id: 26,
+    player_id: 2,
+    name: 'DUMMY2',
+    name_edist: 0,
+  },
+  {
+    mix_id: 26,
+    player_id: 3,
+    name: 'DUMMY3',
+    name_edist: 0,
+  },
+  {
+    mix_id: 26,
+    player_id: 4,
+    name: 'DUMMY4',
+    name_edist: 0,
+  },
+  {
+    mix_id: 26,
+    player_id: 5,
+    name: 'DUMMY5HIDDEN',
+    name_edist: 0,
+  },
+  {
+    mix_id: 26,
+    player_id: 6,
+    name: 'ADMIN',
+    name_edist: 0,
+  },
+  {
+    mix_id: 26,
+    player_id: 7,
+    name: 'ADDRESULTS',
+    name_edist: 0,
   },
 ];
 

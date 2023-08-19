@@ -15,6 +15,8 @@ async function migrateToLatest() {
     console.error('failed to migrate');
     console.error(error);
     process.exit(1);
+  } else if (results?.length === 0) {
+    console.log('already up to date');
   }
 
   await db.destroy();

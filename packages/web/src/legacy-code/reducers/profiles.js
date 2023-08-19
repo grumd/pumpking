@@ -25,7 +25,7 @@ export default function reducer(state = initialState, action) {
   }
 }
 
-export const setProfilesFilter = filter => ({
+export const setProfilesFilter = (filter) => ({
   type: SET_FILTER,
   filter,
 });

@@ -1,4 +1,4 @@
-require('tsconfig-paths/register');
+// require('tsconfig-paths/register');
 
 import fs from 'fs';
 import https from 'https';

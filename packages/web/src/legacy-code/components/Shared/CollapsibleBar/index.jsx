@@ -24,7 +24,7 @@ export default class CollapsibleBar extends PureComponent {
 
     return (
       <div className={classNames('collapsible-bar', className, { open })}>
-        <div className="header" onClick={() => this.setState(state => ({ open: !state.open }))}>
+        <div className="header" onClick={() => this.setState((state) => ({ open: !state.open }))}>
           <div className="collapse-button">
             <FaChevronRight />
           </div>

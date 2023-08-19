@@ -3,7 +3,8 @@ import { CreateExpressContextOptions } from '@trpc/server/adapters/express';
 
 import { db } from 'db';
 
-const debug = require('debug')('trpc:context');
+import createDebug from 'debug';
+const debug = createDebug('trpc:context');
 
 export async function createContext({ req }: CreateExpressContextOptions) {
   async function getUserFromHeader() {

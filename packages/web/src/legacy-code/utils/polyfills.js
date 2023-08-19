@@ -3,12 +3,12 @@
 // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/isNaN
 Number.isNaN =
   Number.isNaN ||
-  function(value) {
+  function (value) {
     return value !== value;
   };
 
 if (typeof Math.sign === 'undefined') {
-  Math.sign = function(x) {
+  Math.sign = function (x) {
     return x > 0 ? 1 : x < 0 ? -1 : x;
   };
 }
@@ -16,7 +16,7 @@ if (typeof Math.sign === 'undefined') {
 // https://tc39.github.io/ecma262/#sec-array.prototype.findindex
 if (!Array.prototype.findIndex) {
   Object.defineProperty(Array.prototype, 'findIndex', {
-    value: function(predicate) {
+    value: function (predicate) {
       // 1. Let O be ? ToObject(this value).
       if (this == null) {
         throw new TypeError('"this" is null or not defined');

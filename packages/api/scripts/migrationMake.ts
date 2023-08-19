@@ -3,7 +3,7 @@ import * as fs from 'fs';
 const migrationName = process.argv[2];
 
 if (!migrationName) {
-  console.error('Migration name is required');
+  console.error('Usage: npm run migrate:make <migration_name>');
   process.exit(1);
 }
 

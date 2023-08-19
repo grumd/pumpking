@@ -9,7 +9,8 @@ import { error } from 'utils';
 import { getSinglePlayerTotalPp } from 'services/players/playersPp';
 import { calculateResultsPp } from './resultsPp';
 
-const debug = require('debug')('backend-ts:processor:on-result-added');
+import createDebug from 'debug';
+const debug = createDebug('backend-ts:processor:on-result-added');
 
 export const resultAddedEffect = async (resultId: number) => {
   const result = await db

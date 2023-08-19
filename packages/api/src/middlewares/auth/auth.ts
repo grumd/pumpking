@@ -3,7 +3,8 @@ import type { Response, Request, NextFunction } from 'express';
 
 import { StatusError } from 'utils/errors';
 
-const debug = require('debug')('backend-ts:middleware:auth');
+import createDebug from 'debug';
+const debug = createDebug('backend-ts:middleware:auth');
 
 export const auth = async (request: Request, response: Response, next: NextFunction) => {
   const session = request.headers['session'];
