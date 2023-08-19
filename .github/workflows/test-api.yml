@@ -11,6 +11,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Setup MySQL
+        run: sudo systemctl start mysql.service
+
       - name: Checkout
         uses: actions/checkout@v3
 
@@ -30,13 +33,6 @@ jobs:
           DB_DATABASE_TEST: test
           DB_USERNAME: test
           DB_PASSWORD: test
-
-      - name: Setup MySQL
-        uses: mirromutth/mysql-action@v1.1
-        with:
-          mysql database: 'test'
-          mysql user: 'test'
-          mysql password: 'test'
 
       - name: Test API
         run: npm run test:api
