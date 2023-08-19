@@ -31,8 +31,8 @@ jobs:
           directory: 'packages/api'
         env:
           DB_DATABASE_TEST: test
-          DB_USERNAME: test
-          DB_PASSWORD: test
+          DB_USERNAME: root
+          DB_PASSWORD: root
 
       - name: Test API
         run: npm run test:api
