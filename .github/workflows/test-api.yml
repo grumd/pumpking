@@ -33,6 +33,9 @@ jobs:
           DB_DATABASE_TEST: test
           DB_USERNAME: root
           DB_PASSWORD: root
+          SCREENSHOT_BASE_FOLDER: ~/test-screenshots
+          SCREENSHOT_AGENT_BASE_FOLDER: ~/test-screenshots
+          SCREENSHOT_FILE_PATH_DB: '{nickname}/{dateAdded}/{dateTimeAdded}.jpg'
 
       - name: Test API
         run: npm run test:api
