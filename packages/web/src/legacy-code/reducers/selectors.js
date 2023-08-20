@@ -10,21 +10,6 @@ import {
 } from 'legacy-code/constants/leaderboard';
 import { defaultFilter } from 'legacy-code/reducers/results';
 
-export const playersSelector = createSelector(
-  (state) => state.results.players,
-  (state) => state.user.data.player.id,
-  (players, playerId) =>
-    _.flow(
-      _.toPairs,
-      _.map(([, { nickname, arcade_name, id, region }]) => ({
-        label: `${nickname} (${arcade_name})`,
-        value: nickname,
-        isCurrentPlayer: playerId === id,
-      })),
-      _.sortBy((it) => (it.isCurrentPlayer ? '!' : _.toLower(it.label)))
-    )(players)
-);
-
 const filterCharts = (filter, rows) => {
   const range = _.getOr(CHART_MIN_MAX, 'range', filter);
   const type = _.getOr(null, 'type', filter);

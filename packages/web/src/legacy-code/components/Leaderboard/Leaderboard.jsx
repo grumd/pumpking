@@ -31,16 +31,15 @@ import {
   setFilter as setFilterAction,
 } from 'legacy-code/reducers/results';
 import { openPreset, selectPreset } from 'legacy-code/reducers/presets';
-import {
-  filteredDataSelector,
-  playersSelector,
-  sharedChartDataSelector,
-} from 'legacy-code/reducers/selectors';
+import { filteredDataSelector, sharedChartDataSelector } from 'legacy-code/reducers/selectors';
 
 // utils
 import { colorsArray } from 'legacy-code/utils/colors';
 import { Language } from 'legacy-code/utils/context/translation';
 import { storageKeys, setItem } from 'legacy-code/utils/storage/versionedStorage';
+
+import { usePlayers } from 'hooks/usePlayers';
+import { useUser } from 'hooks/useUser';
 
 import { FilteredDataContext } from '../Contexts/FilteredDataContext';
 
@@ -97,6 +96,28 @@ const getRankOptions = _.memoize((lang) => [
   },
 ]);
 
+const usePlayersOptions = () => {
+  const players = usePlayers();
+  const user = useUser();
+
+  return useMemo(() => {
+    return {
+      isLoading: user.isLoading || players.isLoading,
+      options:
+        !user.data || !players.data
+          ? []
+          : _.flow(
+              _.map(({ nickname, arcade_name, id }) => ({
+                label: `${nickname} (${arcade_name})`,
+                value: nickname,
+                isCurrentPlayer: user.data.id === id,
+              })),
+              _.sortBy((it) => (it.isCurrentPlayer ? '!' : _.toLower(it.label)))
+            )(players.data),
+    };
+  }, [players, user]);
+};
+
 const Leaderboard = () => {
   const dispatch = useDispatch();
   const params = useParams();
@@ -104,8 +125,8 @@ const Leaderboard = () => {
 
   const isChartView = !!params.sharedChartId;
 
+  const { options: players, isLoading: isLoadingPlayers } = usePlayersOptions();
   const canAddResults = useSelector((state) => state.user.data?.player?.can_add_results_manually);
-  const players = useSelector(playersSelector);
   const filteredData = useSelector((state) =>
     isChartView ? sharedChartDataSelector(state, { params }) : filteredDataSelector(state)
   );
@@ -197,6 +218,7 @@ const Leaderboard = () => {
                     placeholder={lang.PLAYERS_PLACEHOLDER}
                     isMulti
                     options={players}
+                    isLoading={isLoadingPlayers}
                     value={_.getOr(null, 'players', filter)}
                     onChange={setFilter('players')}
                   />
@@ -210,6 +232,7 @@ const Leaderboard = () => {
                     placeholder={lang.PLAYERS_PLACEHOLDER}
                     isMulti
                     options={players}
+                    isLoading={isLoadingPlayers}
                     value={_.getOr(null, 'playersOr', filter)}
                     onChange={setFilter('playersOr')}
                   />
@@ -223,6 +246,7 @@ const Leaderboard = () => {
                     placeholder={lang.PLAYERS_PLACEHOLDER}
                     isMulti
                     options={players}
+                    isLoading={isLoadingPlayers}
                     value={_.getOr(null, 'playersNot', filter)}
                     onChange={setFilter('playersNot')}
                   />
@@ -286,6 +310,7 @@ const Leaderboard = () => {
               classNamePrefix="select"
               placeholder={lang.PLAYERS_PLACEHOLDER}
               options={players}
+              isLoading={isLoadingPlayers}
               value={_.getOr(null, 'protagonist', filter)}
               onChange={setFilter('protagonist')}
             />
@@ -300,6 +325,7 @@ const Leaderboard = () => {
               classNamePrefix="select"
               placeholder={lang.PLAYERS_PLACEHOLDER}
               options={players}
+              isLoading={isLoadingPlayers}
               isMulti
               value={_.getOr([], 'excludeAntagonists', filter)}
               onChange={setFilter('excludeAntagonists')}

@@ -1,16 +1,39 @@
 import { db } from 'db';
 
-export const getPlayers = async () => {
-  return await db
-    .selectFrom('players')
-    .select(['id', 'pp', 'nickname', 'arcade_name', 'region'])
-    .execute();
+export const getPlayers = async ({ mixId }: { mixId?: number } = {}): Promise<
+  {
+    id: number;
+    nickname: string;
+    region: string | null;
+    pp: number | null;
+    arcade_name?: string;
+  }[]
+> => {
+  if (mixId) {
+    return await db
+      .selectFrom('players')
+      .innerJoin('arcade_player_names', (join) =>
+        join
+          .onRef('arcade_player_names.player_id', '=', 'players.id')
+          .on('arcade_player_names.mix_id', '=', mixId)
+      )
+      .select([
+        'players.id',
+        'players.pp',
+        'players.nickname',
+        'players.region',
+        'arcade_player_names.name as arcade_name',
+      ])
+      .execute();
+  } else {
+    return await db.selectFrom('players').select(['id', 'pp', 'nickname', 'region']).execute();
+  }
 };
 
 export const getPlayersGradeStats = async () => {
   const players = await db
     .selectFrom('players')
-    .select(['id', 'pp', 'nickname', 'arcade_name', 'region'])
+    .select(['id', 'pp', 'nickname', 'region'])
     .where('pp', 'is not', null)
     .orderBy('pp', 'desc')
     .execute();

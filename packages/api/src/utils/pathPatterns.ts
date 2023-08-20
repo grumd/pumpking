@@ -25,7 +25,6 @@ export interface ScreenshotFileData extends ScreenshotBasePathData {
   dateTime: string;
   sharedChartId: number;
   token: string;
-  arcade_name: string | null;
 }
 
 export const getScreenshotFilePath = (pattern: string, data: ScreenshotFileData): string => {
