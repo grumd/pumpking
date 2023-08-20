@@ -3,10 +3,13 @@ import { createExpressMiddleware } from '@trpc/server/adapters/express';
 
 import { createContext } from './context';
 
+import { players } from './routes/players';
+
 const appRouter = router({
-  profile: publicProcedure.query(async ({ ctx }) => {
+  user: publicProcedure.query(async ({ ctx }) => {
     return ctx.user || null;
   }),
+  players,
 });
 
 export const expressRouter = createExpressMiddleware({

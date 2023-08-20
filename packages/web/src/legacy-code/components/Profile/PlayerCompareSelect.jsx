@@ -1,19 +1,18 @@
 import { useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Select from 'react-select';
-import { useSelector } from 'react-redux';
 import _ from 'lodash/fp';
 
 import { useLanguage } from 'legacy-code/utils/context/translation';
-
 import { routes } from 'legacy-code/constants/routes';
+
+import { usePlayers } from 'hooks/usePlayers';
 
 export const PlayerCompareSelect = () => {
   const lang = useLanguage();
   const navigate = useNavigate();
   const params = useParams();
-
-  const players = useSelector((state) => state.results.players);
+  const players = usePlayers();
 
   const id = params.id;
 

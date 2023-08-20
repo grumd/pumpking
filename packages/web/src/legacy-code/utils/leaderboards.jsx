@@ -137,7 +137,7 @@ export const mapResult = (res, players, chart, chartId) => {
     // Will be replaced with better result later
     return {
       id: res.id,
-      isUnknownPlayer: players[res.player].arcade_name === 'PUMPITUP',
+      isUnknownPlayer: players[res.player].nickname === '???',
       isIntermediateResult: true,
       sharedChartId: res.shared_chart || chartId,
       playerId: res.player,
@@ -157,7 +157,7 @@ export const mapResult = (res, players, chart, chartId) => {
   }
   // Full best result
   let _r = {
-    isUnknownPlayer: players[res.player].arcade_name === 'PUMPITUP',
+    isUnknownPlayer: players[res.player].nickname === '???',
     isIntermediateResult: false,
     sharedChartId: res.shared_chart || chartId,
     id: res.id,
