@@ -313,8 +313,8 @@ const mapStateToProps = (state, props) => {
   const profile1 = profile1Selector(state, props);
   const profile2 = profile2Selector(state, props);
   return {
-    profile: profile1,
-    profile2,
+    profile: profile1 ?? undefined,
+    profile2: profile2 ?? undefined,
     combinedData: getCombinedData(profile1, profile2, state.tracklist.data),
     tracklist: state.tracklist.data,
     filter: state.profiles.filter,
@@ -573,24 +573,26 @@ class ProfileCompare extends Component {
     const { compareBarsMode } = this.state;
 
     return (
-      <ResponsiveContainer width="100%" aspect={0.7}>
-        <BarChart
-          layout="vertical"
-          data={[...combinedData.perLevelComparison]}
-          margin={this.plcMargin}
-        >
-          <RechartsTooltip isAnimationActive={false} content={this.plcTooltip} />
-          <YAxis reversed dataKey="x" type="category" width={23} />
-          <XAxis
-            type="number"
-            domain={this.plcXDomain}
-            ticks={this.plcXTicks}
-            tickFormatter={this.plcXFormatter}
-          />
-          <ReferenceLine x={0.5} stroke="#666" />
-          {getCompareBars(compareBarsMode)}
-        </BarChart>
-      </ResponsiveContainer>
+      combinedData.perLevelComparison && (
+        <ResponsiveContainer width="100%" aspect={0.7}>
+          <BarChart
+            layout="vertical"
+            data={[...combinedData.perLevelComparison]}
+            margin={this.plcMargin}
+          >
+            <RechartsTooltip isAnimationActive={false} content={this.plcTooltip} />
+            <YAxis reversed dataKey="x" type="category" width={23} />
+            <XAxis
+              type="number"
+              domain={this.plcXDomain}
+              ticks={this.plcXTicks}
+              tickFormatter={this.plcXFormatter}
+            />
+            <ReferenceLine x={0.5} stroke="#666" />
+            {getCompareBars(compareBarsMode)}
+          </BarChart>
+        </ResponsiveContainer>
+      )
     );
   }
 
