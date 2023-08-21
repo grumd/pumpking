@@ -17,16 +17,18 @@ export const PlayerCompareSelect = () => {
   const id = params.id;
 
   const otherPlayers = useMemo(() => {
-    return _.flow(
-      _.toPairs,
-      _.map(([, { nickname, arcade_name, id }]) => ({
-        label: `${nickname} (${arcade_name})`,
-        value: nickname,
-        id: _.toNumber(id),
-      })),
-      _.remove((it) => it.id === id),
-      _.sortBy((it) => _.toLower(it.label))
-    )(players);
+    return players.data
+      ? _.flow(
+          _.map(({ pp, nickname, arcade_name, id }: (typeof players.data)[number]) => ({
+            label: `${nickname} (${arcade_name})`,
+            value: nickname,
+            id: _.toNumber(id),
+            pp,
+          })),
+          _.remove((it) => it.id === Number(id) || !it.pp),
+          _.sortBy((it) => _.toLower(it.label))
+        )(players.data)
+      : [];
   }, [id, players]);
 
   return (
@@ -36,8 +38,9 @@ export const PlayerCompareSelect = () => {
       classNamePrefix="select"
       placeholder={lang.PLAYERS_PLACEHOLDER}
       options={otherPlayers}
+      isLoading={players.isLoading}
       onChange={(value) => {
-        navigate(routes.profile.compare.getPath({ id, compareToId: value.id }));
+        navigate(routes.profile.compare.getPath({ id, compareToId: value?.id }));
       }}
     />
   );
