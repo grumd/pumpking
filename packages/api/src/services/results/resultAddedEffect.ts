@@ -15,7 +15,23 @@ const debug = createDebug('backend-ts:processor:on-result-added');
 export const resultAddedEffect = async (resultId: number) => {
   const result = await db
     .selectFrom('results')
-    .select(['id', 'shared_chart', 'grade', 'score_xx', 'rank_mode', 'player_id', 'is_hidden'])
+    .select([
+      'id',
+      'shared_chart',
+      'grade',
+      'score_xx',
+      'score_phoenix',
+      'rank_mode',
+      'player_id',
+      'is_hidden',
+      'perfects',
+      'greats',
+      'goods',
+      'bads',
+      'misses',
+      'max_combo',
+      'rank_mode',
+    ])
     .where('id', '=', resultId)
     .executeTakeFirst();
 
@@ -33,6 +49,32 @@ export const resultAddedEffect = async (resultId: number) => {
   const sharedChartId = result.shared_chart;
 
   await db.transaction().execute(async (trx) => {
+    const { perfects, greats, goods, bads, misses, max_combo, rank_mode, score_phoenix } = result;
+
+    // Calculate score_phoenix if needed
+    if (
+      score_phoenix == null &&
+      !rank_mode &&
+      perfects != null &&
+      greats != null &&
+      goods != null &&
+      bads != null &&
+      misses != null &&
+      max_combo != null
+    ) {
+      const scorePhoenix =
+        (995000 * (perfects + 0.6 * greats + 0.2 * goods + 0.1 * bads) + 5000 * max_combo) /
+        (perfects + greats + goods + bads + misses);
+
+      debug(`Updating score phoenix of result ${resultId} to ${scorePhoenix}`);
+
+      await trx
+        .updateTable('results')
+        .set({ score_phoenix: scorePhoenix })
+        .where('id', '=', resultId)
+        .executeTakeFirst();
+    }
+
     // Updating best grade result if needed
     const bestGradeResult = await trx
       .selectFrom('results_best_grade as rbg')
