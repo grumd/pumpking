@@ -238,8 +238,8 @@ describe('Add new result manually', () => {
         label: 'S16',
         level: 16,
         max_possible_score_norank: 500000,
-        max_total_steps: 50,
-        min_total_steps: 50,
+        max_total_steps: 64,
+        min_total_steps: 64,
       })
       .execute();
 
@@ -248,10 +248,10 @@ describe('Add new result manually', () => {
       .post('/results/add-result')
       .set('session', addResultsSession)
       .field('playerId', 7)
-      .field('grade', 'SSS')
+      .field('grade', 'S')
       .field('mix', 'XX')
       .field('mod', '')
-      .field('score', 500000)
+      .field('score', 400000)
       .field('perfect', 50)
       .field('great', 8)
       .field('good', 5)
@@ -272,7 +272,8 @@ describe('Add new result manually', () => {
       .executeTakeFirst();
     player = await db.selectFrom('players').selectAll().where('id', '=', 7).executeTakeFirst();
 
-    assert.equal(thirdResult?.score_phoenix, 872976, 'Phoenix score is calculated correctly');
+    // Actual score is calculated as 872977.52 - database is rounding the number, but we can change this if needed to align with how Andamiro does it
+    assert.equal(thirdResult?.score_phoenix, 872977, 'Phoenix score is calculated correctly');
 
     const thirdPp = player?.pp;
 
