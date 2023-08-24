@@ -1,0 +1,2 @@
+CREATE INDEX index_results_player_id_shared_chart_score_phoenix USING BTREE ON results (player_id,shared_chart,score_phoenix);
+CREATE INDEX index_results_player_id_shared_chart_score_xx USING BTREE ON results (player_id,shared_chart,score_xx);
