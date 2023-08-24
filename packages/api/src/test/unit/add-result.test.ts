@@ -253,9 +253,9 @@ describe('Add new result manually', () => {
       .field('mod', '')
       .field('score', 500000)
       .field('perfect', 50)
-      .field('great', 0)
-      .field('good', 0)
-      .field('bad', 0)
+      .field('great', 8)
+      .field('good', 5)
+      .field('bad', 1)
       .field('miss', 0)
       .field('combo', 50)
       .field('date', '2020-01-01')
@@ -271,6 +271,8 @@ describe('Add new result manually', () => {
       .orderBy('id', 'desc')
       .executeTakeFirst();
     player = await db.selectFrom('players').selectAll().where('id', '=', 7).executeTakeFirst();
+
+    assert.equal(thirdResult?.score_phoenix, 872976, 'Phoenix score is calculated correctly');
 
     const thirdPp = player?.pp;
 
