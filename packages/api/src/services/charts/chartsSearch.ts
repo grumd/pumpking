@@ -1,7 +1,7 @@
 import { db } from 'db';
 import { sql } from 'kysely';
-
 import type { Tracks } from 'types/database';
+// import { replaceSqlParams } from 'utils/sql';
 
 interface ChartsSearchParams {
   /** Used to filter hidden players/regions from preferences */
@@ -41,15 +41,6 @@ interface ChartsSearchParams {
   limit?: number;
   offset?: number;
 }
-
-// function replaceParameters(obj: { sql: string; parameters: readonly unknown[] }) {
-//   let sql = obj.sql;
-//   for (let i = 0; i < obj.parameters.length; i++) {
-//     sql = sql.replace('?', String(obj.parameters[i]));
-//   }
-
-//   return sql;
-// }
 
 export const searchCharts = async (params: ChartsSearchParams) => {
   const {
@@ -320,6 +311,8 @@ export const searchCharts = async (params: ChartsSearchParams) => {
     .selectFrom('ranked_results')
     .selectAll()
     .where('score_rank', '=', 1);
+
+  // console.log(replaceSqlParams(query.compile()));
 
   // const timeStart = performance.now();
   const results = await query.execute();

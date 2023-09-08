@@ -1,6 +1,6 @@
 import { db } from 'db';
 
-export const getPlayers = async ({ mixId }: { mixId?: number } = {}): Promise<
+export const getPlayers = async ({ mixes }: { mixes?: number[] } = {}): Promise<
   {
     id: number;
     nickname: string;
@@ -9,13 +9,13 @@ export const getPlayers = async ({ mixId }: { mixId?: number } = {}): Promise<
     arcade_name?: string;
   }[]
 > => {
-  if (mixId) {
+  if (mixes) {
     return await db
       .selectFrom('players')
       .innerJoin('arcade_player_names', (join) =>
         join
           .onRef('arcade_player_names.player_id', '=', 'players.id')
-          .on('arcade_player_names.mix_id', '=', mixId)
+          .on('arcade_player_names.mix_id', 'in', mixes)
       )
       .select([
         'players.id',
