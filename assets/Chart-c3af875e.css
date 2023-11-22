@@ -1,0 +1,1 @@
+.results-collapser td{cursor:pointer;font-size:75%;color:#aaa}.results-collapser td:hover{background:var(--background-lv-3)}.results-collapser div{width:100%;height:100%;display:flex;flex-flow:row nowrap;place-content:center}.results-collapser button{all:unset;cursor:pointer;flex:1 1 auto;padding:.2em;display:flex;flex-flow:row nowrap;place-content:center}
