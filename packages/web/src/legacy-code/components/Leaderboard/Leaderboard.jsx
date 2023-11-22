@@ -35,7 +35,7 @@ import { filteredDataSelector, sharedChartDataSelector } from 'legacy-code/reduc
 
 // utils
 import { colorsArray } from 'legacy-code/utils/colors';
-import { Language } from 'legacy-code/utils/context/translation';
+import { Language } from 'utils/context/translation';
 import { storageKeys, setItem } from 'legacy-code/utils/storage/versionedStorage';
 
 import { usePlayers } from 'hooks/usePlayers';

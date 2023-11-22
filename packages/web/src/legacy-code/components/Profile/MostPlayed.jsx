@@ -16,7 +16,7 @@ import { routes } from 'legacy-code/constants/routes';
 import { HOST } from 'legacy-code/constants/backend';
 
 import './most-played.scss';
-import { useLanguage } from 'legacy-code/utils/context/translation';
+import { useLanguage } from 'utils/context/translation';
 
 export default connect((state) => ({ charts: state.results.sharedCharts }), { fetchJson })(
   ({ playerId, charts, fetchJson }) => {

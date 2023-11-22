@@ -1,30 +1,28 @@
-import React, { Suspense, useEffect } from 'react';
-import { Route, Routes, Navigate } from 'react-router-dom';
-import { useSelector, useDispatch } from 'react-redux';
-import ReactModal from 'react-modal';
 import _ from 'lodash/fp';
-
+import React, { Suspense, useEffect } from 'react';
+import ReactModal from 'react-modal';
+import { useDispatch, useSelector } from 'react-redux';
 import 'react-responsive-ui/style.css';
-import './App.scss';
+import { Navigate, Route, Routes } from 'react-router-dom';
 
-import { routes } from 'legacy-code/constants/routes';
-import { CHART_MIN_MAX } from 'legacy-code/constants/leaderboard';
-
-import TopBar from 'legacy-code/components/Shared/TopBar/TopBar';
-import Loader from 'legacy-code/components/Shared/Loader';
 import LoginScreen from 'legacy-code/components/LoginScreen/LoginScreen';
-
+import Loader from 'legacy-code/components/Shared/Loader';
+import TopBar from 'legacy-code/components/Shared/TopBar/TopBar';
+import { CHART_MIN_MAX } from 'legacy-code/constants/leaderboard';
+import { routes } from 'legacy-code/constants/routes';
+import { fetchChartsData, postChartsProcessing } from 'legacy-code/reducers/charts';
+import { fetchPlayers } from 'legacy-code/reducers/players';
+import { fetchPreferences } from 'legacy-code/reducers/preferences';
 import { fetchResults, setFilter } from 'legacy-code/reducers/results';
 import { fetchTracklist } from 'legacy-code/reducers/tracklist';
 import { fetchUser } from 'legacy-code/reducers/user';
-import { fetchPreferences } from 'legacy-code/reducers/preferences';
-import { fetchChartsData, postChartsProcessing } from 'legacy-code/reducers/charts';
-import { fetchPlayers } from 'legacy-code/reducers/players';
+import { getItem, storageKeys } from 'legacy-code/utils/storage/versionedStorage';
 
-import { storageKeys, getItem } from 'legacy-code/utils/storage/versionedStorage';
+import './App.scss';
 
 const LazyAddResult = React.lazy(() => import('./Leaderboard/AddResult/AddResult'));
 const LazyLeaderboard = React.lazy(() => import('./Leaderboard/Leaderboard'));
+const LazyNewLeaderboards = React.lazy(() => import('../../features/leaderboards/Leaderboards'));
 const LazyProfile = React.lazy(() => import('./Profile/Profile'));
 const LazyProfileCompare = React.lazy(() => import('./ProfileCompare/ProfileCompare'));
 const LazyTournaments = React.lazy(() => import('./Tournaments/Tournaments'));
@@ -116,7 +114,8 @@ function App() {
       <Suspense fallback={<Loader />}>
         <Routes>
           <Route path="/" element={<Navigate to={routes.leaderboard.path} />} />
-          <Route path={routes.leaderboard.path} element={<LazyLeaderboard />} />
+          <Route path={routes.leaderboard.path} element={<LazyNewLeaderboards />} />
+          <Route path={routes.leaderboardOld.path} element={<LazyLeaderboard />} />
           <Route path={routes.leaderboard.sharedChart.path} element={<LazyLeaderboard />} />
           <Route path={routes.leaderboard.sharedChart.addResult.path} element={<LazyAddResult />} />
           <Route path={routes.ranking.path + '/*'} element={<LazyRanking />} />

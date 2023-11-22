@@ -19,7 +19,7 @@ import { fetchLeastPlayed } from 'legacy-code/reducers/trackStats/leastPlayed';
 // utils
 import { getTimeAgo } from 'legacy-code/utils/leaderboards';
 import { parseDate } from 'legacy-code/utils/date';
-import { useLanguage } from 'legacy-code/utils/context/translation';
+import { useLanguage } from 'utils/context/translation';
 
 // code
 function TopList({ fetchList, title, renderRightSide }) {

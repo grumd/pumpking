@@ -16,7 +16,7 @@ import { ChartLabel } from 'legacy-code/components/Leaderboard/ChartLabel';
 
 import { labelToTypeLevel } from 'legacy-code/utils/leaderboards';
 
-import { useLanguage } from 'legacy-code/utils/context/translation';
+import { useLanguage } from 'utils/context/translation';
 
 export default function Tournaments() {
   const lang = useLanguage();

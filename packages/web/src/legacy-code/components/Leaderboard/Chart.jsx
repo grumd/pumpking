@@ -12,7 +12,7 @@ import Result from './Result';
 import { ChartLabel } from './ChartLabel';
 import { ResultsCollapser } from './ResultsCollapser';
 
-import { useLanguage } from 'legacy-code/utils/context/translation';
+import { useLanguage } from 'utils/context/translation';
 import { FilteredDataContext } from '../Contexts/FilteredDataContext';
 
 const Chart = React.forwardRef(

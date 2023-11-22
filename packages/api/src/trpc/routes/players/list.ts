@@ -6,7 +6,7 @@ import { getPlayers } from 'services/players/players';
 export const list = publicProcedure
   .input(
     z.object({
-      mixId: z.number().optional(),
+      mixes: z.array(z.number()).optional(),
     })
   )
   .query(async ({ ctx, input }) => {

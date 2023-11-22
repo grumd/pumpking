@@ -49,7 +49,7 @@ import { parseDate } from 'legacy-code/utils/date';
 import { getTimeAgo } from 'legacy-code/utils/leaderboards';
 import { achievements } from 'legacy-code/utils/achievements';
 import { getRankImg } from 'legacy-code/utils/exp';
-import { Language } from 'legacy-code/utils/context/translation';
+import { Language } from 'utils/context/translation';
 import { withParams } from 'legacy-code/utils/withParams';
 
 // code

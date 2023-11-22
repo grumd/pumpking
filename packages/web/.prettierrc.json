@@ -1,0 +1,18 @@
+{
+  "trailingComma": "es5",
+  "singleQuote": true,
+  "printWidth": 100,
+  "endOfLine": "lf",
+  "importOrder": [
+    "^@api/(.*)$",
+    "^components/",
+    "^constants/",
+    "^features/",
+    "^hooks/",
+    "^legacy-code/",
+    "^utils/",
+    "^\\.(.*)$"
+  ],
+  "importOrderSeparation": true,
+  "importOrderSortSpecifiers": true
+}

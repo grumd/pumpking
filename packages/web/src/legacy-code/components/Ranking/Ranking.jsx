@@ -17,7 +17,7 @@ import { fetchChartsData } from 'legacy-code/reducers/charts';
 import { updatePreferences } from 'legacy-code/reducers/preferences';
 
 // utils
-import { useLanguage } from 'legacy-code/utils/context/translation';
+import { useLanguage } from 'utils/context/translation';
 
 // code
 const rankingSelector = createSelector(

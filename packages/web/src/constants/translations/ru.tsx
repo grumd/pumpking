@@ -1,3 +1,5 @@
+import type { BaseTranslation } from './en';
+
 export const ru = {
   // Main top menu
   LEADERBOARDS: 'лидерборды',
@@ -12,6 +14,7 @@ export const ru = {
   PRESETS_PLACEHOLDER: 'пресеты...',
   RESET_FILTERS: 'сбросить фильтры',
   REFRESH: 'обновить',
+  SEARCH: 'поиск',
   FILTER_CHARTS: 'фильтр чартов',
   CHARTS: 'чарты',
   SONG_NAME_PLACEHOLDER: 'название песни...',
@@ -58,7 +61,7 @@ export const ru = {
   RANK_ONLY: 'только на ранке',
   ONLY_NO_RANK: 'только без ранка',
   // Results
-  SHOW_MORE_RESULTS: (count) => `(показать еще ${count})`,
+  SHOW_MORE_RESULTS: (count: number) => `(показать еще ${count})`,
   // Score details overlay
   PLAYER: 'игрок',
   EXP: 'опыт',
@@ -152,4 +155,4 @@ export const ru = {
   FROM: 'с',
   OR: 'или',
   SCORE_ADDED_MANUALLY: 'скор добавлен вручную',
-};
+} satisfies BaseTranslation;

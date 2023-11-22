@@ -16,7 +16,8 @@
     "moduleResolution": "node",
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "jsx": "react-jsx"
+    "jsx": "react-jsx",
+    "verbatimModuleSyntax": true
   },
   "include": ["./src"],
   "references": [{ "path": "../api/tsconfig.ref.json" }]

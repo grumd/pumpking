@@ -18,8 +18,8 @@ import { getTimeAgo as getShortTimeAgo } from 'legacy-code/components/SocketTrac
 import { tooltipFormatter } from 'legacy-code/utils/leaderboards';
 import { getExp } from 'legacy-code/utils/exp';
 import { colorsArray } from 'legacy-code/utils/colors';
-import { useLanguage } from 'legacy-code/utils/context/translation';
-import { ResultScreenshotLink } from 'components/ResultScreenshotLink';
+import { useLanguage } from 'utils/context/translation';
+import { ResultScreenshotLink } from 'components/ResultScreenshotLink/ResultScreenshotLink';
 
 const Result = ({
   // shared

@@ -9,6 +9,7 @@ const debug = createDebug('trpc:context');
 export async function createContext({ req }: CreateExpressContextOptions) {
   async function getUserFromHeader() {
     const session = req.headers['session'];
+
     if (typeof session === 'string') {
       const player = await db
         .selectFrom('sessions')
@@ -18,6 +19,8 @@ export async function createContext({ req }: CreateExpressContextOptions) {
           'players.id',
           'players.is_admin',
           'players.can_add_results_manually',
+          'players.preferences',
+          'players.region',
         ])
         .where('sessions.id', '=', session)
         .executeTakeFirst();

@@ -1,3 +1,5 @@
+import type { BaseTranslation } from './en';
+
 export const ua = {
   // Main top menu
   LEADERBOARDS: 'лідерборди',
@@ -12,6 +14,7 @@ export const ua = {
   PRESETS_PLACEHOLDER: 'пресети...',
   RESET_FILTERS: 'скинути фільтри',
   REFRESH: 'оновити',
+  SEARCH: 'пошук',
   FILTER_CHARTS: 'фільтр чартів',
   CHARTS: 'чарти',
   SONG_NAME_PLACEHOLDER: 'назва пісні...',
@@ -58,7 +61,7 @@ export const ua = {
   RANK_ONLY: 'тільки на ранку',
   ONLY_NO_RANK: 'тілько без ранку',
   // Results
-  SHOW_MORE_RESULTS: (count) => `(показати ще ${count})`,
+  SHOW_MORE_RESULTS: (count: number) => `(показати ще ${count})`,
   // Score details overlay
   PLAYER: 'гравець',
   EXP: 'досвід',
@@ -152,4 +155,4 @@ export const ua = {
   FROM: 'з',
   OR: 'або',
   SCORE_ADDED_MANUALLY: 'скор був доданий вручну',
-};
+} satisfies BaseTranslation;

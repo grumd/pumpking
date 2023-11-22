@@ -3,12 +3,12 @@ import _ from 'lodash/fp';
 
 import { api } from 'utils/trpc';
 
-import { useMix } from './useMix';
+import { useMixes } from './useMixes';
 import { useUser } from './useUser';
 
 export const usePlayers = () => {
-  const { id } = useMix();
-  return api.players.list.useQuery({ mixId: id });
+  const mixes = useMixes();
+  return api.players.list.useQuery({ mixes: mixes.map((mix) => mix.id) });
 };
 
 export const usePlayersOptions = () => {
