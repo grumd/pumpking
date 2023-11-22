@@ -12,7 +12,6 @@ import Loader from 'legacy-code/components/Shared/Loader';
 
 import { useLanguage } from 'utils/context/translation';
 
-import { useChartsQuery } from '../hooks/useChartsQuery';
 import { filterAtom } from '../hooks/useFilter';
 
 const mixOptions = [

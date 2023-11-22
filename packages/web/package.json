@@ -8,7 +8,7 @@
     "start:local": "cross-env VITE_API_BASE_PATH=http://localhost:3001 npm run start",
     "ts": "tsc --build",
     "ts:watch": "tsc --build --watch",
-    "build": "tsc --build && vite build",
+    "build": "tsc --version && tsc --build && vite build",
     "lint": "eslint src --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview"
   },
@@ -51,7 +51,6 @@
     "react-responsive-ui": "0.15.31",
     "react-router": "^6.11.1",
     "react-router-dom": "^6.11.1",
-    "react-scripts": "5.0.1",
     "react-select": "5.4.0",
     "react-virtuoso": "^4.6.2",
     "recharts": "2.1.13",
