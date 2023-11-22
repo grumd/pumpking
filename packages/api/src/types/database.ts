@@ -114,6 +114,11 @@ export interface PhoenixTrackNames {
   max_edit_distance: Generated<number>;
 }
 
+export interface PlayerPreferencesJson {
+  playersHiddenStatus: Record<number, boolean>;
+  hiddenRegions: Record<string, boolean>;
+}
+
 export interface Players {
   id: Generated<number>;
   nickname: string;
@@ -130,7 +135,7 @@ export interface Players {
   telegram_id: number | null;
   telegram_tag: string | null;
   telegram_bot_preferences: Json | null;
-  preferences: Json | null;
+  preferences: ColumnType<PlayerPreferencesJson, string, string> | null;
   show_all_regions: Generated<number | null>;
   preferences_updated: Date | null;
   stat_top_req_counter: Generated<number>;

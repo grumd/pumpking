@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import Select from 'react-select';
 import _ from 'lodash/fp';
 
-import { useLanguage } from 'legacy-code/utils/context/translation';
+import { useLanguage } from 'utils/context/translation';
 import { routes } from 'legacy-code/constants/routes';
 
 import { usePlayers } from 'hooks/usePlayers';

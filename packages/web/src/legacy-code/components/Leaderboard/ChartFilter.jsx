@@ -8,7 +8,7 @@ import Input from 'legacy-code/components/Shared/Input/Input';
 import Range from 'legacy-code/components/Shared/Range';
 
 import { CHART_MIN_MAX, DURATION_DEFAULT, DURATION } from 'legacy-code/constants/leaderboard';
-import { useLanguage } from 'legacy-code/utils/context/translation';
+import { useLanguage } from 'utils/context/translation';
 
 export default function ChartFilter({ filterValue, onChange: onChangeEx }) {
   const range = _.getOr(CHART_MIN_MAX, 'range', filterValue);

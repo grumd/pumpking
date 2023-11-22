@@ -2,7 +2,7 @@ import React from 'react';
 
 import { ranks, getRankImg } from 'legacy-code/utils/exp';
 
-import { useLanguage } from 'legacy-code/utils/context/translation';
+import { useLanguage } from 'utils/context/translation';
 
 export default function ExpFaq() {
   const lang = useLanguage();

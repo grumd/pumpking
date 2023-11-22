@@ -6,9 +6,9 @@
   "compilerOptions": {
     "lib": ["ES2022"],
     "target": "ES2022",
-    "module": "commonjs",
-    "baseUrl": "./src",
-    "rootDir": "./src"
+    "module": "CommonJS",
+    "baseUrl": "src",
+    "rootDir": "src"
   },
   "include": ["./src/types/express.d.ts", "./src/index.ts", "./src/**/*.ts"]
 }

@@ -1,12 +1,12 @@
 import React, { useContext } from 'react';
 
-import { en, ru, ua } from 'legacy-code/constants/translations';
+import { en, ru, ua } from 'constants/translations';
 
 console.log('navigator.languages = ', navigator.languages.join(', '));
 
 let browserLanguage = en;
 
-for (let lang of navigator.languages) {
+for (const lang of navigator.languages) {
   if (/^uk\b/.test(lang)) {
     browserLanguage = ua;
     break;

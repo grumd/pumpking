@@ -6,7 +6,7 @@ import { Provider } from 'react-redux';
 
 import './index.scss';
 
-import { Language, browserLanguage } from 'legacy-code/utils/context/translation';
+import { Language, browserLanguage } from 'utils/context/translation';
 
 import App from 'legacy-code/components/App';
 

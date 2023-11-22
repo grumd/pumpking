@@ -16,7 +16,7 @@ import Toggle from 'legacy-code/components/Shared/Toggle/Toggle';
 import { updatePreferences } from 'legacy-code/reducers/preferences';
 
 import { getRankImg } from 'legacy-code/utils/exp';
-import { useLanguage } from 'legacy-code/utils/context/translation';
+import { useLanguage } from 'utils/context/translation';
 
 export default function RankingList({ ranking, isLoading, preferences }) {
   const dispatch = useDispatch();

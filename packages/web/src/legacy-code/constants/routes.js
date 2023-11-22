@@ -10,6 +10,9 @@ export const routes = {
       },
     },
   },
+  leaderboardOld: {
+    path: `/leaderboard-old`,
+  },
   songs: {
     path: `/songs`,
   },

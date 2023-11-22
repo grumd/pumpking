@@ -11,7 +11,7 @@ import { routes } from 'legacy-code/constants/routes';
 // reducers
 import * as loginACs from 'legacy-code/reducers/login';
 
-import { useLanguage } from 'legacy-code/utils/context/translation';
+import { useLanguage } from 'utils/context/translation';
 
 // redux
 const mapStateToProps = (state) => {

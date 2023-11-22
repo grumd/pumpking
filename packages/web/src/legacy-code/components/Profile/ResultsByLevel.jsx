@@ -18,7 +18,7 @@ import Grade from 'legacy-code/components/Shared/Grade';
 import { ChartLabel } from 'legacy-code/components/Leaderboard/ChartLabel';
 
 import { gradeComparator } from 'legacy-code/utils/leaderboards';
-import { useLanguage } from 'legacy-code/utils/context/translation';
+import { useLanguage } from 'utils/context/translation';
 
 const selectOptionsSelector = createSelector(
   (state) => state.tracklist.data,

@@ -13,7 +13,7 @@ import {
   openPreset,
   deletePreset,
 } from 'legacy-code/reducers/presets';
-import { Language } from 'legacy-code/utils/context/translation';
+import { Language } from 'utils/context/translation';
 
 const mapStateToProps = (state) => {
   return {

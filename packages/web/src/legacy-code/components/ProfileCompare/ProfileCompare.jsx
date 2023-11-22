@@ -40,7 +40,7 @@ import { setProfilesFilter, resetProfilesFilter } from 'legacy-code/reducers/pro
 import { profileSelectorCreator } from 'legacy-code/utils/profiles';
 import { parseDate } from 'legacy-code/utils/date';
 import { getTimeAgo } from 'legacy-code/utils/leaderboards';
-import { Language } from 'legacy-code/utils/context/translation';
+import { Language } from 'utils/context/translation';
 import { PlayerCompareSelect } from 'legacy-code/components/Profile/PlayerCompareSelect';
 import { withParams } from 'legacy-code/utils/withParams';
 

@@ -12,6 +12,7 @@ export const en = {
   PRESETS_PLACEHOLDER: 'presets...',
   RESET_FILTERS: 'reset filters',
   REFRESH: 'refresh',
+  SEARCH: 'search',
   FILTER_CHARTS: 'charts filter',
   CHARTS: 'charts',
   SONG_NAME_PLACEHOLDER: 'song name...',
@@ -64,7 +65,7 @@ export const en = {
   ONLY_NO_RANK: 'without rank only',
 
   // Results
-  SHOW_MORE_RESULTS: (count) => `(show ${count} more)`,
+  SHOW_MORE_RESULTS: (count: number) => `(show ${count} more)`,
 
   // Score details overlay
   PLAYER: 'player',
@@ -138,6 +139,20 @@ export const en = {
   SCORES_count: 'scores',
   PROFILE_NOT_FOUND: 'Profile not found',
 
+  EXP_FAQ: (
+    <div className="faq-header">
+      Player's <strong>experience</strong> is based on the number of played charts.
+      <br />
+      Higher levels and better scores give more exp.
+      <br />
+      More attempts on the same chart do not grant extra exp. To level up, play new and harder
+      charts.
+    </div>
+  ),
+  EXP_TITLES_LIST_HEADER: (
+    <div className="faq-header">Possible ranks and experience needed to acquire them:</div>
+  ),
+
   // score date tooltip
   EXACT_DATE_UNKNOWN: 'exact date unknown',
   SCORE_WAS_TAKEN: 'score was taken',
@@ -145,4 +160,8 @@ export const en = {
   FROM: 'from',
   OR: 'or',
   SCORE_ADDED_MANUALLY: 'score was added manually',
-};
+  // Using "any" is totally okay in "satisfies" assertions
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+} satisfies Record<string, React.ReactNode | ((...args: any[]) => React.ReactNode)>;
+
+export type BaseTranslation = typeof en;
