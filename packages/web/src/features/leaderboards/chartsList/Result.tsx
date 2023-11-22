@@ -1,24 +1,27 @@
-import { Link } from 'react-router-dom';
 import classNames from 'classnames';
 import numeral from 'numeral';
-import { FaExclamationTriangle, FaAngleDoubleUp } from 'react-icons/fa';
+import { FaAngleDoubleUp, FaExclamationTriangle } from 'react-icons/fa';
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore will change to Mantine Tooltip
 import Tooltip from 'react-responsive-ui/modules/Tooltip';
+import { Link } from 'react-router-dom';
 
-import { routes } from 'legacy-code/constants/routes';
-import { DEBUG } from 'legacy-code/constants/env';
+// import Grade from 'components/Grade/Grade';
+import { ResultScreenshotLink } from 'components/ResultScreenshotLink/ResultScreenshotLink';
+
+import { useUser } from 'hooks/useUser';
 
 import Flag from 'legacy-code/components/Shared/Flag';
-import Grade from 'components/Grade/Grade';
 import Overlay from 'legacy-code/components/Shared/Overlay/Overlay';
-
 import { getTimeAgo as getShortTimeAgo } from 'legacy-code/components/SocketTracker/helpers';
-
-import { tooltipFormatter } from 'legacy-code/utils/leaderboards';
-import { getExp } from 'legacy-code/utils/exp';
+import { DEBUG } from 'legacy-code/constants/env';
+import { routes } from 'legacy-code/constants/routes';
 import { colorsArray } from 'legacy-code/utils/colors';
+import { getExp } from 'legacy-code/utils/exp';
+
+// import { tooltipFormatter } from 'legacy-code/utils/leaderboards';
 import { useLanguage } from 'utils/context/translation';
-import { ResultScreenshotLink } from 'components/ResultScreenshotLink/ResultScreenshotLink';
-import { useUser } from 'hooks/useUser';
+
 import type { ChartApiOutput } from '../hooks/useChartsQuery';
 
 const Result = ({

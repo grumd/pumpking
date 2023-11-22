@@ -1,5 +1,5 @@
+import { type CredentialResponse, GoogleLogin } from '@react-oauth/google';
 import { useState } from 'react';
-import { CredentialResponse, GoogleLogin } from '@react-oauth/google';
 
 // reducers
 // import * as loginACs from 'reducers/login';
