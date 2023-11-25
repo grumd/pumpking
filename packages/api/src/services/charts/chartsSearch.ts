@@ -47,7 +47,7 @@ export interface ResultViewModel {
   id: number;
   playerId: number | null;
   playerName: string;
-  playerNameArcade: string;
+  playerNameArcade: string | null;
   score: number;
   scoreIncrease: number | null;
   pp: number | null;
@@ -277,7 +277,7 @@ export const searchCharts = async (params: ChartsSearchParams) => {
         )
         .innerJoin('tracks', 'tracks.id', 'sc.track')
         .innerJoin('players', 'r.player_id', 'players.id')
-        .innerJoin('arcade_player_names', (join) =>
+        .leftJoin('arcade_player_names', (join) =>
           join
             .onRef('players.id', '=', 'arcade_player_names.player_id')
             .onRef('arcade_player_names.mix_id', '=', 'r.mix')
