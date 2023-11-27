@@ -1,7 +1,7 @@
 import { GradePhoenix, getPhoenixGrade } from 'utils/scoring/grades';
 
 const getFilename = (grade: GradePhoenix, isPass: boolean) => {
-  return isPass ? grade : '_' + grade.toLowerCase();
+  return isPass ? `/grades/phoenix/${grade}.png` : `/grades/phoenix/fail/${grade}.png`;
 };
 
 export const Grade = ({
@@ -28,5 +28,5 @@ export const Grade = ({
     fileName = getFilename(gradeCalc, grade.includes('+'));
   }
 
-  return <img src={`/grades/phoenix/${fileName}.png`} alt={gradeCalc} />;
+  return <img src={fileName} alt={gradeCalc} />;
 };
