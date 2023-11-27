@@ -25,7 +25,7 @@ export const Grade = ({
 
   // When DB doesn't have information about pass/fail, we can deduce it from the grade if the mix is Prime/Prime2/XX
   if (isPass == null && grade != null && mix >= 24 && mix <= 26) {
-    fileName = getFilename(gradeCalc, grade.includes('+'));
+    fileName = getFilename(gradeCalc, grade.includes('+') || grade.startsWith('S')); // Assume S/SS is pass
   }
 
   return <img src={fileName} alt={gradeCalc} />;
