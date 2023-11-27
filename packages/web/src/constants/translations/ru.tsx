@@ -1,6 +1,9 @@
 import type { BaseTranslation } from './en';
 
 export const ru = {
+  // generic
+  NOTHING_FOUND: 'Ничего не найдено',
+  ERROR: 'Ошибка',
   // Main top menu
   LEADERBOARDS: 'лидерборды',
   RANKING: 'ранкинг',
@@ -17,8 +20,18 @@ export const ru = {
   SEARCH: 'поиск',
   FILTER_CHARTS: 'фильтр чартов',
   CHARTS: 'чарты',
+  MIXES_LABEL: 'миксы',
+  SONG_NAME_LABEL: 'название',
+  SCORING_LABEL: 'скоринг',
   SONG_NAME_PLACEHOLDER: 'название песни...',
   PLAYERS_PLACEHOLDER: 'игроки...',
+  // Sorting
+  BY_DATE_DESC: 'по дате (от новых к старым)',
+  BY_DATE_ASC: 'по дате (от старых к новым)',
+  BY_DIFFICULTY_ASC: 'по сложности (от легких к сложным)',
+  BY_DIFFICULTY_DESC: 'по сложности (от сложных к легким)',
+  BY_PP_DESC: 'от лучших результатов (pp)',
+  BY_PP_ASC: 'от худших результатов (pp)',
   // Presets overlay
   OPEN: 'открыть',
   OVERWRITE: 'перезаписать',

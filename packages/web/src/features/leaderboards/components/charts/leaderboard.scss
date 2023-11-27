@@ -37,9 +37,7 @@
     display: flex;
     flex-flow: row wrap;
     padding-top: 10px;
-    > .song-name > input {
-      width: 190px;
-    }
+
     input.form-control {
       height: 30px;
       &::placeholder {
@@ -143,35 +141,6 @@
         }
       }
 
-      > .song-name {
-        z-index: 2;
-        border-radius: 5px;
-        padding: 8px 0;
-        margin-left: 0;
-        font-size: 120%;
-        font-weight: 600;
-        display: flex;
-        align-items: center;
-        flex-flow: row nowrap;
-        justify-content: flex-start;
-        flex: 0 0 100%;
-
-        > .youtube-link {
-          margin-left: 0.5em;
-          align-self: center;
-          > a {
-            display: block;
-            line-height: 80%;
-            color: #ccc;
-          }
-        }
-
-        > .right-side-block {
-          display: flex;
-          flex-flow: row nowrap;
-          align-items: center;
-        }
-      }
       > .charts {
         flex: 0 1 auto;
         display: flex;
@@ -210,7 +179,7 @@
                   align-items: center;
                   justify-content: center;
                   img {
-                    height: 16px;
+                    height: 1rem;
                   }
                 }
               }
@@ -417,35 +386,6 @@
         margin-bottom: 0.5em;
         ._on-hover {
           display: flex;
-        }
-        > .song-name {
-          font-size: 110%;
-          padding: 0.3em;
-
-          > * {
-            margin: 0.2em;
-          }
-
-          > ._flex-fill {
-            margin: 0;
-          }
-
-          > .song-name-text {
-            word-break: break-word;
-          }
-
-          > .youtube-link {
-            margin-left: 0.2em;
-            font-size: 110%;
-          }
-
-          > .right-side-block {
-            font-size: 110%;
-
-            .players-hidden-count {
-              font-size: 60%;
-            }
-          }
         }
         > .charts > .chart {
           padding: 0 0.3em;

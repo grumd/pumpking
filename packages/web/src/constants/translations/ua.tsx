@@ -1,6 +1,9 @@
 import type { BaseTranslation } from './en';
 
 export const ua = {
+  // generic
+  NOTHING_FOUND: 'Нічого не знайдено',
+  ERROR: 'Помилка',
   // Main top menu
   LEADERBOARDS: 'лідерборди',
   RANKING: 'ранкінг',
@@ -17,8 +20,18 @@ export const ua = {
   SEARCH: 'пошук',
   FILTER_CHARTS: 'фільтр чартів',
   CHARTS: 'чарти',
+  MIXES_LABEL: 'мікси',
+  SONG_NAME_LABEL: 'назва треку',
+  SCORING_LABEL: 'скорінг',
   SONG_NAME_PLACEHOLDER: 'назва пісні...',
   PLAYERS_PLACEHOLDER: 'гравці...',
+  // Sorting
+  BY_DATE_DESC: 'по даті (від нових до старих)',
+  BY_DATE_ASC: 'по даті (від старих до нових)',
+  BY_DIFFICULTY_ASC: 'по складності (від легких до складних)',
+  BY_DIFFICULTY_DESC: 'по складності (від складних до легких)',
+  BY_PP_DESC: 'від кращих результатів (pp)',
+  BY_PP_ASC: 'від гірших результатів (pp)',
   // Presets overlay
   OPEN: 'відкрити',
   OVERWRITE: 'перезаписати',

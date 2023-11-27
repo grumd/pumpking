@@ -62,6 +62,7 @@ export interface ResultViewModel {
   mods: string | null;
   calories: number | null;
   region: string | null;
+  mix: number;
 }
 
 export interface ChartViewModel {
@@ -95,6 +96,11 @@ export const searchCharts = async (params: ChartsSearchParams) => {
     playersNone,
     playersAll,
   } = params;
+
+  if (!mixes.length) {
+    return [];
+  }
+
   const scoreField = scoring === 'xx' ? 'score_xx' : 'score_phoenix';
 
   const songNameParts = songName?.split(' ').filter((part) => part.length > 0);
@@ -326,7 +332,7 @@ export const searchCharts = async (params: ChartsSearchParams) => {
           //   PARTITION BY player_id, shared_chart
           //   ORDER BY score DESC
           // ) AS `score_rank`
-          sql<number>`rank() over (partition by r.shared_chart, r.player_id order by ${sql.ref(
+          sql<number>`row_number() over (partition by r.shared_chart, r.player_id order by ${sql.ref(
             scoreField
           )} desc)`.as('score_rank'),
         ])
@@ -405,6 +411,7 @@ export const searchCharts = async (params: ChartsSearchParams) => {
         mods: r.mods_list,
         calories: r.calories,
         region: r.region,
+        mix: r.mix,
       });
     }
 

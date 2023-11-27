@@ -5,6 +5,7 @@
   "endOfLine": "lf",
   "importOrder": [
     "^@api/(.*)$",
+    "\\.scss$",
     "^components/",
     "^constants/",
     "^features/",

@@ -12,7 +12,8 @@ import Loader from 'legacy-code/components/Shared/Loader';
 
 import { useLanguage } from 'utils/context/translation';
 
-import { filterAtom } from '../hooks/useFilter';
+import { useChartsQuery } from '../../hooks/useChartsQuery';
+import { filterAtom } from '../../hooks/useFilter';
 
 const mixOptions = [
   {
@@ -46,9 +47,7 @@ const scoringOptions = [
 
 const usePlayersOptions = () => {
   const players = usePlayers();
-  console.log({ players });
   const user = useUser();
-  console.log({ user });
 
   return useMemo(() => {
     return {
@@ -75,6 +74,7 @@ const formFieldToNumberArray = (value: unknown) => {
 
 export const SearchForm = (): JSX.Element => {
   const lang = useLanguage();
+  const chartsQuery = useChartsQuery();
   const { options: players, isLoading: isLoadingPlayers } = usePlayersOptions();
 
   const [searchFilter, setSearchFilter] = useAtom(filterAtom);
@@ -105,27 +105,27 @@ export const SearchForm = (): JSX.Element => {
   const sortingOptions = useMemo(() => {
     return [
       {
-        label: 'by date (new to old)',
+        label: lang.BY_DATE_DESC,
         value: 'date,desc',
       },
       {
-        label: 'by date (old to new)',
+        label: lang.BY_DATE_ASC,
         value: 'date,asc',
       },
       {
-        label: 'by difficulty (easy to hard)',
+        label: lang.BY_DIFFICULTY_ASC,
         value: 'difficulty,asc',
       },
       {
-        label: 'by difficulty (hard to easy)',
+        label: lang.BY_DIFFICULTY_DESC,
         value: 'difficulty,desc',
       },
       {
-        label: 'by pp (big to small)',
+        label: lang.BY_PP_DESC,
         value: 'pp,desc',
       },
       {
-        label: 'by pp (small to big)',
+        label: lang.BY_PP_ASC,
         value: 'pp,asc',
       },
     ];
@@ -136,26 +136,26 @@ export const SearchForm = (): JSX.Element => {
       <Stack gap="sm">
         <Group gap="md" grow>
           <TextInput
-            label="song name"
+            label={lang.SONG_NAME_LABEL}
             name="songName"
             placeholder={lang.SONG_NAME_PLACEHOLDER}
             defaultValue={searchFilter.songName}
           />
           <MultiSelect
-            label="mixes"
+            label={lang.MIXES_LABEL}
             name="mixes"
             checkIconPosition="left"
             data={mixOptions}
             defaultValue={searchFilter.mixes?.map(String)}
           />
           <Select
-            label="scoring"
+            label={lang.SCORING_LABEL}
             name="scoring"
             data={scoringOptions}
             defaultValue={searchFilter.scoring}
           />
         </Group>
-        <CollapsibleBar title="filters">
+        <CollapsibleBar title={lang.FILTERS}>
           <Text>{lang.SHOW_CHARTS_PLAYED_BY}</Text>
           <Group gap="md" grow>
             <MultiSelect
@@ -166,7 +166,7 @@ export const SearchForm = (): JSX.Element => {
               data={players}
               defaultValue={searchFilter.playersAll?.map(String)}
               rightSection={isLoadingPlayers ? <Loader /> : null}
-              nothingFoundMessage="Nothing found..."
+              nothingFoundMessage={lang.NOTHING_FOUND}
               searchable
             />
             <MultiSelect
@@ -177,7 +177,7 @@ export const SearchForm = (): JSX.Element => {
               data={players}
               defaultValue={searchFilter.playersSome?.map(String)}
               rightSection={isLoadingPlayers ? <Loader /> : null}
-              nothingFoundMessage="Nothing found..."
+              nothingFoundMessage={lang.NOTHING_FOUND}
               searchable
             />
             <MultiSelect
@@ -188,12 +188,12 @@ export const SearchForm = (): JSX.Element => {
               data={players}
               defaultValue={searchFilter.playersNone?.map(String)}
               rightSection={isLoadingPlayers ? <Loader /> : null}
-              nothingFoundMessage="Nothing found..."
+              nothingFoundMessage={lang.NOTHING_FOUND}
               searchable
             />
           </Group>
         </CollapsibleBar>
-        <CollapsibleBar title="sorting">
+        <CollapsibleBar title={lang.SORTING}>
           <Group gap="md" grow>
             <Select
               name="sorting"
@@ -213,13 +213,13 @@ export const SearchForm = (): JSX.Element => {
               data={players}
               defaultValue={searchFilter.sortChartsByPlayers?.map(String)}
               rightSection={isLoadingPlayers ? <Loader /> : null}
-              nothingFoundMessage="Nothing found..."
+              nothingFoundMessage={lang.NOTHING_FOUND}
               searchable
             />
           </Group>
         </CollapsibleBar>
         <Group gap="md" grow>
-          <Button leftSection={<FaSearch />} type="submit">
+          <Button disabled={chartsQuery.isLoading} leftSection={<FaSearch />} type="submit">
             {lang.SEARCH}
           </Button>
         </Group>
