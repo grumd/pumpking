@@ -3,8 +3,6 @@ import React, { useEffect, useState } from 'react';
 
 import { useUser } from 'hooks/useUser';
 
-import { useLanguage } from 'utils/context/translation';
-
 import type { ChartApiOutput } from '../../hooks/useChartsQuery';
 import { ChartHeader } from './ChartHeader/ChartHeader';
 import Result from './Result';
