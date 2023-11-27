@@ -1,5 +1,5 @@
-import { LeaderboardsChartsList } from './chartsList/LeaderboardsChartsList';
-import { SearchForm } from './search/SearchForm';
+import { LeaderboardsChartsList } from './components/charts/LeaderboardsChartsList';
+import { SearchForm } from './components/search/SearchForm';
 
 const Leaderboards = (): JSX.Element => {
   return (

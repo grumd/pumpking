@@ -1,18 +1,16 @@
-import { useState } from 'react';
+import { MantineProvider, createTheme } from '@mantine/core';
+import '@mantine/core/styles.css';
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { httpBatchLink } from '@trpc/client';
 import cookies from 'browser-cookies';
-
-import '@mantine/core/styles.css';
-import { MantineProvider, createTheme } from '@mantine/core';
-
-import { api } from 'utils/trpc';
+import { useState } from 'react';
 
 import { Root } from 'legacy-code/components/Root';
 
+import { api } from 'utils/trpc';
+
 const theme = createTheme({
-  scale: 1.5,
   primaryColor: 'gray',
 });
 

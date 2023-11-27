@@ -1,19 +1,12 @@
-import classNames from 'classnames';
 import _ from 'lodash/fp';
-import queryString from 'query-string';
 import React, { useEffect, useState } from 'react';
-import { FaGlobeAmericas, FaYoutube } from 'react-icons/fa';
-import { NavLink } from 'react-router-dom';
 
 import { useUser } from 'hooks/useUser';
 
-import { routes } from 'legacy-code/constants/routes';
-import { labelToTypeLevel } from 'legacy-code/utils/leaderboards';
-
 import { useLanguage } from 'utils/context/translation';
 
-import type { ChartApiOutput } from '../hooks/useChartsQuery';
-import { ChartLabel } from './ChartLabel';
+import type { ChartApiOutput } from '../../hooks/useChartsQuery';
+import { ChartHeader } from './ChartHeader/ChartHeader';
 import Result from './Result';
 import { ResultsCollapser } from './ResultsCollapser';
 
@@ -37,8 +30,6 @@ const Chart = ({
 
   const playersHiddenStatus = propPlayersHiddenStatus || preferences?.playersHiddenStatus || {};
   const [isHidingPlayers, setHidingPlayers] = useState(!showHiddenPlayers);
-
-  const lang = useLanguage();
 
   useEffect(() => {
     setHidingPlayers(!showHiddenPlayers);
@@ -125,50 +116,11 @@ const Chart = ({
     []
   );
 
-  const [chartType] = labelToTypeLevel(chart.label);
-
   // TODO: remove check from sharedCharts when SocketTracker works off results data instead of topPerSong
 
   return (
     <div className="song-block">
-      <div className="song-name">
-        <ChartLabel type={chartType} level={chart.level ?? '?'} />
-        <div className="song-name-text">
-          <NavLink to={routes.leaderboard.sharedChart.getPath({ sharedChartId: chart.id })}>
-            {chart.songName}
-          </NavLink>{' '}
-          <span className="_grey-text">
-            {chart.difficulty ? `(${chart.difficulty.toFixed(1)}) ` : ''}
-          </span>
-        </div>
-        <div className="youtube-link">
-          <a
-            href={`https://youtube.com/results?${queryString.stringify({
-              search_query: `${chart.songName} ${chart.label}`.replace(/( -)|(- )/g, ' '),
-            })}`}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <FaYoutube />
-          </a>
-        </div>
-        <div className="_flex-fill" />
-        <div className="right-side-block">
-          {hiddenPlayersCount > 0 && (
-            <div className={classNames('players-hidden-count _grey-text _on-hover')}>
-              {lang.HIDDEN}: {hiddenPlayersCount}
-            </div>
-          )}
-          {(hiddenPlayersCount > 0 || !isHidingPlayers) && (
-            <div
-              className="globe-icon _on-hover"
-              onClick={() => setHidingPlayers(!isHidingPlayers)}
-            >
-              <FaGlobeAmericas />
-            </div>
-          )}
-        </div>
-      </div>
+      <ChartHeader chart={chart} />
       <div className="charts">
         {!_.isEmpty(results) && (
           <div className="chart">
@@ -186,24 +138,7 @@ const Chart = ({
                             placeDifference={res.placeDifference}
                             showPpChange={showPpChange}
                             highlightIndex={res.highlightIndex}
-                            // leftProfile={leftProfile}
-                            // rightProfile={rightProfile}
-                            // isSocketView={isSocketView}
-                            // notBestGradeResult={!!res.bestGradeResult}
                           />
-                          {/* {res.bestGradeResult && (
-                            <Result
-                              chart={chart}
-                              res={res.bestGradeResult}
-                              placeDifference={res.placeDifference}
-                              showPpChange={showPpChange}
-                              highlightIndex={res.highlightIndex}
-                              leftProfile={leftProfile}
-                              rightProfile={rightProfile}
-                              isSocketView={isSocketView}
-                              bestGradeScore={true}
-                            />
-                          )} */}
                         </React.Fragment>
                       );
                     });

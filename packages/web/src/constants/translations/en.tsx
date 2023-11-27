@@ -1,4 +1,9 @@
 export const en = {
+  // generic
+  NOTHING_FOUND: 'Nothing found',
+  ERROR: 'Error',
+
+  // menu
   LEADERBOARDS: 'leaderboards',
   RANKING: 'ranking',
   TOURNAMENTS: 'tournaments',
@@ -15,8 +20,18 @@ export const en = {
   SEARCH: 'search',
   FILTER_CHARTS: 'charts filter',
   CHARTS: 'charts',
+  MIXES_LABEL: 'mixes',
+  SONG_NAME_LABEL: 'song name',
+  SCORING_LABEL: 'scoring',
   SONG_NAME_PLACEHOLDER: 'song name...',
   PLAYERS_PLACEHOLDER: 'players...',
+  // Sorting
+  BY_DATE_DESC: 'by date (new to old)',
+  BY_DATE_ASC: 'by date (old to new)',
+  BY_DIFFICULTY_ASC: 'by difficulty (easy to hard)',
+  BY_DIFFICULTY_DESC: 'by difficulty (hard to easy)',
+  BY_PP_DESC: 'by pp (big to small)',
+  BY_PP_ASC: 'by pp (small to big)',
 
   // Presets overlay
   OPEN: 'open',

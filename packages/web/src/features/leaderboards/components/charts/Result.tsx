@@ -6,7 +6,6 @@ import { FaAngleDoubleUp, FaExclamationTriangle } from 'react-icons/fa';
 import Tooltip from 'react-responsive-ui/modules/Tooltip';
 import { Link } from 'react-router-dom';
 
-// import Grade from 'components/Grade/Grade';
 import { ResultScreenshotLink } from 'components/ResultScreenshotLink/ResultScreenshotLink';
 
 import { useUser } from 'hooks/useUser';
@@ -19,17 +18,16 @@ import { routes } from 'legacy-code/constants/routes';
 import { colorsArray } from 'legacy-code/utils/colors';
 import { getExp } from 'legacy-code/utils/exp';
 
-// import { tooltipFormatter } from 'legacy-code/utils/leaderboards';
 import { useLanguage } from 'utils/context/translation';
 
-import type { ChartApiOutput } from '../hooks/useChartsQuery';
+import type { ChartApiOutput } from '../../hooks/useChartsQuery';
+import { Grade } from './Grade';
+import { MixPlate } from './MixPlate';
 
 const Result = ({
-  // shared
   result,
   chart,
   placeDifference,
-  // leaderboard
   showPpChange,
   highlightIndex = -1,
 }: {
@@ -104,10 +102,9 @@ const Result = ({
             )}
             {ratingInfoBlock}
           </span>
-          {/* <div className="mods-container">
-              {result.isRank && <div className="mod vj">{result.mods ? 'R' : 'R?'}</div>}
-              {result.isHJ && <div className="mod hj">HJ</div>}
-            </div> */}
+          <div className="mods-container">
+            <MixPlate mix={result.mix} />
+          </div>
         </div>
       </td>
       <td className={classNames('score')}>
@@ -214,8 +211,12 @@ const Result = ({
       </td>
       <td className={classNames('grade')}>
         <div className="img-holder">
-          {result.grade}
-          {/* <Grade grade={result.grade} /> */}
+          <Grade
+            score={result.score}
+            isPass={result.passed}
+            grade={result.grade}
+            mix={result.mix}
+          />
         </div>
       </td>
       <td className={classNames('number', 'miss')}>{result.stats[4]}</td>
