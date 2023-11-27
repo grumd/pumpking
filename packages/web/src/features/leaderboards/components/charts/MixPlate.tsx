@@ -10,10 +10,10 @@ const scoringToMix = {
 };
 
 const colorByMix: Record<MixNumbers, DefaultMantineColor> = {
-  24: '#2d2a4e99',
+  24: '#48283a99',
   25: '#432a4e99',
-  26: '#48283399',
-  27: '#4e432a99',
+  26: '#2d2a4e99',
+  27: '#2a434e99',
 };
 
 interface MixPlateProps {
