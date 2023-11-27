@@ -112,8 +112,9 @@ const Result = ({
           overlayClassName="score-overlay-outer"
           overlayItem={
             <span className="score-span">
-              {!result.scoreIncrease && '*'}
-              {numeral(result.score).format('0,0')}
+              {!result.scoreIncrease && <span style={{ fontSize: '80%' }}>* </span>}
+              <span>{Math.floor(result.score / 1000)}</span>
+              <span style={{ fontSize: '70%' }}>,{`${result.score % 1000}`.padStart(3, '0')}</span>
             </span>
           }
           placement="top"
