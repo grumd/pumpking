@@ -10,13 +10,13 @@ export interface ChartsSearchParams {
   /** */
   scoring?: 'xx' | 'phoenix';
   /** */
-  duration?: Tracks['duration'];
+  durations?: Array<Tracks['duration']> | undefined;
   /** */
   minLevel?: number;
   /** */
   maxLevel?: number;
-  /** Example: 'S', 'D', 'COOP', etc */
-  label?: string;
+  /** Example: ['S', 'D', 'COOP'], etc */
+  labels?: string[] | undefined;
   /** Id of mixes to include in leaderboards, by default [26, 27] */
   mixes?: number[];
   /** Song name search, can be any text, @example 'matador d22', 'l i a d z' */
@@ -82,8 +82,8 @@ export const searchCharts = async (params: ChartsSearchParams) => {
     currentPlayerId,
     scoring = 'xx',
     mixes = [26, 27],
-    duration,
-    label,
+    durations,
+    labels,
     minLevel,
     maxLevel,
     songName,
@@ -197,8 +197,10 @@ export const searchCharts = async (params: ChartsSearchParams) => {
         );
       }
 
-      if (duration) {
-        subQuery = subQuery.where('tracks.duration', '=', duration);
+      if (durations && durations.length) {
+        subQuery = subQuery.where(({ or, cmpr }) =>
+          or(durations.map((duration) => cmpr('tracks.duration', '=', duration)))
+        );
       }
 
       if (minLevel) {
@@ -208,8 +210,10 @@ export const searchCharts = async (params: ChartsSearchParams) => {
         subQuery = subQuery.where('ci.level', '<=', maxLevel);
       }
 
-      if (label) {
-        subQuery = subQuery.where('ci.label', 'like', `${label}%`);
+      if (labels && labels.length) {
+        subQuery = subQuery.where(({ or, cmpr }) =>
+          or(labels.map((label) => cmpr('ci.label', 'like', `${label}%`)))
+        );
       }
 
       if (sortChartsByPlayers && sortChartsByPlayers.length > 0) {
