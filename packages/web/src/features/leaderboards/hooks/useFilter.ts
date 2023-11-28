@@ -5,6 +5,11 @@ import { atomWithValidatedStorage } from 'utils/jotai';
 
 import type { ChartsFilter } from './useChartsQuery';
 
+export const initialFilter: ChartsFilter = {
+  mixes: [26, 27],
+  scoring: 'phoenix',
+};
+
 export const filterAtom = atomWithValidatedStorage<ChartsFilter>(
   'filterAtom',
   z.object({
@@ -23,10 +28,7 @@ export const filterAtom = atomWithValidatedStorage<ChartsFilter>(
     sortChartsByPlayers: z.array(z.number()).optional(),
     cursor: z.number().nullish(),
   }),
-  {
-    mixes: [26, 27],
-    scoring: 'phoenix',
-  }
+  initialFilter
 );
 
 export const useFilter = () => {

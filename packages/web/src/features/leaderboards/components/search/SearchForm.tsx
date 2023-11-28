@@ -3,7 +3,7 @@ import { useAtom } from 'jotai';
 import { useMemo } from 'react';
 import { Form, useForm } from 'react-hook-form';
 import { MultiSelect, Select, TextInput } from 'react-hook-form-mantine';
-import { FaSearch } from 'react-icons/fa';
+import { FaSearch, FaUndo } from 'react-icons/fa';
 
 import CollapsibleBar from 'components/CollapsibleBar/CollapsibleBar';
 
@@ -15,7 +15,7 @@ import Loader from 'legacy-code/components/Shared/Loader';
 import { useLanguage } from 'utils/context/translation';
 
 import { type ChartsFilter, useChartsQuery } from '../../hooks/useChartsQuery';
-import { filterAtom } from '../../hooks/useFilter';
+import { filterAtom, initialFilter } from '../../hooks/useFilter';
 import ChartFilter from './ChartFilter';
 import type { SearchFormValues } from './formTypes';
 
@@ -101,10 +101,10 @@ const filterToForm = (filter: ChartsFilter): SearchFormValues => ({
       ? `${filter.sortChartsBy},${filter.sortChartsDir}`
       : 'date,desc',
   mixes: filter.mixes?.map(String) ?? ['26', '27'],
-  playersAll: filter.playersAll?.map(String),
-  playersSome: filter.playersSome?.map(String),
-  playersNone: filter.playersNone?.map(String),
-  sortChartsByPlayers: filter.sortChartsByPlayers?.map(String),
+  playersAll: filter.playersAll?.map(String) ?? [],
+  playersSome: filter.playersSome?.map(String) ?? [],
+  playersNone: filter.playersNone?.map(String) ?? [],
+  sortChartsByPlayers: filter.sortChartsByPlayers?.map(String) ?? [],
   levels: [filter.minLevel ?? 1, filter.maxLevel ?? 28],
   scoring: filter.scoring ?? 'phoenix',
 });
@@ -116,7 +116,7 @@ export const SearchForm = (): JSX.Element => {
 
   const [searchFilter, setSearchFilter] = useAtom(filterAtom);
 
-  const { control } = useForm<SearchFormValues>({
+  const { control, reset } = useForm<SearchFormValues>({
     defaultValues: () => Promise.resolve(filterToForm(searchFilter)),
   });
 
@@ -125,6 +125,11 @@ export const SearchForm = (): JSX.Element => {
       ...searchFilter,
       ...values,
     });
+  };
+
+  const onReset = () => {
+    setSearchFilter(initialFilter);
+    reset(filterToForm(initialFilter));
   };
 
   const sortingOptions = useMemo(() => {
@@ -247,11 +252,19 @@ export const SearchForm = (): JSX.Element => {
           </div>
           <ChartFilter control={control} />
         </Flex>
-        <Group gap="md" grow>
-          <Button disabled={chartsQuery.isLoading} leftSection={<FaSearch />} type="submit">
+        <Flex gap="md">
+          <Button
+            style={{ flex: '1 1 auto' }}
+            disabled={chartsQuery.isLoading}
+            leftSection={<FaSearch />}
+            type="submit"
+          >
             {lang.SEARCH}
           </Button>
-        </Group>
+          <Button disabled={chartsQuery.isLoading} leftSection={<FaUndo />} onClick={onReset}>
+            {lang.RESET_FILTERS}
+          </Button>
+        </Flex>
       </Stack>
     </Form>
   );
