@@ -1,16 +1,15 @@
-import z from 'zod';
-import { publicProcedure } from 'trpc/trpc';
-
 import { searchCharts } from 'services/charts/chartsSearch';
+import { publicProcedure } from 'trpc/trpc';
+import z from 'zod';
 
 export const search = publicProcedure
   .input(
     z.object({
       scoring: z.enum(['xx', 'phoenix']).optional(),
-      duration: z.enum(['Full', 'Remix', 'Short', 'Standard']).optional(),
+      durations: z.array(z.enum(['Full', 'Remix', 'Short', 'Standard'])).optional(),
       minLevel: z.number().optional(),
       maxLevel: z.number().optional(),
-      label: z.string().optional(),
+      labels: z.array(z.string()).optional(),
       mixes: z.array(z.number()).optional(),
       songName: z.string().optional(),
       playersSome: z.array(z.number()).optional(),

@@ -1,16 +1,18 @@
 import { useAtomValue } from 'jotai';
 import { z } from 'zod';
-import type { ChartsFilter } from './useChartsQuery';
+
 import { atomWithValidatedStorage } from 'utils/jotai';
+
+import type { ChartsFilter } from './useChartsQuery';
 
 export const filterAtom = atomWithValidatedStorage<ChartsFilter>(
   'filterAtom',
   z.object({
     scoring: z.enum(['xx', 'phoenix']).optional(),
-    duration: z.enum(['Full', 'Remix', 'Short', 'Standard']).optional(),
+    durations: z.array(z.enum(['Full', 'Remix', 'Short', 'Standard'])).optional(),
     minLevel: z.number().optional(),
     maxLevel: z.number().optional(),
-    label: z.string().optional(),
+    labels: z.array(z.string()).optional(),
     mixes: z.array(z.number()).optional(),
     songName: z.string().optional(),
     playersSome: z.array(z.number()).optional(),
@@ -20,7 +22,6 @@ export const filterAtom = atomWithValidatedStorage<ChartsFilter>(
     sortChartsDir: z.enum(['asc', 'desc']).optional(),
     sortChartsByPlayers: z.array(z.number()).optional(),
     cursor: z.number().nullish(),
-    pageSize: z.number(),
   }),
   {
     mixes: [26, 27],
