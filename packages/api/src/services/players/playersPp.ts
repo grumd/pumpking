@@ -1,6 +1,6 @@
-import _ from 'lodash/fp';
-
 import { db, type Transaction } from 'db';
+import { sql } from 'kysely';
+import _ from 'lodash/fp';
 
 type ScoreRecord = {
   id: number;
@@ -18,35 +18,42 @@ const getPlayerResults = async ({
   transaction?: Transaction;
 }) => {
   const results = await (transaction ?? db)
-    .selectFrom('results_highest_score_no_rank as best')
-    .innerJoin('results', 'results.id', 'result_id')
-    .innerJoin('chart_instances', 'chart_instances.id', 'results.chart_instance')
-    .innerJoin('players', 'players.id', 'best.player_id')
-    .innerJoin('tracks', 'tracks.id', 'chart_instances.track')
-    .select([
-      'results.id as result_id',
-      'results.score_xx',
-      'results.grade',
-      'results.perfects',
-      'results.greats',
-      'results.goods',
-      'results.bads',
-      'results.misses',
-      'results.pp',
-      'results.player_name',
-      'results.shared_chart as shared_chart_id',
-      'best.player_id',
-      'chart_instances.level',
-      'chart_instances.label',
-      'chart_instances.interpolated_difficulty',
-      'tracks.short_name',
-      'players.nickname',
-    ])
-    .where('best.player_id', '=', playerId)
-    .where('chart_instances.label', 'not like', 'COOP%')
-    .where('results.pp', 'is not', null)
-    .orderBy('results.pp', 'desc')
-    .limit(100)
+    .with('ranked_results', (_db) => {
+      return _db
+        .selectFrom('results as r')
+        .innerJoin('chart_instances', 'chart_instances.id', 'r.chart_instance')
+        .innerJoin('players', 'players.id', 'r.player_id')
+        .innerJoin('tracks', 'tracks.id', 'chart_instances.track')
+        .select([
+          'r.id as result_id',
+          'r.score_xx',
+          'r.grade',
+          'r.perfects',
+          'r.greats',
+          'r.goods',
+          'r.bads',
+          'r.misses',
+          'r.pp',
+          'r.player_name',
+          'r.shared_chart as shared_chart_id',
+          'r.player_id',
+          'chart_instances.level',
+          'chart_instances.label',
+          'chart_instances.interpolated_difficulty',
+          'tracks.short_name',
+          'players.nickname',
+          sql<number>`row_number() over (partition by r.shared_chart, r.player_id order by ${sql.ref(
+            'pp'
+          )} desc)`.as('pp_rank'),
+        ])
+        .where('r.player_id', '=', playerId)
+        .where('r.pp', 'is not', null);
+    })
+    .selectFrom('ranked_results')
+    .selectAll()
+    .where('ranked_results.pp_rank', '=', 1)
+    .orderBy('ranked_results.pp', 'desc')
+    .limit(200)
     .execute();
 
   // Assert that PP is not null because we had a "where" clause

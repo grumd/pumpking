@@ -1,15 +1,12 @@
+import { gradeSortValue, isValidGrade } from 'constants/grades';
+import { db } from 'db';
+import createDebug from 'debug';
 import { sql } from 'kysely';
 import _ from 'lodash/fp';
-
-import { db } from 'db';
-
-import { gradeSortValue, isValidGrade } from 'constants/grades';
 import { error } from 'utils';
-
-import { getSinglePlayerTotalPp } from 'services/players/playersPp';
 import { calculateResultsPp } from './resultsPp';
+import { getSinglePlayerTotalPp } from 'services/players/playersPp';
 
-import createDebug from 'debug';
 const debug = createDebug('backend-ts:processor:on-result-added');
 
 export const resultAddedEffect = async (resultId: number) => {
@@ -113,110 +110,32 @@ export const resultAddedEffect = async (resultId: number) => {
       debug('Not a new best grade result');
     }
 
-    // Updating highest score result if needed
-    const isRank = result.rank_mode === 1;
-    const tableName = isRank ? 'results_highest_score_rank' : 'results_highest_score_no_rank';
-
-    const highestScoreResult = await trx
-      .selectFrom(`${tableName} as best`)
-      .innerJoin('results', `result_id`, 'results.id')
-      .select(['score_xx', 'best.shared_chart_id', 'best.player_id'])
-      .where('best.player_id', '=', playerId)
-      .where('best.shared_chart_id', '=', sharedChartId)
+    const firstTopScore = await trx
+      .selectFrom('results')
+      .select(['id', 'score_phoenix'])
+      .where('player_id', '=', playerId)
+      .where('shared_chart', '=', sharedChartId)
+      .orderBy('score_phoenix', 'desc')
+      .orderBy('added', 'asc')
+      .limit(1)
       .executeTakeFirst();
 
-    // If new score is better than previous highest score
-    if (
-      result.score_xx &&
-      (!highestScoreResult ||
-        !highestScoreResult.score_xx ||
-        highestScoreResult.score_xx < result.score_xx)
-    ) {
-      if (highestScoreResult) {
-        await trx
-          .updateTable(tableName)
-          .set({ result_id: result.id })
-          .where('player_id', '=', playerId)
-          .where('shared_chart_id', '=', sharedChartId)
-          .executeTakeFirst();
-      } else {
-        await trx
-          .insertInto(tableName)
-          .values({
-            player_id: playerId,
-            shared_chart_id: sharedChartId,
-            result_id: result.id,
-          })
-          .executeTakeFirst();
-      }
+    if (firstTopScore && firstTopScore.id === resultId) {
+      // This score is the new best score
       sharedChartIsChanged = true;
 
-      // ***
-      // Because this result was a new high score:
-      // Calculating new PP values for this chart
-      const resultsPpMap = await calculateResultsPp(sharedChartId, trx);
-      const entries = Array.from(resultsPpMap.entries());
-      const resultIds = entries.filter(([, pp]) => pp).map(([resultId]) => resultId);
+      const resultsPp = await calculateResultsPp({ sharedChartId, resultId, trx });
+      const pp = resultsPp.get(resultId);
 
-      const previousResultsPp = await trx
-        .selectFrom('results')
-        .select(['id', 'pp'])
-        .where('id', 'in', resultIds)
-        .execute();
-
-      const resultsThatChanged = entries.filter(([resultId, pp]) => {
-        if (!pp) {
-          return false;
-        }
-        const oldResultPp = _.find({ id: resultId }, previousResultsPp)?.pp;
-        // Only update results and totals if pp of user's result changed
-        return !oldResultPp || Math.abs(oldResultPp - pp) > 0.01;
-      });
-
-      const playerIds = await trx
-        .selectFrom('results')
-        .select('player_id')
-        .distinct()
-        .where(
-          'id',
-          'in',
-          resultsThatChanged.map(([id]) => id)
-        )
-        .execute();
-
-      debug(`Calculated pp for results in sharedChart ${sharedChartId}`);
-
-      // Updating pp values for all results in this shared chart
-      await Promise.all(
-        resultsThatChanged.map(([resultId, pp]) => {
-          debug(`Updating result ${resultId} with pp ${pp}`);
-
-          return trx
-            .updateTable('results')
-            .set({ pp })
-            .where('id', '=', resultId)
-            .executeTakeFirst();
-        })
-      );
-
-      // Updating pp values for all players whose results were updated
-      await Promise.all(
-        playerIds.map(async (value) => {
-          const playerId = value.player_id;
-          if (playerId) {
-            const totalPp = await getSinglePlayerTotalPp(playerId, trx);
-            debug(`Updating player ${playerId} with total pp ${totalPp}`);
-
-            await trx
-              .updateTable('players')
-              .set({ pp: totalPp })
-              .where('id', '=', playerId)
-              .executeTakeFirst();
-          }
-        })
-      );
-    } else {
-      debug('Not a new highest score result');
+      if (pp) {
+        await trx.updateTable('results').set({ pp }).where('id', '=', resultId).executeTakeFirst();
+        const totalPp = await getSinglePlayerTotalPp(playerId, trx);
+        await trx
+          .updateTable('players')
+          .set({ pp: totalPp })
+          .where('id', '=', playerId)
+          .executeTakeFirst();
+      }
     }
 
     if (sharedChartIsChanged) {

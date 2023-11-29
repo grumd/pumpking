@@ -1,70 +1,72 @@
+import { db } from 'db';
+import createDebug from 'debug';
+import { sql } from 'kysely';
 import _ from 'lodash/fp';
 import regression from 'regression';
 import { DataPoint } from 'regression';
+import { getSinglePlayerTotalPp } from 'services/players/playersPp';
+import { calculateResultsPp } from 'services/results/resultsPp';
 
-import { db } from 'db';
-
-import { mix } from 'constants/currentMix';
-
-import { getGroupedBestResults, getAccuracyPercent } from 'utils/results';
+const debug = createDebug('backend-ts:services:chart-difficulty');
 
 type AccPoint = { level: number; scorePercent: number };
 
-export default async () => {
-  let allResults = await db
-    .selectFrom('results')
-    .innerJoin('chart_instances', 'chart_instances.id', 'results.chart_instance')
-    .innerJoin('players', 'players.id', 'results.player_id')
-    .innerJoin('tracks', 'tracks.id', 'chart_instances.track')
-    .select([
-      'id',
-      'score_xx',
-      'grade',
-      'perfects',
-      'greats',
-      'goods',
-      'bads',
-      'misses',
-      'rank_mode',
-      'shared_chart as shared_chart_id',
-      'player_id',
-      'players.nickname',
-      'chart_instances.level',
-      'tracks.short_name as track_short_name',
-    ])
-    .where('players.hidden', '=', 0)
-    .where('is_new_best_score', '=', 1)
-    .where('rank_mode', '=', 0)
-    .where('mix', '=', mix)
-    .where('chart_label', 'not like', 'COOP%')
-    .orderBy('gained', 'desc')
+export const getInterpolatedDifficultyPerChartInstance = async () => {
+  const bestResults = await db
+    .with('ranked_results', (_db) => {
+      return _db
+        .selectFrom('results')
+        .innerJoin('chart_instances', 'chart_instances.id', 'results.chart_instance')
+        .innerJoin('players', 'players.id', 'results.player_id')
+        .innerJoin('tracks', 'tracks.id', 'chart_instances.track')
+        .select([
+          'results.id',
+          'results.mix',
+          'score_phoenix',
+          'results.shared_chart as shared_chart_id',
+          'chart_instances.id as chart_instance_id',
+          'player_id',
+          'players.nickname',
+          'chart_instances.level',
+          'tracks.short_name as track_short_name',
+          sql<number>`row_number() over (partition by results.chart_instance, results.player_id order by ${sql.ref(
+            'score_phoenix'
+          )} desc)`.as('score_rank'),
+        ])
+        .where('rank_mode', '=', 0)
+        .where('score_phoenix', 'is not', null)
+        .where('chart_label', 'not like', 'COOP%');
+    })
+    .selectFrom('ranked_results')
+    .selectAll()
+    .where('score_rank', '=', 1)
     .execute();
 
-  /**
-   * Group results by chart
-   */
-  const resultsByChart = getGroupedBestResults(allResults);
+  const getAccuracyPercent = (result: (typeof bestResults)[0]) => {
+    return result.score_phoenix ? result.score_phoenix / 10_000 : null;
+  };
 
   /**
    * Recording accuracy of every player on different difficulty levels
    */
   let profiles: Record<number, { accuracyPointsRaw: AccPoint[]; nickname: string }> = {};
-  _.forEach((chartResults) => {
-    _.forEach((result) => {
-      const percents = getAccuracyPercent(result);
-      if (percents && result.player_id && result.level) {
-        profiles[result.player_id] ??= {
-          nickname: result.nickname,
-          accuracyPointsRaw: [],
-        };
+  _.forEach((result) => {
+    if (!result.score_phoenix || !result.player_id || !result.level) {
+      return;
+    }
 
-        profiles[result.player_id].accuracyPointsRaw.push({
-          level: result.level,
-          scorePercent: percents,
-        });
-      }
-    }, chartResults);
-  }, resultsByChart);
+    const percents = getAccuracyPercent(result)!;
+
+    profiles[result.player_id] ??= {
+      nickname: result.nickname,
+      accuracyPointsRaw: [],
+    };
+
+    profiles[result.player_id].accuracyPointsRaw.push({
+      level: result.level,
+      scorePercent: percents,
+    });
+  }, bestResults);
 
   /**
    * Interpolating player's accuracy using logarithmic interpolation
@@ -101,10 +103,12 @@ export default async () => {
 
       return { pointsInterpolated: yx };
     }, profiles);
+
   /**
    * Finding interpolated difficulty of every chart
    */
-  const charts = _.mapValues((chartResults) => {
+  const groupedBySharedChart = _.groupBy('shared_chart_id', bestResults);
+  const groupedBySharedChartWithDiff = _.mapValues((chartResults) => {
     // Looping through every chart result to find weights
     const resultsData = chartResults
       .filter((r) => r.player_id && !!profiles[r.player_id])
@@ -152,11 +156,17 @@ export default async () => {
       },
       { diffSum: 0, weightSum: 0 }
     );
-    sums.diffSum += _.toNumber(chartResults[0].level) * 2;
+
+    // Using chart's built-in level as a contribution to the interpolated difficulty
+    const latestMixResult = _.maxBy('mix', chartResults)!; // chartResults is not empty
+    sums.diffSum += 2 * _.toNumber(latestMixResult.level);
     sums.weightSum += 2;
+
     return {
-      level: chartResults[0].level,
-      name: chartResults[0].track_short_name,
+      sharedChartId: latestMixResult.shared_chart_id,
+      chartInstances: _.uniq(chartResults.map((r) => r.chart_instance_id)),
+      level: latestMixResult.level,
+      name: latestMixResult.track_short_name,
       difficulty: sums.diffSum / sums.weightSum,
       affectedBy: resultsData
         .filter((res) => res)
@@ -168,6 +178,102 @@ export default async () => {
           };
         }),
     };
-  }, resultsByChart);
-  return charts;
+  }, groupedBySharedChart);
+
+  const chartsGroupedByChartInstance: Record<
+    number,
+    { chartInstanceId: number } & Omit<
+      (typeof groupedBySharedChartWithDiff)[number],
+      'chartInstances'
+    >
+  > = {};
+
+  for (const sharedChartId in groupedBySharedChartWithDiff) {
+    const { chartInstances, ...chart } = groupedBySharedChartWithDiff[sharedChartId];
+    for (const chartInstanceId of chartInstances) {
+      chartsGroupedByChartInstance[chartInstanceId] = { ...chart, chartInstanceId };
+    }
+  }
+
+  return chartsGroupedByChartInstance;
+};
+
+export const updateChartsDifficulty = async () => {
+  debug('Recalculating charts difficulty');
+
+  const interpolatedDiffs = await getInterpolatedDifficultyPerChartInstance();
+
+  const chartLevels = await db
+    .selectFrom('chart_instances')
+    .leftJoin('shared_charts', 'chart_instances.shared_chart', 'shared_charts.id')
+    .leftJoin('tracks', 'chart_instances.track', 'tracks.id')
+    .select([
+      'chart_instances.id as chart_instance_id',
+      'chart_instances.level',
+      'chart_instances.mix',
+      'tracks.full_name',
+      'chart_instances.label',
+    ])
+    .where('mix', '>=', 25)
+    .where('chart_instances.level', 'is not', null)
+    .execute();
+
+  const updateCharts = chartLevels
+    .map((chart) => {
+      return {
+        ...chart,
+        interpolated: interpolatedDiffs[chart.chart_instance_id]?.difficulty,
+      };
+    })
+    .filter((ch) => ch.interpolated && ch.level);
+
+  updateCharts.reduce(async (_acc, { chart_instance_id, interpolated }) => {
+    await db
+      .updateTable('chart_instances')
+      .set({ interpolated_difficulty: interpolated })
+      .where('id', '=', chart_instance_id)
+      .execute();
+  }, Promise.resolve());
+
+  debug('Updated charts difficulty');
+
+  const allResultsPp = await calculateResultsPp();
+  const idPpPairs = Array.from(allResultsPp.entries()).map(([id, pp]) => ({ id, pp }));
+
+  await db.transaction().execute(async (trx) => {
+    await trx.schema.dropTable('temp_results_pp').ifExists().execute();
+    await trx.schema
+      .createTable('temp_results_pp')
+      .temporary()
+      .addColumn('id', 'integer', (col) => col.primaryKey())
+      .addColumn('pp', 'float8')
+      .execute();
+
+    // Just for Typescript
+    const tempDb = trx.withTables<{
+      temp_results_pp: { id: number; pp: number | null };
+    }>();
+
+    await tempDb.insertInto('temp_results_pp').values(idPpPairs).execute();
+
+    // Kysely doesn't support MySQL syntax for update-join-set, using raw SQL instead
+    await sql`
+      UPDATE results
+      LEFT JOIN temp_results_pp ON results.id = temp_results_pp.id
+      SET results.pp = temp_results_pp.pp
+    `.execute(tempDb);
+  });
+
+  debug('Updated results pp successfully');
+
+  const playerIds = await db.selectFrom('players').select('id').execute();
+
+  playerIds.reduce(async (prev, { id }) => {
+    await prev;
+    const totalPp = await getSinglePlayerTotalPp(id);
+    debug(`Updating player ${id} with total pp ${totalPp}`);
+    await db.updateTable('players').set({ pp: totalPp }).where('id', '=', id).executeTakeFirst();
+  }, Promise.resolve());
+
+  debug('Updated players total pp successfully');
 };

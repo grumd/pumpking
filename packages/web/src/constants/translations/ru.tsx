@@ -143,7 +143,8 @@ export const ru = {
   DETAILED: 'подробно',
   NAME: 'имя',
   AMPASS: 'ampass',
-  SCORES_count: 'оценок',
+  SCORES_count: 'рекордов',
+  PLAYCOUNT: 'плеев',
   PROFILE_NOT_FOUND: 'Профиль не найден',
 
   EXP_FAQ: (

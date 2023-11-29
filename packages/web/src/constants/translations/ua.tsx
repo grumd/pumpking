@@ -143,7 +143,8 @@ export const ua = {
   DETAILED: 'детально',
   NAME: "ім'я",
   AMPASS: 'ampass',
-  SCORES_count: 'оцінок',
+  SCORES_count: 'рекордів',
+  PLAYCOUNT: 'плеїв',
   PROFILE_NOT_FOUND: 'Профіль не знайдено',
 
   EXP_FAQ: (

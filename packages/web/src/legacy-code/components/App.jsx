@@ -26,7 +26,7 @@ const LazyNewLeaderboards = React.lazy(() => import('../../features/leaderboards
 const LazyProfile = React.lazy(() => import('./Profile/Profile'));
 const LazyProfileCompare = React.lazy(() => import('./ProfileCompare/ProfileCompare'));
 const LazyTournaments = React.lazy(() => import('./Tournaments/Tournaments'));
-const LazyRanking = React.lazy(() => import('./Ranking/Ranking'));
+const LazyRanking = React.lazy(() => import('../../features/ranking/Ranking'));
 const LazyResultsByLevel = React.lazy(() => import('./Profile/ResultsByLevel'));
 const LazySongsTop = React.lazy(() => import('./SongsTop/SongsTop'));
 const LazySocketTracker = React.lazy(() => import('./SocketTracker/SocketTracker'));

@@ -1,9 +1,7 @@
-// require('tsconfig-paths/register');
-
+import { app } from './app';
+import './jobs';
 import fs from 'fs';
 import https from 'https';
-
-import { app } from './app';
 
 const port = process.env.APP_PORT || 5000;
 

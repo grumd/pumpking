@@ -314,8 +314,6 @@ export interface DB {
   purgatory: Purgatory;
   results: Results;
   results_best_grade: ResultsBestGrade;
-  results_highest_score_no_rank: ResultsHighestScoreNoRank;
-  results_highest_score_rank: ResultsHighestScoreRank;
   sessions: Sessions;
   shared_charts: SharedCharts;
   tournament_brackets: TournamentBrackets;

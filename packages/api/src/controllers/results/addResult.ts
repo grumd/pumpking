@@ -65,6 +65,7 @@ const ManualResult = z.object({
 });
 
 const mixIdByName = {
+  Phoenix: 27,
   XX: 26,
   Prime2: 25,
   Prime: 24,
@@ -213,6 +214,7 @@ export const addResultController = async (
 
     response.json({ success: true });
   } catch (e) {
+    console.error(e);
     next(e);
   }
 };
