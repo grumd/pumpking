@@ -3,7 +3,6 @@ import _ from 'lodash/fp';
 import { Grade } from 'constants/grades';
 import { db } from 'db';
 
-import { mix } from 'constants/currentMix';
 import { addResultsSession, adminSession } from 'test/helpers/sessions';
 
 export const sessions = [
@@ -98,7 +97,7 @@ export const chartInstances = [
     id: 1,
     track: 1,
     shared_chart: 1,
-    mix,
+    mix: 26,
     label: 'S20',
     level: 20,
     max_possible_score_norank: 1000000,
@@ -114,7 +113,7 @@ export const getResultDefaults = ({ playerId = 1, score = 1000000 }) => ({
   agent: 0,
   track_name: '',
   mix_name: '',
-  mix,
+  mix: 26,
   chart_label: '',
   shared_chart: 1,
   chart_instance: 1,

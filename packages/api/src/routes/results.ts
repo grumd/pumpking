@@ -1,12 +1,9 @@
-import { Router } from 'express';
-
+import { addResultController } from 'controllers/results/addResult';
 import { resultAddedEffectController } from 'controllers/results/resultAddedEffect';
 import { screenshotController } from 'controllers/results/screenshot';
-import { addResultController } from 'controllers/results/addResult';
-
-import { validate } from 'utils';
-
+import { Router } from 'express';
 import { addResultsAuth } from 'middlewares/auth/auth';
+import { validate } from 'utils';
 
 const router = Router();
 

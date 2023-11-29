@@ -152,6 +152,7 @@ export const en = {
   NAME: 'name',
   AMPASS: 'ampass',
   SCORES_count: 'scores',
+  PLAYCOUNT: 'plays',
   PROFILE_NOT_FOUND: 'Profile not found',
 
   EXP_FAQ: (

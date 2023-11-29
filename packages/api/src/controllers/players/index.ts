@@ -1,7 +1,7 @@
 import _ from 'lodash/fp';
 import type { Response, Request, NextFunction } from 'express';
 
-import { getPlayers, getPlayersGradeStats } from 'services/players/players';
+import { getPlayers, getPlayersStats } from 'services/players/players';
 
 export const getPlayersAllController = async (
   request: Request,
@@ -21,7 +21,7 @@ export const getPlayersStatsController = async (
   next: NextFunction
 ) => {
   try {
-    response.json(await getPlayersGradeStats());
+    response.json(await getPlayersStats());
   } catch (error) {
     next(error);
   }

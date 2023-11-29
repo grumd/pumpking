@@ -1,4 +1,5 @@
 import { db } from 'db';
+import { sql } from 'kysely';
 
 export const getPlayers = async ({ mixes }: { mixes?: number[] } = {}): Promise<
   {
@@ -30,37 +31,91 @@ export const getPlayers = async ({ mixes }: { mixes?: number[] } = {}): Promise<
   }
 };
 
-export const getPlayersGradeStats = async () => {
-  const players = await db
+export const getPlayersStats = async () => {
+  const query = db
     .selectFrom('players')
-    .select(['id', 'pp', 'nickname', 'region'])
-    .where('pp', 'is not', null)
-    .orderBy('pp', 'desc')
-    .execute();
-
-  const resultsPerGrade = await db
-    .selectFrom('results_best_grade as best')
-    .leftJoin('results', 'results.id', 'result_id')
+    .leftJoin(
+      (eb) =>
+        eb
+          .selectFrom('arcade_player_names')
+          .select(['player_id', 'name'])
+          .distinct()
+          .as('first_arcade_name'),
+      (join) => join.onRef('first_arcade_name.player_id', '=', 'players.id')
+    )
+    .leftJoin(
+      (eb) =>
+        eb
+          .selectFrom('results')
+          .select(['player_id', ({ fn }) => fn.avg<number>('score_phoenix').as('avg_score')])
+          .groupBy('player_id')
+          .where('score_phoenix', 'is not', null)
+          .as('avg_score'),
+      (join) => join.onRef('avg_score.player_id', '=', 'players.id')
+    )
+    .leftJoin(
+      (eb) =>
+        eb
+          .selectFrom('results')
+          .select(['player_id', ({ fn }) => fn.count<number>('id').as('results_count')])
+          .groupBy('player_id')
+          .as('results_count'),
+      (join) => join.onRef('results_count.player_id', '=', 'players.id')
+    )
+    .leftJoin(
+      (eb) =>
+        eb
+          .selectFrom((eb2) =>
+            eb2
+              .selectFrom('results as r2')
+              .select([
+                'player_id',
+                'id',
+                sql<number>`row_number() over (partition by r2.shared_chart, r2.player_id order by ${sql.ref(
+                  'r2.score_phoenix'
+                )} desc)`.as('score_rank'),
+              ])
+              .as('ranked_results')
+          )
+          .select(['player_id', ({ fn }) => fn.count<number>('id').as('best_results_count')])
+          .where('score_rank', '=', 1)
+          .groupBy('player_id')
+          .as('best_results_count'),
+      (join) => join.onRef('best_results_count.player_id', '=', 'players.id')
+    )
     .select([
-      'best.player_id',
-      'results.grade',
-      ({ fn }) => fn.count<number>('result_id').as('results_count'),
+      'id',
+      'pp',
+      'nickname',
+      'region',
+      'first_arcade_name.name as arcade_name',
+      'results_count',
+      'best_results_count',
+      'avg_score',
     ])
-    .groupBy('best.player_id')
-    .groupBy('results.grade')
-    .orderBy('best.player_id', 'asc')
-    .orderBy('results.grade')
-    .execute();
+    .where('pp', 'is not', null)
+    .where('pp', '>', 0)
+    .orderBy('pp', 'desc');
 
-  return players.map((player) => {
-    const grades = resultsPerGrade
-      .filter((r) => r.player_id === player.id)
-      .reduce((acc: Record<string, number>, r) => {
-        return { ...acc, [r.grade ?? 'N/A']: r.results_count };
-      }, {});
-    return {
-      ...player,
-      grades,
-    };
-  });
+  const players = await query.execute();
+  return players.map(
+    ({
+      avg_score,
+      ...player
+    }): {
+      id: number;
+      nickname: string;
+      region: string | null;
+      pp: number | null;
+      arcade_name: string | null;
+      accuracy: number | null;
+      results_count: number | null;
+      best_results_count: number | null;
+    } => {
+      return {
+        ...player,
+        accuracy: avg_score ? avg_score / 10_000 : null,
+      };
+    }
+  );
 };

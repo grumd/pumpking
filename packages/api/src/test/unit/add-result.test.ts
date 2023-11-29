@@ -132,6 +132,82 @@ describe('Add new result manually', () => {
     assert.isNotEmpty(res.body, 'has a response');
   });
 
+  it('pp is not calculated if its not a new top score', async () => {
+    await req()
+      .post('/results/add-result')
+      .set('session', addResultsSession)
+      .field('playerId', 7)
+      .field('grade', 'SSS')
+      .field('mix', 'XX')
+      .field('mod', '')
+      .field('score', 1000000)
+      .field('perfect', 100)
+      .field('great', 0)
+      .field('good', 0)
+      .field('bad', 0)
+      .field('miss', 0)
+      .field('combo', 100)
+      .field('date', '2020-01-01')
+      .field('isExactDate', true)
+      .field('sharedChartId', 1)
+      .attach('screenshot', path.join(__dirname, '../files/test.jpg'))
+      .expect(200);
+
+    const getLatestResult = async () =>
+      await db
+        .selectFrom('results')
+        .selectAll()
+        .where('player_id', '=', 7)
+        .orderBy('id', 'desc')
+        .executeTakeFirst();
+
+    assert.isAbove((await getLatestResult())?.pp ?? -1, 0, `results's pp is above 0`);
+
+    await req()
+      .post('/results/add-result')
+      .set('session', addResultsSession)
+      .field('playerId', 7)
+      .field('grade', 'SSS')
+      .field('mix', 'XX')
+      .field('mod', '')
+      .field('score', 1000000)
+      .field('perfect', 100)
+      .field('great', 0)
+      .field('good', 0)
+      .field('bad', 0)
+      .field('miss', 0)
+      .field('combo', 100)
+      .field('date', '2020-01-02')
+      .field('isExactDate', true)
+      .field('sharedChartId', 1)
+      .attach('screenshot', path.join(__dirname, '../files/test.jpg'))
+      .expect(200);
+
+    assert.isNull((await getLatestResult())?.pp, `new results's pp is null`);
+
+    await req()
+      .post('/results/add-result')
+      .set('session', addResultsSession)
+      .field('playerId', 7)
+      .field('grade', 'SS')
+      .field('mix', 'XX')
+      .field('mod', '')
+      .field('score', 990000)
+      .field('perfect', 95)
+      .field('great', 5)
+      .field('good', 0)
+      .field('bad', 0)
+      .field('miss', 0)
+      .field('combo', 100)
+      .field('date', '2020-01-03')
+      .field('isExactDate', true)
+      .field('sharedChartId', 1)
+      .attach('screenshot', path.join(__dirname, '../files/test.jpg'))
+      .expect(200);
+
+    assert.isNull((await getLatestResult())?.pp, `new results's pp is null`);
+  });
+
   it('all effects are applied correctly', async () => {
     let player = await db.selectFrom('players').selectAll().where('id', '=', 7).executeTakeFirst();
     assert.isNull(player?.pp, `player's pp is null by default`);
@@ -180,8 +256,8 @@ describe('Add new result manually', () => {
 
     const firstPp = player?.pp;
 
-    assert.isAbove(firstResult?.pp as number, 0, `results's pp is above 0`);
-    assert.isAbove(firstPp as number, 0, `player's pp is above 0`);
+    assert.isAbove(firstResult?.pp ?? -1, 0, `results's pp is above 0`);
+    assert.isAbove(firstPp ?? -1, 0, `player's pp is above 0`);
     assert.equal(firstResult?.pp, firstPp, 'player pp and result pp are equal');
 
     // add second result for this user
