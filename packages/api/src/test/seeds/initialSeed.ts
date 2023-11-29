@@ -169,8 +169,6 @@ export const results = [
 
 export const initialSeed = async () => {
   await db.deleteFrom('results_best_grade').execute();
-  await db.deleteFrom('results_highest_score_no_rank').execute();
-  await db.deleteFrom('results_highest_score_rank').execute();
   await db.deleteFrom('results').execute();
   await db.deleteFrom('chart_instances').execute();
   await db.deleteFrom('shared_charts').execute();
