@@ -1,4 +1,5 @@
 import classNames from 'classnames';
+import { useAtomValue } from 'jotai';
 import numeral from 'numeral';
 import { FaAngleDoubleUp, FaExclamationTriangle } from 'react-icons/fa';
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -7,6 +8,8 @@ import Tooltip from 'react-responsive-ui/modules/Tooltip';
 import { Link } from 'react-router-dom';
 
 import { ResultScreenshotLink } from 'components/ResultScreenshotLink/ResultScreenshotLink';
+
+import { filterAtom } from 'features/leaderboards/hooks/useFilter';
 
 import { useUser } from 'hooks/useUser';
 
@@ -24,61 +27,37 @@ import type { ChartApiOutput } from '../../hooks/useChartsQuery';
 import { Grade } from './Grade';
 import { MixPlate } from './MixPlate';
 
-const Result = ({
-  result,
-  chart,
-  placeDifference,
-  showPpChange,
-  highlightIndex = -1,
-}: {
-  result: ChartApiOutput['results'][number];
-  chart: ChartApiOutput;
-  placeDifference?: number;
-  showPpChange?: boolean;
-  highlightIndex?: number;
-}) => {
+export type ResultExtended = ChartApiOutput['results'][number] & {
+  topPlace: number;
+  isPlayerHidden: boolean;
+  isImportant: boolean;
+  highlightIndex: number;
+  placeDifference: number;
+  isLatestScore: boolean;
+  isCollapsible: boolean;
+};
+
+const Result = ({ result, chart }: { result: ResultExtended; chart: ChartApiOutput }) => {
   const lang = useLanguage();
   const user = useUser();
+  const filter = useAtomValue(filterAtom);
+  const isSortedByPp = filter.sortChartsBy === 'pp';
   const isCurrentPlayer = result.playerId === user.data?.id;
-
-  // Rating info for nickname column:
-  let ratingInfoBlock = null;
-  if (DEBUG) {
-    // In debug mode we show all info
-    ratingInfoBlock = (
-      <>
-        <span className="debug-elo-info"> {result.pp && `${result.pp}pp`}</span>
-      </>
-    );
-  } else if (showPpChange && result.pp) {
-    // In non-debug mode we show relevant info for selected protagonist
-    ratingInfoBlock = (
-      <>
-        {' / '}
-        <span>{result.pp}pp</span>
-      </>
-    );
-  }
-
-  const flag = result.region ? <Flag region={result.region} /> : null;
 
   const exp = getExp(result, chart);
   const playerRoute = routes.profile.getPath({ id: result.playerId });
-
-  const isLatestScore =
-    new Date(chart.updatedOn).getTime() - new Date(result.added).getTime() < 12 * 60 * 60 * 1000;
 
   return (
     <tr
       key={result.id}
       className={classNames({
-        latest: isLatestScore,
+        latest: result.isLatestScore,
       })}
       style={
-        highlightIndex > -1
+        result.highlightIndex >= 0
           ? {
-              background: colorsArray[highlightIndex] + '3A',
-              outline: `1px solid ${colorsArray[highlightIndex]}A0`,
+              background: colorsArray[result.highlightIndex] + '3A',
+              outline: `1px solid ${colorsArray[result.highlightIndex]}A0`,
             }
           : {}
       }
@@ -88,19 +67,21 @@ const Result = ({
       </td>
       <td
         className={classNames('nickname')}
-        style={highlightIndex > -1 || isCurrentPlayer ? { fontWeight: 'bold' } : {}}
+        style={result.highlightIndex >= 0 || isCurrentPlayer ? { fontWeight: 'bold' } : {}}
       >
         <div className="nickname-container">
-          {flag}
+          {result.region ? <Flag region={result.region} /> : null}
           <span className="nickname-text">
             <Link to={playerRoute}>{result.playerName}</Link>
-            {!!placeDifference && (
+            {!!result.placeDifference && (
               <span className="change-holder up">
-                <span>{placeDifference}</span>
+                <span>{result.placeDifference}</span>
                 <FaAngleDoubleUp />
               </span>
             )}
-            {ratingInfoBlock}
+            {(DEBUG || (isSortedByPp && result.highlightIndex >= 0)) && (
+              <span className="debug-elo-info"> {result.pp && `${result.pp}pp`}</span>
+            )}
           </span>
           <div className="mods-container">
             <MixPlate mix={result.mix} />
@@ -228,7 +209,7 @@ const Result = ({
       <td className={classNames('combo', 'desktop-only')}>{result.combo && `${result.combo}x`}</td>
       <td
         className={classNames('date', {
-          latest: isLatestScore,
+          latest: result.isLatestScore,
         })}
       >
         <Tooltip

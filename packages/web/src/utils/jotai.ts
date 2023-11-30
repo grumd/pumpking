@@ -12,7 +12,6 @@ export const atomWithValidatedStorage = <Value>(
     {
       getItem(key, initialValue) {
         const storedValue = localStorage.getItem(key);
-        console.log('getItem', storedValue);
         try {
           return zodSchema.parse(JSON.parse(storedValue ?? ''));
         } catch (error) {

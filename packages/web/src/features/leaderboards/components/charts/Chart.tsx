@@ -1,5 +1,9 @@
+import { useAtomValue } from 'jotai';
 import _ from 'lodash/fp';
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
+
+import { filterAtom } from 'features/leaderboards/hooks/useFilter';
+import { useHighlightedPlayerIds } from 'features/leaderboards/hooks/useHighlightedPlayerIds';
 
 import { useUser } from 'hooks/useUser';
 
@@ -8,56 +12,41 @@ import { ChartHeader } from './ChartHeader/ChartHeader';
 import Result from './Result';
 import { ResultsCollapser } from './ResultsCollapser';
 
-const Chart = ({
-  chart,
-  playersHiddenStatus: propPlayersHiddenStatus,
-  showHiddenPlayers = false,
-  showProtagonistPpChange = false,
-  uniqueSelectedNames = [],
-  protagonistName = null,
-}: {
-  chart: ChartApiOutput;
-  playersHiddenStatus?: Record<string, boolean>;
-  showHiddenPlayers?: boolean;
-  showProtagonistPpChange?: boolean;
-  uniqueSelectedNames?: string[];
-  protagonistName?: string | null;
-}) => {
+const Chart = ({ chart }: { chart: ChartApiOutput }) => {
   const currentPlayerId = useUser().data?.id;
   const preferences = useUser().data?.preferences;
+  const filter = useAtomValue(filterAtom);
+  const highlightedPlayerIds = useHighlightedPlayerIds();
 
-  const playersHiddenStatus = propPlayersHiddenStatus || preferences?.playersHiddenStatus || {};
-  const [isHidingPlayers, setHidingPlayers] = useState(!showHiddenPlayers);
+  const playersHiddenStatus = preferences?.playersHiddenStatus || {};
+  const [isHidingPlayers, setHidingPlayers] = useState(true);
 
-  useEffect(() => {
-    setHidingPlayers(!showHiddenPlayers);
-  }, [showHiddenPlayers]);
-
-  let topPlace = 1;
-  const occuredplayerNames: string[] = [];
   let hiddenPlayersCount = 0;
+
   const results = chart.results
     .map((res, index, array) => {
-      const isProtagonist = res.playerName === protagonistName;
+      const isLatestScore = res.added === chart.updatedOn;
+      const ppSortPlayerId =
+        filter.sortChartsBy === 'pp' && !filter.sortChartsByPlayers?.length
+          ? array[0].playerId
+          : null;
+      const highlightIndex = (
+        ppSortPlayerId ? [ppSortPlayerId, ...highlightedPlayerIds] : highlightedPlayerIds
+      ).indexOf(res.playerId ?? -1);
+
+      const isImportant = isLatestScore || res.playerId === currentPlayerId || highlightIndex >= 0;
+
       const isPlayerHidden =
-        !isProtagonist &&
+        !isImportant &&
         isHidingPlayers &&
         res.playerId != null &&
         (playersHiddenStatus[res.playerId] || false);
-      const isSecondOccurenceInResults = occuredplayerNames.includes(res.playerName);
-      occuredplayerNames.push(res.playerName);
 
       let placeDifference = 0;
-      if (res.scoreIncrease && res.added === chart.updatedOn) {
+      if (res.scoreIncrease && isLatestScore) {
         const prevScore = res.score - res.scoreIncrease;
-        const newIndex = _.findLastIndex((res) => res.score > prevScore, array);
-        placeDifference = newIndex - index;
-      }
-
-      if (index === 0) {
-        topPlace = 1;
-      } else if (!isSecondOccurenceInResults && res.score !== _.get([index - 1, 'score'], array)) {
-        topPlace += 1;
+        const prevIndex = _.findLastIndex((res) => res.score > prevScore, array);
+        placeDifference = prevIndex - index;
       }
 
       if (isPlayerHidden) {
@@ -66,31 +55,29 @@ const Chart = ({
 
       return {
         ...res,
-        topPlace,
-        isSecondOccurenceInResults,
+        topPlace: index + 1,
         isPlayerHidden,
-        highlightIndex: uniqueSelectedNames.indexOf(res.playerName),
-        isProtagonist: res.playerName === protagonistName,
+        isImportant,
+        highlightIndex,
         placeDifference,
-        isLatestScore: res.added === chart.updatedOn,
+        isLatestScore,
       };
     })
     .filter((res, index) => {
-      return !(res.isPlayerHidden || (res.id === 1 && index !== 0));
+      return !(res.isPlayerHidden || (res.playerId === 1 && index !== 0));
     })
     .map((res, index, array) => {
       // Collapse results that are not within 2 places of a highlighted result
-      const isResultImportant = (r: typeof res) =>
-        r.playerId === currentPlayerId || r.isLatestScore || r.highlightIndex > -1;
       const highlightRange = 2;
-      const isHighlighted = isResultImportant(res);
       const isBeforeHighlighted = array
         .slice(index + 1, index + 1 + highlightRange)
-        .some(isResultImportant);
-      const isAfterHighlighted = array.slice(index - highlightRange, index).some(isResultImportant);
+        .some((r) => r.isImportant);
+      const isAfterHighlighted = array
+        .slice(index - highlightRange, index)
+        .some((r) => r.isImportant);
       return {
         ...res,
-        isCollapsible: !isHighlighted && !isBeforeHighlighted && !isAfterHighlighted,
+        isCollapsible: !res.isImportant && !isBeforeHighlighted && !isAfterHighlighted,
       };
     });
 
@@ -127,16 +114,9 @@ const Chart = ({
                 <tbody>
                   {resultGroups.map((group) => {
                     const groupResults = group.results.map((res) => {
-                      const showPpChange = res.isProtagonist && showProtagonistPpChange;
                       return (
                         <React.Fragment key={res.id}>
-                          <Result
-                            chart={chart}
-                            result={res}
-                            placeDifference={res.placeDifference}
-                            showPpChange={showPpChange}
-                            highlightIndex={res.highlightIndex}
-                          />
+                          <Result chart={chart} result={res} />
                         </React.Fragment>
                       );
                     });
