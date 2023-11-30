@@ -29,7 +29,6 @@ import { MixPlate } from './MixPlate';
 
 export type ResultExtended = ChartApiOutput['results'][number] & {
   topPlace: number;
-  isPlayerHidden: boolean;
   isImportant: boolean;
   highlightIndex: number;
   placeDifference: number;

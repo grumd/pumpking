@@ -5,6 +5,8 @@ import { useDispatch, useSelector } from 'react-redux';
 import 'react-responsive-ui/style.css';
 import { Navigate, Route, Routes } from 'react-router-dom';
 
+import './App.scss';
+
 import LoginScreen from 'legacy-code/components/LoginScreen/LoginScreen';
 import Loader from 'legacy-code/components/Shared/Loader';
 import TopBar from 'legacy-code/components/Shared/TopBar/TopBar';
@@ -12,13 +14,10 @@ import { CHART_MIN_MAX } from 'legacy-code/constants/leaderboard';
 import { routes } from 'legacy-code/constants/routes';
 import { fetchChartsData, postChartsProcessing } from 'legacy-code/reducers/charts';
 import { fetchPlayers } from 'legacy-code/reducers/players';
-import { fetchPreferences } from 'legacy-code/reducers/preferences';
 import { fetchResults, setFilter } from 'legacy-code/reducers/results';
 import { fetchTracklist } from 'legacy-code/reducers/tracklist';
 import { fetchUser } from 'legacy-code/reducers/user';
 import { getItem, storageKeys } from 'legacy-code/utils/storage/versionedStorage';
-
-import './App.scss';
 
 const LazyAddResult = React.lazy(() => import('./Leaderboard/AddResult/AddResult'));
 const LazyLeaderboard = React.lazy(() => import('./Leaderboard/Leaderboard'));
@@ -29,7 +28,6 @@ const LazyTournaments = React.lazy(() => import('./Tournaments/Tournaments'));
 const LazyRanking = React.lazy(() => import('../../features/ranking/Ranking'));
 const LazyResultsByLevel = React.lazy(() => import('./Profile/ResultsByLevel'));
 const LazySongsTop = React.lazy(() => import('./SongsTop/SongsTop'));
-const LazySocketTracker = React.lazy(() => import('./SocketTracker/SocketTracker'));
 
 ReactModal.setAppElement('#root');
 
@@ -73,7 +71,6 @@ function App() {
         dispatch(fetchChartsData()),
         dispatch(fetchPlayers()),
         dispatch(fetchTracklist()),
-        dispatch(fetchPreferences()),
       ]).then(() => {
         dispatch(postChartsProcessing());
       });
@@ -93,14 +90,6 @@ function App() {
       <div className="container">
         <Loader />
       </div>
-    );
-  }
-
-  if (import.meta.env.VITE_SOCKET_MODE) {
-    return (
-      <Suspense fallback={<Loader />}>
-        <LazySocketTracker />
-      </Suspense>
     );
   }
 

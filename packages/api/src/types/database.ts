@@ -115,6 +115,7 @@ export interface PhoenixTrackNames {
 }
 
 export interface PlayerPreferencesJson {
+  showHiddenPlayersInRanking: boolean;
   playersHiddenStatus: Record<number, boolean>;
   hiddenRegions: Record<string, boolean>;
 }

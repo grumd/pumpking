@@ -1,26 +1,22 @@
-import { useDispatch, useSelector } from 'react-redux';
-import { FaSearch, FaQuestionCircle } from 'react-icons/fa';
-import { Link, Route, Routes } from 'react-router-dom';
 import _ from 'lodash/fp';
+import { FaQuestionCircle, FaSearch } from 'react-icons/fa';
+import { Link, Route, Routes } from 'react-router-dom';
 
 // styles
 import './ranking.scss';
 
-// components
-import RankingList from './components/RankingList';
-import RankingFaq from './components/RankingFaq';
+import { usePreferencesMutation } from 'hooks/usePreferencesMutation';
+import { useUser } from 'hooks/useUser';
 
-// reducers
-import { updatePreferences } from 'legacy-code/reducers/preferences';
-
-// utils
 import { useLanguage } from 'utils/context/translation';
 import { api } from 'utils/trpc';
 
-// code
+import RankingFaq from './components/RankingFaq';
+import RankingList from './components/RankingList';
+
 const Ranking = () => {
-  const dispatch = useDispatch();
   const lang = useLanguage();
+  const userQuery = useUser();
   const {
     isLoading,
     isFetching,
@@ -28,13 +24,13 @@ const Ranking = () => {
     data: ranking,
     refetch: refetchRanking,
   } = api.players.stats.useQuery();
-  const preferences = useSelector((state) => state.preferences.data);
+
+  const preferencesMutation = usePreferencesMutation();
+  const preferences = userQuery.data?.preferences;
 
   const onChangeHidingPlayers = () => {
-    dispatch(
-      updatePreferences(
-        _.set(['showHiddenPlayersInRanking'], !preferences.showHiddenPlayersInRanking, preferences)
-      )
+    preferencesMutation.mutate(
+      _.set(['showHiddenPlayersInRanking'], !preferences.showHiddenPlayersInRanking, preferences)
     );
   };
 
@@ -55,9 +51,10 @@ const Ranking = () => {
                 <>
                   <button
                     className="btn btn-sm btn-dark btn-icon _margin-right"
+                    disabled={!preferences}
                     onClick={onChangeHidingPlayers}
                   >
-                    {preferences.showHiddenPlayersInRanking ? lang.HIDE_UNSELECTED : lang.SHOW_ALL}
+                    {preferences?.showHiddenPlayersInRanking ? lang.HIDE_UNSELECTED : lang.SHOW_ALL}
                   </button>
                   <Link to="faq">
                     <button className="btn btn-sm btn-dark btn-icon _margin-right">

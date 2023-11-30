@@ -1,26 +1,21 @@
-import React from 'react';
-import _ from 'lodash/fp';
-import { useDispatch } from 'react-redux';
 import classNames from 'classnames';
+import _ from 'lodash/fp';
 import { GiQueenCrown } from 'react-icons/gi';
-// import { FaAngleDoubleUp, FaAngleDoubleDown } from 'react-icons/fa';
 import { NavLink } from 'react-router-dom';
 
+import { usePreferencesMutation } from 'hooks/usePreferencesMutation';
+
+import Flag from 'legacy-code/components/Shared/Flag';
+import Loader from 'legacy-code/components/Shared/Loader';
+import Toggle from 'legacy-code/components/Shared/Toggle/Toggle';
 import { routes } from 'legacy-code/constants/routes';
 
-// import Grade from 'legacy-code/components/Shared/Grade';
-import Loader from 'legacy-code/components/Shared/Loader';
-import Flag from 'legacy-code/components/Shared/Flag';
-import Toggle from 'legacy-code/components/Shared/Toggle/Toggle';
-
-import { updatePreferences } from 'legacy-code/reducers/preferences';
-
-// import { getRankImg } from 'legacy-code/utils/exp';
 import { useLanguage } from 'utils/context/translation';
+import { api } from 'utils/trpc';
 
 export default function RankingList({ ranking, isLoading, preferences }) {
-  const dispatch = useDispatch();
   const lang = useLanguage();
+  const preferencesMutation = usePreferencesMutation();
 
   // TODO: rewrite in TS
 
@@ -151,22 +146,12 @@ export default function RankingList({ ranking, isLoading, preferences }) {
                   <td className="hide-col">
                     <Toggle
                       onChange={() => {
-                        dispatch(
-                          updatePreferences(
-                            _.set(['playersHiddenStatus', player.id], !isHidden, preferences)
-                          )
+                        preferencesMutation.mutate(
+                          _.set(['playersHiddenStatus', player.id], !isHidden, preferences)
                         );
                       }}
                       checked={!isHidden}
                     />
-                    {/* <CheckBox
-                      onChange={() => {
-                        dispatch(updatePreferences(
-                          _.set(['playersHiddenStatus', player.id], !isHidden, preferences)
-                        ));
-                      }}
-                      isChecked={isHidden}
-                    /> */}
                   </td>
                 </tr>
               );

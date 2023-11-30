@@ -1,6 +1,6 @@
 import { useAtomValue } from 'jotai';
 import _ from 'lodash/fp';
-import React, { useState } from 'react';
+import { Fragment } from 'react';
 
 import { filterAtom } from 'features/leaderboards/hooks/useFilter';
 import { useHighlightedPlayerIds } from 'features/leaderboards/hooks/useHighlightedPlayerIds';
@@ -14,14 +14,8 @@ import { ResultsCollapser } from './ResultsCollapser';
 
 const Chart = ({ chart }: { chart: ChartApiOutput }) => {
   const currentPlayerId = useUser().data?.id;
-  const preferences = useUser().data?.preferences;
   const filter = useAtomValue(filterAtom);
   const highlightedPlayerIds = useHighlightedPlayerIds();
-
-  const playersHiddenStatus = preferences?.playersHiddenStatus || {};
-  const [isHidingPlayers, setHidingPlayers] = useState(true);
-
-  let hiddenPlayersCount = 0;
 
   const results = chart.results
     .map((res, index, array) => {
@@ -36,12 +30,6 @@ const Chart = ({ chart }: { chart: ChartApiOutput }) => {
 
       const isImportant = isLatestScore || res.playerId === currentPlayerId || highlightIndex >= 0;
 
-      const isPlayerHidden =
-        !isImportant &&
-        isHidingPlayers &&
-        res.playerId != null &&
-        (playersHiddenStatus[res.playerId] || false);
-
       let placeDifference = 0;
       if (res.scoreIncrease && isLatestScore) {
         const prevScore = res.score - res.scoreIncrease;
@@ -49,22 +37,14 @@ const Chart = ({ chart }: { chart: ChartApiOutput }) => {
         placeDifference = prevIndex - index;
       }
 
-      if (isPlayerHidden) {
-        hiddenPlayersCount++;
-      }
-
       return {
         ...res,
         topPlace: index + 1,
-        isPlayerHidden,
         isImportant,
         highlightIndex,
         placeDifference,
         isLatestScore,
       };
-    })
-    .filter((res, index) => {
-      return !(res.isPlayerHidden || (res.playerId === 1 && index !== 0));
     })
     .map((res, index, array) => {
       // Collapse results that are not within 2 places of a highlighted result
@@ -115,9 +95,9 @@ const Chart = ({ chart }: { chart: ChartApiOutput }) => {
                   {resultGroups.map((group) => {
                     const groupResults = group.results.map((res) => {
                       return (
-                        <React.Fragment key={res.id}>
+                        <Fragment key={res.id}>
                           <Result chart={chart} result={res} />
-                        </React.Fragment>
+                        </Fragment>
                       );
                     });
                     if (group.isGroupCollapsible) {

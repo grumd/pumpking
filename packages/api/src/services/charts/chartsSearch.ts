@@ -108,16 +108,13 @@ export const searchCharts = async (params: ChartsSearchParams) => {
   console.log(params);
 
   const preferences = currentPlayerId
-    ? ((
+    ? (
         await db
           .selectFrom('players')
           .select('preferences')
           .where('id', '=', currentPlayerId)
           .executeTakeFirstOrThrow()
-      ).preferences as {
-        playersHiddenStatus: Record<number, boolean>;
-        hiddenRegions: Record<string, boolean>;
-      } | null)
+      ).preferences
     : null;
 
   const hiddenRegions =

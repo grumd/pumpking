@@ -42,19 +42,6 @@ export const ChartHeader = ({ chart }: ChartHeaderProps): JSX.Element => {
           <FaYoutube />
         </a>
       </div>
-      {/* <div className="_flex-fill" /> */}
-      {/* <div className="right-side-block">
-        {hiddenPlayersCount > 0 && (
-          <div className={classNames('players-hidden-count _grey-text _on-hover')}>
-            {lang.HIDDEN}: {hiddenPlayersCount}
-          </div>
-        )}
-        {(hiddenPlayersCount > 0 || !isHidingPlayers) && (
-          <div className="globe-icon _on-hover" onClick={() => setHidingPlayers(!isHidingPlayers)}>
-            <FaGlobeAmericas />
-          </div>
-        )}
-      </div> */}
     </div>
   );
 };
