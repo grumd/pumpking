@@ -25,6 +25,7 @@ export const en = {
   SCORING_LABEL: 'scoring',
   SONG_NAME_PLACEHOLDER: 'song name...',
   PLAYERS_PLACEHOLDER: 'players...',
+  ADD_RESULT: 'add result',
   // Sorting
   BY_DATE_DESC: 'by date (new to old)',
   BY_DATE_ASC: 'by date (old to new)',

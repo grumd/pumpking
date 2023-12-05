@@ -25,6 +25,7 @@ export const ru = {
   SCORING_LABEL: 'скоринг',
   SONG_NAME_PLACEHOLDER: 'название песни...',
   PLAYERS_PLACEHOLDER: 'игроки...',
+  ADD_RESULT: 'добавить результат',
   // Sorting
   BY_DATE_DESC: 'по дате (от новых к старым)',
   BY_DATE_ASC: 'по дате (от старых к новым)',

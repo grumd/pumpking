@@ -197,6 +197,7 @@ const Result = ({ result, chart }: { result: ResultExtended; chart: ChartApiOutp
             isPass={result.passed}
             grade={result.grade}
             mix={result.mix}
+            scoring={filter.scoring}
           />
         </div>
       </td>

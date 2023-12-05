@@ -1,11 +1,17 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import { getDateFromFile } from './getDate';
 
-export const ScreenshotPreview = ({ file, showDate }) => {
-  const [src, setSrc] = useState();
-  const [date, setDate] = useState();
-  const [error, setError] = useState();
+export const ScreenshotPreview = ({
+  file,
+  showDate,
+}: {
+  file: File | null;
+  showDate?: boolean;
+}) => {
+  const [src, setSrc] = useState<string | null>(null);
+  const [date, setDate] = useState<Date | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!FileReader) {
@@ -17,14 +23,17 @@ export const ScreenshotPreview = ({ file, showDate }) => {
       try {
         const fr = new FileReader();
         fr.onload = async () => {
-          setSrc(fr.result);
-          const date = await getDateFromFile(fr.result);
+          const dataUrl = fr.result;
+          if (typeof dataUrl !== 'string') throw new Error('Invalid file');
+
+          setSrc(dataUrl);
+          const date = await getDateFromFile(dataUrl);
           setError(null);
           setDate(date);
         };
         fr.readAsDataURL(file);
-      } catch (e) {
-        setError(e.message);
+      } catch (e: unknown) {
+        e instanceof Error && setError(e.message);
       }
     } else {
       setSrc(null);

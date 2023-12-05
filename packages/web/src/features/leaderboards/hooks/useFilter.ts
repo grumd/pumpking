@@ -28,7 +28,7 @@ export const filterAtom = atomWithValidatedStorage<ChartsFilter>(
     sortChartsByPlayers: z.array(z.number()).optional(),
     cursor: z.number().nullish(),
   }),
-  initialFilter
+  structuredClone(initialFilter)
 );
 
 export const useFilter = () => {

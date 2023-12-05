@@ -1,9 +1,8 @@
 import { db } from 'db';
+import createDebug from 'debug';
 import type { Response, Request, NextFunction } from 'express';
-
 import { StatusError } from 'utils/errors';
 
-import createDebug from 'debug';
 const debug = createDebug('backend-ts:middleware:auth');
 
 export const auth = async (request: Request, response: Response, next: NextFunction) => {

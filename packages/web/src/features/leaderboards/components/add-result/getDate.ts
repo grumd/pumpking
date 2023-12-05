@@ -1,7 +1,7 @@
-import * as ExifReader from 'exifreader';
 import { parse } from 'exif-date';
+import * as ExifReader from 'exifreader';
 
-export const getDateFromFile = async (file) => {
+export const getDateFromFile = async (file: string | File) => {
   const data = await ExifReader.load(file);
   const dateString =
     data.DateTimeOriginal?.description ||

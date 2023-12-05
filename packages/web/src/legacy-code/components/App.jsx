@@ -19,8 +19,10 @@ import { fetchTracklist } from 'legacy-code/reducers/tracklist';
 import { fetchUser } from 'legacy-code/reducers/user';
 import { getItem, storageKeys } from 'legacy-code/utils/storage/versionedStorage';
 
-const LazyAddResult = React.lazy(() => import('./Leaderboard/AddResult/AddResult'));
-const LazyLeaderboard = React.lazy(() => import('./Leaderboard/Leaderboard'));
+const LazyAddResult = React.lazy(() => import('../../features/leaderboards/AddResult'));
+const LazySingleChartLeaderboard = React.lazy(() =>
+  import('../../features/leaderboards/LeaderboardsSingleChart')
+);
 const LazyNewLeaderboards = React.lazy(() => import('../../features/leaderboards/Leaderboards'));
 const LazyProfile = React.lazy(() => import('./Profile/Profile'));
 const LazyProfileCompare = React.lazy(() => import('./ProfileCompare/ProfileCompare'));
@@ -104,8 +106,10 @@ function App() {
         <Routes>
           <Route path="/" element={<Navigate to={routes.leaderboard.path} />} />
           <Route path={routes.leaderboard.path} element={<LazyNewLeaderboards />} />
-          <Route path={routes.leaderboardOld.path} element={<LazyLeaderboard />} />
-          <Route path={routes.leaderboard.sharedChart.path} element={<LazyLeaderboard />} />
+          <Route
+            path={routes.leaderboard.sharedChart.path}
+            element={<LazySingleChartLeaderboard />}
+          />
           <Route path={routes.leaderboard.sharedChart.addResult.path} element={<LazyAddResult />} />
           <Route path={routes.ranking.path + '/*'} element={<LazyRanking />} />
           <Route path={routes.profile.path} element={<LazyProfile />} />

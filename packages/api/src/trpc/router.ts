@@ -1,6 +1,7 @@
 import { createContext } from './context';
 import { charts } from './routes/charts';
 import { players } from './routes/players';
+import { results } from './routes/results';
 import { user } from './routes/user';
 import { router } from './trpc';
 import type { inferRouterOutputs } from '@trpc/server';
@@ -10,6 +11,7 @@ const appRouter = router({
   user,
   players,
   charts,
+  results,
 });
 
 export const expressRouter = createExpressMiddleware({

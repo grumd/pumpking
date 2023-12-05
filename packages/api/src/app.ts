@@ -1,22 +1,18 @@
 import './envconfig';
-
-import express from 'express';
-import jsdocSwagger from 'express-jsdoc-swagger';
-import cors from 'cors';
-import logger from 'morgan';
-import lusca from 'lusca';
-import bodyParser from 'body-parser';
-import formData from 'express-form-data';
-
-import createDebug from 'debug';
-const debug = createDebug('backend-ts:app');
-
 import routes from './routes';
+import bodyParser from 'body-parser';
+import cors from 'cors';
+import createDebug from 'debug';
+import express from 'express';
+import formData from 'express-form-data';
+import jsdocSwagger from 'express-jsdoc-swagger';
+import lusca from 'lusca';
+import { auth } from 'middlewares/auth/auth';
+import logger from 'morgan';
 import { expressRouter } from 'trpc/router';
-
 import { StatusError } from 'utils/errors';
 
-import { auth } from 'middlewares/auth/auth';
+const debug = createDebug('backend-ts:app');
 
 /**
  * JSDoc Swagger options
@@ -43,7 +39,7 @@ export const app = express();
 jsdocSwagger(app)(options);
 const isTest = process.env.NODE_ENV === 'test';
 !isTest && app.use(logger('tiny'));
-app.use(bodyParser.json());
+app.use(bodyParser.json({ limit: '2mb' }));
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(formData.parse());
 // app.use(formData.stream());

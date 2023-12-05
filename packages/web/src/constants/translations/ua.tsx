@@ -25,6 +25,7 @@ export const ua = {
   SCORING_LABEL: 'скорінг',
   SONG_NAME_PLACEHOLDER: 'назва пісні...',
   PLAYERS_PLACEHOLDER: 'гравці...',
+  ADD_RESULT: 'додати результат',
   // Sorting
   BY_DATE_DESC: 'по даті (від нових до старих)',
   BY_DATE_ASC: 'по даті (від старих до нових)',

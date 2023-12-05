@@ -9,16 +9,24 @@ export const Grade = ({
   grade,
   isPass,
   mix,
+  scoring = 'phoenix',
 }: {
   score: number | null;
   grade: string | null;
   isPass: boolean | null;
   mix: number;
+  scoring?: 'xx' | 'phoenix';
 }) => {
   const gradeCalc = getPhoenixGrade(score);
 
   if (gradeCalc == null) {
     return null;
+  }
+
+  if (scoring === 'xx') {
+    return !grade || grade === '?' ? null : (
+      <img src={`/grades/${grade}.png`} alt={grade ?? 'Grade'} />
+    );
   }
 
   let fileName = getFilename(gradeCalc, isPass ?? false);

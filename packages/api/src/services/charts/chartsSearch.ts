@@ -41,6 +41,8 @@ export interface ChartsSearchParams {
   /** Pagination, use limit + offset together */
   limit?: number;
   offset?: number;
+  /** Shared chart ID for single-chart requests */
+  sharedChartId?: number;
 }
 
 export interface ResultViewModel {
@@ -95,6 +97,7 @@ export const searchCharts = async (params: ChartsSearchParams) => {
     playersSome,
     playersNone,
     playersAll,
+    sharedChartId,
   } = params;
 
   if (!mixes.length) {
@@ -104,8 +107,6 @@ export const searchCharts = async (params: ChartsSearchParams) => {
   const scoreField = scoring === 'xx' ? 'score_xx' : 'score_phoenix';
 
   const songNameParts = songName?.split(' ').filter((part) => part.length > 0);
-
-  console.log(params);
 
   const preferences = currentPlayerId
     ? (
@@ -172,6 +173,10 @@ export const searchCharts = async (params: ChartsSearchParams) => {
       /**
        * Below are filters that filter CHARTS, not results
        */
+
+      if (sharedChartId) {
+        subQuery = subQuery.where('r.shared_chart', '=', sharedChartId);
+      }
 
       if (hiddenPlayerIds && hiddenPlayerIds.length > 0) {
         // We filter hidden players here so that charts that were recently played by them are not at the top

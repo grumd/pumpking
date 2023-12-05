@@ -128,8 +128,9 @@ export const SearchForm = (): JSX.Element => {
   };
 
   const onReset = () => {
-    setSearchFilter(initialFilter);
-    reset(filterToForm(initialFilter));
+    const newFilter = structuredClone(initialFilter);
+    setSearchFilter(newFilter);
+    reset(filterToForm(newFilter));
   };
 
   const sortingOptions = useMemo(() => {
