@@ -1,21 +1,20 @@
-import React, { useState, useEffect } from 'react';
-import { connect } from 'react-redux';
-import { NavLink } from 'react-router-dom';
 import classNames from 'classnames';
 import _ from 'lodash/fp';
+import React, { useEffect, useState } from 'react';
 import { FaPlay } from 'react-icons/fa';
 import { MdExpandMore } from 'react-icons/md';
-
-import { fetchJson } from 'legacy-code/utils/fetch';
-import { getTimeAgo } from 'legacy-code/utils/leaderboards';
-import { parseDate } from 'legacy-code/utils/date';
-
-import Loader from 'legacy-code/components/Shared/Loader';
-
-import { routes } from 'legacy-code/constants/routes';
-import { HOST } from 'legacy-code/constants/backend';
+import { connect } from 'react-redux';
+import { NavLink } from 'react-router-dom';
 
 import './most-played.scss';
+
+import Loader from 'legacy-code/components/Shared/Loader';
+import { HOST } from 'legacy-code/constants/backend';
+import { routes } from 'legacy-code/constants/routes';
+import { parseDate } from 'legacy-code/utils/date';
+import { fetchJson } from 'legacy-code/utils/fetch';
+import { getTimeAgo } from 'legacy-code/utils/leaderboards';
+
 import { useLanguage } from 'utils/context/translation';
 
 export default connect((state) => ({ charts: state.results.sharedCharts }), { fetchJson })(
@@ -47,6 +46,9 @@ export default connect((state) => ({ charts: state.results.sharedCharts }), { fe
         {isLoading && <Loader />}
         {data.map((item) => {
           const chart = charts[item.shared_chart];
+          if (!chart) {
+            return null;
+          }
           return (
             <div className="chart" key={item.shared_chart}>
               <div

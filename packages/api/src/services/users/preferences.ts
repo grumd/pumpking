@@ -16,7 +16,7 @@ export const updatePreferences = async (
     .set({
       preferences: JSON.stringify({
         ...(prevPreferences?.preferences ?? {}),
-        ...preferences,
+        ...(preferences ?? {}),
       }),
     })
     .where('id', '=', userId)

@@ -69,8 +69,8 @@ export default function RankingList({ ranking, isLoading, preferences }) {
           </thead>
           <tbody>
             {ranking.map((player, playerIndex) => {
-              const isHidden = preferences.playersHiddenStatus[player.id];
-              if (isHidden && !preferences.showHiddenPlayersInRanking) {
+              const isHidden = preferences?.playersHiddenStatus[player.id];
+              if (isHidden && !preferences?.showHiddenPlayersInRanking) {
                 return null;
               }
 
