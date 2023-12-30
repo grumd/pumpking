@@ -108,15 +108,15 @@ export const searchCharts = async (params: ChartsSearchParams) => {
 
   const songNameParts = songName?.split(' ').filter((part) => part.length > 0);
 
-  const preferences = currentPlayerId
-    ? (
-        await db
-          .selectFrom('players')
-          .select('preferences')
-          .where('id', '=', currentPlayerId)
-          .executeTakeFirstOrThrow()
-      ).preferences
+  const currentPlayer = currentPlayerId
+    ? await db
+        .selectFrom('players')
+        .select(['preferences', 'hidden'])
+        .where('id', '=', currentPlayerId)
+        .executeTakeFirstOrThrow()
     : null;
+  const preferences = currentPlayer?.preferences;
+  const isCurrentPlayerHidden = currentPlayer?.hidden === 1;
 
   const hiddenRegions =
     preferences?.hiddenRegions &&
@@ -167,12 +167,18 @@ export const searchCharts = async (params: ChartsSearchParams) => {
             : fn.max('ci.interpolated_difficulty').as('difficulty'),
           fn.max('r.pp').as('best_pp'),
         ])
-        .where('players.hidden', '=', 0)
         .where(scoreField, 'is not', null);
 
       /**
        * Below are filters that filter CHARTS, not results
        */
+
+      if (!isCurrentPlayerHidden) {
+        subQuery = subQuery.where('players.hidden', '=', 0);
+      }
+      if (isCurrentPlayerHidden && currentPlayerId) {
+        subQuery = subQuery.where('r.player_id', '=', currentPlayerId);
+      }
 
       if (sharedChartId) {
         subQuery = subQuery.where('r.shared_chart', '=', sharedChartId);
@@ -342,13 +348,19 @@ export const searchCharts = async (params: ChartsSearchParams) => {
             scoreField
           )} desc)`.as('score_rank'),
         ])
-        .where('players.hidden', '=', 0)
         .where(scoreField, 'is not', null)
         .where('r.mix', 'in', mixes);
 
       /**
        * Below are filters that filter RESULTS after the list of charts is already decided
        */
+
+      if (!isCurrentPlayerHidden) {
+        subQuery = subQuery.where('players.hidden', '=', 0);
+      }
+      if (isCurrentPlayerHidden && currentPlayerId) {
+        subQuery = subQuery.where('r.player_id', '=', currentPlayerId);
+      }
 
       if (hiddenPlayerIds && hiddenPlayerIds.length > 0) {
         subQuery = subQuery.where('r.player_id', 'not in', hiddenPlayerIds);

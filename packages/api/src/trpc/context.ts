@@ -1,9 +1,8 @@
 import { inferAsyncReturnType } from '@trpc/server';
 import { CreateExpressContextOptions } from '@trpc/server/adapters/express';
-
 import { db } from 'db';
-
 import createDebug from 'debug';
+
 const debug = createDebug('trpc:context');
 
 export async function createContext({ req }: CreateExpressContextOptions) {
