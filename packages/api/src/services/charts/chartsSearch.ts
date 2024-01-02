@@ -72,11 +72,14 @@ export interface ChartViewModel {
   songName: string;
   duration: Tracks['duration'];
   updatedOn: Date;
-  label: string;
-  level: number | null;
-  difficulty: number | null;
-  interpolatedDifficulty: number | null;
   results: Array<ResultViewModel>;
+  chartInstances: Array<{
+    mix: number;
+    label: string;
+    level: number | null;
+    difficulty: number | null;
+    interpolatedDifficulty: number | null;
+  }>;
 }
 
 export const searchCharts = async (params: ChartsSearchParams) => {
@@ -401,13 +404,28 @@ export const searchCharts = async (params: ChartsSearchParams) => {
           duration: r.duration,
           songName: r.full_name,
           updatedOn: r.chart_update_date,
+          chartInstances: [
+            {
+              mix: r.mix,
+              label: r.label,
+              level: r.level,
+              difficulty: r.difficulty || r.level,
+              interpolatedDifficulty: r.difficulty,
+            },
+          ],
+          results: [],
+        };
+        chartsArray.push(acc[r.shared_chart]);
+      }
+
+      if (!acc[r.shared_chart].chartInstances.some((ci) => ci.mix === r.mix)) {
+        acc[r.shared_chart].chartInstances.push({
+          mix: r.mix,
           label: r.label,
           level: r.level,
           difficulty: r.difficulty || r.level,
           interpolatedDifficulty: r.difficulty,
-          results: [],
-        };
-        chartsArray.push(acc[r.shared_chart]);
+        });
       }
 
       acc[r.shared_chart].results.push({

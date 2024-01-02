@@ -1,19 +1,14 @@
-import { Badge, type DefaultMantineColor } from '@mantine/core';
+import { Badge } from '@mantine/core';
 
-import { type MixNumbers, Mixes, isMixNumber } from 'utils/scoring/grades';
+import { colorByMix } from 'constants/colors';
+
+import { Mixes, isMixNumber } from 'utils/scoring/grades';
 
 import { useFilter } from '../../hooks/useFilter';
 
 const scoringToMix = {
   xx: 26,
   phoenix: 27,
-};
-
-const colorByMix: Record<MixNumbers, DefaultMantineColor> = {
-  24: '#48283a99',
-  25: '#432a4e99',
-  26: '#2d2a4e99',
-  27: '#2a434e99',
 };
 
 interface MixPlateProps {

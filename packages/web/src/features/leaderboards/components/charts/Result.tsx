@@ -1,3 +1,4 @@
+import { Badge, Group } from '@mantine/core';
 import classNames from 'classnames';
 import { useAtomValue } from 'jotai';
 import numeral from 'numeral';
@@ -82,9 +83,11 @@ const Result = ({ result, chart }: { result: ResultExtended; chart: ChartApiOutp
               <span className="debug-elo-info"> {result.pp && `${result.pp}pp`}</span>
             )}
           </span>
-          <div className="mods-container">
+          <Group gap="0.25em" ml="auto">
+            {result.mods?.includes('HJ') && <Badge color="orange">HJ</Badge>}
+            {result.mods?.includes('VJ') && <Badge color="red">R</Badge>}
             <MixPlate mix={result.mix} />
-          </div>
+          </Group>
         </div>
       </td>
       <td className={classNames('score')}>

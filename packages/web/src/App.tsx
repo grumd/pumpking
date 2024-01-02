@@ -1,4 +1,4 @@
-import { MantineProvider, createTheme } from '@mantine/core';
+import { Badge, MantineProvider, createTheme } from '@mantine/core';
 import '@mantine/core/styles.css';
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -12,6 +12,15 @@ import { api } from 'utils/trpc';
 
 const theme = createTheme({
   primaryColor: 'gray',
+  components: {
+    Badge: Badge.extend({
+      defaultProps: {
+        pl: '0.5em',
+        pr: '0.5em',
+        radius: 'sm',
+      },
+    }),
+  },
 });
 
 function App() {
