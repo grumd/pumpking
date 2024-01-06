@@ -8,7 +8,7 @@
     "target": "ES2022",
     "module": "CommonJS",
     "baseUrl": "src",
-    "rootDir": "src"
+    "rootDir": "./"
   },
-  "include": ["./src/types/express.d.ts", "./src/index.ts", "./src/**/*.ts"]
+  "include": ["./src/types/express.d.ts", "./src/index.ts", "./src/**/*.ts", "./migrations/*.ts"]
 }

@@ -1,7 +1,6 @@
+import { db } from 'db';
 import { Migrator } from 'kysely';
 import path from 'path';
-
-import { db } from 'db';
 import { MigrationProvider } from 'utils/MigrationProvider';
 
 const migrator = new Migrator({

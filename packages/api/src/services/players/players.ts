@@ -92,6 +92,7 @@ export const getPlayersStats = async () => {
       'results_count',
       'best_results_count',
       'avg_score',
+      'exp',
     ])
     .where('pp', 'is not', null)
     .where('pp', '>', 0)
@@ -105,6 +106,7 @@ export const getPlayersStats = async () => {
     }): {
       id: number;
       nickname: string;
+      exp: number | null;
       region: string | null;
       pp: number | null;
       arcade_name: string | null;
@@ -114,6 +116,7 @@ export const getPlayersStats = async () => {
     } => {
       return {
         ...player,
+        exp: player.exp ? parseFloat(player.exp) : null,
         accuracy: avg_score ? avg_score / 10_000 : null,
       };
     }

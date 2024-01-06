@@ -3,6 +3,8 @@ import _ from 'lodash/fp';
 import { GiQueenCrown } from 'react-icons/gi';
 import { NavLink } from 'react-router-dom';
 
+import { ExpRankImg } from 'components/ExpRankImg/ExpRankImg';
+
 import { usePreferencesMutation } from 'hooks/usePreferencesMutation';
 
 import Flag from 'legacy-code/components/Shared/Flag';
@@ -29,7 +31,7 @@ export default function RankingList({ ranking, isLoading, preferences }) {
             <tr>
               <th className="place">{lang.RANK}</th>
               {/* <th className="change"></th> */}
-              {/* <th className="exp-rank">{lang.EXP}</th> */}
+              <th className="exp-rank">{lang.EXP}</th>
               <th className="name">{lang.NAME}</th>
               <th className="name name-piu">{lang.AMPASS}</th>
               {/*<th className="rating">{lang.ELO}</th>*/}
@@ -101,7 +103,9 @@ export default function RankingList({ ranking, isLoading, preferences }) {
                       </div>
                     )}
                   </td> */}
-                  {/* <td className="exp-rank">{getRankImg(player.expRank)}</td> */}
+                  <td className="exp-rank">
+                    <ExpRankImg exp={player.exp} />
+                  </td>
                   <td className="name">
                     <div className="name-container">
                       <Flag region={player.region} />

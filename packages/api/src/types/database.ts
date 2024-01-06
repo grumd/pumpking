@@ -1,5 +1,7 @@
 import type { ColumnType } from 'kysely';
 
+export type Decimal = ColumnType<string, string | number, string | number>;
+
 export type Generated<T> = T extends ColumnType<infer S, infer I, infer U>
   ? ColumnType<S, I | undefined, U>
   : ColumnType<T, T | undefined, T>;
@@ -51,6 +53,18 @@ export interface ArcadeTrackNames {
   name_edist: Generated<number>;
 }
 
+export interface BestResults {
+  shared_chart_id: number;
+  player_id: number;
+  best_xx_score_result_id: number | null;
+  best_xx_score_increase: number | null;
+  best_phoenix_score_result_id: number | null;
+  best_phoenix_score_increase: number | null;
+  best_phoenix_calc_score_result_id: number | null;
+  best_phoenix_calc_score_increase: number | null;
+  best_grade_result_id: number | null;
+}
+
 export interface ChartInstances {
   id: Generated<number>;
   track: number;
@@ -86,16 +100,16 @@ export interface DraftScores {
   calories: number | null;
 }
 
-export interface KnexMigrations {
-  id: Generated<number>;
-  name: string | null;
-  batch: number | null;
-  migration_time: Date | null;
-}
-
-export interface KnexMigrationsLock {
-  index: Generated<number>;
-  is_locked: number | null;
+export interface EloChanges {
+  id: number | null;
+  player_id: number | null;
+  player_result_id: number | null;
+  enemy_result_id: number | null;
+  elo_start: Decimal | null;
+  elo_end: Decimal | null;
+  elo_change_calculated: Decimal | null;
+  elo_change_effective: Decimal | null;
+  elo_change_total: Decimal | null;
 }
 
 export interface Mixes {
@@ -145,6 +159,7 @@ export interface Players {
   is_admin: Generated<number | null>;
   can_add_results_manually: Generated<number | null>;
   arcade_name: string | null;
+  exp: Decimal | null;
 }
 
 export interface Purgatory {
@@ -217,21 +232,10 @@ export interface Results {
   notes: string | null;
   pp: number | null;
   is_manual_input: Generated<number | null>;
+  exp: Decimal | null;
 }
 
 export interface ResultsBestGrade {
-  player_id: number;
-  shared_chart_id: number;
-  result_id: number;
-}
-
-export interface ResultsHighestScoreNoRank {
-  player_id: number;
-  shared_chart_id: number;
-  result_id: number;
-}
-
-export interface ResultsHighestScoreRank {
   player_id: number;
   shared_chart_id: number;
   result_id: number;
@@ -304,10 +308,10 @@ export interface DB {
   apscheduler_jobs: ApschedulerJobs;
   arcade_player_names: ArcadePlayerNames;
   arcade_track_names: ArcadeTrackNames;
+  best_results: BestResults;
   chart_instances: ChartInstances;
   draft_scores: DraftScores;
-  knex_migrations: KnexMigrations;
-  knex_migrations_lock: KnexMigrationsLock;
+  elo_changes: EloChanges;
   mixes: Mixes;
   operators: Operators;
   phoenix_track_names: PhoenixTrackNames;

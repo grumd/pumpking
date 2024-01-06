@@ -1,11 +1,13 @@
+import { calculateResultsPp } from './resultsPp';
 import { gradeSortValue, isValidGrade } from 'constants/grades';
 import { db } from 'db';
 import createDebug from 'debug';
 import { sql } from 'kysely';
 import _ from 'lodash/fp';
-import { error } from 'utils';
-import { calculateResultsPp } from './resultsPp';
+import { refreshPlayerTotalExp } from 'services/players/playerExp';
 import { getSinglePlayerTotalPp } from 'services/players/playersPp';
+import { error } from 'utils';
+import { getResultExp } from 'utils/profile/exp';
 
 const debug = createDebug('backend-ts:processor:on-result-added');
 
@@ -28,12 +30,23 @@ export const resultAddedEffect = async (resultId: number) => {
       'misses',
       'max_combo',
       'rank_mode',
+      'chart_instance',
     ])
     .where('id', '=', resultId)
     .executeTakeFirst();
 
   if (!result) {
     throw error(404, `Result not found: id ${resultId}`);
+  }
+
+  const chartInstance = await db
+    .selectFrom('chart_instances')
+    .select(['chart_instances.label', 'chart_instances.level'])
+    .where('id', '=', result.chart_instance)
+    .executeTakeFirst();
+
+  if (!chartInstance) {
+    throw error(404, `Shared chart not found: id ${result.chart_instance}`);
   }
 
   const playerId = result.player_id;
@@ -46,7 +59,9 @@ export const resultAddedEffect = async (resultId: number) => {
   const sharedChartId = result.shared_chart;
 
   await db.transaction().execute(async (trx) => {
-    const { perfects, greats, goods, bads, misses, max_combo, rank_mode, score_phoenix } = result;
+    let { score_phoenix } = result;
+    const { perfects, greats, goods, bads, misses, max_combo, rank_mode } = result;
+    const { level, label } = chartInstance;
 
     // Calculate score_phoenix if needed
     if (
@@ -70,6 +85,14 @@ export const resultAddedEffect = async (resultId: number) => {
         .set({ score_phoenix: scorePhoenix })
         .where('id', '=', resultId)
         .executeTakeFirst();
+      score_phoenix = scorePhoenix;
+    }
+
+    // Calculate EXP
+    if (score_phoenix != null && level != null) {
+      const exp = getResultExp({ score: score_phoenix }, { level, label });
+      await trx.updateTable('results').set({ exp }).where('id', '=', resultId).executeTakeFirst();
+      await refreshPlayerTotalExp(playerId, trx);
     }
 
     // Updating best grade result if needed
