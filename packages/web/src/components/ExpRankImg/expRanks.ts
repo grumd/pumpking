@@ -137,8 +137,13 @@ export const ranks = [
     color: css.gold,
   },
   {
-    threshold: 180000,
+    threshold: 200000,
     iconName: '27.png',
     color: css.green,
+  },
+  {
+    threshold: 300000,
+    iconName: '28.png',
+    color: css.gold,
   },
 ];
