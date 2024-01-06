@@ -1,8 +1,6 @@
-import _ from 'lodash/fp';
-
 import { Grade } from 'constants/grades';
 import { db } from 'db';
-
+import _ from 'lodash/fp';
 import { addResultsSession, adminSession } from 'test/helpers/sessions';
 
 export const sessions = [

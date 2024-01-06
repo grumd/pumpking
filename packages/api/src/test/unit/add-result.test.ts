@@ -1,10 +1,8 @@
-import path from 'path';
 import { assert } from 'chai';
-
+import { db } from 'db';
+import path from 'path';
 import { req } from 'test/helpers';
 import { addResultsSession } from 'test/helpers/sessions';
-
-import { db } from 'db';
 
 describe('Add new result manually', () => {
   it('error 401 when user is not authorized', async () => {
@@ -206,6 +204,97 @@ describe('Add new result manually', () => {
       .expect(200);
 
     assert.isNull((await getLatestResult())?.pp, `new results's pp is null`);
+  });
+
+  it('exp is calculated', async () => {
+    let player = await db.selectFrom('players').selectAll().where('id', '=', 7).executeTakeFirst();
+    assert.isNull(player?.exp, `player's exp is null by default`);
+
+    // add first result for this user
+    await req()
+      .post('/results/add-result')
+      .set('session', addResultsSession)
+      .field('playerId', 7)
+      .field('grade', 'A+')
+      .field('mix', 'XX')
+      .field('mod', '')
+      .field('score', 800000)
+      .field('perfect', 90)
+      .field('great', 5)
+      .field('good', 0)
+      .field('bad', 0)
+      .field('miss', 5)
+      .field('combo', 50)
+      .field('date', '2020-01-01')
+      .field('isExactDate', true)
+      .field('sharedChartId', 1)
+      .attach('screenshot', path.join(__dirname, '../files/test.jpg'))
+      .expect(200);
+
+    const result = await db
+      .selectFrom('results')
+      .selectAll()
+      .where('player_id', '=', 7)
+      .executeTakeFirst();
+    assert.isNotNaN(parseFloat(result?.exp ?? ''), `results's exp is a number`);
+
+    player = await db.selectFrom('players').selectAll().where('id', '=', 7).executeTakeFirst();
+    assert.isNotNaN(parseFloat(player?.exp ?? ''), `player's exp is a number`);
+  });
+
+  it('exp total is calculated correctly', async () => {
+    let player = await db.selectFrom('players').selectAll().where('id', '=', 7).executeTakeFirst();
+    assert.isNull(player?.exp, `player's exp is null by default`);
+
+    // add two results for this user
+    await req()
+      .post('/results/add-result')
+      .set('session', addResultsSession)
+      .field('playerId', 7)
+      .field('grade', 'A+')
+      .field('mix', 'XX')
+      .field('mod', '')
+      .field('score', 800000)
+      .field('perfect', 90)
+      .field('great', 5)
+      .field('good', 0)
+      .field('bad', 0)
+      .field('miss', 5)
+      .field('combo', 50)
+      .field('date', '2020-01-01')
+      .field('isExactDate', true)
+      .field('sharedChartId', 1)
+      .attach('screenshot', path.join(__dirname, '../files/test.jpg'))
+      .expect(200);
+    await req()
+      .post('/results/add-result')
+      .set('session', addResultsSession)
+      .field('playerId', 7)
+      .field('grade', 'S')
+      .field('mix', 'XX')
+      .field('mod', '')
+      .field('score', 900000)
+      .field('perfect', 90)
+      .field('great', 5)
+      .field('good', 5)
+      .field('bad', 0)
+      .field('miss', 0)
+      .field('combo', 95)
+      .field('date', '2020-01-01')
+      .field('isExactDate', true)
+      .field('sharedChartId', 1)
+      .attach('screenshot', path.join(__dirname, '../files/test.jpg'))
+      .expect(200);
+
+    const results = await db.selectFrom('results').selectAll().where('player_id', '=', 7).execute();
+    player = await db.selectFrom('players').selectAll().where('id', '=', 7).executeTakeFirst();
+
+    assert.isNotNaN(parseFloat(player?.exp ?? ''), `player's exp is a number`);
+    assert.equal(
+      parseFloat(player?.exp ?? ''),
+      Math.max(parseFloat(results[0]?.exp ?? ''), parseFloat(results[1]?.exp ?? '')),
+      `player's exp is equal to the highest result's exp`
+    );
   });
 
   it('all effects are applied correctly', async () => {
