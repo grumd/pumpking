@@ -1,2 +1,0 @@
-import{j as a}from"./index-8f41d3ac.js";import{c as e}from"./index-70f455d5.js";const n=({type:s,level:r})=>a.jsxs("div",{className:e("chart-name",{single:s==="S",singlep:s==="SP",doublep:s==="DP",double:s==="D",coop:s==="COOP"}),children:[a.jsx("span",{className:"chart-letter",children:s}),a.jsx("span",{className:"chart-number",children:r})]});export{n as C};
-//# sourceMappingURL=ChartLabel-fdbe3c04.js.map
