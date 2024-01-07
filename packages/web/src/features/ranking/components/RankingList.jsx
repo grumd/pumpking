@@ -13,7 +13,6 @@ import Toggle from 'legacy-code/components/Shared/Toggle/Toggle';
 import { routes } from 'legacy-code/constants/routes';
 
 import { useLanguage } from 'utils/context/translation';
-import { api } from 'utils/trpc';
 
 export default function RankingList({ ranking, isLoading, preferences }) {
   const lang = useLanguage();
@@ -31,7 +30,7 @@ export default function RankingList({ ranking, isLoading, preferences }) {
             <tr>
               <th className="place">{lang.RANK}</th>
               {/* <th className="change"></th> */}
-              <th className="exp-rank">{lang.EXP}</th>
+              <th>{lang.EXP}</th>
               <th className="name">{lang.NAME}</th>
               <th className="name name-piu">{lang.AMPASS}</th>
               {/*<th className="rating">{lang.ELO}</th>*/}
@@ -103,7 +102,7 @@ export default function RankingList({ ranking, isLoading, preferences }) {
                       </div>
                     )}
                   </td> */}
-                  <td className="exp-rank">
+                  <td>
                     <ExpRankImg exp={player.exp} />
                   </td>
                   <td className="name">
