@@ -18,9 +18,10 @@ import { ChartLabel } from './ChartLabel';
 
 interface ChartHeaderProps {
   chart: ChartApiOutput;
+  children?: React.ReactNode;
 }
 
-export const ChartHeader = ({ chart }: ChartHeaderProps): JSX.Element => {
+export const ChartHeader = ({ chart, children = null }: ChartHeaderProps): JSX.Element => {
   // TODO: change to "toSorted" when more widely supported
   const instances = chart.chartInstances.slice().sort((a, b) => b.mix - a.mix);
   const [chartType] = labelToTypeLevel(instances[0].label);
@@ -58,6 +59,7 @@ export const ChartHeader = ({ chart }: ChartHeaderProps): JSX.Element => {
             </Badge>
           );
         })}
+        {children}
       </Group>
     </div>
   );

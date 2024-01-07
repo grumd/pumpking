@@ -65,6 +65,7 @@ export interface ResultViewModel {
   calories: number | null;
   region: string | null;
   mix: number;
+  isHidden: boolean;
 }
 
 export interface ChartViewModel {
@@ -365,14 +366,6 @@ export const searchCharts = async (params: ChartsSearchParams) => {
         subQuery = subQuery.where('r.player_id', '=', currentPlayerId);
       }
 
-      if (hiddenPlayerIds && hiddenPlayerIds.length > 0) {
-        subQuery = subQuery.where('r.player_id', 'not in', hiddenPlayerIds);
-      }
-
-      if (hiddenRegions && hiddenRegions.length > 0) {
-        subQuery = subQuery.where('players.region', 'not in', hiddenRegions);
-      }
-
       return subQuery;
     })
     .selectFrom('ranked_results')
@@ -428,7 +421,11 @@ export const searchCharts = async (params: ChartsSearchParams) => {
         });
       }
 
-      acc[r.shared_chart].results.push({
+      const isResultHidden =
+        !!(r.player_id && hiddenPlayerIds && hiddenPlayerIds.includes(r.player_id)) ||
+        !!(r.region && hiddenRegions && hiddenRegions.includes(r.region));
+
+      const result: ResultViewModel = {
         id: r.result_id,
         playerId: r.player_id,
         playerName: r.nickname,
@@ -448,7 +445,10 @@ export const searchCharts = async (params: ChartsSearchParams) => {
         calories: r.calories,
         region: r.region,
         mix: r.mix,
-      });
+        isHidden: isResultHidden,
+      };
+
+      acc[r.shared_chart].results.push(result);
     }
 
     return acc;

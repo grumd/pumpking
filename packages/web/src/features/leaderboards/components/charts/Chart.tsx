@@ -1,11 +1,15 @@
+import { ActionIcon, Text } from '@mantine/core';
 import { useAtomValue } from 'jotai';
 import _ from 'lodash/fp';
-import { Fragment } from 'react';
+import { Fragment, useState } from 'react';
+import { FaGlobeAmericas } from 'react-icons/fa';
 
 import { filterAtom } from 'features/leaderboards/hooks/useFilter';
 import { useHighlightedPlayerIds } from 'features/leaderboards/hooks/useHighlightedPlayerIds';
 
 import { useUser } from 'hooks/useUser';
+
+import { useLanguage } from 'utils/context/translation';
 
 import type { ChartApiOutput } from '../../hooks/useChartsQuery';
 import { ChartHeader } from './ChartHeader/ChartHeader';
@@ -16,8 +20,13 @@ const Chart = ({ chart }: { chart: ChartApiOutput }) => {
   const currentPlayerId = useUser().data?.id;
   const filter = useAtomValue(filterAtom);
   const highlightedPlayerIds = useHighlightedPlayerIds();
+  const [showHidden, setShowHidden] = useState(false);
+  const lang = useLanguage();
+
+  const hiddenResultsCount = chart.results.reduce((sum, res) => (res.isHidden ? sum + 1 : sum), 0);
 
   const results = chart.results
+    .filter((res) => showHidden || !res.isHidden)
     .map((res, index, array) => {
       const isLatestScore = res.added === chart.updatedOn;
       const ppSortPlayerId =
@@ -85,7 +94,22 @@ const Chart = ({ chart }: { chart: ChartApiOutput }) => {
 
   return (
     <div className="song-block">
-      <ChartHeader chart={chart} />
+      <ChartHeader chart={chart}>
+        {hiddenResultsCount > 0 && (
+          <>
+            <Text size="xs" lh={1}>
+              {lang.HIDDEN}: {hiddenResultsCount}
+            </Text>
+            <ActionIcon
+              variant="subtle"
+              aria-label="Show all"
+              onClick={() => setShowHidden(!showHidden)}
+            >
+              <FaGlobeAmericas />
+            </ActionIcon>
+          </>
+        )}
+      </ChartHeader>
       <div className="charts">
         {!_.isEmpty(results) && (
           <div className="chart">
