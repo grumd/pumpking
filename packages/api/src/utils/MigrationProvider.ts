@@ -32,7 +32,7 @@ export class MigrationProvider implements IMigrationProvider {
         fileName.endsWith('.mjs') ||
         (fileName.endsWith('.mts') && !fileName.endsWith('.d.mts'))
       ) {
-        const migration = await import(path.join(this.folder, fileName));
+        const migration = await import(path.join('file://', this.folder, fileName));
         // Handle esModuleInterop export's `default` prop...
         if (isMigration(migration?.default)) {
           migrations[migrationKey] = migration.default;

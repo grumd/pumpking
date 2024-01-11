@@ -54,7 +54,7 @@
     "react-router-dom": "^6.11.1",
     "react-select": "5.4.0",
     "react-virtuoso": "^4.6.2",
-    "recharts": "2.1.13",
+    "recharts": "^2.10.4",
     "redux": "4.0.5",
     "redux-thunk": "2.3.0",
     "regression": "2.0.1",

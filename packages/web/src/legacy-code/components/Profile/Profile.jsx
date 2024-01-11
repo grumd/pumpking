@@ -1,56 +1,55 @@
-import React, { Component } from 'react';
-import toBe from 'prop-types';
-import { connect } from 'react-redux';
-import { FaSearch, FaQuestionCircle, FaTimes, FaCaretLeft, FaCaretRight } from 'react-icons/fa';
-import { Link } from 'react-router-dom';
 import classNames from 'classnames';
-import ReactModal from 'react-modal';
-import Tooltip from 'react-responsive-ui/modules/Tooltip';
+import _ from 'lodash/fp';
 import moment from 'moment';
+import toBe from 'prop-types';
+import React, { Component } from 'react';
+import { FaCaretLeft, FaCaretRight, FaQuestionCircle, FaSearch, FaTimes } from 'react-icons/fa';
+import ReactModal from 'react-modal';
+import { connect } from 'react-redux';
+import Tooltip from 'react-responsive-ui/modules/Tooltip';
+import { Link } from 'react-router-dom';
 import {
-  BarChart,
-  Bar,
-  LineChart,
-  XAxis,
-  YAxis,
-  Tooltip as RechartsTooltip,
-  ReferenceLine,
   CartesianGrid,
   Line,
-  Legend,
+  LineChart,
+  Tooltip as RechartsTooltip,
+  ReferenceLine,
   ResponsiveContainer,
-  Label,
+  XAxis,
+  YAxis,
 } from 'recharts';
-import _ from 'lodash/fp';
 
 // styles
 import './profile.scss';
 
-// constants
-import { routes } from 'legacy-code/constants/routes';
-import { DEBUG } from 'legacy-code/constants/env';
+import DoubleSingleGradesGraph from 'features/profile/components/DoubleSingleGradesGraph';
+import DoubleSingleGraph from 'features/profile/components/DoubleSingleGraph';
+import GradesGraph from 'features/profile/components/GradesGraph';
 
-// components
-import Range from 'legacy-code/components/Shared/Range';
 import Grade from 'legacy-code/components/Shared/Grade';
 import Loader from 'legacy-code/components/Shared/Loader';
+// components
+import Range from 'legacy-code/components/Shared/Range';
 import Toggle from 'legacy-code/components/Shared/Toggle/Toggle';
-import MostPlayed from './MostPlayed';
-import ExpFaq from './ExpFaq';
-import { PlayerCompareSelect } from './PlayerCompareSelect';
-
+import { DEBUG } from 'legacy-code/constants/env';
+// constants
+import { routes } from 'legacy-code/constants/routes';
 // reducers
 import { fetchChartsData } from 'legacy-code/reducers/charts';
-import { setProfilesFilter, resetProfilesFilter } from 'legacy-code/reducers/profiles';
-
+import { resetProfilesFilter, setProfilesFilter } from 'legacy-code/reducers/profiles';
+import { achievements } from 'legacy-code/utils/achievements';
+import { parseDate } from 'legacy-code/utils/date';
+import { getRankImg } from 'legacy-code/utils/exp';
+import { getTimeAgo } from 'legacy-code/utils/leaderboards';
 // utils
 import { profileSelectorCreator } from 'legacy-code/utils/profiles';
-import { parseDate } from 'legacy-code/utils/date';
-import { getTimeAgo } from 'legacy-code/utils/leaderboards';
-import { achievements } from 'legacy-code/utils/achievements';
-import { getRankImg } from 'legacy-code/utils/exp';
-import { Language } from 'utils/context/translation';
 import { withParams } from 'legacy-code/utils/withParams';
+
+import { Language } from 'utils/context/translation';
+
+import ExpFaq from './ExpFaq';
+import MostPlayed from './MostPlayed';
+import { PlayerCompareSelect } from './PlayerCompareSelect';
 
 // code
 const MIN_GRAPH_HEIGHT = undefined;
@@ -139,7 +138,7 @@ class Profile extends Component {
           <ReferenceLine y={1000} stroke="white" />
           <RechartsTooltip
             isAnimationActive={false}
-            content={({ active, payload, label }) => {
+            content={({ payload }) => {
               if (!payload || !payload[0]) {
                 return null;
               }
@@ -279,7 +278,7 @@ class Profile extends Component {
           />
           <RechartsTooltip
             isAnimationActive={false}
-            content={({ active, payload, label }) => {
+            content={({ payload }) => {
               if (!payload || !payload[0]) {
                 return null;
               }
@@ -305,191 +304,15 @@ class Profile extends Component {
   }
 
   renderGrades() {
-    const { profile } = this.props;
-    return (
-      <ResponsiveContainer minHeight={MIN_GRAPH_HEIGHT} aspect={1.6}>
-        <BarChart
-          data={profile.gradesDistribution}
-          margin={{ top: 5, bottom: 5, right: 5, left: 0 }}
-        >
-          <RechartsTooltip
-            isAnimationActive={false}
-            content={({ active, payload, label }) => {
-              if (!payload || !payload[0]) {
-                return null;
-              }
-              return (
-                <div className="history-tooltip">
-                  <div>Level: {payload[0].payload.x}</div>
-                  {_.filter((item) => item.value > 0, payload).map((item) => (
-                    <div key={item.name} style={{ fontWeight: 'bold', color: item.color }}>
-                      {item.name}: {payload[0].payload.gradesValues[item.name]}
-                    </div>
-                  ))}
-                </div>
-              );
-            }}
-          />
-          <XAxis dataKey="x" />
-          <YAxis
-            domain={[0, 100]}
-            ticks={[0, 50, 100]}
-            tickFormatter={(x) => `${Math.round(x)}%`}
-            width={40}
-          />
-          <Legend />
-          <Bar dataKey="SSS" fill="#ffd700" stackId="stack" />
-          <Bar dataKey="SS" fill="#dab800" stackId="stack" />
-          <Bar dataKey="S" fill="#b19500" stackId="stack" />
-          <Bar dataKey="A+" fill="#396eef" stackId="stack" />
-          <Bar dataKey="A" fill="#828fb7" stackId="stack" />
-          <Bar dataKey="B" fill="#7a6490" stackId="stack" />
-          <Bar dataKey="C" fill="#6d5684" stackId="stack" />
-          <Bar dataKey="D" fill="#5d4e6d" stackId="stack" />
-          <Bar dataKey="F" fill="#774949" stackId="stack" />
-        </BarChart>
-      </ResponsiveContainer>
-    );
+    return <GradesGraph />;
   }
 
   renderGradesWithLevels() {
-    const { profile, tracklist } = this.props;
-    return (
-      <ResponsiveContainer minHeight={MIN_GRAPH_HEIGHT} aspect={0.74}>
-        <BarChart
-          data={profile.gradesAndLevelsDistribution}
-          margin={{ top: 5, bottom: 5, right: 5, left: 0 }}
-          stackOffset="sign"
-        >
-          <RechartsTooltip
-            isAnimationActive={false}
-            content={({ active, payload, label }) => {
-              if (!payload || !payload[0]) {
-                return null;
-              }
-              const doubleItems = _.filter(
-                (item) => item.value !== 0 && item.dataKey.startsWith('D'),
-                payload
-              );
-              const singleItems = _.filter(
-                (item) => item.value !== 0 && item.dataKey.startsWith('S'),
-                payload
-              );
-              return (
-                <div className="history-tooltip">
-                  <div>Level: {payload[0].payload.x}</div>
-                  {!!singleItems.length && (
-                    <>
-                      <div>Single:</div>
-                      {singleItems.map((item) => (
-                        <div key={item.name} style={{ fontWeight: 'bold', color: item.color }}>
-                          {item.name.slice(2)}: {Math.round(Math.abs(item.value))}% (
-                          {Math.round((tracklist.singlesLevels[item.payload.x] * item.value) / 100)}
-                          /{tracklist.singlesLevels[item.payload.x]})
-                        </div>
-                      ))}
-                    </>
-                  )}
-                  {!!doubleItems.length && (
-                    <>
-                      <div>Double:</div>
-                      {doubleItems.map((item) => (
-                        <div key={item.name} style={{ fontWeight: 'bold', color: item.color }}>
-                          {item.name.slice(2)}: {Math.round(Math.abs(item.value))}% (
-                          {Math.round(
-                            (tracklist.doublesLevels[item.payload.x] * -item.value) / 100
-                          )}
-                          /{tracklist.doublesLevels[item.payload.x]})
-                        </div>
-                      ))}
-                    </>
-                  )}
-                </div>
-              );
-            }}
-          />
-          <XAxis dataKey="x" />
-          <YAxis
-            tickFormatter={(x) => `${Math.round(Math.abs(x))}%`}
-            width={40}
-            domain={[(dataMin) => Math.min(dataMin, -10), (dataMax) => Math.max(10, dataMax)]}
-          />
-          <Bar dataKey="S-SSS" fill="#ffd700" stackId="stack" />
-          <Bar dataKey="S-SS" fill="#dab800" stackId="stack" />
-          <Bar dataKey="S-S" fill="#b19500" stackId="stack" />
-          <Bar dataKey="S-A+" fill="#396eef" stackId="stack" />
-          <Bar dataKey="S-A" fill="#828fb7" stackId="stack" />
-          <Bar dataKey="S-B" fill="#7a6490" stackId="stack" />
-          <Bar dataKey="S-C" fill="#6d5684" stackId="stack" />
-          <Bar dataKey="S-D" fill="#5d4e6d" stackId="stack" />
-          <Bar dataKey="S-F" fill="#774949" stackId="stack" />
-          <Bar dataKey="D-SSS" fill="#ffd700" stackId="stack" />
-          <Bar dataKey="D-SS" fill="#dab800" stackId="stack" />
-          <Bar dataKey="D-S" fill="#b19500" stackId="stack" />
-          <Bar dataKey="D-A+" fill="#396eef" stackId="stack" />
-          <Bar dataKey="D-A" fill="#828fb7" stackId="stack" />
-          <Bar dataKey="D-B" fill="#7a6490" stackId="stack" />
-          <Bar dataKey="D-C" fill="#6d5684" stackId="stack" />
-          <Bar dataKey="D-D" fill="#5d4e6d" stackId="stack" />
-          <Bar dataKey="D-F" fill="#774949" stackId="stack" />
-          <Label value="Double" offset={0} position="insideBottomLeft" />
-          <Label value="Single" offset={0} position="insideTopLeft" />
-          <ReferenceLine y={0} stroke="#bbb" />
-        </BarChart>
-      </ResponsiveContainer>
-    );
+    return <DoubleSingleGradesGraph />;
   }
 
   renderLevels() {
-    const { profile, tracklist } = this.props;
-    return (
-      <ResponsiveContainer minHeight={MIN_GRAPH_HEIGHT} aspect={1.6}>
-        <BarChart
-          data={profile.levelsDistribution}
-          stackOffset="sign"
-          margin={{ top: 5, bottom: 5, right: 5, left: 0 }}
-        >
-          <RechartsTooltip
-            isAnimationActive={false}
-            content={({ active, payload, label }) => {
-              if (!payload || !payload[0]) {
-                return null;
-              }
-              const totalD = tracklist.doublesLevels[payload[0].payload.x];
-              const totalS = tracklist.singlesLevels[payload[0].payload.x];
-              return (
-                <div className="history-tooltip">
-                  <div>Level: {payload[0].payload.x}</div>
-                  {totalS > 0 && (
-                    <div style={{ fontWeight: 'bold', color: payload[1].color }}>
-                      Single: {Math.abs(payload[1].value).toFixed(1)}% (
-                      {Math.round((payload[1].value * totalS) / 100)}/{totalS})
-                    </div>
-                  )}
-                  {totalD > 0 && (
-                    <div style={{ fontWeight: 'bold', color: payload[0].color }}>
-                      Double: {Math.abs(payload[0].value).toFixed(1)}% (
-                      {Math.round((Math.abs(payload[0].value) * totalD) / 100)}/{totalD})
-                    </div>
-                  )}
-                </div>
-              );
-            }}
-          />
-          <XAxis dataKey="x" />
-          <YAxis
-            tickFormatter={(x) => Math.round(Math.abs(x)) + '%'}
-            width={40}
-            domain={[(dataMin) => Math.min(dataMin, -10), (dataMax) => Math.max(10, dataMax)]}
-          />
-          <RechartsTooltip />
-          <ReferenceLine y={0} stroke="#555" />
-          <Legend />
-          <Bar dataKey="D" fill="var(--double_chart_color)" stackId="stack" />
-          <Bar dataKey="S" fill="var(--single_chart_color)" stackId="stack" />
-        </BarChart>
-      </ResponsiveContainer>
-    );
+    return <DoubleSingleGraph />;
   }
 
   renderGradeBlock(type, grade) {

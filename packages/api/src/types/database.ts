@@ -78,6 +78,7 @@ export interface ChartInstances {
   max_possible_score_norank: number | null;
   max_possible_score_norank_from_result: number | null;
   interpolated_difficulty: number | null;
+  type: 'S' | 'D' | null;
 }
 
 export interface DraftScores {

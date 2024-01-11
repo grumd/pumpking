@@ -1,6 +1,9 @@
+import {
+  getPlayersStatsController,
+  getPlayersAllController,
+  getPlayerGradesController,
+} from 'controllers/players';
 import { Router } from 'express';
-
-import { getPlayersStatsController, getPlayersAllController } from 'controllers/players';
 
 const router = Router();
 
@@ -34,5 +37,7 @@ router.get('/stats', getPlayersStatsController);
  * @return {array<Player>} 200 - success response - application/json
  */
 router.get('/all', getPlayersAllController);
+
+router.get('/:playerId/grades', getPlayerGradesController);
 
 export default router;
