@@ -24,6 +24,7 @@ const LazySingleChartLeaderboard = React.lazy(() =>
   import('../../features/leaderboards/LeaderboardsSingleChart')
 );
 const LazyNewLeaderboards = React.lazy(() => import('../../features/leaderboards/Leaderboards'));
+const LazyProfileNew = React.lazy(() => import('../../features/profile/Profile'));
 const LazyProfile = React.lazy(() => import('./Profile/Profile'));
 const LazyProfileCompare = React.lazy(() => import('./ProfileCompare/ProfileCompare'));
 const LazyTournaments = React.lazy(() => import('./Tournaments/Tournaments'));
@@ -112,6 +113,7 @@ function App() {
           />
           <Route path={routes.leaderboard.sharedChart.addResult.path} element={<LazyAddResult />} />
           <Route path={routes.ranking.path + '/*'} element={<LazyRanking />} />
+          <Route path={routes.profileNew.path} element={<LazyProfileNew />} />
           <Route path={routes.profile.path} element={<LazyProfile />} />
           <Route path={routes.profile.resultsByLevel.path} element={<LazyResultsByLevel />} />
           <Route path={routes.profile.resultsByLevel.level.path} element={<LazyResultsByLevel />} />

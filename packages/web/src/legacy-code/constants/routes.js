@@ -25,6 +25,9 @@ export const routes = {
   tournaments: {
     path: `/tournaments`,
   },
+  profileNew: {
+    path: `/profiles-new/:id`,
+  },
   profile: {
     path: `/profiles/:id`,
     getPath: (params) => `/profiles/${params.id}`,
