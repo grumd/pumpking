@@ -123,8 +123,8 @@ const GradesGraph = () => {
           width={40}
           domain={([dataMin, dataMax]) => [Math.min(dataMin, -10), Math.max(10, dataMax)]}
         />
-        <Bar name="D-SSS+" dataKey={getGradeKey('D', 'SSS+')} fill="#0cd8d8" stackId="stack" />
-        <Bar name="D-SSS" dataKey={getGradeKey('D', 'SSS')} fill="#13adad" stackId="stack" />
+        <Bar name="D-SSS+" dataKey={getGradeKey('D', 'SSS+')} fill="#32f1f1" stackId="stack" />
+        <Bar name="D-SSS" dataKey={getGradeKey('D', 'SSS')} fill="#16d4d4" stackId="stack" />
         <Bar name="D-SS+" dataKey={getGradeKey('D', 'SS+')} fill="#ffd900" stackId="stack" />
         <Bar name="D-SS" dataKey={getGradeKey('D', 'SS')} fill="#debc00" stackId="stack" />
         <Bar name="D-S+" dataKey={getGradeKey('D', 'S+')} fill="#c1a400" stackId="stack" />
@@ -139,8 +139,8 @@ const GradesGraph = () => {
         <Bar name="D-C" dataKey={getGradeKey('D', 'C')} fill="#5f4f6f" stackId="stack" />
         <Bar name="D-D" dataKey={getGradeKey('D', 'D')} fill="#4a4155" stackId="stack" />
         <Bar name="D-F" dataKey={getGradeKey('D', 'F')} fill="#480404" stackId="stack" />
-        <Bar name="S-SSS+" dataKey={getGradeKey('S', 'SSS+')} fill="#0cd8d8" stackId="stack" />
-        <Bar name="S-SSS" dataKey={getGradeKey('S', 'SSS')} fill="#13adad" stackId="stack" />
+        <Bar name="S-SSS+" dataKey={getGradeKey('S', 'SSS+')} fill="#32f1f1" stackId="stack" />
+        <Bar name="S-SSS" dataKey={getGradeKey('S', 'SSS')} fill="#16d4d4" stackId="stack" />
         <Bar name="S-SS+" dataKey={getGradeKey('S', 'SS+')} fill="#ffd900" stackId="stack" />
         <Bar name="S-SS" dataKey={getGradeKey('S', 'SS')} fill="#debc00" stackId="stack" />
         <Bar name="S-S+" dataKey={getGradeKey('S', 'S+')} fill="#c1a400" stackId="stack" />

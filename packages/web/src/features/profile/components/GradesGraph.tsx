@@ -31,7 +31,11 @@ const GradesGraph = () => {
 
   return (
     <ResponsiveContainer aspect={1.6}>
-      <BarChart data={graphData} margin={{ top: 5, bottom: 5, right: 5, left: 0 }}>
+      <BarChart
+        stackOffset="sign"
+        data={graphData}
+        margin={{ top: 5, bottom: 5, right: 5, left: 0 }}
+      >
         <RechartsTooltip<number, string>
           isAnimationActive={false}
           content={({ payload }) => {

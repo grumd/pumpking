@@ -17,18 +17,19 @@ export const useGradesGraphData = ({ playerId }: { playerId: number | undefined 
     const { gradeCounts, totalCounts } = data;
 
     return _.flow(
-      _.groupBy<(typeof gradeCounts)[number]>('level'),
+      _.groupBy<(typeof totalCounts)[number]>('level'),
       (x) => _.values(x),
-      _.map((vals) => {
-        const groupedByTypeGrade = _.groupBy((x) => `${x.type}-${x.grade}`, vals);
-        const groupedByType = _.groupBy('type', vals);
-        const groupedByGrade = _.groupBy('grade', vals);
-        const levelTotals = _.filter((x) => x.level === vals[0].level, totalCounts);
+      _.map((levelTotals) => {
+        const { level } = levelTotals[0];
+        const gradeTotals = _.filter((x) => x.level === level, gradeCounts);
+        const groupedByTypeGrade = _.groupBy((x) => `${x.type}-${x.grade}`, gradeTotals);
+        const groupedByType = _.groupBy('type', gradeTotals);
+        const groupedByGrade = _.groupBy('grade', gradeTotals);
         const totalChartsByType = _.mapValues(_.sumBy('count'), _.groupBy('type', levelTotals));
         const totalCharts = _.sum(_.values(totalChartsByType));
-        const totalPlayedCharts = _.sumBy('count', vals);
+        const totalPlayedCharts = _.sumBy('count', gradeTotals);
         return {
-          level: vals[0].level,
+          level,
           totalChartsByType,
           totalCharts,
           totalPlayedCharts,
@@ -37,6 +38,6 @@ export const useGradesGraphData = ({ playerId }: { playerId: number | undefined 
           byType: _.mapValues(_.sumBy('count'), groupedByType),
         };
       })
-    )(gradeCounts);
+    )(totalCounts);
   }, [data]);
 };

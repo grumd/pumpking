@@ -10,11 +10,32 @@ export const getPlayerGradeStats = async (
   totalCounts: { level: number; type: 'S' | 'D'; count: number }[];
   gradeCounts: { level: number; type: 'S' | 'D'; grade: GradePhoenix; count: number }[];
 }> => {
+  const mixesPlayed = (
+    await (trx ?? db)
+      .selectFrom('results')
+      .select('mix')
+      .distinct()
+      .where('player_id', '=', playerId)
+      .execute()
+  ).map(({ mix }) => mix);
+
   const gradeStats = await (trx ?? db)
     .with('ranked_results', (_db) => {
       return _db
         .selectFrom('results')
-        .leftJoin('chart_instances', 'results.chart_instance', 'chart_instances.id')
+        .leftJoin('chart_instances', (join) =>
+          // take level/type from the latest mix
+          join.on('chart_instances.id', '=', (eb) =>
+            eb
+              .selectFrom('chart_instances')
+              .select('id')
+              .where('shared_chart', '=', sql.ref('results.shared_chart'))
+              .where('type', 'is not', null)
+              .where('level', '>', 0)
+              .orderBy('mix', 'desc')
+              .limit(1)
+          )
+        )
         .select([
           'level',
           'type',
@@ -41,8 +62,6 @@ export const getPlayerGradeStats = async (
         ])
         .where('player_id', '=', playerId)
         .where('score_phoenix', 'is not', null)
-        .where('type', 'is not', null)
-        .where('level', '>', 0)
         .$narrowType<{ level: number; type: 'S' | 'D' }>();
     })
     .selectFrom('ranked_results')
@@ -52,52 +71,35 @@ export const getPlayerGradeStats = async (
     .orderBy('level')
     .execute();
 
-  const mixesPlayed = (
-    await (trx ?? db)
-      .selectFrom('results')
-      .select('mix')
-      .distinct()
-      .where('player_id', '=', playerId)
-      .execute()
-  ).map(({ mix }) => mix);
-
   const totalCounts = await (trx ?? db)
     .selectFrom('shared_charts')
-    .leftJoin('chart_instances as ci_player', (join) =>
-      join.on('ci_player.id', '=', (eb) =>
-        eb
-          .selectFrom('results')
-          .innerJoin('chart_instances', 'results.chart_instance', 'chart_instances.id')
-          .select('chart_instance')
-          .limit(1)
-          .where('results.shared_chart', '=', sql.ref('shared_charts.id'))
-          .where('player_id', '=', playerId)
-          .where('type', 'is not', null)
-          .where('level', '>', 0)
-          .orderBy('score_phoenix', 'desc')
-      )
-    )
-    .leftJoin('chart_instances as ci_latest', (join) =>
-      join.on('ci_latest.id', '=', (eb) =>
+    .leftJoin('chart_instances', (join) =>
+      // take level/type from the latest mix even if the player only played older mixes
+      join.on('chart_instances.id', '=', (eb) =>
         eb
           .selectFrom('chart_instances')
           .select('id')
-          .limit(1)
           .where('shared_chart', '=', sql.ref('shared_charts.id'))
-          .where('mix', 'in', mixesPlayed)
           .where('type', 'is not', null)
           .where('level', '>', 0)
           .orderBy('mix', 'desc')
+          .limit(1)
       )
     )
-    .select([
-      (eb) => eb.fn.coalesce('ci_player.level', 'ci_latest.level').as('level'),
-      (eb) => eb.fn.coalesce('ci_player.type', 'ci_latest.type').as('type'),
-      (eb) => eb.fn.countAll<number>().as('count'),
-    ])
-    .$narrowType<{ level: number; type: 'S' | 'D' }>()
+    .select(['level', 'type', (eb) => eb.fn.countAll<number>().as('count')])
+    .where(({ exists }) =>
+      // but only take shared_charts that exist in the mixes the player played
+      exists((eb) =>
+        eb
+          .selectFrom('chart_instances')
+          .select('id')
+          .where('mix', 'in', mixesPlayed)
+          .where('shared_chart', '=', sql.ref('shared_charts.id'))
+      )
+    )
     .groupBy(['level', 'type'])
     .orderBy('level')
+    .$narrowType<{ level: number; type: 'S' | 'D' }>()
     .execute();
 
   const gradeCounts = gradeStats.map(({ grade_phoenix_order, ...rest }) => ({
