@@ -101,6 +101,7 @@ export const chartInstances = [
     max_possible_score_norank: 1000000,
     max_total_steps: 100,
     min_total_steps: 100,
+    type: 'S' as const,
   },
 ];
 
@@ -123,6 +124,7 @@ export const getResultDefaults = ({ playerId = 1, score = 1000000 }) => ({
   rank_mode: 0 as const,
   score: score,
   score_xx: score,
+  score_phoenix: score,
   score_increase: 0,
   misses: 0,
   bads: 0,
