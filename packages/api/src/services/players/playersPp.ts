@@ -113,3 +113,133 @@ export const getPlayersTotalPp = async () => {
   const players = await Promise.all(playerIds.map(({ id }) => getSinglePlayerPpData(id)));
   return players;
 };
+
+export const getPlayerPpHistory = async (playerId: number) => {
+  const history = await db
+    .selectFrom('pp_history')
+    .select(['date', 'pp'])
+    .where('player_id', '=', playerId)
+    .orderBy('date', 'asc')
+    .execute();
+
+  const rankHistory = await db
+    .selectFrom('pp_rank_history')
+    .select(['date', 'rank'])
+    .where('player_id', '=', playerId)
+    .orderBy('date', 'asc')
+    .execute();
+
+  return {
+    history,
+    rankHistory,
+  };
+};
+
+export const updatePpHistoryIfNeeded = async (trx?: Transaction) => {
+  // TODO: as an optimization we can avoid recalculating pp for all players because usually only one player has new results
+
+  const playerIds = await (trx ?? db)
+    .selectFrom('players')
+    .select('id')
+    .where('id', '>', 1)
+    .execute();
+
+  const latestStats = await (trx ?? db)
+    .selectFrom('pp_history as ph1')
+    .select(['ph1.pp', 'ph1.player_id', 'ph1.date'])
+    .innerJoin(
+      (eb) =>
+        eb
+          .selectFrom('pp_history')
+          .select([(eb) => eb.fn.max('date').as('max_date'), 'player_id'])
+          .groupBy('player_id')
+          .as('ph2'),
+      (join) =>
+        join.onRef('ph2.max_date', '=', 'ph1.date').onRef('ph2.player_id', '=', 'ph1.player_id')
+    )
+    .orderBy('pp', 'desc')
+    .execute();
+
+  const latestStatsById: Record<number, { pp: string; place: number; date: Date }> = {};
+
+  for (let i = 0; i < latestStats.length; i++) {
+    const player = latestStats[i];
+    latestStatsById[player.player_id] = { pp: player.pp, place: i + 1, date: player.date };
+  }
+
+  const newStatsById: Record<number, { pp: string; place?: number }> = {};
+
+  for (const { id: playerId } of playerIds) {
+    const results = await (trx ?? db)
+      .with('ranked_results', (_db) => {
+        return _db
+          .selectFrom('results')
+          .select([
+            'player_id',
+            'track_name',
+            'chart_label',
+            'pp',
+            sql<number>`row_number() over (partition by results.shared_chart order by pp desc)`.as(
+              'pp_rank'
+            ),
+          ])
+          .where('player_id', '=', playerId)
+          .where('pp', 'is not', null)
+          .$narrowType<{ pp: number }>()
+          .orderBy('pp', 'desc');
+      })
+      .selectFrom('ranked_results')
+      .selectAll()
+      .where('pp_rank', '=', 1)
+      .orderBy('pp', 'desc')
+      .limit(200)
+      .execute();
+
+    const totalPp = results
+      .reduce((sum, item, index) => {
+        return sum + 0.95 ** index * item.pp;
+      }, 0)
+      .toFixed(2);
+
+    if (!newStatsById[playerId]) newStatsById[playerId] = { pp: totalPp };
+    newStatsById[playerId].pp = totalPp;
+  }
+
+  const playerIdsSorted = Object.keys(newStatsById)
+    .map((key) => Number(key))
+    .sort((a, b) => {
+      return Number(newStatsById[b].pp) - Number(newStatsById[a].pp);
+    });
+
+  for (let i = 0; i < playerIdsSorted.length; i++) {
+    const id = playerIdsSorted[i];
+
+    if (latestStatsById[id]?.place !== i + 1) {
+      await (trx ?? db)
+        .insertInto('pp_rank_history')
+        .values({
+          date: new Date(),
+          player_id: id,
+          rank: i + 1,
+        })
+        .onDuplicateKeyUpdate({
+          rank: i + 1,
+        })
+        .execute();
+    }
+
+    if (latestStatsById[id]?.pp !== newStatsById[id].pp) {
+      await (trx ?? db)
+        .insertInto('pp_history')
+        .values({
+          date: new Date(),
+          player_id: id,
+          pp: newStatsById[id].pp,
+        })
+        .onDuplicateKeyUpdate({
+          pp: newStatsById[id].pp,
+        })
+        .execute();
+    }
+  }
+};

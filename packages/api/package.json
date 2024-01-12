@@ -21,7 +21,7 @@
     "pm2": "cross-env NODE_PATH=./build pm2 startOrRestart ./pm2.config.js",
     "build": "rimraf ./build && tsc --project ./tsconfig.build.json",
     "ts-check": "tsc --noEmit --pretty",
-    "test:run": "cross-env NODE_ENV=test mocha -r tsconfig-paths/register -r ts-node/register -r ./src/test/helpers/rootHooks.ts ./src/test/**/*.test.ts",
+    "test:run": "cross-env NODE_ENV=test mocha --import=tsx -r ./src/test/helpers/rootHooks.ts ./src/test/**/*.test.ts",
     "test": "cross-env DEBUG=backend-ts:test:* npm run test:run -- --exit",
     "test:trace": "cross-env DEBUG=backend-ts:* npm run test:run -- --exit",
     "test:watch": "cross-env DEBUG=backend-ts:test:* npm run test:run -- --watch --watch-files ./src/**/*",
@@ -84,7 +84,6 @@
     "minimist": "^1.2.8",
     "mocha": "^8.4.0",
     "supertest": "^6.1.3",
-    "ts-node": "^10.9.1",
-    "tsx": "^3.12.7"
+    "tsx": "^4.7.0"
   }
 }
