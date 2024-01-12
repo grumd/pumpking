@@ -2,6 +2,8 @@ import {
   getPlayersStatsController,
   getPlayersAllController,
   getPlayerGradesController,
+  getPlayerPpHistoryController,
+  updatePpHistory,
 } from 'controllers/players';
 import { Router } from 'express';
 
@@ -39,5 +41,9 @@ router.get('/stats', getPlayersStatsController);
 router.get('/all', getPlayersAllController);
 
 router.get('/:playerId/grades', getPlayerGradesController);
+
+router.get('/:playerId/pp-history', getPlayerPpHistoryController);
+
+router.get('/update-pp', updatePpHistory);
 
 export default router;

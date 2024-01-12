@@ -56,12 +56,8 @@ export interface ArcadeTrackNames {
 export interface BestResults {
   shared_chart_id: number;
   player_id: number;
-  best_xx_score_result_id: number | null;
-  best_xx_score_increase: number | null;
-  best_phoenix_score_result_id: number | null;
-  best_phoenix_score_increase: number | null;
-  best_phoenix_calc_score_result_id: number | null;
-  best_phoenix_calc_score_increase: number | null;
+  best_score_no_rank_result_id: number | null;
+  best_score_rank_result_id: number | null;
   best_grade_result_id: number | null;
 }
 
@@ -78,7 +74,7 @@ export interface ChartInstances {
   max_possible_score_norank: number | null;
   max_possible_score_norank_from_result: number | null;
   interpolated_difficulty: number | null;
-  type: 'S' | 'D' | null;
+  type: 'D' | 'S' | null;
 }
 
 export interface DraftScores {
@@ -161,6 +157,18 @@ export interface Players {
   can_add_results_manually: Generated<number | null>;
   arcade_name: string | null;
   exp: Decimal | null;
+}
+
+export interface PpHistory {
+  date: Date;
+  player_id: number;
+  pp: Decimal;
+}
+
+export interface PpRankHistory {
+  date: Date;
+  player_id: number;
+  rank: number;
 }
 
 export interface Purgatory {
@@ -317,6 +325,8 @@ export interface DB {
   operators: Operators;
   phoenix_track_names: PhoenixTrackNames;
   players: Players;
+  pp_history: PpHistory;
+  pp_rank_history: PpRankHistory;
   purgatory: Purgatory;
   results: Results;
   results_best_grade: ResultsBestGrade;

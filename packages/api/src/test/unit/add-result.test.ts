@@ -301,6 +301,10 @@ describe('Add new result manually', () => {
     let player = await db.selectFrom('players').selectAll().where('id', '=', 7).executeTakeFirst();
     assert.isNull(player?.pp, `player's pp is null by default`);
 
+    const initHistory = (await req().get('/players/7/pp-history').expect(200)).body;
+    assert.equal(initHistory.history.length, 0, `player's pp history is empty by default`);
+    assert.equal(initHistory.rankHistory.length, 0, `player's pp history is empty by default`);
+
     // add first result for this user
     await req()
       .post('/results/add-result')
@@ -481,5 +485,12 @@ describe('Add new result manually', () => {
       'SSS',
       'best grade is SSS'
     );
+
+    const history = (await req().get('/players/7/pp-history').expect(200)).body;
+
+    assert.isAbove(history.history.length, 0, `player's pp history is not empty`);
+    assert.isAbove(history.rankHistory.length, 0, `player's pp history is not empty`);
+    assert.equal(history.rankHistory[0].rank, 1, 'player is #1 in rank history');
+    assert.isNotNaN(parseFloat(history.history[0].pp ?? ''), `history pp is a number`);
   });
 });

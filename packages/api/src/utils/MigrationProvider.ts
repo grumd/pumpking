@@ -1,6 +1,7 @@
 import * as fs from 'fs/promises';
 import type { Migration, MigrationProvider as IMigrationProvider } from 'kysely';
 import { sql } from 'kysely';
+import { pathToFileURL } from 'node:url';
 import * as path from 'path';
 
 const isMigration = (migration: unknown): migration is Migration => {
@@ -32,7 +33,7 @@ export class MigrationProvider implements IMigrationProvider {
         fileName.endsWith('.mjs') ||
         (fileName.endsWith('.mts') && !fileName.endsWith('.d.mts'))
       ) {
-        const migration = await import(path.join(this.folder, fileName));
+        const migration = await import(pathToFileURL(path.join(this.folder, fileName)).href);
         // Handle esModuleInterop export's `default` prop...
         if (isMigration(migration?.default)) {
           migrations[migrationKey] = migration.default;

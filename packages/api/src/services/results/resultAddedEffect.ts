@@ -5,7 +5,7 @@ import createDebug from 'debug';
 import { sql } from 'kysely';
 import _ from 'lodash/fp';
 import { refreshPlayerTotalExp } from 'services/players/playerExp';
-import { getSinglePlayerTotalPp } from 'services/players/playersPp';
+import { getSinglePlayerTotalPp, updatePpHistoryIfNeeded } from 'services/players/playersPp';
 import { error } from 'utils';
 import { getResultExp } from 'utils/profile/exp';
 
@@ -158,6 +158,8 @@ export const resultAddedEffect = async (resultId: number) => {
           .set({ pp: totalPp })
           .where('id', '=', playerId)
           .executeTakeFirst();
+
+        await updatePpHistoryIfNeeded(trx);
       }
     }
 

@@ -1,23 +1,12 @@
 import classNames from 'classnames';
 import _ from 'lodash/fp';
-import moment from 'moment';
 import toBe from 'prop-types';
 import React, { Component } from 'react';
-import { FaCaretLeft, FaCaretRight, FaQuestionCircle, FaSearch, FaTimes } from 'react-icons/fa';
+import { FaQuestionCircle, FaSearch, FaTimes } from 'react-icons/fa';
 import ReactModal from 'react-modal';
 import { connect } from 'react-redux';
 import Tooltip from 'react-responsive-ui/modules/Tooltip';
 import { Link } from 'react-router-dom';
-import {
-  CartesianGrid,
-  Line,
-  LineChart,
-  Tooltip as RechartsTooltip,
-  ReferenceLine,
-  ResponsiveContainer,
-  XAxis,
-  YAxis,
-} from 'recharts';
 
 // styles
 import './profile.scss';
@@ -25,11 +14,11 @@ import './profile.scss';
 import DoubleSingleGradesGraph from 'features/profile/components/DoubleSingleGradesGraph';
 import DoubleSingleGraph from 'features/profile/components/DoubleSingleGraph';
 import GradesGraph from 'features/profile/components/GradesGraph';
+import { PpHistoryGraph } from 'features/profile/components/PpHistoryGraph';
+import { PpRankHistoryGraph } from 'features/profile/components/PpRankHistoryGraph';
 
 import Grade from 'legacy-code/components/Shared/Grade';
 import Loader from 'legacy-code/components/Shared/Loader';
-// components
-import Range from 'legacy-code/components/Shared/Range';
 import Toggle from 'legacy-code/components/Shared/Toggle/Toggle';
 import { DEBUG } from 'legacy-code/constants/env';
 // constants
@@ -38,7 +27,6 @@ import { routes } from 'legacy-code/constants/routes';
 import { fetchChartsData } from 'legacy-code/reducers/charts';
 import { resetProfilesFilter, setProfilesFilter } from 'legacy-code/reducers/profiles';
 import { achievements } from 'legacy-code/utils/achievements';
-import { parseDate } from 'legacy-code/utils/date';
 import { getRankImg } from 'legacy-code/utils/exp';
 import { getTimeAgo } from 'legacy-code/utils/leaderboards';
 // utils
@@ -50,9 +38,6 @@ import { Language } from 'utils/context/translation';
 import ExpFaq from './ExpFaq';
 import MostPlayed from './MostPlayed';
 import { PlayerCompareSelect } from './PlayerCompareSelect';
-
-// code
-const MIN_GRAPH_HEIGHT = undefined;
 
 export const profileSelector = profileSelectorCreator('id');
 
@@ -118,49 +103,7 @@ class Profile extends Component {
   };
 
   renderRankingHistory() {
-    const { profile } = this.props;
-    return (
-      <ResponsiveContainer minHeight={MIN_GRAPH_HEIGHT} aspect={1.6}>
-        <LineChart data={profile.ratingChanges} margin={{ top: 5, bottom: 5, right: 5, left: 0 }}>
-          <CartesianGrid strokeDasharray="3 3" />
-          <XAxis
-            dataKey="date"
-            type="number"
-            domain={['dataMin', 'dataMax']}
-            tickFormatter={(value) => parseDate(value).toLocaleDateString()}
-          />
-          <YAxis
-            allowDecimals={false}
-            domain={['dataMin - 100', 'dataMax + 100']}
-            tickFormatter={Math.round}
-            width={40}
-          />
-          <ReferenceLine y={1000} stroke="white" />
-          <RechartsTooltip
-            isAnimationActive={false}
-            content={({ payload }) => {
-              if (!payload || !payload[0]) {
-                return null;
-              }
-              return (
-                <div className="history-tooltip">
-                  <div>{parseDate(payload[0].payload.date).toLocaleDateString()}</div>
-                  {payload && payload[0] && <div>Rating: {Math.round(payload[0].value)}</div>}
-                </div>
-              );
-            }}
-          />
-          <Line
-            type="monotone"
-            isAnimationActive={false}
-            dataKey="rating"
-            stroke="#88d3ff"
-            strokeWidth={3}
-            dot={false}
-          />
-        </LineChart>
-      </ResponsiveContainer>
-    );
+    return <PpHistoryGraph />;
   }
 
   circleShape = (args) => (
@@ -258,49 +201,7 @@ class Profile extends Component {
   }
   */
   renderPlaceHistory() {
-    const { profile } = this.props;
-    return (
-      <ResponsiveContainer minHeight={MIN_GRAPH_HEIGHT} aspect={1.6}>
-        <LineChart data={profile.placesChanges} margin={{ top: 5, bottom: 5, right: 5, left: 0 }}>
-          <CartesianGrid strokeDasharray="3 3" />
-          <XAxis
-            dataKey="date"
-            type="number"
-            domain={['dataMin', 'dataMax']}
-            tickFormatter={(value) => parseDate(value).toLocaleDateString()}
-          />
-          <YAxis
-            allowDecimals={false}
-            domain={[1, (dataMax) => (dataMax < 3 ? dataMax + 2 : dataMax + 1)]}
-            interval={0}
-            reversed
-            width={40}
-          />
-          <RechartsTooltip
-            isAnimationActive={false}
-            content={({ payload }) => {
-              if (!payload || !payload[0]) {
-                return null;
-              }
-              return (
-                <div className="history-tooltip">
-                  <div>{parseDate(payload[0].payload.date).toLocaleDateString()}</div>
-                  {payload && payload[0] && <div>Place: #{payload[0].value}</div>}
-                </div>
-              );
-            }}
-          />
-          <Line
-            isAnimationActive={false}
-            type="stepAfter"
-            dataKey="place"
-            stroke="#88d3ff"
-            strokeWidth={3}
-            dot={false}
-          />
-        </LineChart>
-      </ResponsiveContainer>
-    );
+    return <PpRankHistoryGraph />;
   }
 
   renderGrades() {
@@ -413,7 +314,7 @@ class Profile extends Component {
 
   renderProfile() {
     const lang = this.context;
-    const { profile, filter } = this.props;
+    const { profile } = this.props;
     const { isLevelGraphCombined } = this.state;
     const expProgress = profile.expRankNext
       ? (profile.exp - profile.expRank.threshold) /
@@ -548,62 +449,14 @@ class Profile extends Component {
                 <div className="chart-container">{this.renderRankingHistory()}</div>
                 {/* <div className="chart-container">{this.renderAccuracyPoints()}</div> */}
               </div>
-              {/*<div className="profile-section-2">
+              <div className="profile-section-2">
                 <div className="profile-sm-section-header">
                   <span>{lang.PLACE_IN_TOP}</span>
                 </div>
                 <div className="chart-container">{this.renderPlaceHistory()}</div>
-                <div className="chart-container">{this.renderAccuracyPoints(true)}</div>
-              </div> */}
+                {/* <div className="chart-container">{this.renderAccuracyPoints(true)}</div> */}
+              </div>
             </div>
-            {(() => {
-              const currentRange = filter.dayRange || profile.filterRange;
-              const dateL = moment(currentRange[0] * 1000 * 60 * 60 * 24).format('L');
-              const dateR = moment(currentRange[1] * 1000 * 60 * 60 * 24).format('L');
-              const l1 = Math.max(currentRange[0] - 1, profile.minMaxRange[0]);
-              const l2 = Math.min(currentRange[0] + 1, currentRange[1]);
-              const r1 = Math.max(currentRange[1] - 1, currentRange[0]);
-              const r2 = Math.min(currentRange[1] + 1, profile.minMaxRange[1]);
-              return (
-                <div className="range-container">
-                  <Range
-                    range={currentRange}
-                    min={profile.minMaxRange[0]}
-                    max={profile.minMaxRange[1]}
-                    onChange={this.onChangeDayRange}
-                  />
-                  <div className="range-controls _flex-row">
-                    <button
-                      className="btn btn-sm btn-dark"
-                      onClick={() => this.onChangeDayRange([l1, currentRange[1]])}
-                    >
-                      <FaCaretLeft />
-                    </button>
-                    <span className="date-text">{dateL}</span>
-                    <button
-                      className="btn btn-sm btn-dark"
-                      onClick={() => this.onChangeDayRange([l2, currentRange[1]])}
-                    >
-                      <FaCaretRight />
-                    </button>
-                    <div className="_flex-fill"></div>
-                    <button
-                      className="btn btn-sm btn-dark"
-                      onClick={() => this.onChangeDayRange([currentRange[0], r1])}
-                    >
-                      <FaCaretLeft />
-                    </button>
-                    <span className="date-text">{dateR}</span>
-                    <button
-                      className="btn btn-sm btn-dark"
-                      onClick={() => this.onChangeDayRange([currentRange[0], r2])}
-                    >
-                      <FaCaretRight />
-                    </button>
-                  </div>
-                </div>
-              );
-            })()}
           </div>
         </div>
         {/* <div className="profile-section-horizontal-container">
