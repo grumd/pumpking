@@ -2,10 +2,13 @@ import { Button, Flex, Group, Stack, Text } from '@mantine/core';
 import { useAtom } from 'jotai';
 import { useMemo } from 'react';
 import { Form, useForm } from 'react-hook-form';
-import { MultiSelect, Select, TextInput } from 'react-hook-form-mantine';
+import { MultiSelect, Select } from 'react-hook-form-mantine';
 import { FaSearch, FaUndo } from 'react-icons/fa';
 
+import css from './search-form.module.scss';
+
 import CollapsibleBar from 'components/CollapsibleBar/CollapsibleBar';
+import { TextInputWithReset } from 'components/TextInputWithReset/TextInputWithReset';
 
 import { usePlayers } from 'hooks/usePlayers';
 import { useUser } from 'hooks/useUser';
@@ -116,7 +119,7 @@ export const SearchForm = (): JSX.Element => {
 
   const [searchFilter, setSearchFilter] = useAtom(filterAtom);
 
-  const { control, reset } = useForm<SearchFormValues>({
+  const { control, reset, setValue } = useForm<SearchFormValues>({
     defaultValues: () => Promise.resolve(filterToForm(searchFilter)),
   });
 
@@ -162,16 +165,32 @@ export const SearchForm = (): JSX.Element => {
     ];
   }, [lang]);
 
+  const isFiltersChanged =
+    !!searchFilter.playersAll?.length ||
+    !!searchFilter.playersSome?.length ||
+    !!searchFilter.playersNone?.length;
+  const isSortingChanged =
+    (searchFilter.sortChartsBy && searchFilter.sortChartsBy !== 'date') ||
+    (searchFilter.sortChartsDir && searchFilter.sortChartsDir !== 'desc');
+  const isChartFilterChanged =
+    (searchFilter.labels && searchFilter.labels.length !== 2) ||
+    (searchFilter.durations && searchFilter.durations.length !== 4) ||
+    (searchFilter.minLevel && searchFilter.minLevel !== 1) ||
+    (searchFilter.maxLevel && searchFilter.maxLevel !== 28);
+
   return (
     <Form control={control} onSubmit={(e) => onSubmit(formToFilter(e.data))}>
       <Stack gap="sm">
         <Group gap="md" grow>
-          <TextInput
+          <TextInputWithReset
             name="songName"
             label={lang.SONG_NAME_LABEL}
             placeholder={lang.SONG_NAME_PLACEHOLDER}
-            defaultValue={searchFilter.songName}
             control={control}
+            classNames={{
+              input: searchFilter.songName ? css.highlight : '',
+            }}
+            onReset={() => setValue('songName', '')}
           />
           <MultiSelect
             label={lang.MIXES_LABEL}
@@ -187,7 +206,10 @@ export const SearchForm = (): JSX.Element => {
             name="scoring"
           />
         </Group>
-        <CollapsibleBar title={lang.FILTERS}>
+        <CollapsibleBar
+          buttonClassName={isFiltersChanged ? css.highlight : ''}
+          title={lang.FILTERS}
+        >
           <Text>{lang.SHOW_CHARTS_PLAYED_BY}</Text>
           <Group gap="md" grow>
             <MultiSelect
@@ -227,7 +249,10 @@ export const SearchForm = (): JSX.Element => {
         </CollapsibleBar>
         <Flex gap="md">
           <div style={{ flex: '1 1 auto' }}>
-            <CollapsibleBar title={lang.SORTING}>
+            <CollapsibleBar
+              buttonClassName={isSortingChanged ? css.highlight : ''}
+              title={lang.SORTING}
+            >
               <Group gap="md" grow>
                 <Select
                   label={lang.SORTING_LABEL}
@@ -251,7 +276,10 @@ export const SearchForm = (): JSX.Element => {
               </Group>
             </CollapsibleBar>
           </div>
-          <ChartFilter control={control} />
+          <ChartFilter
+            buttonClassName={isChartFilterChanged ? css.highlight : ''}
+            control={control}
+          />
         </Flex>
         <Flex gap="md">
           <Button

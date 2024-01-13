@@ -8,6 +8,7 @@ import type { ChartsFilter } from './useChartsQuery';
 export const initialFilter: ChartsFilter = {
   mixes: [26, 27],
   scoring: 'phoenix',
+  songName: '',
 };
 
 export const filterAtom = atomWithValidatedStorage<ChartsFilter>(

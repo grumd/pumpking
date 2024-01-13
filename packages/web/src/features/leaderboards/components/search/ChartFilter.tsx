@@ -7,13 +7,19 @@ import { useLanguage } from 'utils/context/translation';
 
 import type { SearchFormValues } from './formTypes';
 
-export default function ChartFilter({ control }: { control: Control<SearchFormValues, unknown> }) {
+export default function ChartFilter({
+  control,
+  buttonClassName,
+}: {
+  control: Control<SearchFormValues, unknown>;
+  buttonClassName?: string;
+}) {
   const lang = useLanguage();
 
   return (
     <Popover>
       <Popover.Target>
-        <Button>{lang.FILTER_CHARTS}</Button>
+        <Button className={buttonClassName}>{lang.FILTER_CHARTS}</Button>
       </Popover.Target>
       <Popover.Dropdown bg="var(--mantine-color-dark-6)">
         <Stack gap="sm" align="center">
