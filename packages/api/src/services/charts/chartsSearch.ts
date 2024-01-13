@@ -295,7 +295,15 @@ export const searchCharts = async (params: ChartsSearchParams) => {
         .innerJoin('filtered_charts', 'filtered_charts.shared_chart_id', 'r.shared_chart')
         .innerJoin('shared_charts as sc', 'sc.id', 'r.shared_chart')
         .innerJoin('chart_instances as ci', (join) =>
-          join.onRef('ci.shared_chart', '=', 'sc.id').onRef('ci.mix', '=', 'r.mix')
+          join.on('ci.id', '=', (eb) =>
+            eb
+              .selectFrom('chart_instances')
+              .select('id')
+              .where('shared_chart', '=', sql.ref('r.shared_chart'))
+              .where('mix', 'in', mixes)
+              .orderBy('mix', 'desc')
+              .limit(1)
+          )
         )
         .innerJoin('tracks', 'tracks.id', 'sc.track')
         .innerJoin('players', 'r.player_id', 'players.id')
