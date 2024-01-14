@@ -38,8 +38,12 @@ export default function ChartFilter({
                       value: 'D',
                       label: 'Double',
                     },
+                    {
+                      value: 'COOP',
+                      label: 'COOP',
+                    },
                   ]}
-                  selected={field.value ?? ['S', 'D']}
+                  selected={field.value ?? ['S', 'D', 'COOP']}
                   onChange={field.onChange}
                 />
               )}
