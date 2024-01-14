@@ -24,11 +24,11 @@ interface ChartHeaderProps {
 export const ChartHeader = ({ chart, children = null }: ChartHeaderProps): JSX.Element => {
   // TODO: change to "toSorted" when more widely supported
   const instances = chart.chartInstances.slice().sort((a, b) => b.mix - a.mix);
-  const [chartType] = labelToTypeLevel(instances[0].label);
+  const [chartType, chartLevel] = labelToTypeLevel(instances[0].label);
 
   return (
     <div className={css.songHeader}>
-      <ChartLabel type={chartType} level={instances[0].level ?? '?'} />
+      <ChartLabel type={chartType} level={chartLevel ?? '?'} />
       <div className={css.songName}>
         <NavLink to={routes.leaderboard.sharedChart.getPath({ sharedChartId: chart.id })}>
           {chart.songName}

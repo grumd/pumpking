@@ -1,7 +1,7 @@
 import { ActionIcon, Text } from '@mantine/core';
 import { useAtomValue } from 'jotai';
 import _ from 'lodash/fp';
-import { Fragment, useState } from 'react';
+import { Fragment, memo, useState } from 'react';
 import { FaGlobeAmericas } from 'react-icons/fa';
 
 import { filterAtom } from 'features/leaderboards/hooks/useFilter';
@@ -16,7 +16,7 @@ import { ChartHeader } from './ChartHeader/ChartHeader';
 import Result from './Result';
 import { ResultsCollapser } from './ResultsCollapser';
 
-const Chart = ({ chart }: { chart: ChartApiOutput }) => {
+const Chart = memo(function _Chart({ chart }: { chart: ChartApiOutput }) {
   const currentPlayerId = useUser().data?.id;
   const filter = useAtomValue(filterAtom);
   const highlightedPlayerIds = useHighlightedPlayerIds();
@@ -142,5 +142,6 @@ const Chart = ({ chart }: { chart: ChartApiOutput }) => {
       </div>
     </div>
   );
-};
+});
+
 export default Chart;

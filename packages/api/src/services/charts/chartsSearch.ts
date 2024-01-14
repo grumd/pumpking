@@ -215,11 +215,18 @@ export const searchCharts = async (params: ChartsSearchParams) => {
         );
       }
 
-      if (minLevel) {
-        subQuery = subQuery.where('ci.level', '>=', minLevel);
-      }
-      if (maxLevel) {
-        subQuery = subQuery.where('ci.level', '<=', maxLevel);
+      if (minLevel || maxLevel) {
+        // This complicated query is mostly needed because COOP charts have level 0 or null
+        subQuery = subQuery.where(({ or, and, cmpr }) =>
+          or([
+            cmpr('ci.level', 'is', null),
+            cmpr('ci.level', '=', 0),
+            and([
+              ...(minLevel ? [cmpr('ci.level', '>=', minLevel)] : []),
+              ...(maxLevel ? [cmpr('ci.level', '<=', maxLevel)] : []),
+            ]),
+          ])
+        );
       }
 
       if (labels && labels.length) {
