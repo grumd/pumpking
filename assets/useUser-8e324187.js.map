@@ -1,1 +1,0 @@
-{"version":3,"file":"useUser-8e324187.js","sources":["../../src/hooks/useUser.ts"],"sourcesContent":["import { api } from 'utils/trpc';\n\nexport const useUser = () => {\n  return api.user.current.useQuery();\n};\n"],"names":["useUser","api"],"mappings":"wCAEO,MAAMA,EAAU,IACdC,EAAI,KAAK,QAAQ,SAAS"}
