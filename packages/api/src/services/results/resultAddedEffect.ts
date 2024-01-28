@@ -74,9 +74,10 @@ export const resultAddedEffect = async (resultId: number) => {
       misses != null &&
       max_combo != null
     ) {
-      const scorePhoenix =
+      const scorePhoenix = Math.floor(
         (995000 * (perfects + 0.6 * greats + 0.2 * goods + 0.1 * bads) + 5000 * max_combo) /
-        (perfects + greats + goods + bads + misses);
+          (perfects + greats + goods + bads + misses)
+      );
 
       debug(`Updating score phoenix of result ${resultId} to ${scorePhoenix}`);
 
