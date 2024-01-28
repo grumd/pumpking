@@ -1,22 +1,22 @@
 import css from './exp-rank-img.module.scss';
 
-import { ranks } from './expRanks';
+import { getRankIndex, ranks } from './expRanks';
 
-interface ExpRankImgProps {
-  exp: number | null;
-}
+type ExpRankImgProps = { rankIndex: number } | { exp: number };
 
-export const ExpRankImg = ({ exp }: ExpRankImgProps) => {
-  const rankIndex = exp ? ranks.findLastIndex((rank) => rank.threshold <= exp) : 0;
+export const ExpRankImg = (props: ExpRankImgProps) => {
+  const rankIndex = 'rankIndex' in props ? props.rankIndex : getRankIndex(props.exp);
+  if (rankIndex == null) return null;
+
   const rank = ranks[rankIndex];
-  if (!rank) return null;
 
-  const title = exp
-    ? `${Math.floor(exp)}` +
-      (rankIndex < ranks.length - 1
-        ? ` (${ranks[rankIndex + 1].threshold - Math.floor(exp)} to next rank)`
-        : '')
-    : 'N/A';
+  const title =
+    'exp' in props
+      ? `${Math.floor(props.exp)}` +
+        (rankIndex < ranks.length - 1
+          ? ` (${ranks[rankIndex + 1].threshold - Math.floor(props.exp)} to next rank)`
+          : '')
+      : `${rank.threshold}`;
 
   return (
     <img

@@ -157,18 +157,16 @@ export const en = {
   PROFILE_NOT_FOUND: 'Profile not found',
 
   EXP_FAQ: (
-    <div className="faq-header">
+    <>
       Player's <strong>experience</strong> is based on the number of played charts.
       <br />
       Higher levels and better scores give more exp.
       <br />
       More attempts on the same chart do not grant extra exp. To level up, play new and harder
       charts.
-    </div>
+    </>
   ),
-  EXP_TITLES_LIST_HEADER: (
-    <div className="faq-header">Possible ranks and experience needed to acquire them:</div>
-  ),
+  EXP_TITLES_LIST_HEADER: <>Possible ranks and experience needed to acquire them:</>,
 
   // score date tooltip
   EXACT_DATE_UNKNOWN: 'exact date unknown',

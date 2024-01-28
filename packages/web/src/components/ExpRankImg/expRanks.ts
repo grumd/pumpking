@@ -152,3 +152,7 @@ export const ranks = [
     color: css.purple,
   },
 ];
+
+export const getRankIndex = (exp: number): number => {
+  return exp ? ranks.findLastIndex((rank) => rank.threshold <= exp) : 0;
+};

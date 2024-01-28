@@ -102,9 +102,7 @@ export default function RankingList({ ranking, isLoading, preferences }) {
                       </div>
                     )}
                   </td> */}
-                  <td>
-                    <ExpRankImg exp={player.exp} />
-                  </td>
+                  <td>{player.exp != null ? <ExpRankImg exp={player.exp} /> : null}</td>
                   <td className="name">
                     <div className="name-container">
                       <Flag region={player.region} />

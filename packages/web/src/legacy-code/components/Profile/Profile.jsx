@@ -13,6 +13,8 @@ import './profile.scss';
 
 import DoubleSingleGradesGraph from 'features/profile/components/DoubleSingleGradesGraph';
 import DoubleSingleGraph from 'features/profile/components/DoubleSingleGraph';
+import { ExpFaq } from 'features/profile/components/Exp/ExpFaq';
+import { ExpProgress } from 'features/profile/components/Exp/ExpProgress';
 import GradesGraph from 'features/profile/components/GradesGraph';
 import { PpHistoryGraph } from 'features/profile/components/PpHistoryGraph';
 import { PpRankHistoryGraph } from 'features/profile/components/PpRankHistoryGraph';
@@ -27,7 +29,6 @@ import { routes } from 'legacy-code/constants/routes';
 import { fetchChartsData } from 'legacy-code/reducers/charts';
 import { resetProfilesFilter, setProfilesFilter } from 'legacy-code/reducers/profiles';
 import { achievements } from 'legacy-code/utils/achievements';
-import { getRankImg } from 'legacy-code/utils/exp';
 import { getTimeAgo } from 'legacy-code/utils/leaderboards';
 // utils
 import { profileSelectorCreator } from 'legacy-code/utils/profiles';
@@ -35,7 +36,6 @@ import { withParams } from 'legacy-code/utils/withParams';
 
 import { Language } from 'utils/context/translation';
 
-import ExpFaq from './ExpFaq';
 import MostPlayed from './MostPlayed';
 import { PlayerCompareSelect } from './PlayerCompareSelect';
 
@@ -369,40 +369,7 @@ class Profile extends Component {
               <ExpFaq />
             </ReactModal>
           </div>
-          <div className="exp-range">
-            <div className="rank exp-rank">
-              {getRankImg(profile.expRank)}
-              {profile.expRank && <div>{profile.expRank.threshold}</div>}
-            </div>
-            <div className="exp-line-with-label">
-              <div className="exp-label">
-                {profile.expRankNext ? (
-                  <>
-                    <span className="taken-num">
-                      {Math.round(profile.exp - profile.expRank.threshold)}
-                    </span>
-                    {` / ${profile.expRankNext.threshold - profile.expRank.threshold}`}
-                  </>
-                ) : null}
-              </div>
-              <div className="exp-line">
-                <div className="taken" style={{ width: Math.floor(100 * expProgress) + '%' }}></div>
-                <div
-                  className="rest"
-                  style={{ width: 100 - Math.ceil(100 * expProgress) + '%' }}
-                ></div>
-              </div>
-              <div className="exp-label">
-                {lang.TOTAL}: <span className="taken-num">{Math.round(profile.exp)}</span>
-              </div>
-            </div>
-            {profile.expRankNext && (
-              <div className="rank exp-rank">
-                {getRankImg(profile.expRankNext)}
-                {profile.expRankNext && <div>{profile.expRankNext.threshold}</div>}
-              </div>
-            )}
-          </div>
+          <ExpProgress />
         </div>
         <div className="profile-section-horizontal-container">
           <div className="profile-section">
