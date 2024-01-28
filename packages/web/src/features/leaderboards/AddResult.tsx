@@ -56,7 +56,7 @@ const AddResult = () => {
   const playerId = user.data?.id;
   const canAddResult = !!user.data?.can_add_results_manually;
   const chart = chartQuery.data?.items[0];
-  const label = chart && `${chart.songName} ${chart.chartInstances[0].label}`;
+  const label = chart && `${chart.songName} ${chart.label}`;
 
   const [error, setError] = useState<unknown | null>(null);
   const [isUploading, setUploading] = useState(false);
