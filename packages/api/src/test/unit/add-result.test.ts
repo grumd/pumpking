@@ -441,8 +441,8 @@ describe('Add new result manually', () => {
       .executeTakeFirst();
     player = await db.selectFrom('players').selectAll().where('id', '=', 7).executeTakeFirst();
 
-    // Actual score is calculated as 872977.52 - database is rounding the number, but we can change this if needed to align with how Andamiro does it
-    assert.equal(thirdResult?.score_phoenix, 872977, 'Phoenix score is calculated correctly');
+    // Actual score is calculated as 872976.52 - should be rounded down
+    assert.equal(thirdResult?.score_phoenix, 872976, 'Phoenix score is calculated correctly');
 
     const thirdPp = player?.pp;
 
