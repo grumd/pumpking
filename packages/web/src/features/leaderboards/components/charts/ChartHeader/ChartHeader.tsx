@@ -23,8 +23,8 @@ interface ChartHeaderProps {
 
 export const ChartHeader = ({ chart, children = null }: ChartHeaderProps): JSX.Element => {
   // TODO: change to "toSorted" when more widely supported
-  const instances = chart.chartInstances.slice().sort((a, b) => b.mix - a.mix);
-  const [chartType, chartLevel] = labelToTypeLevel(instances[0].label);
+  const otherInstances = chart.otherChartInstances.slice().sort((a, b) => b.mix - a.mix);
+  const [chartType, chartLevel] = labelToTypeLevel(chart.label);
 
   return (
     <div className={css.songHeader}>
@@ -34,13 +34,13 @@ export const ChartHeader = ({ chart, children = null }: ChartHeaderProps): JSX.E
           {chart.songName}
         </NavLink>{' '}
         <Text component="span" c="dimmed">
-          {instances[0].difficulty ? `(${instances[0].difficulty.toFixed(1)}) ` : ''}
+          {chart.difficulty ? `(${chart.difficulty.toFixed(1)}) ` : ''}
         </Text>
       </div>
       <div className={css.youtubeLink}>
         <a
           href={`https://youtube.com/results?${qs.stringify({
-            search_query: `${chart.songName} ${instances[0].label}`.replace(/( -)|(- )/g, ' '),
+            search_query: `${chart.songName} ${chart.label}`.replace(/( -)|(- )/g, ' '),
           })}`}
           target="_blank"
           rel="noopener noreferrer"
@@ -49,8 +49,8 @@ export const ChartHeader = ({ chart, children = null }: ChartHeaderProps): JSX.E
         </a>
       </div>
       <Group gap="xs" ml="auto" fz="sm">
-        {instances.map((instance) => {
-          if (instance.level === instances[0].level) {
+        {otherInstances.map((instance) => {
+          if (instance.level === chart.level) {
             return null;
           }
           return (

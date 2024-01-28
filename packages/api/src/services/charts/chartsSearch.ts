@@ -74,12 +74,14 @@ export interface ChartViewModel {
   duration: Tracks['duration'];
   updatedOn: Date;
   results: Array<ResultViewModel>;
-  chartInstances: Array<{
+  label: string;
+  level: number | null;
+  difficulty: number | null;
+  interpolatedDifficulty: number | null;
+  otherChartInstances: Array<{
     mix: number;
     label: string;
     level: number | null;
-    difficulty: number | null;
-    interpolatedDifficulty: number | null;
   }>;
 }
 
@@ -158,8 +160,8 @@ export const searchCharts = async (params: ChartsSearchParams) => {
               .onRef('max_score_results.best_score', '=', `r.${scoreField}`)
         )
         .innerJoin('shared_charts as sc', 'sc.id', 'r.shared_chart')
-        .innerJoin('chart_instances as ci', (join) =>
-          join.on('ci.id', '=', (eb) =>
+        .innerJoin('chart_instances as latest_ci', (join) =>
+          join.on('latest_ci.id', '=', (eb) =>
             eb
               .selectFrom('chart_instances')
               .select('id')
@@ -169,15 +171,20 @@ export const searchCharts = async (params: ChartsSearchParams) => {
               .limit(1)
           )
         )
-        .innerJoin('tracks', 'ci.track', 'tracks.id')
+        .innerJoin('tracks', 'latest_ci.track', 'tracks.id')
         .innerJoin('players', 'r.player_id', 'players.id')
         .select(({ fn }) => [
           'r.shared_chart as shared_chart_id',
           fn.max('r.added').as('chart_update_date'),
           sortChartsBy === 'difficulty'
-            ? fn.coalesce(fn.max('ci.interpolated_difficulty'), fn.max('ci.level')).as('difficulty')
-            : fn.max('ci.interpolated_difficulty').as('difficulty'),
+            ? fn
+                .coalesce(fn.max('latest_ci.interpolated_difficulty'), fn.max('latest_ci.level'))
+                .as('difficulty')
+            : fn.max('latest_ci.interpolated_difficulty').as('difficulty'),
           fn.max('r.pp').as('best_pp'),
+          fn.max('latest_ci.label').as('latest_chart_label'),
+          fn.max('latest_ci.level').as('latest_chart_level'),
+          fn.max('latest_ci.mix').as('latest_chart_mix'),
         ])
         .where(scoreField, 'is not', null);
 
@@ -210,7 +217,7 @@ export const searchCharts = async (params: ChartsSearchParams) => {
             fn('concat', [
               fn('lower', [ref('tracks.full_name')]),
               val(`' '`),
-              fn('lower', [ref('ci.label')]),
+              fn('lower', [ref('latest_ci.label')]),
             ]),
           'like',
           `%${songNameParts.join('%')}%`
@@ -226,15 +233,18 @@ export const searchCharts = async (params: ChartsSearchParams) => {
       if (minLevel || maxLevel) {
         subQuery = subQuery.where(({ or, and, cmpr }) =>
           or([
-            cmpr('ci.label', 'like', `COOP%`), // coop do not have levels for now
-            and([cmpr('ci.level', '>=', minLevel ?? 0), cmpr('ci.level', '<=', maxLevel ?? 30)]),
+            cmpr('latest_ci.label', 'like', `COOP%`), // coop do not have levels for now
+            and([
+              cmpr('latest_ci.level', '>=', minLevel ?? 0),
+              cmpr('latest_ci.level', '<=', maxLevel ?? 30),
+            ]),
           ])
         );
       }
 
       if (labels && labels.length) {
         subQuery = subQuery.where(({ or, cmpr }) =>
-          or(labels.map((label) => cmpr('ci.label', 'like', `${label}%`)))
+          or(labels.map((label) => cmpr('latest_ci.label', 'like', `${label}%`)))
         );
       }
 
@@ -337,8 +347,11 @@ export const searchCharts = async (params: ChartsSearchParams) => {
           'r.calories',
           'tracks.duration',
           'tracks.full_name',
-          'ci.label',
-          'ci.level',
+          'ci.label as result_chart_label',
+          'ci.level as result_chart_level',
+          'latest_chart_label',
+          'latest_chart_level',
+          'latest_chart_mix',
           'difficulty',
           'chart_update_date',
           'players.nickname',
@@ -407,27 +420,24 @@ export const searchCharts = async (params: ChartsSearchParams) => {
           duration: r.duration,
           songName: r.full_name,
           updatedOn: r.chart_update_date,
-          chartInstances: [
-            {
-              mix: r.mix,
-              label: r.label,
-              level: r.level,
-              difficulty: r.difficulty || r.level,
-              interpolatedDifficulty: r.difficulty,
-            },
-          ],
+          label: r.latest_chart_label,
+          level: r.latest_chart_level,
+          difficulty: r.difficulty || r.latest_chart_level,
+          interpolatedDifficulty: r.difficulty,
+          otherChartInstances: [],
           results: [],
         };
         chartsArray.push(acc[r.shared_chart]);
       }
 
-      if (!acc[r.shared_chart].chartInstances.some((ci) => ci.mix === r.mix)) {
-        acc[r.shared_chart].chartInstances.push({
+      if (
+        r.mix !== r.latest_chart_mix &&
+        !acc[r.shared_chart].otherChartInstances.some((ci) => ci.mix === r.mix)
+      ) {
+        acc[r.shared_chart].otherChartInstances.push({
           mix: r.mix,
-          label: r.label,
-          level: r.level,
-          difficulty: r.difficulty || r.level,
-          interpolatedDifficulty: r.difficulty,
+          label: r.result_chart_label,
+          level: r.result_chart_level,
         });
       }
 
