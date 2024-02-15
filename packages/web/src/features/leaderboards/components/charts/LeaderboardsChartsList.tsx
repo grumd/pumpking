@@ -2,13 +2,14 @@ import { Alert } from '@mantine/core';
 import { FaExclamationCircle, FaInfoCircle } from 'react-icons/fa';
 import { Virtuoso } from 'react-virtuoso';
 
+import './leaderboard.scss';
+
 import Loader from 'components/Loader/Loader';
 
 import { useLanguage } from 'utils/context/translation';
 
 import { useChartsQuery } from '../../hooks/useChartsQuery';
 import Chart from './Chart';
-import './leaderboard.scss';
 
 export const LeaderboardsChartsList = (): JSX.Element => {
   const charts = useChartsQuery();
@@ -44,7 +45,7 @@ export const LeaderboardsChartsList = (): JSX.Element => {
           itemContent={(index) => chartsList[index]}
         />
       ) : null}
-      {charts.isLoading && <Loader />}
+      {charts.isFetching && <Loader className="loader" />}
     </div>
   );
 };

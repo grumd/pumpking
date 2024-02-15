@@ -9,6 +9,7 @@ export const initialFilter: ChartsFilter = {
   mixes: [26, 27],
   scoring: 'phoenix',
   songName: '',
+  labels: ['S', 'D'],
 };
 
 export const filterAtom = atomWithValidatedStorage<ChartsFilter>(
@@ -27,7 +28,6 @@ export const filterAtom = atomWithValidatedStorage<ChartsFilter>(
     sortChartsBy: z.enum(['date', 'difficulty', 'pp']).optional(),
     sortChartsDir: z.enum(['asc', 'desc']).optional(),
     sortChartsByPlayers: z.array(z.number()).optional(),
-    cursor: z.number().nullish(),
   }),
   structuredClone(initialFilter)
 );

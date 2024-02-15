@@ -48,7 +48,7 @@ export const PlatePhoenix = {
 
 export type PlatePhoenix = (typeof PlatePhoenix)[keyof typeof PlatePhoenix];
 
-export const getPhoenixGrade = (score: number | null): GradePhoenix | null => {
+export const getPhoenixGrade = (score?: number | null): GradePhoenix | null => {
   if (score == null) return null;
   switch (true) {
     case score >= 995_000:

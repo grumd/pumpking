@@ -1,14 +1,15 @@
-import { Badge, Group } from '@mantine/core';
+import { Badge, Group, Tooltip } from '@mantine/core';
 import classNames from 'classnames';
 import { useAtomValue } from 'jotai';
 import numeral from 'numeral';
 import { FaAngleDoubleUp, FaExclamationTriangle } from 'react-icons/fa';
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore will change to Mantine Tooltip
-import Tooltip from 'react-responsive-ui/modules/Tooltip';
 import { Link } from 'react-router-dom';
 
+import { Grade } from 'components/Grade/Grade';
 import { ResultScreenshotLink } from 'components/ResultScreenshotLink/ResultScreenshotLink';
+
+import { colorsArray } from 'constants/colors';
+import { routes } from 'constants/routes';
 
 import { filterAtom } from 'features/leaderboards/hooks/useFilter';
 
@@ -16,16 +17,12 @@ import { useUser } from 'hooks/useUser';
 
 import Flag from 'legacy-code/components/Shared/Flag';
 import Overlay from 'legacy-code/components/Shared/Overlay/Overlay';
-import { getTimeAgo as getShortTimeAgo } from 'legacy-code/components/SocketTracker/helpers';
 import { DEBUG } from 'legacy-code/constants/env';
-import { routes } from 'legacy-code/constants/routes';
-import { colorsArray } from 'legacy-code/utils/colors';
-import { getExp } from 'legacy-code/utils/exp';
 
-import { useLanguage } from 'utils/context/translation';
+import { translation, useLanguage } from 'utils/context/translation';
+import { getShortTimeAgo } from 'utils/timeAgo';
 
 import type { ChartApiOutput } from '../../hooks/useChartsQuery';
-import { Grade } from './Grade';
 import { MixPlate } from './MixPlate';
 
 export type ResultExtended = ChartApiOutput['results'][number] & {
@@ -37,6 +34,48 @@ export type ResultExtended = ChartApiOutput['results'][number] & {
   isCollapsible: boolean;
 };
 
+const tooltipFormatter = (lang: typeof translation, result: ResultExtended) => {
+  if (result.recognitionType === 'manual') {
+    return (
+      <div style={{ display: 'flex', alignItems: 'center', flexDirection: 'column' }}>
+        {!result.isExactGainedDate && <div>{lang.EXACT_DATE_UNKNOWN}</div>}
+        <div>
+          {lang.SCORE_ADDED_MANUALLY} {new Date(result.added).toLocaleDateString()}
+        </div>
+        {result.isExactGainedDate && (
+          <div>
+            {lang.SCORE_WAS_TAKEN} {new Date(result.gained).toLocaleDateString()}
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  if (!result.isExactGainedDate) {
+    const resultType =
+      result.recognitionType == null
+        ? `${lang.FROM} my best ${lang.OR} machine best`
+        : result.recognitionType === 'personal_best'
+        ? `${lang.FROM} my best`
+        : result.recognitionType === 'machine_best'
+        ? `${lang.FROM} machine best`
+        : `???`;
+    return (
+      <div style={{ display: 'flex', alignItems: 'center', flexDirection: 'column' }}>
+        <div>{lang.EXACT_DATE_UNKNOWN}</div>
+        <div>
+          {lang.SCORE_WAS_TAKEN} {resultType}
+        </div>
+        <div>
+          {lang.DATE_RECORDED}: {new Date(result.gained).toLocaleDateString()}
+        </div>
+      </div>
+    );
+  } else {
+    return new Date(result.gained).toLocaleDateString();
+  }
+};
+
 const Result = ({ result, chart }: { result: ResultExtended; chart: ChartApiOutput }) => {
   const lang = useLanguage();
   const user = useUser();
@@ -44,8 +83,8 @@ const Result = ({ result, chart }: { result: ResultExtended; chart: ChartApiOutp
   const isSortedByPp = filter.sortChartsBy === 'pp';
   const isCurrentPlayer = result.playerId === user.data?.id;
 
-  const exp = getExp(result, chart);
-  const playerRoute = routes.profile.getPath({ id: result.playerId });
+  const playerRoute =
+    result.playerId == null ? null : routes.profile.getPath({ id: result.playerId });
 
   return (
     <tr
@@ -72,7 +111,7 @@ const Result = ({ result, chart }: { result: ResultExtended; chart: ChartApiOutp
         <div className="nickname-container">
           {result.region ? <Flag region={result.region} /> : null}
           <span className="nickname-text">
-            <Link to={playerRoute}>{result.playerName}</Link>
+            {playerRoute ? <Link to={playerRoute}>{result.playerName}</Link> : result.playerName}
             {!!result.placeDifference && (
               <span className="change-holder up">
                 <span>{result.placeDifference}</span>
@@ -120,13 +159,17 @@ const Result = ({ result, chart }: { result: ResultExtended; chart: ChartApiOutp
             )}
             <div>
               <span className="_grey">{lang.PLAYER}: </span>
-              <Link to={playerRoute}>
-                {result.playerName} ({result.playerNameArcade})
-              </Link>
+              {playerRoute ? (
+                <Link to={playerRoute}>
+                  {result.playerName} ({result.playerNameArcade})
+                </Link>
+              ) : (
+                `${result.playerName} (${result.playerNameArcade})`
+              )}
             </div>
-            {exp ? (
+            {result.exp ? (
               <div className="important">
-                <span className="_grey">{lang.EXP}: </span>+{numeral(exp).format('0,0')}
+                <span className="_grey">{lang.EXP}: </span>+{result.exp}
               </div>
             ) : null}
             {result.pp ? (
@@ -195,13 +238,11 @@ const Result = ({ result, chart }: { result: ResultExtended; chart: ChartApiOutp
       </td>
       <td className={classNames('grade')}>
         <div className="img-holder">
-          <Grade
-            score={result.score}
-            isPass={result.passed}
-            grade={result.grade}
-            mix={result.mix}
-            scoring={filter.scoring}
-          />
+          {!filter.scoring || filter.scoring === 'phoenix' ? (
+            <Grade score={result.score} isPass={result.passed ?? false} scoring="phoenix" />
+          ) : (
+            <Grade grade={result.grade} scoring="xx" />
+          )}
         </div>
       </td>
       <td className={classNames('number', 'miss')}>{result.stats[4]}</td>
@@ -215,12 +256,11 @@ const Result = ({ result, chart }: { result: ResultExtended; chart: ChartApiOutp
           latest: result.isLatestScore,
         })}
       >
-        <Tooltip
-          content={/*tooltipFormatter(lang, result)*/ ''}
-          tooltipClassName="pumpking-tooltip"
-        >
-          {getShortTimeAgo(lang, new Date(result.gained))}
-          {result.isExactGainedDate ? '' : '?'}
+        <Tooltip label={tooltipFormatter(lang, result)}>
+          <div>
+            {getShortTimeAgo(lang, new Date(result.gained))}
+            {result.isExactGainedDate ? '' : '?'}
+          </div>
         </Tooltip>
       </td>
     </tr>

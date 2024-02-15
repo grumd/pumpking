@@ -4,19 +4,23 @@ import { en, ru, ua } from 'constants/translations';
 
 console.log('navigator.languages = ', navigator.languages.join(', '));
 
-let browserLanguage = en;
+let translation = en;
+let language: 'en' | 'ua' | 'ru' = 'en';
 
 for (const lang of navigator.languages) {
   if (/^uk\b/.test(lang)) {
-    browserLanguage = ua;
+    translation = ua;
+    language = 'ua';
     break;
   }
   if (/^ru\b/.test(lang)) {
-    browserLanguage = ru;
+    translation = ru;
+    language = 'ru';
     break;
   }
   if (/^en\b/.test(lang)) {
-    browserLanguage = en;
+    translation = en;
+    language = 'en';
     break;
   }
 }
@@ -28,4 +32,4 @@ export const useLanguage = () => {
   return useContext(Language);
 };
 
-export { Language, browserLanguage };
+export { Language, translation, language };

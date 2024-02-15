@@ -27,7 +27,7 @@ export const ExpProgress = (): React.ReactNode => {
     : 1;
 
   return (
-    <Group pl="sm" pr="sm" pb="sm">
+    <Group pl="sm" pr="sm" pb="sm" fz="lg">
       <Stack align="center" gap="0.25em" w="2.5em">
         <ExpRankImg rankIndex={currentRankIndex} />
         <Text size="0.6rem">{currentRank.threshold}</Text>

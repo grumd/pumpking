@@ -65,7 +65,9 @@ export interface ResultViewModel {
   calories: number | null;
   region: string | null;
   mix: number;
+  exp: number | null;
   isHidden: boolean;
+  recognitionType: null | 'manual' | 'result' | 'personal_best' | 'machine_best';
 }
 
 export interface ChartViewModel {
@@ -105,6 +107,7 @@ export const searchCharts = async (params: ChartsSearchParams) => {
     playersAll,
     sharedChartId,
   } = params;
+  // console.log({ params });
 
   if (!mixes.length) {
     return [];
@@ -160,6 +163,7 @@ export const searchCharts = async (params: ChartsSearchParams) => {
               .onRef('max_score_results.best_score', '=', `r.${scoreField}`)
         )
         .innerJoin('shared_charts as sc', 'sc.id', 'r.shared_chart')
+        .innerJoin('tracks', 'tracks.id', 'sc.track')
         .innerJoin('chart_instances as latest_ci', (join) =>
           join.on('latest_ci.id', '=', (eb) =>
             eb
@@ -171,7 +175,6 @@ export const searchCharts = async (params: ChartsSearchParams) => {
               .limit(1)
           )
         )
-        .innerJoin('tracks', 'latest_ci.track', 'tracks.id')
         .innerJoin('players', 'r.player_id', 'players.id')
         .select(({ fn }) => [
           'r.shared_chart as shared_chart_id',
@@ -212,15 +215,11 @@ export const searchCharts = async (params: ChartsSearchParams) => {
       }
 
       if (songNameParts) {
-        subQuery = subQuery.where(
-          ({ ref, fn, val }) =>
-            fn('concat', [
-              fn('lower', [ref('tracks.full_name')]),
-              val(`' '`),
-              fn('lower', [ref('latest_ci.label')]),
-            ]),
-          'like',
-          `%${songNameParts.join('%')}%`
+        subQuery = subQuery.where(({ or, ref, cmpr, fn }) =>
+          or([
+            cmpr(fn('lower', [ref('tracks.full_name')]), 'like', `%${songNameParts.join('%')}%`),
+            cmpr(fn('lower', [ref('latest_ci.label')]), 'like', `%${songNameParts.join('%')}%`),
+          ])
         );
       }
 
@@ -345,6 +344,8 @@ export const searchCharts = async (params: ChartsSearchParams) => {
           'r.is_pass',
           'r.mods_list',
           'r.calories',
+          'r.recognition_notes',
+          'r.exp',
           'tracks.duration',
           'tracks.full_name',
           'ci.label as result_chart_label',
@@ -409,6 +410,7 @@ export const searchCharts = async (params: ChartsSearchParams) => {
   // const timeStart = performance.now();
   const results = await query.execute();
   // const timeEnd = performance.now();
+  // console.log('searchCharts query time:', timeEnd - timeStart, 'ms');
 
   const chartsArray: ChartViewModel[] = [];
 
@@ -465,7 +467,18 @@ export const searchCharts = async (params: ChartsSearchParams) => {
         calories: r.calories,
         region: r.region,
         mix: r.mix,
+        exp: r.exp ? Number(r.exp) : null,
         isHidden: isResultHidden,
+        recognitionType:
+          r.recognition_notes === 'manual'
+            ? 'manual'
+            : r.recognition_notes === 'personal_best'
+            ? 'personal_best'
+            : r.recognition_notes === 'machine_best'
+            ? 'machine_best'
+            : r.recognition_notes === 'result'
+            ? 'result'
+            : null,
       };
 
       acc[r.shared_chart].results.push(result);

@@ -13,8 +13,8 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@mantine/core": "^7.2.2",
-    "@mantine/hooks": "^7.2.2",
+    "@mantine/core": "^7.5.2",
+    "@mantine/hooks": "^7.5.2",
     "@react-oauth/google": "^0.11.0",
     "@tanstack/react-query": "^4.29.11",
     "@trpc/client": "^10.28.0",
@@ -61,12 +61,14 @@
     "reselect": "4.0.0",
     "sass": "1.54.0",
     "styled-components": "^5.2.1",
+    "temporal-polyfill": "^0.2.1",
     "vite-tsconfig-paths": "^4.2.0",
     "whatwg-fetch": "3.0.0",
     "zod": "^3.22.4"
   },
   "devDependencies": {
     "@trivago/prettier-plugin-sort-imports": "^4.3.0",
+    "@types/javascript-time-ago": "^2.0.8",
     "@types/numeral": "^2.0.2",
     "@types/react": "^18.0.28",
     "@types/react-dom": "^18.0.11",

@@ -83,6 +83,9 @@
     padding: 7px;
     border-radius: 10px;
     // border: 1px solid #444;
+    .loader {
+      margin-top: 2em;
+    }
     > .btn {
       margin-left: 8px;
     }
@@ -173,7 +176,7 @@
                 width: 33px;
               }
               &.grade {
-                width: 41px;
+                width: 48px;
                 .img-holder {
                   display: flex;
                   align-items: center;
@@ -186,7 +189,7 @@
               &.date {
                 color: #c9c9c9;
                 font-size: 65%;
-                width: 60px;
+                width: 45px;
                 text-align: right;
                 > .rrui__tooltip__target {
                   white-space: nowrap;
