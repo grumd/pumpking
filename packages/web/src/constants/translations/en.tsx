@@ -138,7 +138,7 @@ export const en = {
   ACCURACY_BY_LEVEL: 'accuracy by level',
   LEVEL_ACHIEVEMENTS: 'achievements by level',
   LEVEL_ACHIEVEMENTS_HINT:
-    '* to gain achievement, you should play about 10% of all charts of that level on a specific grade',
+    '* to gain an achievement, you should play ~10% of all charts of that level on a specific grade',
   ACHIEVEMENTS: 'achievements',
   MOST_PLAYED_CHARTS: 'most played charts',
   PLACE_IN_TOP: 'place in top',
@@ -156,6 +156,7 @@ export const en = {
   PLAYCOUNT: 'plays',
   PROFILE_NOT_FOUND: 'Profile not found',
 
+  EXP_FAQ_TITLE: 'Experience FAQ',
   EXP_FAQ: (
     <>
       Player's <strong>experience</strong> is based on the number of played charts.
@@ -175,6 +176,53 @@ export const en = {
   FROM: 'from',
   OR: 'or',
   SCORE_ADDED_MANUALLY: 'score was added manually',
+
+  // achievements
+  /* russian:
+    COMBO_500: '500 комбо',
+    COMBO_1000: '1000 комбо',
+    COMBO_2000: '2000 комбо',
+    FINGERING: 'Мастер фингеринга',
+    FINGERING_DESC: 'Сыграть Monkey Fingers, Kimchi Fingers, Monkey Fingers 2, Money Fingers',
+    SIGHTREADER: 'Сайтридер',
+    SIGHTREADER_DESC: 'Получить идеальный скор с первой попытки',
+    EIGHT_BIT: '8-бит',
+    EIGHT_BIT_DESC: 'Сыграть Seize My Day, Tales of Pumpnia и Pumptris (8bit ver.)',
+    LOVE_IS: 'Love is...',
+    LOVE_IS_DESC: 'Сыграть все треки Love is a Danger Zone',
+    SNAIL: 'Улитка',
+    SNAIL_DESC:
+      'Мастер замедлений: сыграть старшие чарты Twist of Fate, Karyawisata, Awakening и Moonlight',
+    BROWN_S: 'Коричневая S',
+    BROWN_S_DESC: 'Получить 0 миссов, но 5+ бэдов',
+    LIFE_BAR: 'Мы выживали как могли',
+    LIFE_BAR_DESC: 'Получить меньше 800.000 скора, но удержать лайфбар',
+    PAD_MISS: 'Падовый мисс',
+    PAD_MISS_DESC:
+      'Когда от идеального скора тебя удерживают только миссы из-за плохого моддинга падов',
+  */
+  COMBO_500: '500 combo',
+  COMBO_1000: '1000 combo',
+  COMBO_2000: '2000 combo',
+  FINGERING: 'Fingering master',
+  FINGERING_DESC: 'Play Monkey Fingers, Kimchi Fingers, Monkey Fingers 2, Money Fingers',
+  SIGHTREADER: 'Sightreader',
+  SIGHTREADER_DESC: 'Get perfect score on the first try',
+  EIGHT_BIT: '8-bit',
+  EIGHT_BIT_DESC: 'Play Seize My Day, Tales of Pumpnia and Pumptris (8bit ver.)',
+  LOVE_IS: 'Love is...',
+  LOVE_IS_DESC: 'Play all Love is a Danger Zone tracks',
+  SNAIL: 'Snail',
+  SNAIL_DESC:
+    'Master of slowdowns: play high level charts for Twist of Fate, Karyawisata, Awakening and Moonlight',
+  BROWN_S: 'Brown S',
+  BROWN_S_DESC: 'Get 0 misses, but 5+ bads',
+  LIFE_BAR: 'Survival instincts',
+  LIFE_BAR_DESC: "Get less than 800.000 score, but don't drop the life bar",
+  PAD_MISS: 'Pad miss',
+  PAD_MISS_DESC: 'When you are held back from a perfect score only by misses due to bad pads',
+  WEEK_LONG_TRAINING: 'Dedication',
+  WEEK_LONG_TRAINING_DESC: 'Play at least one chart every day for a week',
   // Using "any" is totally okay in "satisfies" assertions
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
 } satisfies Record<string, React.ReactNode | ((...args: any[]) => React.ReactNode)>;

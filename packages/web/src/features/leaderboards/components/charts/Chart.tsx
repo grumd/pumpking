@@ -126,12 +126,17 @@ const Chart = memo(function _Chart({ chart }: { chart: ChartApiOutput }) {
                     });
                     if (group.isGroupCollapsible) {
                       return (
-                        <ResultsCollapser count={groupResults.length}>
+                        <ResultsCollapser
+                          key={`group-${group.results[0].id}`}
+                          count={groupResults.length}
+                        >
                           {groupResults}
                         </ResultsCollapser>
                       );
                     } else {
-                      return <>{groupResults}</>;
+                      return (
+                        <Fragment key={`group-${group.results[0].id}`}>{groupResults}</Fragment>
+                      );
                     }
                   })}
                 </tbody>

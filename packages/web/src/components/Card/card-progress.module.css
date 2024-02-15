@@ -1,0 +1,32 @@
+.progress {
+  height: 100%;
+  text-align: center;
+  position: relative;
+}
+
+.progressBackground {
+  --border-color: #88d3ff;
+  --border-thickness: 0.25em;
+  pointer-events: none;
+  position: absolute;
+  border-bottom-left-radius: calc(var(--paper-radius) + var(--border-thickness));
+  border-bottom-right-radius: calc(var(--paper-radius) + var(--border-thickness));
+  border-bottom: var(--border-thickness) solid var(--border-color);
+  border-left: var(--border-thickness) solid var(--border-color);
+  border-right: var(--border-thickness) solid var(--border-color);
+  bottom: calc(-1 * var(--border-thickness));
+  left: calc(-1 * var(--border-thickness));
+  right: calc(-1 * var(--border-thickness));
+  height: var(--progress);
+
+  &.completed {
+    border-top: var(--border-thickness) solid var(--border-color);
+    border-radius: calc(var(--paper-radius) + var(--border-thickness));
+    height: unset;
+    top: calc(-1 * var(--border-thickness));
+  }
+
+  &.zero {
+    border: none;
+  }
+}

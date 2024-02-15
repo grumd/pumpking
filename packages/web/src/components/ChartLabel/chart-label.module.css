@@ -1,0 +1,32 @@
+.chartLabel {
+  font-weight: 600;
+  line-height: 100%;
+  flex: 0 0 auto;
+  background: grey;
+  gap: 0.1em;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 1.4em;
+  border-radius: 0.25em;
+  margin-left: 0;
+  margin-right: 0.4em;
+  padding: 0 0.4em;
+}
+
+.single {
+  background: var(--single_chart_color);
+}
+.singlep {
+  background: var(--single_perf_chart_color);
+}
+.double {
+  background: var(--double_chart_color);
+}
+.doublep {
+  background: var(--double_perf_chart_color);
+}
+.coop {
+  background: var(--coop_chart_color);
+}

@@ -148,6 +148,7 @@ export const ru = {
   PLAYCOUNT: 'плеев',
   PROFILE_NOT_FOUND: 'Профиль не найден',
 
+  EXP_FAQ_TITLE: 'Опыт',
   EXP_FAQ: (
     <>
       <strong>Опыт</strong> игрока основывается на количестве сыгранных чартов.
@@ -168,4 +169,29 @@ export const ru = {
   FROM: 'с',
   OR: 'или',
   SCORE_ADDED_MANUALLY: 'скор добавлен вручную',
+
+  // achievements
+  COMBO_500: '500 комбо',
+  COMBO_1000: '1000 комбо',
+  COMBO_2000: '2000 комбо',
+  FINGERING: 'Мастер фингеринга',
+  FINGERING_DESC: 'Сыграть Monkey Fingers, Kimchi Fingers, Monkey Fingers 2, Money Fingers',
+  SIGHTREADER: 'Сайтридер',
+  SIGHTREADER_DESC: 'Получить идеальный скор с первой попытки',
+  EIGHT_BIT: '8-бит',
+  EIGHT_BIT_DESC: 'Сыграть Seize My Day, Tales of Pumpnia и Pumptris (8bit ver.)',
+  LOVE_IS: 'Love is...',
+  LOVE_IS_DESC: 'Сыграть все Love is a Danger Zone треки',
+  SNAIL: 'Улитка',
+  SNAIL_DESC:
+    'Мастер замедлений: сыграть старшие чарты Twist of Fate, Karyawisata, Awakening и Moonlight',
+  BROWN_S: 'Коричневая S',
+  BROWN_S_DESC: 'Получить 0 миссов, но 5+ бэдов',
+  LIFE_BAR: 'Мы выживали как могли',
+  LIFE_BAR_DESC: 'Получить меньше 800.000 скора, но удержать лайфбар',
+  PAD_MISS: 'Падовый мисс',
+  PAD_MISS_DESC:
+    'Когда от идеального скора тебя удерживают только миссы из-за плохого моддинга падов',
+  WEEK_LONG_TRAINING: 'Усердие',
+  WEEK_LONG_TRAINING_DESC: 'Сыграть хотя бы один чарт 7 дней подряд',
 } satisfies BaseTranslation;

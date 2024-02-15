@@ -5,12 +5,17 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { httpBatchLink } from '@trpc/client';
 import cookies from 'browser-cookies';
 import { useState } from 'react';
+import { Provider } from 'react-redux';
+import { HashRouter } from 'react-router-dom';
 
-import { Root } from 'legacy-code/components/Root';
+import LegacyApp from 'legacy-code/components/App';
+import { store } from 'legacy-code/reducers';
 
+import { Language, translation } from 'utils/context/translation';
 import { api } from 'utils/trpc';
 
 const theme = createTheme({
+  autoContrast: true,
   primaryColor: 'gray',
   components: {
     Badge: Badge.extend({
@@ -56,7 +61,13 @@ function App() {
       <GoogleOAuthProvider clientId="197132042723-cmibep21qf6dald9l2l01rif7l5dtd4s.apps.googleusercontent.com">
         <api.Provider client={trpcClient} queryClient={queryClient}>
           <QueryClientProvider client={queryClient}>
-            <Root />
+            <Language.Provider value={translation}>
+              <Provider store={store}>
+                <HashRouter>
+                  <LegacyApp />
+                </HashRouter>
+              </Provider>
+            </Language.Provider>
           </QueryClientProvider>
         </api.Provider>
       </GoogleOAuthProvider>

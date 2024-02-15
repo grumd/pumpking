@@ -2,30 +2,30 @@ import _ from 'lodash/fp';
 import { applyMiddleware, combineReducers, compose, createStore } from 'redux';
 import thunk from 'redux-thunk';
 
-import charts from 'legacy-code/reducers/charts';
+// import charts from 'legacy-code/reducers/charts';
 import login from 'legacy-code/reducers/login';
-import players from 'legacy-code/reducers/players';
-import popups from 'legacy-code/reducers/popups';
-import presets from 'legacy-code/reducers/presets';
-import profiles from 'legacy-code/reducers/profiles';
-import results from 'legacy-code/reducers/results';
-import topPerSong from 'legacy-code/reducers/topPerSong';
-import tournament from 'legacy-code/reducers/tournament';
+// import players from 'legacy-code/reducers/players';
+// import popups from 'legacy-code/reducers/popups';
+// import presets from 'legacy-code/reducers/presets';
+// import profiles from 'legacy-code/reducers/profiles';
+// import results from 'legacy-code/reducers/results';
+// import topPerSong from 'legacy-code/reducers/topPerSong';
+// import tournament from 'legacy-code/reducers/tournament';
 import trackStats from 'legacy-code/reducers/trackStats';
-import tracklist from 'legacy-code/reducers/tracklist';
+// import tracklist from 'legacy-code/reducers/tracklist';
 import user from 'legacy-code/reducers/user';
 
 const rootReducer = combineReducers({
-  charts,
+  // charts,
   login,
-  players,
-  popups,
-  presets,
-  profiles,
-  results,
-  topPerSong,
-  tournament,
-  tracklist,
+  // players,
+  // popups,
+  // presets,
+  // profiles,
+  // results,
+  // topPerSong,
+  // tournament,
+  // tracklist,
   trackStats,
   user,
 });

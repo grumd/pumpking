@@ -1,0 +1,15 @@
+.header {
+  display: flex;
+  flex-flow: row nowrap;
+  justify-content: space-between;
+  padding-left: 0.4em;
+  align-items: flex-start;
+}
+
+.text {
+  font-size: 1.5em;
+  line-height: 1;
+  padding-bottom: 0.3em;
+  margin-bottom: 0.5em;
+  border-bottom: 1px solid var(--mantine-color-dark-3);
+}

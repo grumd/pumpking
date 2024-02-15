@@ -34,6 +34,16 @@ export const getPlayers = async ({ mixes }: { mixes?: number[] } = {}): Promise<
 export const getPlayersStats = async () => {
   const query = db
     .selectFrom('players')
+    .leftJoin('results as latest_result', (join) =>
+      join.on('latest_result.id', '=', (eb) =>
+        eb
+          .selectFrom('results')
+          .select('id')
+          .where('player_id', '=', sql.ref('players.id'))
+          .orderBy('gained', 'desc')
+          .limit(1)
+      )
+    )
     .leftJoin(
       (eb) =>
         eb
@@ -84,19 +94,20 @@ export const getPlayersStats = async () => {
       (join) => join.onRef('best_results_count.player_id', '=', 'players.id')
     )
     .select([
-      'id',
-      'pp',
-      'nickname',
-      'region',
+      'players.id',
+      'players.pp',
+      'players.nickname',
+      'players.region',
       'first_arcade_name.name as arcade_name',
       'results_count',
       'best_results_count',
       'avg_score',
-      'exp',
+      'players.exp',
+      'latest_result.gained as last_result_date',
     ])
-    .where('pp', 'is not', null)
-    .where('pp', '>', 0)
-    .orderBy('pp', 'desc');
+    .where('players.pp', 'is not', null)
+    .where('players.pp', '>', 0)
+    .orderBy('players.pp', 'desc');
 
   const players = await query.execute();
   return players.map(
@@ -113,6 +124,7 @@ export const getPlayersStats = async () => {
       accuracy: number | null;
       results_count: number | null;
       best_results_count: number | null;
+      last_result_date: Date | null;
     } => {
       return {
         ...player,

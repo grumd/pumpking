@@ -17,8 +17,9 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "jsx": "react-jsx",
-    "verbatimModuleSyntax": true
+    "verbatimModuleSyntax": true,
+    "typeRoots": ["./src/typings"]
   },
-  "include": ["./src"],
+  "include": ["./src/typings/*.d.ts", "./src"],
   "references": [{ "path": "../api/tsconfig.ref.json" }]
 }

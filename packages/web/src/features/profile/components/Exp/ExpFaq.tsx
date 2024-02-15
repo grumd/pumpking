@@ -5,6 +5,8 @@ import { ranks } from 'components/ExpRankImg/expRanks';
 
 import { useLanguage } from 'utils/context/translation';
 
+import css from './exp-faq.module.css';
+
 export const ExpFaq = () => {
   const lang = useLanguage();
   return (
@@ -13,7 +15,7 @@ export const ExpFaq = () => {
       <Divider my="0.5em" />
       <Text>{lang.EXP_TITLES_LIST_HEADER}</Text>
       <Divider my="0.5em" />
-      <SimpleGrid cols={9}>
+      <SimpleGrid cols={9} className={css.expGrid}>
         {ranks.map((rank, index) => (
           <Stack align="center" key={rank.threshold} gap="0.25em">
             <div style={{ width: '3em' }}>

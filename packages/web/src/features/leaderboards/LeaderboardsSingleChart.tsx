@@ -28,8 +28,6 @@ const LeaderboardsChartsList = (): JSX.Element => {
     return <Chart key={chart.id} chart={chart} />;
   });
 
-  console.log(user.data);
-
   return (
     <div className="leaderboard-page">
       <div className="content">

@@ -148,6 +148,7 @@ export const ua = {
   PLAYCOUNT: 'плеїв',
   PROFILE_NOT_FOUND: 'Профіль не знайдено',
 
+  EXP_FAQ_TITLE: 'Досвід',
   EXP_FAQ: (
     <>
       <strong>Досвід</strong> гравця засновується на кількості зіграних чартів.
@@ -168,4 +169,28 @@ export const ua = {
   FROM: 'з',
   OR: 'або',
   SCORE_ADDED_MANUALLY: 'скор був доданий вручну',
+
+  // achievements
+  COMBO_500: '500 комбо',
+  COMBO_1000: '1000 комбо',
+  COMBO_2000: '2000 комбо',
+  FINGERING: 'Майстер фінгерінгу',
+  FINGERING_DESC: 'Зіграти Monkey Fingers, Kimchi Fingers, Monkey Fingers 2, Money Fingers',
+  SIGHTREADER: 'Сайтрідер',
+  SIGHTREADER_DESC: 'Отримати ідеальний скор з першої спроби',
+  EIGHT_BIT: '8-біт',
+  EIGHT_BIT_DESC: 'Зіграти Seize My Day, Tales of Pumpnia та Pumptris (8bit ver.)',
+  LOVE_IS: 'Love is...',
+  LOVE_IS_DESC: 'Зіграти всі треки Love is a Danger Zone',
+  SNAIL: 'Равлик',
+  SNAIL_DESC:
+    'Майстер сповільнень: зіграти старші чарти Twist of Fate, Karyawisata, Awakening та Moonlight',
+  BROWN_S: 'Коричнева S',
+  BROWN_S_DESC: 'Отримати 0 місів, але 5+ бедів',
+  LIFE_BAR: 'Ми виживали як могли',
+  LIFE_BAR_DESC: 'Отримати менше 800.000 скора, але утримати лайфбар',
+  PAD_MISS: 'Падовий міс',
+  PAD_MISS_DESC: 'Коли від ідеального скора тебе утримують тільки міси через поганий моддинг падів',
+  WEEK_LONG_TRAINING: 'Старанність',
+  WEEK_LONG_TRAINING_DESC: 'Зіграти хоча б один чарт 7 днів поспіль',
 } satisfies BaseTranslation;

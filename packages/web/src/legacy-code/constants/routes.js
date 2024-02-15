@@ -25,8 +25,8 @@ export const routes = {
   tournaments: {
     path: `/tournaments`,
   },
-  profileNew: {
-    path: `/profiles-new/:id`,
+  profileOld: {
+    path: `/profiles-old/:id`,
   },
   profile: {
     path: `/profiles/:id`,

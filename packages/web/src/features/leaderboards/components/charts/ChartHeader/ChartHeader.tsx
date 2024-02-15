@@ -5,6 +5,8 @@ import { NavLink } from 'react-router-dom';
 
 import css from './chart-header.module.scss';
 
+import { ChartLabel } from 'components/ChartLabel/ChartLabel';
+
 import { colorByMix } from 'constants/colors';
 import { routes } from 'constants/routes';
 
@@ -13,8 +15,6 @@ import type { ChartApiOutput } from 'features/leaderboards/hooks/useChartsQuery'
 import { labelToTypeLevel } from 'legacy-code/utils/leaderboards';
 
 import { Mixes } from 'utils/scoring/grades';
-
-import { ChartLabel } from './ChartLabel';
 
 interface ChartHeaderProps {
   chart: ChartApiOutput;
