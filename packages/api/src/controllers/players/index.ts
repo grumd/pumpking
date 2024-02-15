@@ -1,6 +1,7 @@
 import type { Response, Request, NextFunction } from 'express';
 import _ from 'lodash/fp';
 import { getPlayerAchievements } from 'services/players/playerAchievements';
+import { refreshAllPlayersTotalExp } from 'services/players/playerExp';
 import { getPlayerGradeStats } from 'services/players/playerGrades';
 import { getPlayers, getPlayersStats } from 'services/players/players';
 import { getPlayerPpHistory, updatePpHistoryIfNeeded } from 'services/players/playersPp';
@@ -68,6 +69,15 @@ export const getPlayerAchievementsController = async (
 export const updatePpHistory = async (request: Request, response: Response, next: NextFunction) => {
   try {
     await updatePpHistoryIfNeeded();
+    response.json({ success: true });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const updateExpTotal = async (request: Request, response: Response, next: NextFunction) => {
+  try {
+    await refreshAllPlayersTotalExp();
     response.json({ success: true });
   } catch (error) {
     next(error);

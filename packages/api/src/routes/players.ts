@@ -5,6 +5,7 @@ import {
   getPlayerPpHistoryController,
   updatePpHistory,
   getPlayerAchievementsController,
+  updateExpTotal,
 } from 'controllers/players';
 import { Router } from 'express';
 
@@ -48,5 +49,7 @@ router.get('/:playerId/pp-history', getPlayerPpHistoryController);
 router.get('/:playerId/achievements', getPlayerAchievementsController);
 
 router.get('/update-pp', updatePpHistory);
+
+router.get('/update-exp', updateExpTotal);
 
 export default router;

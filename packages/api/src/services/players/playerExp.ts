@@ -11,14 +11,15 @@ const getRefreshExpBaseQuery = (trx?: Transaction) => {
             'player_id',
             'exp',
             sql<number>`row_number() over (partition by r.shared_chart, r.player_id order by ${sql.ref(
-              'score_phoenix'
-            )} desc)`.as('score_rank'),
-          ]);
+              'exp'
+            )} desc)`.as('exp_rank'),
+          ])
+          .where('exp', 'is not', null);
       })
       .selectFrom('ranked_results')
       .select((eb2) => eb2.fn.sum<number>('ranked_results.exp').as('total_exp'))
       .whereRef('ranked_results.player_id', '=', eb.ref('players.id'))
-      .where('ranked_results.score_rank', '=', 1),
+      .where('ranked_results.exp_rank', '=', 1),
   }));
 };
 
