@@ -1,8 +1,8 @@
 import TimeAgo, { type FixedFormatStyle } from 'javascript-time-ago';
 import en from 'javascript-time-ago/locale/en';
 import ru from 'javascript-time-ago/locale/ru';
-import ua from 'javascript-time-ago/locale/uk';
 import convenient from 'javascript-time-ago/modules/gradation/convenient';
+import ua from 'locale/uk';
 import { Temporal, toTemporalInstant } from 'temporal-polyfill';
 
 import { language, translation } from 'utils/context/translation';
