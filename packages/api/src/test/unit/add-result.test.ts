@@ -55,7 +55,10 @@ describe('Add new result manually', () => {
       .attach('screenshot', path.join(__dirname, '../files/test.jpg'))
       .expect(400);
 
-    assert.equal(res.body.message, 'Bad Request: Total steps is higher than maximum possible');
+    assert.strictEqual(
+      res.body.message,
+      'Bad Request: Total steps is higher than maximum possible'
+    );
   });
 
   it('error 400 when score is wrong', async () => {
@@ -79,7 +82,7 @@ describe('Add new result manually', () => {
       .attach('screenshot', path.join(__dirname, '../files/test.jpg'))
       .expect(400);
 
-    assert.equal(res.body.message, 'Bad Request: Score is higher than maximum possible');
+    assert.strictEqual(res.body.message, 'Bad Request: Score is higher than maximum possible');
   });
 
   it('error 403 when player id doesnt match', async () => {
@@ -103,7 +106,7 @@ describe('Add new result manually', () => {
       .attach('screenshot', path.join(__dirname, '../files/test.jpg'))
       .expect(403);
 
-    assert.equal(res.body.message, 'Forbidden: You can only add results for yourself');
+    assert.strictEqual(res.body.message, 'Forbidden: You can only add results for yourself');
   });
 
   it('result added when all data is correct', async () => {
@@ -290,7 +293,7 @@ describe('Add new result manually', () => {
     player = await db.selectFrom('players').selectAll().where('id', '=', 7).executeTakeFirst();
 
     assert.isNotNaN(parseFloat(player?.exp ?? ''), `player's exp is a number`);
-    assert.equal(
+    assert.strictEqual(
       parseFloat(player?.exp ?? ''),
       Math.max(parseFloat(results[0]?.exp ?? ''), parseFloat(results[1]?.exp ?? '')),
       `player's exp is equal to the highest result's exp`
@@ -302,8 +305,12 @@ describe('Add new result manually', () => {
     assert.isNull(player?.pp, `player's pp is null by default`);
 
     const initHistory = (await req().get('/players/7/pp-history').expect(200)).body;
-    assert.equal(initHistory.history.length, 0, `player's pp history is empty by default`);
-    assert.equal(initHistory.rankHistory.length, 0, `player's pp history is empty by default`);
+    assert.strictEqual(initHistory.history.length, 0, `player's pp history is empty by default`);
+    assert.strictEqual(
+      initHistory.rankHistory.length,
+      0,
+      `player's pp history is empty by default`
+    );
 
     // add first result for this user
     await req()
@@ -326,7 +333,7 @@ describe('Add new result manually', () => {
       .attach('screenshot', path.join(__dirname, '../files/test.jpg'))
       .expect(200);
 
-    assert.equal(
+    assert.strictEqual(
       (
         await db
           .selectFrom('results_best_grade as rbg')
@@ -351,7 +358,7 @@ describe('Add new result manually', () => {
 
     assert.isAbove(firstResult?.pp ?? -1, 0, `results's pp is above 0`);
     assert.isAbove(firstPp ?? -1, 0, `player's pp is above 0`);
-    assert.equal(firstResult?.pp, firstPp, 'player pp and result pp are equal');
+    assert.strictEqual(firstResult?.pp, firstPp, 'player pp and result pp are equal');
 
     // add second result for this user
     await req()
@@ -394,7 +401,7 @@ describe('Add new result manually', () => {
       firstPp as number,
       `player's pp should be higher after a better result`
     );
-    assert.equal(secondResult?.pp, secondPp, 'player pp and result pp are equal');
+    assert.strictEqual(secondResult?.pp, secondPp, 'player pp and result pp are equal');
 
     await db.insertInto('shared_charts').values({ id: 2, track: 1, index_in_track: 2 }).execute();
     await db
@@ -442,7 +449,7 @@ describe('Add new result manually', () => {
     player = await db.selectFrom('players').selectAll().where('id', '=', 7).executeTakeFirst();
 
     // Actual score is calculated as 872976.52 - should be rounded down
-    assert.equal(thirdResult?.score_phoenix, 872976, 'Phoenix score is calculated correctly');
+    assert.strictEqual(thirdResult?.score_phoenix, 872976, 'Phoenix score is calculated correctly');
 
     const thirdPp = player?.pp;
 
@@ -472,7 +479,7 @@ describe('Add new result manually', () => {
       'total player pp is smaller than sum of all result pps'
     );
 
-    assert.equal(
+    assert.strictEqual(
       (
         await db
           .selectFrom('results_best_grade as rbg')
@@ -490,7 +497,54 @@ describe('Add new result manually', () => {
 
     assert.isAbove(history.history.length, 0, `player's pp history is not empty`);
     assert.isAbove(history.rankHistory.length, 0, `player's pp history is not empty`);
-    assert.equal(history.rankHistory[0].rank, 1, 'player is #1 in rank history');
+    assert.strictEqual(history.rankHistory[0].rank, 1, 'player is #1 in rank history');
     assert.isNotNaN(parseFloat(history.history[0].pp ?? ''), `history pp is a number`);
+  });
+
+  it('for XX results is_pass is set correctly', async () => {
+    // add two results, A- and S
+    await req()
+      .post('/results/add-result')
+      .set('session', addResultsSession)
+      .field('playerId', 7)
+      .field('grade', 'A')
+      .field('mix', 'XX')
+      .field('mod', '')
+      .field('score', 800000)
+      .field('perfect', 90)
+      .field('great', 5)
+      .field('good', 0)
+      .field('bad', 0)
+      .field('miss', 5)
+      .field('combo', 50)
+      .field('date', '2020-01-01')
+      .field('isExactDate', true)
+      .field('sharedChartId', 1)
+      .attach('screenshot', path.join(__dirname, '../files/test.jpg'))
+      .expect(200);
+    await req()
+      .post('/results/add-result')
+      .set('session', addResultsSession)
+      .field('playerId', 7)
+      .field('grade', 'S')
+      .field('mix', 'XX')
+      .field('mod', '')
+      .field('score', 900000)
+      .field('perfect', 90)
+      .field('great', 5)
+      .field('good', 5)
+      .field('bad', 0)
+      .field('miss', 0)
+      .field('combo', 95)
+      .field('date', '2020-01-01')
+      .field('isExactDate', true)
+      .field('sharedChartId', 1)
+      .attach('screenshot', path.join(__dirname, '../files/test.jpg'))
+      .expect(200);
+
+    const results = await db.selectFrom('results').selectAll().where('player_id', '=', 7).execute();
+
+    assert.strictEqual(results[0].is_pass, 0, `First score (A) is not a pass`);
+    assert.strictEqual(results[1].is_pass, 1, `Second score (S) is a pass`);
   });
 });

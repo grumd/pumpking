@@ -215,11 +215,15 @@ export const searchCharts = async (params: ChartsSearchParams) => {
       }
 
       if (songNameParts) {
-        subQuery = subQuery.where(({ or, ref, cmpr, fn }) =>
-          or([
-            cmpr(fn('lower', [ref('tracks.full_name')]), 'like', `%${songNameParts.join('%')}%`),
-            cmpr(fn('lower', [ref('latest_ci.label')]), 'like', `%${songNameParts.join('%')}%`),
-          ])
+        subQuery = subQuery.where(
+          ({ ref, fn, val }) =>
+            fn('concat', [
+              fn('lower', [ref('tracks.full_name')]),
+              val(`' '`),
+              fn('lower', [ref('latest_ci.label')]),
+            ]),
+          'like',
+          `%${songNameParts.join('%')}%`
         );
       }
 

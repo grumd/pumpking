@@ -17,7 +17,7 @@ import Loader from 'legacy-code/components/Shared/Loader';
 
 import { useLanguage } from 'utils/context/translation';
 
-import { type ChartsFilter, useChartsQuery } from '../../hooks/useChartsQuery';
+import { type ChartsFilter } from '../../hooks/useChartsQuery';
 import { filterAtom, initialFilter } from '../../hooks/useFilter';
 import ChartFilter from './ChartFilter';
 import type { SearchFormValues } from './formTypes';
@@ -114,7 +114,6 @@ const filterToForm = (filter: ChartsFilter): SearchFormValues => ({
 
 export const SearchForm = (): JSX.Element => {
   const lang = useLanguage();
-  const chartsQuery = useChartsQuery();
   const { options: players, isLoading: isLoadingPlayers } = usePlayersOptions();
 
   const [searchFilter, setSearchFilter] = useAtom(filterAtom);
@@ -282,15 +281,10 @@ export const SearchForm = (): JSX.Element => {
           />
         </Flex>
         <Flex gap="md">
-          <Button
-            style={{ flex: '1 1 auto' }}
-            disabled={chartsQuery.isLoading}
-            leftSection={<FaSearch />}
-            type="submit"
-          >
+          <Button style={{ flex: '1 1 auto' }} leftSection={<FaSearch />} type="submit">
             {lang.SEARCH}
           </Button>
-          <Button disabled={chartsQuery.isLoading} leftSection={<FaUndo />} onClick={onReset}>
+          <Button leftSection={<FaUndo />} onClick={onReset}>
             {lang.RESET_FILTERS}
           </Button>
         </Flex>

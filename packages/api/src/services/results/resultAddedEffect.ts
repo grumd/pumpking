@@ -31,6 +31,7 @@ export const resultAddedEffect = async (resultId: number) => {
       'max_combo',
       'rank_mode',
       'chart_instance',
+      'mix',
     ])
     .where('id', '=', resultId)
     .executeTakeFirst();
@@ -60,7 +61,7 @@ export const resultAddedEffect = async (resultId: number) => {
 
   await db.transaction().execute(async (trx) => {
     let { score_phoenix } = result;
-    const { perfects, greats, goods, bads, misses, max_combo, rank_mode } = result;
+    const { perfects, greats, goods, bads, misses, max_combo, rank_mode, mix, grade } = result;
     const { level, label } = chartInstance;
 
     // Calculate score_phoenix if needed
@@ -87,6 +88,15 @@ export const resultAddedEffect = async (resultId: number) => {
         .where('id', '=', resultId)
         .executeTakeFirst();
       score_phoenix = scorePhoenix;
+    }
+
+    if (mix <= 26 && grade) {
+      const isPass = ['SSS', 'SS', 'S', 'A+', 'B+', 'C+', 'D+', 'F+'].includes(grade);
+      await trx
+        .updateTable('results')
+        .set({ is_pass: isPass ? 1 : 0 })
+        .where('id', '=', resultId)
+        .executeTakeFirst();
     }
 
     // Calculate EXP
