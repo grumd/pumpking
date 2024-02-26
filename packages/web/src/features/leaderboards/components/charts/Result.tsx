@@ -239,9 +239,15 @@ const Result = ({ result, chart }: { result: ResultExtended; chart: ChartApiOutp
       <td className={classNames('grade')}>
         <div className="img-holder">
           {!filter.scoring || filter.scoring === 'phoenix' ? (
-            <Grade score={result.score} isPass={result.passed ?? false} scoring="phoenix" />
+            <Grade
+              w="auto"
+              h="1rem"
+              score={result.score}
+              isPass={result.passed ?? false}
+              scoring="phoenix"
+            />
           ) : (
-            <Grade grade={result.grade} scoring="xx" />
+            <Grade w="auto" h="1rem" grade={result.grade} scoring="xx" />
           )}
         </div>
       </td>

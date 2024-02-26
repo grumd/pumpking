@@ -73,6 +73,7 @@ export const HighestPpCharts = (): JSX.Element => {
                 <Grade
                   pl="0.5em"
                   h="1em"
+                  w="100%"
                   score={item.score ?? 0}
                   isPass={item.is_pass ?? false}
                   scoring="phoenix"
