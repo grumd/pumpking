@@ -141,6 +141,7 @@ export const en = {
     '* to gain an achievement, you should play ~10% of all charts of that level on a specific grade',
   ACHIEVEMENTS: 'achievements',
   MOST_PLAYED_CHARTS: 'most played charts',
+  BEST_SCORES: 'best scores',
   PLACE_IN_TOP: 'place in top',
   TOTAL: 'total',
   UNITE_GRAPHS: 'unite graphs',

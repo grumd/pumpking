@@ -1,0 +1,17 @@
+.grid {
+  grid-template-columns: auto 1fr auto auto auto auto;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: subgrid;
+  grid-column: 1 / -1;
+  align-items: center;
+  justify-content: start;
+  line-height: 1;
+}
+
+.playIcon {
+  font-size: 0.7rem;
+  margin-right: 0.5em;
+}

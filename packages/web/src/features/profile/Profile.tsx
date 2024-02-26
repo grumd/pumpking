@@ -12,6 +12,7 @@ import { Achievements } from './components/Achievements/Achievements';
 import { ExpFaq } from './components/Exp/ExpFaq';
 import { ExpProgress } from './components/Exp/ExpProgress';
 import { GradeGraphsCard } from './components/GradeGraphsCard';
+import { HighestPpCharts } from './components/HighestPpCharts/HighestPpCharts';
 import { LevelAchievements } from './components/LevelAchievements/LevelAchievements';
 import { MostPlayedCharts } from './components/MostPlayedCharts/MostPlayedCharts';
 import { PpHistoryGraph } from './components/PpHistoryGraph';
@@ -56,6 +57,7 @@ const Profile = () => {
         <LevelAchievements />
         <Achievements />
         <MostPlayedCharts />
+        <HighestPpCharts />
       </Stack>
     </div>
   );
