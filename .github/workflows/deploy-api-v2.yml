@@ -32,7 +32,7 @@ jobs:
         with:
           switches: -avz --delete --exclude='.git' --exclude='node_modules' --exclude='.env' --exclude='packages/web'
           path: ./
-          remote_path: ~/pumpking/
+          remote_path: ~/pumpking-deployment/
           remote_host: api.pumpking.top
           remote_user: piutop
           remote_key: ${{ secrets.SSH_PRIVATE_KEY }}
@@ -45,7 +45,7 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
             set -e
-            cd ~/pumpking/packages/api
+            cd ~/pumpking-deployment/packages/api
             echo "-- Installing production dependencies"
             npm ci --production
             echo "-- Running migrations"
