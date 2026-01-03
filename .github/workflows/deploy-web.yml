@@ -1,9 +1,7 @@
 name: Deploy WEB
 
-#on:
-#push:
-#  branches: ['master']
-#  paths: ['packages/web/**']
+on:
+  workflow_dispatch:
 
 permissions:
   contents: write
