@@ -1,6 +1,5 @@
 import { Alert, Button } from '@mantine/core';
 import { FaExclamationCircle, FaInfoCircle, FaPlusCircle } from 'react-icons/fa';
-import { GiButtonFinger } from 'react-icons/gi';
 import { useParams } from 'react-router';
 import { NavLink } from 'react-router-dom';
 
