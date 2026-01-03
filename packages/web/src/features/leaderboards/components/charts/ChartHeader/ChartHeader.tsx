@@ -12,8 +12,7 @@ import { routes } from 'constants/routes';
 
 import type { ChartApiOutput } from 'features/leaderboards/hooks/useChartsQuery';
 
-import { labelToTypeLevel } from 'legacy-code/utils/leaderboards';
-
+import { labelToTypeLevel } from 'utils/leaderboards';
 import { Mixes } from 'utils/scoring/grades';
 
 interface ChartHeaderProps {

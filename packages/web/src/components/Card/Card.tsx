@@ -7,6 +7,7 @@ export interface CardProps extends PaperProps {
   level?: 1 | 2 | 3 | 4;
   title?: React.ReactNode;
   headerNode?: React.ReactNode;
+  component?: 'li' | 'div';
 }
 
 export const Card = ({

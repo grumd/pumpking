@@ -1,22 +1,25 @@
 import { Badge, MantineProvider, createTheme } from '@mantine/core';
 import '@mantine/core/styles.css';
 import { GoogleOAuthProvider } from '@react-oauth/google';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { httpBatchLink } from '@trpc/client';
-import cookies from 'browser-cookies';
-import { useState } from 'react';
-import { Provider } from 'react-redux';
+import { QueryClientProvider } from '@tanstack/react-query';
 import { HashRouter } from 'react-router-dom';
 
-import LegacyApp from 'legacy-code/components/App';
-import { store } from 'legacy-code/reducers';
+import Root from 'features/root/Root';
 
 import { Language, translation } from 'utils/context/translation';
-import { api } from 'utils/trpc';
+import { queryClient } from 'utils/trpc';
 
 const theme = createTheme({
   autoContrast: true,
   primaryColor: 'gray',
+  spacing: {
+    xxs: '0.25rem',
+    xs: '0.625rem',
+    sm: '0.75rem',
+    md: '1rem',
+    lg: '1.25rem',
+    xl: '2rem',
+  },
   components: {
     Badge: Badge.extend({
       defaultProps: {
@@ -29,47 +32,16 @@ const theme = createTheme({
 });
 
 function App() {
-  const [queryClient] = useState(
-    () =>
-      new QueryClient({
-        defaultOptions: {
-          queries: {
-            staleTime: 1000 * 60 * 5,
-            refetchOnWindowFocus: false,
-          },
-        },
-      })
-  );
-
-  const [trpcClient] = useState(() =>
-    api.createClient({
-      links: [
-        httpBatchLink({
-          url: `${import.meta.env.VITE_API_BASE_PATH}/trpc`,
-          async headers() {
-            return {
-              session: cookies.get('session') ?? undefined,
-            };
-          },
-        }),
-      ],
-    })
-  );
-
   return (
     <MantineProvider theme={theme} defaultColorScheme="dark">
       <GoogleOAuthProvider clientId="197132042723-cmibep21qf6dald9l2l01rif7l5dtd4s.apps.googleusercontent.com">
-        <api.Provider client={trpcClient} queryClient={queryClient}>
-          <QueryClientProvider client={queryClient}>
-            <Language.Provider value={translation}>
-              <Provider store={store}>
-                <HashRouter>
-                  <LegacyApp />
-                </HashRouter>
-              </Provider>
-            </Language.Provider>
-          </QueryClientProvider>
-        </api.Provider>
+        <QueryClientProvider client={queryClient}>
+          <Language.Provider value={translation}>
+            <HashRouter>
+              <Root />
+            </HashRouter>
+          </Language.Provider>
+        </QueryClientProvider>
       </GoogleOAuthProvider>
     </MantineProvider>
   );

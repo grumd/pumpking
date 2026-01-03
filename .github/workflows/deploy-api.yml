@@ -1,9 +1,7 @@
-name: Deploy API
+name: Deploy API (legacy)
 
 on:
-  push:
-    branches: ['master']
-    paths: ['packages/api/**']
+  workflow_dispatch:
 
 jobs:
   test:

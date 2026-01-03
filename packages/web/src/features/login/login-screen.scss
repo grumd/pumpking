@@ -1,0 +1,25 @@
+.login-screen {
+  display: flex;
+  flex-flow: column nowrap;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+
+  > .site-name {
+    font-size: 34px;
+    font-weight: 600;
+  }
+
+  > .login-button {
+    padding: 10px;
+
+    > .btn {
+      font-size: 16px;
+    }
+  }
+
+  > .error {
+    color: #e09595;
+    font-size: 12px;
+  }
+}

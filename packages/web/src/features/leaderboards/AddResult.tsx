@@ -1,18 +1,18 @@
 import { Alert } from '@mantine/core';
-import { useQueryClient } from '@tanstack/react-query';
-import { getQueryKey } from '@trpc/react-query';
+import { useForm } from '@mantine/form';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
-import { useForm } from 'react-hook-form';
 import { FaExclamationCircle } from 'react-icons/fa';
 import { IoIosWarning } from 'react-icons/io';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import css from './components/add-result/add-result.module.scss';
 
-import { useUser } from 'hooks/useUser';
+import { useConfirmationPopup } from 'components/ConfirmationPopup/useConfirmationPopup';
 
-import { useConfirmationPopup } from 'legacy-code/components/Shared/Popups/useConfirmationPopup';
-import { routes } from 'legacy-code/constants/routes';
+import { routes } from 'constants/routes';
+
+import { useUser } from 'hooks/useUser';
 
 import { toBase64 } from 'utils/base64';
 import { useLanguage } from 'utils/context/translation';
@@ -24,15 +24,15 @@ import { getDateFromFile } from './components/add-result/getDate';
 import { useSingleChartQuery } from './hooks/useSingleChartQuery';
 
 interface AddResultFormData {
-  screenshot: FileList;
+  screenshot: File | null;
   grade: string;
-  perfect: number;
-  great: number;
-  good: number;
-  bad: number;
-  miss: number;
-  combo: number;
-  score: number;
+  perfect: string;
+  great: string;
+  good: string;
+  bad: string;
+  miss: string;
+  combo: string;
+  score: string;
   mix: 'XX' | 'Prime2' | 'Prime';
   mod: '' | 'VJ' | 'HJ';
 }
@@ -40,17 +40,19 @@ interface AddResultFormData {
 const AddResult = () => {
   const lang = useLanguage();
   const navigate = useNavigate();
-  const params = useParams();
+  const { sharedChartId } = useParams();
   const user = useUser();
   const queryClient = useQueryClient();
-  const addResultMutation = api.results.addResultMutation.useMutation({
-    onSuccess: () => {
-      queryClient.invalidateQueries(getQueryKey(api.charts.chart));
-      queryClient.invalidateQueries(getQueryKey(api.charts.search));
-    },
-  });
+  const addResultMutation = useMutation(
+    api.results.addResultMutation.mutationOptions({
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: api.charts.chart.queryKey() });
+        queryClient.invalidateQueries({ queryKey: api.charts.search.queryKey() });
+      },
+    })
+  );
   const chartQuery = useSingleChartQuery({
-    sharedChartId: params.sharedChartId ? Number(params.sharedChartId) : 0,
+    sharedChartId: sharedChartId ? Number(sharedChartId) : 0,
   });
 
   const playerId = user.data?.id;
@@ -65,18 +67,37 @@ const AddResult = () => {
     okText: 'Submit',
   });
 
-  const { register, handleSubmit, reset, watch, formState } = useForm<AddResultFormData>({
-    defaultValues: {
+  const form = useForm<AddResultFormData>({
+    initialValues: {
+      screenshot: null,
       grade: '',
+      perfect: '',
+      great: '',
+      good: '',
+      bad: '',
+      miss: '',
+      combo: '',
+      score: '',
       mix: 'XX',
       mod: '',
     },
+    validate: {
+      screenshot: (value) => (!value ? 'Screenshot is required' : null),
+      grade: (value) => (!value ? 'Grade is required' : null),
+      perfect: (value) => (!value ? 'Perfect is required' : null),
+      great: (value) => (!value ? 'Great is required' : null),
+      good: (value) => (!value ? 'Good is required' : null),
+      bad: (value) => (!value ? 'Bad is required' : null),
+      miss: (value) => (!value ? 'Miss is required' : null),
+      combo: (value) => (!value ? 'Combo is required' : null),
+      score: (value) => (!value || value.length < 4 ? 'Score is required (min 4 digits)' : null),
+    },
   });
-  const selectedScreenshot = watch('screenshot');
-  const formData = watch();
+  const selectedScreenshot = form.values.screenshot;
+  const formData = form.values;
 
   const onSubmit = async ({ screenshot, ...rawData }: AddResultFormData) => {
-    if (!playerId || !params.sharedChartId) {
+    if (!playerId || !sharedChartId || !screenshot) {
       return;
     }
     try {
@@ -91,23 +112,32 @@ const AddResult = () => {
 
     try {
       // compress image
-      const compressedFile = await compressFile(screenshot[0]);
-      const dateFromFile = await getDateFromFile(screenshot[0]);
+      const compressedFile = await compressFile(screenshot);
+      const dateFromFile = await getDateFromFile(screenshot);
 
       const data = {
-        ...rawData,
+        grade: rawData.grade,
+        perfect: Number(rawData.perfect),
+        great: Number(rawData.great),
+        good: Number(rawData.good),
+        bad: Number(rawData.bad),
+        miss: Number(rawData.miss),
+        combo: Number(rawData.combo),
+        score: Number(rawData.score),
+        mix: rawData.mix,
+        mod: rawData.mod,
         screenshot: await toBase64(compressedFile),
-        fileName: screenshot[0].name,
+        fileName: screenshot.name,
         date: dateFromFile || new Date(),
         isExactDate: !!dateFromFile,
-        sharedChartId: Number(params.sharedChartId),
+        sharedChartId: Number(sharedChartId),
         playerId,
       };
 
       await addResultMutation.mutateAsync(data);
 
-      reset();
-      navigate(routes.leaderboard.sharedChart.getPath(params));
+      form.reset();
+      navigate(routes.leaderboard.sharedChart.getPath({ sharedChartId }));
     } catch (e: unknown) {
       console.error(e);
       setError(e);
@@ -140,7 +170,7 @@ const AddResult = () => {
           <div className={css.confirmation}>
             <div className={css.splitPanels}>
               <div className={css.screenshotPanel}>
-                {selectedScreenshot && <ScreenshotPreview file={selectedScreenshot[0]} />}
+                {selectedScreenshot && <ScreenshotPreview file={selectedScreenshot} />}
               </div>
               <div className={css.formPanel}>
                 <div className={css.chartName}>{label}</div>
@@ -166,34 +196,31 @@ const AddResult = () => {
                 </div>
               </div>
             </div>
-            <div className={css.warning}>
-              <IoIosWarning />
-              <span>
-                Submitting false results may result in a BAN. Make sure your screenshot is readable
-                and the numbers you selected are correct.
-              </span>
-            </div>
+            <Alert radius="md" variant="light" color="yellow" icon={<IoIosWarning />}>
+              Submitting false results may result in a BAN. Make sure your screenshot is readable
+              and the numbers you selected are correct.
+            </Alert>
           </div>
         ),
       })}
       <h2>Submit a result</h2>
       <p>Chart: {label}</p>
-      <form onSubmit={handleSubmit(onSubmit)} className={css.addResultForm}>
+      <form onSubmit={form.onSubmit(onSubmit)} className={css.addResultForm}>
         <label>
           <span>Screenshot *</span>
           <input
             className={`${css.fileInput} form-control`}
             type="file"
-            {...register('screenshot', { required: true })}
+            onChange={(e) => form.setFieldValue('screenshot', e.target.files?.[0] ?? null)}
           />
         </label>
-        {selectedScreenshot && selectedScreenshot[0]?.name.toLowerCase().endsWith('.heic') && (
+        {selectedScreenshot?.name.toLowerCase().endsWith('.heic') && (
           <p>HEIC files are not supported. Please convert your screenshot to JPG or PNG.</p>
         )}
-        {selectedScreenshot && <ScreenshotPreview showDate file={selectedScreenshot[0]} />}
+        {selectedScreenshot && <ScreenshotPreview showDate file={selectedScreenshot} />}
         <label>
           <span>Grade *</span>
-          <select className="form-control" {...register('grade', { required: true, minLength: 1 })}>
+          <select className="form-control" {...form.getInputProps('grade')}>
             <option value="" disabled hidden>
               (select a grade)
             </option>
@@ -214,13 +241,13 @@ const AddResult = () => {
         </label>
         {(['perfect', 'great', 'good', 'bad', 'miss', 'combo'] as const).map((field) => {
           return (
-            <label>
+            <label key={field}>
               <span>{field[0].toUpperCase() + field.slice(1)} *</span>
               <input
                 className="form-control"
                 inputMode="numeric"
                 placeholder="000"
-                {...register(field, { required: true, valueAsNumber: true })}
+                {...form.getInputProps(field)}
               />
             </label>
           );
@@ -231,12 +258,12 @@ const AddResult = () => {
             className="form-control"
             inputMode="numeric"
             placeholder="000000"
-            {...register('score', { required: true, minLength: 4, valueAsNumber: true })}
+            {...form.getInputProps('score')}
           />
         </label>
         <label>
           <span>Mix *</span>
-          <select className="form-control" {...register('mix', { required: true })}>
+          <select className="form-control" {...form.getInputProps('mix')}>
             <option value="XX">XX</option>
             <option value="Prime2">Prime 2</option>
             <option value="Prime">Prime</option>
@@ -244,13 +271,13 @@ const AddResult = () => {
         </label>
         <label>
           <span>Judge/rank *</span>
-          <select className="form-control" {...register('mod')}>
+          <select className="form-control" {...form.getInputProps('mod')}>
             <option value="">No mods</option>
             <option value="VJ">Rank (VJ)</option>
             <option value="HJ">HJ</option>
           </select>
         </label>
-        <button disabled={isUploading || !formState.isValid} className="btn btn-dark" type="submit">
+        <button disabled={isUploading || !form.isValid()} className="btn btn-dark" type="submit">
           {isUploading ? 'Loading...' : 'Submit'}
         </button>
         {error instanceof Error ? <div className="alert alert-danger">{error.message}</div> : null}

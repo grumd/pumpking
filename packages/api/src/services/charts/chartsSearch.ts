@@ -107,7 +107,6 @@ export const searchCharts = async (params: ChartsSearchParams) => {
     playersAll,
     sharedChartId,
   } = params;
-  // console.log({ params });
 
   if (!mixes.length) {
     return [];
@@ -125,6 +124,7 @@ export const searchCharts = async (params: ChartsSearchParams) => {
         .executeTakeFirstOrThrow()
     : null;
   const preferences = currentPlayer?.preferences;
+
   const isCurrentPlayerHidden = currentPlayer?.hidden === 1;
 
   const hiddenRegions =

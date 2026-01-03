@@ -4,12 +4,18 @@ export const ua = {
   // generic
   NOTHING_FOUND: 'Нічого не знайдено',
   ERROR: 'Помилка',
+  SOMETHING_WENT_WRONG: 'Щось пішло не так',
   // Main top menu
   LEADERBOARDS: 'лідерборди',
   RANKING: 'ранкінг',
   TOURNAMENTS: 'турніри',
   SONGS: 'треки',
   LOGOUT: 'вийти',
+
+  // Rankings
+  ACCURACY: 'точність',
+  UPDATE: 'оновити',
+
   // Leaderboards buttons
   FILTERS: 'фільтри',
   SORTING: 'сортування',
@@ -141,6 +147,7 @@ export const ua = {
   TOP_POPULAR_TRACKS: 'Топ популярних треків',
   MONTHLY_TOP_POPULAR_TRACKS: 'Топ популярних треків за місяць',
   TRACKS_PLAYED_LONG_TIME_AGO: 'Треки, які довго не грали',
+  LEAST_PLAYED_TRACKS: 'Найменш популярні треки',
   VICTORIES_BY_LEVEL: 'перемоги по рівнях',
   DETAILED: 'детально',
   NAME: "ім'я",

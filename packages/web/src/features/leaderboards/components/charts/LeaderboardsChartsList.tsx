@@ -31,7 +31,7 @@ export const LeaderboardsChartsList = (): JSX.Element => {
           title={lang.ERROR}
           icon={<FaExclamationCircle />}
         >
-          {charts.error.message}
+          {charts.error instanceof Error ? charts.error.message : lang.SOMETHING_WENT_WRONG}
         </Alert>
       ) : charts.isFetched && !chartsList?.length ? (
         <Alert radius="md" variant="default" title={lang.NOTHING_FOUND} icon={<FaInfoCircle />} />

@@ -4,11 +4,18 @@
     "files": true
   },
   "compilerOptions": {
-    "lib": ["ES2022"],
-    "target": "ES2022",
-    "module": "CommonJS",
+    "lib": [
+      "ESNext"
+    ],
+    "target": "esnext",
+    "moduleResolution": "nodenext",
+    "module": "nodenext",
     "baseUrl": "src",
     "rootDir": "src"
   },
-  "include": ["./src/types/express.d.ts", "./src/index.ts", "./src/**/*.ts"]
+  "include": [
+    "./src/types/express.d.ts",
+    "./src/index.ts",
+    "./src/**/*.ts"
+  ]
 }

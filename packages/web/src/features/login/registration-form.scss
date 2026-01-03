@@ -1,0 +1,19 @@
+.registration-form {
+  display: flex;
+  flex-flow: column nowrap;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  max-width: 400px;
+  margin: 0 auto;
+  padding: 20px;
+
+  > .site-name {
+    font-size: 34px;
+    font-weight: 600;
+  }
+
+  form {
+    width: 100%;
+  }
+}

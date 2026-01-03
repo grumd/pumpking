@@ -1,19 +1,17 @@
-import { Button, Flex, Group, Stack, Text } from '@mantine/core';
+import { Button, Flex, Group, MultiSelect, Select, Stack, Text } from '@mantine/core';
+import { useForm } from '@mantine/form';
 import { useAtom } from 'jotai';
 import { useMemo } from 'react';
-import { Form, useForm } from 'react-hook-form';
-import { MultiSelect, Select } from 'react-hook-form-mantine';
 import { FaSearch, FaUndo } from 'react-icons/fa';
 
 import css from './search-form.module.scss';
 
 import CollapsibleBar from 'components/CollapsibleBar/CollapsibleBar';
+import Loader from 'components/Loader/Loader';
 import { TextInputWithReset } from 'components/TextInputWithReset/TextInputWithReset';
 
 import { usePlayers } from 'hooks/usePlayers';
 import { useUser } from 'hooks/useUser';
-
-import Loader from 'legacy-code/components/Shared/Loader';
 
 import { useLanguage } from 'utils/context/translation';
 
@@ -118,21 +116,21 @@ export const SearchForm = (): JSX.Element => {
 
   const [searchFilter, setSearchFilter] = useAtom(filterAtom);
 
-  const { control, reset, setValue } = useForm<SearchFormValues>({
-    defaultValues: () => Promise.resolve(filterToForm(searchFilter)),
+  const form = useForm<SearchFormValues>({
+    initialValues: filterToForm(searchFilter),
   });
 
-  const onSubmit = (values: ChartsFilter) => {
+  const onSubmit = (values: SearchFormValues) => {
     setSearchFilter({
       ...searchFilter,
-      ...values,
+      ...formToFilter(values),
     });
   };
 
   const onReset = () => {
     const newFilter = structuredClone(initialFilter);
     setSearchFilter(newFilter);
-    reset(filterToForm(newFilter));
+    form.setValues(filterToForm(newFilter));
   };
 
   const sortingOptions = useMemo(() => {
@@ -178,31 +176,28 @@ export const SearchForm = (): JSX.Element => {
     (searchFilter.maxLevel && searchFilter.maxLevel !== 28);
 
   return (
-    <Form control={control} onSubmit={(e) => onSubmit(formToFilter(e.data))}>
+    <form onSubmit={form.onSubmit(onSubmit)}>
       <Stack gap="sm">
         <Group gap="md" grow>
           <TextInputWithReset
-            name="songName"
             label={lang.SONG_NAME_LABEL}
             placeholder={lang.SONG_NAME_PLACEHOLDER}
-            control={control}
             classNames={{
               input: searchFilter.songName ? css.highlight : '',
             }}
-            onReset={() => setValue('songName', '')}
+            onReset={() => form.setFieldValue('songName', '')}
+            {...form.getInputProps('songName')}
           />
           <MultiSelect
             label={lang.MIXES_LABEL}
             checkIconPosition="left"
             data={mixOptions}
-            control={control}
-            name="mixes"
+            {...form.getInputProps('mixes')}
           />
           <Select
             label={lang.SCORING_LABEL}
             data={scoringOptions}
-            control={control}
-            name="scoring"
+            {...form.getInputProps('scoring')}
           />
         </Group>
         <CollapsibleBar
@@ -219,8 +214,7 @@ export const SearchForm = (): JSX.Element => {
               rightSection={isLoadingPlayers ? <Loader /> : null}
               nothingFoundMessage={lang.NOTHING_FOUND}
               searchable
-              control={control}
-              name="playersAll"
+              {...form.getInputProps('playersAll')}
             />
             <MultiSelect
               label={lang.AND_ANY_OF_THESE}
@@ -230,8 +224,7 @@ export const SearchForm = (): JSX.Element => {
               rightSection={isLoadingPlayers ? <Loader /> : null}
               nothingFoundMessage={lang.NOTHING_FOUND}
               searchable
-              control={control}
-              name="playersSome"
+              {...form.getInputProps('playersSome')}
             />
             <MultiSelect
               label={lang.AND_NONE_OF_THESE}
@@ -241,8 +234,7 @@ export const SearchForm = (): JSX.Element => {
               rightSection={isLoadingPlayers ? <Loader /> : null}
               nothingFoundMessage={lang.NOTHING_FOUND}
               searchable
-              control={control}
-              name="playersNone"
+              {...form.getInputProps('playersNone')}
             />
           </Group>
         </CollapsibleBar>
@@ -258,8 +250,7 @@ export const SearchForm = (): JSX.Element => {
                   placeholder={lang.SORTING_PLACEHOLDER}
                   clearable={false}
                   data={sortingOptions}
-                  control={control}
-                  name="sortingType"
+                  {...form.getInputProps('sortingType')}
                 />
                 <MultiSelect
                   label={lang.PLAYER_LABEL}
@@ -269,16 +260,12 @@ export const SearchForm = (): JSX.Element => {
                   rightSection={isLoadingPlayers ? <Loader /> : null}
                   nothingFoundMessage={lang.NOTHING_FOUND}
                   searchable
-                  control={control}
-                  name="sortChartsByPlayers"
+                  {...form.getInputProps('sortChartsByPlayers')}
                 />
               </Group>
             </CollapsibleBar>
           </div>
-          <ChartFilter
-            buttonClassName={isChartFilterChanged ? css.highlight : ''}
-            control={control}
-          />
+          <ChartFilter buttonClassName={isChartFilterChanged ? css.highlight : ''} form={form} />
         </Flex>
         <Flex gap="md">
           <Button style={{ flex: '1 1 auto' }} leftSection={<FaSearch />} type="submit">
@@ -289,6 +276,6 @@ export const SearchForm = (): JSX.Element => {
           </Button>
         </Flex>
       </Stack>
-    </Form>
+    </form>
   );
 };

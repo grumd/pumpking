@@ -1,26 +1,19 @@
-import { CloseButton } from '@mantine/core';
-import { type FieldValues, useWatch } from 'react-hook-form';
-import { TextInput, type TextInputProps } from 'react-hook-form-mantine';
+import { CloseButton, TextInput, type TextInputProps } from '@mantine/core';
 
-interface TextInputWithResetProps<T extends FieldValues> extends TextInputProps<T> {
+interface TextInputWithResetProps extends TextInputProps {
   onReset: () => void;
 }
 
-export const TextInputWithReset = <T extends FieldValues>({
-  control,
+export const TextInputWithReset = ({
   onReset,
+  value,
   ...rest
-}: TextInputWithResetProps<T>): JSX.Element => {
-  const currentValue = useWatch({
-    control,
-    name: rest.name,
-  });
-
+}: TextInputWithResetProps): JSX.Element => {
   return (
     <TextInput
       {...rest}
-      control={control}
-      rightSection={currentValue ? <CloseButton onClick={onReset} /> : null}
+      value={value}
+      rightSection={value ? <CloseButton onClick={onReset} /> : null}
     />
   );
 };

@@ -1,10 +1,10 @@
-import { Badge, Group, Tooltip } from '@mantine/core';
+import { Alert, Badge, Box, Flex, Group, Popover, Text, Tooltip } from '@mantine/core';
 import classNames from 'classnames';
 import { useAtomValue } from 'jotai';
-import numeral from 'numeral';
 import { FaAngleDoubleUp, FaExclamationTriangle } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
 
+import { Flag } from 'components/Flag/Flag';
 import { Grade } from 'components/Grade/Grade';
 import { ResultScreenshotLink } from 'components/ResultScreenshotLink/ResultScreenshotLink';
 
@@ -14,10 +14,6 @@ import { routes } from 'constants/routes';
 import { filterAtom } from 'features/leaderboards/hooks/useFilter';
 
 import { useUser } from 'hooks/useUser';
-
-import Flag from 'legacy-code/components/Shared/Flag';
-import Overlay from 'legacy-code/components/Shared/Overlay/Overlay';
-import { DEBUG } from 'legacy-code/constants/env';
 
 import { translation, useLanguage } from 'utils/context/translation';
 import { getShortTimeAgo } from 'utils/timeAgo';
@@ -33,6 +29,8 @@ export type ResultExtended = ChartApiOutput['results'][number] & {
   isLatestScore: boolean;
   isCollapsible: boolean;
 };
+
+const DEBUG = import.meta.env.VITE_DEBUG_RESULTS === 'true';
 
 const tooltipFormatter = (lang: typeof translation, result: ResultExtended) => {
   if (result.recognitionType === 'manual') {
@@ -108,7 +106,7 @@ const Result = ({ result, chart }: { result: ResultExtended; chart: ChartApiOutp
         className={classNames('nickname')}
         style={result.highlightIndex >= 0 || isCurrentPlayer ? { fontWeight: 'bold' } : {}}
       >
-        <div className="nickname-container">
+        <Flex gap="xxs" align="center">
           {result.region ? <Flag region={result.region} /> : null}
           <span className="nickname-text">
             {playerRoute ? <Link to={playerRoute}>{result.playerName}</Link> : result.playerName}
@@ -127,114 +125,124 @@ const Result = ({ result, chart }: { result: ResultExtended; chart: ChartApiOutp
             {result.mods?.includes('VJ') && <Badge color="red">R</Badge>}
             <MixPlate mix={result.mix} />
           </Group>
-        </div>
+        </Flex>
       </td>
       <td className={classNames('score')}>
-        <Overlay
-          overlayClassName="score-overlay-outer"
-          overlayItem={
+        <Popover withArrow shadow="sm" width={200} position="top">
+          <Popover.Target>
             <span className="score-span">
               {!result.scoreIncrease && <span style={{ fontSize: '80%' }}>* </span>}
               <span>{Math.floor(result.score / 1000)}</span>
               <span style={{ fontSize: '70%' }}>,{`${result.score % 1000}`.padStart(3, '0')}</span>
             </span>
-          }
-          placement="top"
-        >
-          <div className="score-overlay">
-            <div>
+          </Popover.Target>
+          <Popover.Dropdown p="sm">
+            <Box>
               <ResultScreenshotLink resultId={result.id} />
-            </div>
-            {DEBUG && (
-              <>
-                <div>
-                  <span className="_grey">result id: </span>
-                  {result.id}
-                </div>
-                <div>
-                  <span className="_grey">player id: </span>
-                  {result.playerId}
-                </div>
-              </>
-            )}
-            <div>
-              <span className="_grey">{lang.PLAYER}: </span>
-              {playerRoute ? (
-                <Link to={playerRoute}>
-                  {result.playerName} ({result.playerNameArcade})
-                </Link>
-              ) : (
-                `${result.playerName} (${result.playerNameArcade})`
+
+              <Box
+                component="dl"
+                m={0}
+                style={{ display: 'grid', gridTemplateColumns: 'auto 1fr', gap: '0.25rem 0.5rem' }}
+              >
+                {DEBUG && (
+                  <>
+                    <Text component="dt" c="dimmed" size="sm">
+                      result id:
+                    </Text>
+                    <Text component="dd" m={0} size="sm">
+                      {result.id}
+                    </Text>
+                    <Text component="dt" c="dimmed" size="sm">
+                      player id:
+                    </Text>
+                    <Text component="dd" m={0} size="sm">
+                      {result.playerId}
+                    </Text>
+                  </>
+                )}
+
+                <Text component="dt" c="dimmed" size="sm">
+                  {lang.PLAYER}:
+                </Text>
+                <Text component="dd" m={0} size="sm">
+                  {playerRoute ? (
+                    <Link to={playerRoute}>
+                      {result.playerName} ({result.playerNameArcade})
+                    </Link>
+                  ) : (
+                    `${result.playerName} (${result.playerNameArcade})`
+                  )}
+                </Text>
+
+                {result.exp ? (
+                  <>
+                    <Text component="dt" c="dimmed" size="sm" fw={700}>
+                      {lang.EXP}:
+                    </Text>
+                    <Text component="dd" m={0} size="sm" fw={700} bg="dark.5" px={4}>
+                      +{result.exp}
+                    </Text>
+                  </>
+                ) : null}
+
+                {result.pp ? (
+                  <>
+                    <Text component="dt" c="dimmed" size="sm" fw={700}>
+                      {lang.PP}:
+                    </Text>
+                    <Text component="dd" m={0} size="sm" fw={700} bg="dark.5" px={4}>
+                      {result.pp}pp
+                    </Text>
+                  </>
+                ) : null}
+
+                {result.isExactGainedDate && result.mods && (
+                  <>
+                    <Text component="dt" c="dimmed" size="sm">
+                      {lang.MODS}:
+                    </Text>
+                    <Text component="dd" m={0} size="sm">
+                      {result.mods}
+                    </Text>
+                  </>
+                )}
+
+                {result.isExactGainedDate && result.combo != null && (
+                  <>
+                    <Text component="dt" c="dimmed" size="sm" hiddenFrom="sm">
+                      {lang.COMBO}:
+                    </Text>
+                    <Text component="dd" m={0} size="sm" hiddenFrom="sm">
+                      {result.combo}
+                    </Text>
+                  </>
+                )}
+              </Box>
+
+              {!result.isExactGainedDate && (
+                <Alert
+                  mt="xs"
+                  lh="xs"
+                  color="yellow"
+                  p="xxs"
+                  pl="xs"
+                  pr="xs"
+                  icon={<FaExclamationTriangle />}
+                  styles={{ message: { fontSize: 'var(--mantine-font-size-sm)' } }}
+                >
+                  {lang.MY_BEST_SCORE_WARNING}
+                </Alert>
               )}
-            </div>
-            {result.exp ? (
-              <div className="important">
-                <span className="_grey">{lang.EXP}: </span>+{result.exp}
-              </div>
-            ) : null}
-            {result.pp ? (
-              <div className="important">
-                <span className="_grey">{lang.PP}: </span>
-                <span>{result.pp}pp</span>
-              </div>
-            ) : null}
-            {!result.isExactGainedDate && (
-              <div className="warning">
-                <FaExclamationTriangle />
-                {lang.MY_BEST_SCORE_WARNING}
-              </div>
-            )}
-            {result.isExactGainedDate && (
-              <>
-                {result.mods && (
-                  <div>
-                    <span className="_grey">{lang.MODS}: </span>
-                    {result.mods}
-                  </div>
-                )}
-                {result.combo != null && (
-                  <div className="mobile-only">
-                    <span className="_grey">{lang.COMBO}: </span>
-                    {result.combo}
-                  </div>
-                )}
-                {result.calories != null && (
-                  <div>
-                    <span className="_grey">{lang.CCAL}: </span>
-                    {result.calories}
-                  </div>
-                )}
-                {result.scoreIncrease != null && (
-                  <div>
-                    <span className="_grey">{lang.SCORE_INCREASE}: </span>+
-                    {numeral(result.scoreIncrease).format('0,0')}
-                  </div>
-                )}
-                {/* {result.originalChartMix && (
-                  <div>
-                    <div className="warning">
-                      <FaExclamationTriangle />
-                      {lang.ORIGINAL_MIX} {result.originalChartMix}
-                    </div>
-                    {result.originalChartLabel && (
-                      <div>
-                        <span className="_grey">{lang.ORIGINAL_CHART} </span>
-                        {result.originalChartLabel}
-                      </div>
-                    )}
-                    {result.originalScore && (
-                      <div>
-                        <span className="_grey">{lang.ORIGINAL_SCORE} </span>
-                        {result.originalScore}
-                      </div>
-                    )}
-                  </div>
-                )} */}
-                {!result.scoreIncrease && lang.SIGHTREAD}
-              </>
-            )}
-          </div>
-        </Overlay>
+
+              {result.isExactGainedDate && !result.scoreIncrease && (
+                <Text size="sm" mt="xs">
+                  {lang.SIGHTREAD}
+                </Text>
+              )}
+            </Box>
+          </Popover.Dropdown>
+        </Popover>
       </td>
       <td className={classNames('grade')}>
         <div className="img-holder">

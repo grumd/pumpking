@@ -1,4 +1,5 @@
 import { SimpleGrid } from '@mantine/core';
+import { useQuery } from '@tanstack/react-query';
 import {
   GiBurningPassion,
   GiLifeBar,
@@ -26,7 +27,9 @@ import { Achievement } from './Achievement';
 export const Achievements = (): JSX.Element => {
   const params = useParams();
   const lang = useLanguage();
-  const achievements = api.players.achievements.useQuery(params.id ? Number(params.id) : undefined);
+  const achievements = useQuery(
+    api.players.achievements.queryOptions(params.id ? Number(params.id) : undefined)
+  );
 
   return (
     <Card title={lang.ACHIEVEMENTS}>

@@ -1,14 +1,16 @@
-import { useMemo } from 'react';
+import type { ApiOutputs } from '@/api/trpc/router';
+import { type UseQueryResult, useQuery } from '@tanstack/react-query';
 import _ from 'lodash/fp';
+import { useMemo } from 'react';
 
 import { api } from 'utils/trpc';
 
 import { useMixes } from './useMixes';
 import { useUser } from './useUser';
 
-export const usePlayers = () => {
+export const usePlayers = (): UseQueryResult<ApiOutputs['players']['list'], unknown> => {
   const mixes = useMixes();
-  return api.players.list.useQuery({ mixes: mixes.map((mix) => mix.id) });
+  return useQuery(api.players.list.queryOptions({ mixes: mixes.map((mix) => mix.id) }));
 };
 
 export const usePlayersOptions = () => {

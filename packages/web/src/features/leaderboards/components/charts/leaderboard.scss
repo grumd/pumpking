@@ -192,32 +192,7 @@
                   white-space: nowrap;
                 }
               }
-              &.nickname {
-                // width: 275px;
-                > .nickname-container {
-                  display: flex;
-                  flex-flow: row nowrap;
-                  align-items: center;
 
-                  > .nickname-text {
-                    > .debug-elo-info {
-                      color: #888;
-                    }
-                    > .change-holder {
-                      font-size: 80%;
-                      margin-left: 0.3em;
-                      font-weight: normal;
-                      display: inline-flex;
-                      align-items: center;
-                      justify-content: center;
-                      color: var(--fresh_result_color);
-                      > span {
-                        padding-top: 0.2em;
-                      }
-                    }
-                  }
-                }
-              }
               &.accuracy {
                 width: 62px;
                 text-align: right;
@@ -344,9 +319,6 @@
 }
 
 @media screen and (max-width: 900px) {
-  .score-overlay {
-    font-size: 3vw;
-  }
   .leaderboard-page {
     .search-block {
       margin-bottom: 1vw;
@@ -491,28 +463,6 @@
         width: 30px;
         padding: 6px 0 0 0;
         font-size: 16px;
-      }
-    }
-  }
-}
-
-.score-overlay-outer {
-  margin-bottom: 10px;
-  .score-overlay {
-    padding: 0.5em;
-    .important {
-      font-weight: bold;
-      background: #666;
-      padding: 2px 4px;
-    }
-    ._grey {
-      color: #aaa;
-    }
-    .warning {
-      display: flex;
-      align-items: center;
-      > svg {
-        margin-right: 0.5em;
       }
     }
   }

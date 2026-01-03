@@ -1,4 +1,7 @@
 export const routes = {
+  register: {
+    path: '/register',
+  },
   leaderboard: {
     path: `/leaderboard`,
     sharedChart: {
@@ -11,9 +14,6 @@ export const routes = {
           `/leaderboard/chart/${params.sharedChartId}/add-result`,
       },
     },
-  },
-  leaderboardOld: {
-    path: `/leaderboard-old`,
   },
   songs: {
     path: `/songs`,
@@ -29,20 +29,6 @@ export const routes = {
   },
   profile: {
     path: `/profiles/:id`,
-    getPath: (params: { id: number | string }) => `/profiles/${params.id}`,
-    resultsByLevel: {
-      path: `/profiles/:id/levels`,
-      getPath: (params: { id: number | string }) => `/profiles/${params.id}/levels`,
-      level: {
-        path: `/profiles/:id/levels/:level`,
-        getPath: (params: { id: number | string; level: number | string }) =>
-          `/profiles/${params.id}/levels/${params.level}`,
-      },
-    },
-    compare: {
-      path: `/profiles/:id/vs/:compareToId`,
-      getPath: (params: { id: number | string; compareToId: number | string }) =>
-        `/profiles/${params.id}/vs/${params.compareToId}`,
-    },
+    getPath: (params: { id?: number | string }) => `/profiles/${params.id}`,
   },
 } as const;

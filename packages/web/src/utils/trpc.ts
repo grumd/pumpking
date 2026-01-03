@@ -1,6 +1,34 @@
-import { createTRPCReact } from '@trpc/react-query';
 import type { AppRouter } from '@/api/trpc/router';
+import { QueryClient } from '@tanstack/react-query';
+import { createTRPCClient, httpBatchLink } from '@trpc/client';
+import { type TRPCOptionsProxy, createTRPCOptionsProxy } from '@trpc/tanstack-react-query';
+import cookies from 'browser-cookies';
+import superjson from 'superjson';
 
-type Api = ReturnType<typeof createTRPCReact<AppRouter>>;
+export const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 1000 * 60 * 5,
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 
-export const api: Api = createTRPCReact<AppRouter>();
+const trpcClient = createTRPCClient<AppRouter>({
+  links: [
+    httpBatchLink({
+      url: `${import.meta.env.VITE_API_BASE_PATH}/trpc`,
+      async headers() {
+        return {
+          session: cookies.get('session') ?? undefined,
+        };
+      },
+      transformer: superjson,
+    }),
+  ],
+});
+
+export const api: TRPCOptionsProxy<AppRouter> = createTRPCOptionsProxy<AppRouter>({
+  client: trpcClient,
+  queryClient,
+});

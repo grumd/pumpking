@@ -1,9 +1,9 @@
 name: Deploy WEB
 
-on:
-  push:
-    branches: ['master']
-    paths: ['packages/web/**']
+#on:
+#push:
+#  branches: ['master']
+#  paths: ['packages/web/**']
 
 permissions:
   contents: write

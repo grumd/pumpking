@@ -2,6 +2,7 @@ export const en = {
   // generic
   NOTHING_FOUND: 'Nothing found',
   ERROR: 'Error',
+  SOMETHING_WENT_WRONG: 'Something went wrong',
 
   // menu
   LEADERBOARDS: 'leaderboards',
@@ -9,6 +10,10 @@ export const en = {
   TOURNAMENTS: 'tournaments',
   SONGS: 'songs',
   LOGOUT: 'logout',
+
+  // Rankings
+  ACCURACY: 'accuracy',
+  UPDATE: 'refresh',
 
   // Leaderboards buttons
   FILTERS: 'filters',
@@ -98,7 +103,7 @@ export const en = {
   SIGHTREAD: '* sightread',
 
   // Other
-  MY_BEST_SCORE_WARNING: 'captured from best. Not all stats are known',
+  MY_BEST_SCORE_WARNING: 'Exact date when score was achieved is not known',
   BACK_TO_ALL_CHARTS: 'back to all charts',
   NO_RESULTS: 'no results found',
   SHOW_MORE: 'show more',
@@ -148,7 +153,8 @@ export const en = {
   RESULTS: 'Results:',
   TOP_POPULAR_TRACKS: 'Most popular tracks',
   MONTHLY_TOP_POPULAR_TRACKS: 'Most popular tracks this month',
-  TRACKS_PLAYED_LONG_TIME_AGO: 'Tracks not played long time ago',
+  TRACKS_PLAYED_LONG_TIME_AGO: 'Tracks not played for a long time',
+  LEAST_PLAYED_TRACKS: 'Least played tracks',
   VICTORIES_BY_LEVEL: 'victories by level',
   DETAILED: 'detailed',
   NAME: 'name',

@@ -1,17 +1,19 @@
-import { useQueryClient } from '@tanstack/react-query';
-import { getQueryKey } from '@trpc/react-query';
+import type { ApiInputs } from '@/api/trpc/router';
+import { type UseMutationResult, useMutation, useQueryClient } from '@tanstack/react-query';
 
 import { api } from 'utils/trpc';
 
 export const usePreferencesMutation = () => {
   const queryClient = useQueryClient();
 
-  const preferencesMutation = api.user.preferencesMutation.useMutation({
-    onSuccess: (newUser) => {
-      queryClient.setQueryData(getQueryKey(api.user.current, undefined, 'query'), newUser);
-      queryClient.invalidateQueries(getQueryKey(api.charts.search));
-    },
-  });
+  const preferencesMutation = useMutation(
+    api.user.preferencesMutation.mutationOptions({
+      onSuccess: (newUser) => {
+        queryClient.setQueryData(api.user.current.queryKey(), newUser);
+        queryClient.invalidateQueries({ queryKey: api.charts.search.queryKey() });
+      },
+    })
+  );
 
   return preferencesMutation;
 };

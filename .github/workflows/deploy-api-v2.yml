@@ -1,0 +1,55 @@
+name: Deploy API (rsync)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  test:
+    uses: ./.github/workflows/test-api.yml
+
+  deploy:
+    needs: test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build API
+        run: npm run build --prefix packages/api
+
+      - name: Deploy via rsync
+        uses: burnett01/rsync-deployments@7.0.1
+        with:
+          switches: -avz --delete --exclude='.git' --exclude='node_modules' --exclude='.env' --exclude='packages/web'
+          path: ./
+          remote_path: ~/pumpking/
+          remote_host: api.pumpking.top
+          remote_user: piutop
+          remote_key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      - name: Run migrations and restart
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: api.pumpking.top
+          username: piutop
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            set -e
+            cd ~/pumpking/packages/api
+            echo "-- Installing production dependencies"
+            npm ci --production
+            echo "-- Running migrations"
+            npm run migrate:latest
+            echo "-- Restarting PM2"
+            npm run pm2
+            echo "-- Deployment complete!"

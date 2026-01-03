@@ -1,4 +1,3 @@
-import { inferAsyncReturnType } from '@trpc/server';
 import { CreateExpressContextOptions } from '@trpc/server/adapters/express';
 import { db } from 'db';
 import createDebug from 'debug';
@@ -6,10 +5,10 @@ import createDebug from 'debug';
 const debug = createDebug('trpc:context');
 
 export async function createContext({ req }: CreateExpressContextOptions) {
-  async function getUserFromHeader() {
-    const session = req.headers['session'];
+  const sessionId = typeof req.headers['session'] === 'string' ? req.headers['session'] : null;
 
-    if (typeof session === 'string') {
+  async function getUserFromHeader() {
+    if (sessionId) {
       const player = await db
         .selectFrom('sessions')
         .innerJoin('players', 'players.id', 'sessions.player')
@@ -21,7 +20,7 @@ export async function createContext({ req }: CreateExpressContextOptions) {
           'players.preferences',
           'players.region',
         ])
-        .where('sessions.id', '=', session)
+        .where('sessions.id', '=', sessionId)
         .executeTakeFirst();
 
       if (player) {
@@ -33,7 +32,8 @@ export async function createContext({ req }: CreateExpressContextOptions) {
 
   return {
     user: await getUserFromHeader(),
+    sessionId,
   };
 }
 
-export type Context = inferAsyncReturnType<typeof createContext>;
+export type Context = Awaited<ReturnType<typeof createContext>>;

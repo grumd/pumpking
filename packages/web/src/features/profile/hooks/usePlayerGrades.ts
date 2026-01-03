@@ -1,10 +1,16 @@
+import type { ApiOutputs } from '@/api/trpc/router';
+import { type UseQueryResult, useQuery } from '@tanstack/react-query';
 import _ from 'lodash/fp';
 import { useMemo } from 'react';
 
 import { api } from 'utils/trpc';
 
-export const usePlayerGrades = ({ playerId }: { playerId: number | undefined }) => {
-  return api.players.grades.useQuery(playerId);
+export const usePlayerGrades = ({
+  playerId,
+}: {
+  playerId: number | undefined;
+}): UseQueryResult<ApiOutputs['players']['grades'], unknown> => {
+  return useQuery(api.players.grades.queryOptions(playerId));
 };
 
 export const useGradesGraphData = ({ playerId }: { playerId: number | undefined }) => {

@@ -6,7 +6,7 @@ export const highestPpCharts = publicProcedure
   .input(
     z.object({
       playerId: z.number().optional(),
-      cursor: z.number(),
+      cursor: z.number().nullish(),
       pageSize: z.number(),
     })
   )

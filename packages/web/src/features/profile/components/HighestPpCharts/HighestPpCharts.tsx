@@ -1,4 +1,5 @@
 import { Button, Flex, SimpleGrid, Stack, Text } from '@mantine/core';
+import { useInfiniteQuery } from '@tanstack/react-query';
 import { MdExpandMore } from 'react-icons/md';
 import { useParams } from 'react-router';
 import { NavLink } from 'react-router-dom';
@@ -21,9 +22,11 @@ const pageSize = 20;
 
 export const HighestPpCharts = (): JSX.Element => {
   const params = useParams();
-  const charts = api.players.highestPpCharts.useInfiniteQuery(
-    { playerId: params.id ? Number(params.id) : undefined, pageSize },
-    { getNextPageParam: (lastPage) => lastPage.nextCursor, initialCursor: 0 }
+  const charts = useInfiniteQuery(
+    api.players.highestPpCharts.infiniteQueryOptions(
+      { playerId: params.id ? Number(params.id) : undefined, pageSize },
+      { getNextPageParam: (lastPage) => lastPage.nextCursor, initialCursor: 0 }
+    )
   );
   const lang = useLanguage();
 
@@ -34,10 +37,7 @@ export const HighestPpCharts = (): JSX.Element => {
           page.items.map((item) => {
             const date = new Date(item.date);
             const daysAgo = Math.floor((Date.now() - date.getTime()) / (1000 * 60 * 60 * 24));
-            console.log({
-              date,
-              daysAgo,
-            });
+
             const dateColor =
               daysAgo < 30
                 ? 'green'

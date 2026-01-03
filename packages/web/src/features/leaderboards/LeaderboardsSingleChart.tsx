@@ -1,5 +1,6 @@
 import { Alert, Button } from '@mantine/core';
 import { FaExclamationCircle, FaInfoCircle, FaPlusCircle } from 'react-icons/fa';
+import { GiButtonFinger } from 'react-icons/gi';
 import { useParams } from 'react-router';
 import { NavLink } from 'react-router-dom';
 
@@ -32,17 +33,19 @@ const LeaderboardsChartsList = (): JSX.Element => {
     <div className="leaderboard-page">
       <div className="content">
         <div className="simple-search">
-          <div className="_flex-fill" />
           {user.data?.can_add_results_manually && params.sharedChartId ? (
-            <NavLink
+            <Button
+              component={NavLink}
               to={routes.leaderboard.sharedChart.addResult.getPath({
                 sharedChartId: params.sharedChartId,
               })}
+              size="xs"
+              ml="auto"
+              disabled={chart.isLoading}
+              leftSection={<FaPlusCircle />}
             >
-              <Button size="xs" disabled={chart.isLoading} leftSection={<FaPlusCircle />}>
-                {lang.ADD_RESULT}
-              </Button>
-            </NavLink>
+              {lang.ADD_RESULT}
+            </Button>
           ) : null}
         </div>
         <div className="top-list">
@@ -54,7 +57,7 @@ const LeaderboardsChartsList = (): JSX.Element => {
               title={lang.ERROR}
               icon={<FaExclamationCircle />}
             >
-              {chart.error.message}
+              {chart.error instanceof Error ? chart.error.message : lang.SOMETHING_WENT_WRONG}
             </Alert>
           ) : chart.isFetched && !chartsList?.length ? (
             <Alert

@@ -14,8 +14,8 @@ export const base64 = z
       os.tmpdir(),
       sanitize(`pumpking-tmp-${Date.now()}-${base64.slice(0, 6)})}`)
     );
-    const buff = Buffer.from(base64, 'base64');
-    await fs.writeFile(filePath, buff);
+
+    await fs.writeFile(filePath, new Uint8Array(Buffer.from(base64, 'base64')));
 
     return { mimeType, filePath, dispose: () => fs.rm(filePath) };
   });

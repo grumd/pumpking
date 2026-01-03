@@ -1,0 +1,16 @@
+.registration-page {
+  display: flex;
+  flex-flow: column nowrap;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+
+  > .site-name {
+    font-size: 34px;
+    font-weight: 600;
+  }
+
+  > .google-button {
+    padding: 10px;
+  }
+}

@@ -1,4 +1,5 @@
 import { Group, Stack, Text } from '@mantine/core';
+import { useQuery } from '@tanstack/react-query';
 import { useParams } from 'react-router';
 
 import css from './exp-progress.module.scss';
@@ -13,7 +14,7 @@ export const ExpProgress = (): React.ReactNode => {
   const params = useParams();
   const lang = useLanguage();
   const playerId = params.id ? Number(params.id) : undefined;
-  const { data: ranking } = api.players.stats.useQuery();
+  const { data: ranking } = useQuery(api.players.stats.queryOptions());
 
   const playerExp = ranking?.find((x) => x.id === playerId)?.exp;
 

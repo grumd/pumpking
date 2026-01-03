@@ -1,4 +1,5 @@
 import { Alert, Container, Group, Stack, Text } from '@mantine/core';
+import { useQuery } from '@tanstack/react-query';
 import { FaExclamationCircle } from 'react-icons/fa';
 import { useParams } from 'react-router';
 
@@ -11,7 +12,7 @@ import { api } from 'utils/trpc';
 export const ProfileHeader = (): JSX.Element => {
   const params = useParams();
   const lang = useLanguage();
-  const { data: ranking, isLoading } = api.players.stats.useQuery();
+  const { data: ranking, isLoading } = useQuery(api.players.stats.queryOptions());
 
   if (!ranking || isLoading) {
     return <Loader />;

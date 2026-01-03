@@ -4,12 +4,18 @@ export const ru = {
   // generic
   NOTHING_FOUND: 'Ничего не найдено',
   ERROR: 'Ошибка',
+  SOMETHING_WENT_WRONG: 'Что-то пошло не так',
   // Main top menu
   LEADERBOARDS: 'лидерборды',
   RANKING: 'ранкинг',
   TOURNAMENTS: 'турниры',
   SONGS: 'треки',
   LOGOUT: 'выйти',
+
+  // Rankings
+  ACCURACY: 'точность',
+  UPDATE: 'обновить',
+
   // Leaderboards buttons
   FILTERS: 'фильтры',
   SORTING: 'сортировка',
@@ -141,6 +147,7 @@ export const ru = {
   TOP_POPULAR_TRACKS: 'Топ популярных треков',
   MONTHLY_TOP_POPULAR_TRACKS: 'Топ популярных треков за месяц',
   TRACKS_PLAYED_LONG_TIME_AGO: 'Треки, которые долго не играли',
+  LEAST_PLAYED_TRACKS: 'Наименее популярные треки',
   VICTORIES_BY_LEVEL: 'победы по уровням',
   DETAILED: 'подробно',
   NAME: 'имя',

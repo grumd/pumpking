@@ -1,4 +1,5 @@
 import { Button, Flex, SimpleGrid, Text } from '@mantine/core';
+import { useInfiniteQuery } from '@tanstack/react-query';
 import { FaPlay } from 'react-icons/fa';
 import { MdExpandMore } from 'react-icons/md';
 import { useParams } from 'react-router';
@@ -21,9 +22,11 @@ const pageSize = 10;
 
 export const MostPlayedCharts = (): JSX.Element => {
   const params = useParams();
-  const charts = api.players.mostPlayed.useInfiniteQuery(
-    { playerId: params.id ? Number(params.id) : undefined, pageSize },
-    { getNextPageParam: (lastPage) => lastPage.nextCursor, initialCursor: 0 }
+  const charts = useInfiniteQuery(
+    api.players.mostPlayed.infiniteQueryOptions(
+      { playerId: params.id ? Number(params.id) : undefined, pageSize },
+      { getNextPageParam: (lastPage) => lastPage.nextCursor, initialCursor: 0 }
+    )
   );
   const lang = useLanguage();
 
