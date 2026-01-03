@@ -9,8 +9,24 @@
     ],
     "target": "ES2022",
     "module": "CommonJS",
-    "baseUrl": "src",
-    "rootDir": "src"
+    "rootDir": "src",
+    "baseUrl": ".",
+    "paths": {
+      "app": ["./src/app.ts"],
+      "db": ["./src/db.ts"],
+      "envconfig": ["./src/envconfig.ts"],
+      "constants/*": ["./src/constants/*"],
+      "controllers/*": ["./src/controllers/*"],
+      "jobs/*": ["./src/jobs/*"],
+      "middlewares/*": ["./src/middlewares/*"],
+      "routes/*": ["./src/routes/*"],
+      "services/*": ["./src/services/*"],
+      "test/*": ["./src/test/*"],
+      "trpc/*": ["./src/trpc/*"],
+      "types/*": ["./src/types/*"],
+      "utils": ["./src/utils/index.ts"],
+      "utils/*": ["./src/utils/*"]
+    }
   },
   "include": [
     "./src/types/express.d.ts",
