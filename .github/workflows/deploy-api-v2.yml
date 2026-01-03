@@ -46,8 +46,8 @@ jobs:
           script: |
             set -e
             cd ~/pumpking-deployment/packages/api
-            echo "-- Installing production dependencies"
-            npm ci --production
+            echo "-- Installing dependencies"
+            npm ci
             echo "-- Running migrations"
             npm run migrate:latest
             echo "-- Restarting PM2"
