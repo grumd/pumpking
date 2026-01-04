@@ -1,8 +1,9 @@
+import { devLogin as devLoginService } from 'services/auth/devLogin';
 import { getRegistrationToken as getRegistrationTokenService } from 'services/auth/getRegistrationToken';
 import { loginWithGoogleCredential } from 'services/auth/googleLogin';
 import { logout as logoutService } from 'services/auth/logout';
 import { registerPlayer } from 'services/auth/register';
-import { publicProcedure, router } from 'trpc/trpc';
+import { devProcedure, publicProcedure, router } from 'trpc/trpc';
 import { z } from 'zod';
 
 export const loginGoogle = publicProcedure
@@ -44,9 +45,20 @@ export const logout = publicProcedure.mutation(async ({ ctx }) => {
   }
 });
 
+export const devLogin = devProcedure
+  .input(
+    z.object({
+      playerId: z.number(),
+    })
+  )
+  .mutation(({ input }) => {
+    return devLoginService(input.playerId);
+  });
+
 export const auth = router({
   loginGoogle,
   getRegistrationToken,
   register,
   logout,
+  devLogin,
 });

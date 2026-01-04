@@ -1,6 +1,7 @@
 node_modules
 .env
 .vscode
+.mcp.json
 
 *.tsbuildinfo
 .tsbuildinfo
