@@ -1,4 +1,4 @@
-import { ActionIcon, Group, Text } from '@mantine/core';
+import { ActionIcon } from '@mantine/core';
 import { useAtomValue } from 'jotai';
 import _ from 'lodash/fp';
 import { Fragment, memo, useState } from 'react';
