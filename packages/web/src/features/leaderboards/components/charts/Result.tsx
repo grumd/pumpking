@@ -127,38 +127,45 @@ const Result = ({ result, chart }: { result: ResultExtended; chart: ChartApiOutp
         className={classNames('nickname')}
         style={result.highlightIndex >= 0 || isCurrentPlayer ? { fontWeight: 'bold' } : {}}
       >
-        <Flex gap="xxs" align="center">
-          {result.region ? <Flag region={result.region} /> : null}
-          <span className="nickname-text">
+        <Group gap="xxs" align="center">
+          {result.region ? <Flag region={result.region} size="sm" /> : null}
+          <Text style={{ flex: '1 1 0', textOverflow: 'ellipsis', overflow: 'hidden' }}>
             {playerRoute ? (
-              <Anchor component={Link} to={playerRoute}>
+              <Anchor component={Link} to={playerRoute} size="sm">
                 {result.playerName}
               </Anchor>
             ) : (
-              result.playerName
+              <Text size="sm">{result.playerName}</Text>
             )}
-            {!!result.placeDifference && (
-              <span className="change-holder up">
-                <span>{result.placeDifference}</span>
-                <FaAngleDoubleUp />
-              </span>
+          </Text>
+          {!!result.placeDifference && (
+            <span className="change-holder up">
+              <span>{result.placeDifference}</span>
+              <FaAngleDoubleUp />
+            </span>
+          )}
+          {(DEBUG || (isSortedByPp && result.highlightIndex >= 0)) && (
+            <span className="debug-elo-info"> {result.pp && `${result.pp}pp`}</span>
+          )}
+          <Group gap="0.25em" ml="auto" wrap="nowrap">
+            {result.mods?.includes('HJ') && (
+              <Badge color="orange" size="xs">
+                HJ
+              </Badge>
             )}
-            {(DEBUG || (isSortedByPp && result.highlightIndex >= 0)) && (
-              <span className="debug-elo-info"> {result.pp && `${result.pp}pp`}</span>
+            {result.mods?.includes('VJ') && (
+              <Badge color="red" size="xs">
+                R
+              </Badge>
             )}
-          </span>
-          <Group gap="0.25em" ml="auto">
-            {result.mods?.includes('HJ') && <Badge color="orange">HJ</Badge>}
-            {result.mods?.includes('VJ') && <Badge color="red">R</Badge>}
             <MixPlate mix={result.mix} />
           </Group>
-        </Flex>
+        </Group>
       </td>
       <td className={classNames('score')}>
         <Popover withArrow shadow="sm" width={200} position="top">
           <Popover.Target>
             <span className="score-span">
-              {!result.scoreIncrease && <span style={{ fontSize: '80%' }}>* </span>}
               <span>{Math.floor(result.score / 1000)}</span>
               <span style={{ fontSize: '70%' }}>,{`${result.score % 1000}`.padStart(3, '0')}</span>
             </span>

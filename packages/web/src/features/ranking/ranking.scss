@@ -73,8 +73,11 @@
     padding-bottom: 0;
     color: #888;
     font-weight: normal;
+    text-align: left;
+
     &.grades {
       text-align: center;
+
       img {
         height: 12px;
       }
@@ -112,6 +115,7 @@
     }
     &.exp-rank {
       img {
+        vertical-align: middle;
         width: 2em;
       }
     }
@@ -164,10 +168,9 @@
     &.hide-col {
       padding-right: 0.75em;
 
-      > .toggle-checkbox {
+      > .switch-wrapper {
         display: flex;
-        justify-content: end;
-        align-items: stretch;
+        justify-content: flex-end;
       }
     }
     &.change {
@@ -194,57 +197,56 @@
 
 @media screen and (max-width: 900px) {
   .ranking-page {
-    font-size: 3.2vw;
+    font-size: 14px;
     .ranking-list {
-      padding: 0.4em;
+      padding: 4px;
     }
     table {
-      border-spacing: 0 1vw;
+      border-spacing: 0 4px;
     }
     td,
     th {
-      font-size: 80%;
+      padding: 0.4rem 0.3rem;
       &.grades {
         display: none;
-        img {
-          height: 1.5vw;
-        }
       }
       &.name-piu {
         display: none;
       }
+      &.playcount,
       &.accuracy {
-        padding-right: 1vw;
+        display: none;
       }
     }
     tr.player {
-      height: 7.4vw;
+      height: auto;
     }
     td {
       &.place {
-        padding-left: 1.5vw;
+        padding-left: 6px;
         padding-right: 0;
-        font-size: 80%;
+        font-size: 90%;
         > svg {
-          font-size: 140%;
+          font-size: 130%;
         }
       }
       &.exp-rank {
-        font-size: 75%;
+        padding: 4px;
+        img {
+          width: 24px;
+          height: 24px;
+        }
       }
-      &.total-score {
-        padding: 1vw 0.5vw;
+      &.name {
+        font-size: 15px;
+        width: auto;
       }
       &.rating {
-        font-size: 100%;
-      }
-      &.rating-change-cell {
-        font-size: 100%;
+        font-size: 15px;
+        font-weight: bold;
       }
       &.hide-col {
-        .toggle-checkbox {
-          font-size: 100%;
-        }
+        padding: 0 6px;
       }
     }
   }

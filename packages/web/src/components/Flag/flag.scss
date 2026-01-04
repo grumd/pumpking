@@ -1,6 +1,15 @@
 .flag {
-  width: 20px;
-  height: 15px;
   border-radius: 3px;
   opacity: 0.85;
+
+  &--md {
+    width: 20px;
+    height: 15px;
+  }
+
+  &--sm {
+    width: 16px;
+    height: 12px;
+    border-radius: 2px;
+  }
 }

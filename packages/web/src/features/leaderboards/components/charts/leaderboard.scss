@@ -175,6 +175,15 @@
                 color: #888;
                 width: 33px;
               }
+              &.nickname {
+                .nickname-text {
+                  flex: 1 1 0;
+                  overflow: hidden;
+                  text-overflow: ellipsis;
+                  white-space: nowrap;
+                  min-width: 0;
+                }
+              }
               &.grade {
                 width: 48px;
                 .img-holder {
@@ -321,16 +330,16 @@
 @media screen and (max-width: 900px) {
   .leaderboard-page {
     .search-block {
-      margin-bottom: 1vw;
+      margin-bottom: 4px;
     }
     .top-list {
-      padding: 0.5vw;
-      border-radius: 1vw;
+      padding: 2px;
+      border-radius: 4px;
     }
     .top-list {
       padding: 0.4em 0;
       .song-block {
-        font-size: 3vw;
+        font-size: 13px;
         padding: 0 0 0.4em 0;
         border-radius: 0;
         margin-bottom: 0.5em;
@@ -344,28 +353,29 @@
             td,
             th {
               vertical-align: middle;
-              padding: 0.24em 0.2em;
+              padding: 3px 2px;
               &.place {
                 display: none;
               }
               &.nickname {
-                padding: 0.1em;
+                padding: 1px;
                 width: 33%; // take up to 33% of all space
+                max-width: none;
               }
               &.score {
                 width: 10%;
               }
               &.grade {
                 width: 3%;
-                padding: 0 0.3em 0 0.1em;
+                padding: 0 4px 0 1px;
                 .img-holder img {
-                  height: 2.5vw;
+                  height: 14px;
                 }
               }
               &.number {
                 width: initial;
+                padding: 3px;
                 font-size: 80%;
-                padding: 0.25em;
               }
               &.perfect {
                 width: initial;
@@ -388,7 +398,7 @@
                 position: static;
               }
               th {
-                padding: 0 0.7vw 0.7vw;
+                padding: 0 3px 3px;
                 line-height: 100%;
               }
             }

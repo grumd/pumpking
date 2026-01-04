@@ -60,7 +60,7 @@ export default function RankingList({ ranking, isLoading, preferences }: Ranking
                   <td className="place">
                     {playerIndex === 0 ? <GiQueenCrown /> : `#${playerIndex + 1}`}
                   </td>
-                  <td>{player.exp != null ? <ExpRankImg exp={player.exp} /> : null}</td>
+                  <td className="exp-rank">{player.exp != null ? <ExpRankImg exp={player.exp} /> : null}</td>
                   <td className="name">
                     <Flex gap="xxs" align="center">
                       {player.region ? <Flag region={player.region} /> : null}
@@ -83,16 +83,18 @@ export default function RankingList({ ranking, isLoading, preferences }: Ranking
                     {player.accuracy ? `${player.accuracy.toFixed(2)}%` : ''}
                   </td>
                   <td className="hide-col">
-                    <Switch
-                      onChange={() => {
-                        if (preferences) {
-                          preferencesMutation.mutate(
-                            _.set(['playersHiddenStatus', player.id], !isHidden, preferences)
-                          );
-                        }
-                      }}
-                      checked={!isHidden}
-                    />
+                    <div className="switch-wrapper">
+                      <Switch
+                        onChange={() => {
+                          if (preferences) {
+                            preferencesMutation.mutate(
+                              _.set(['playersHiddenStatus', player.id], !isHidden, preferences)
+                            );
+                          }
+                        }}
+                        checked={!isHidden}
+                      />
+                    </div>
                   </td>
                 </tr>
               );
