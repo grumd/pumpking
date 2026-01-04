@@ -28,7 +28,7 @@ const Chart = memo(function _Chart({ chart }: { chart: ChartApiOutput }) {
   const results = chart.results
     .filter((res) => showHidden || !res.isHidden)
     .map((res, index, array) => {
-      const isLatestScore = res.added === chart.updatedOn;
+      const isLatestScore = new Date(res.added).getTime() === new Date(chart.updatedOn).getTime();
       const ppSortPlayerId =
         filter.sortChartsBy === 'pp' && !filter.sortChartsByPlayers?.length
           ? array[0].playerId

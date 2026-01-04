@@ -75,7 +75,6 @@ SCREENSHOT_BASE_FOLDER=~/screenshots
 
 ```
 VITE_API_BASE_PATH=http://localhost:3001
-VITE_API_V1_PATH=/* Legacy Python API URL */
 ```
 
 ## Adding New Features
