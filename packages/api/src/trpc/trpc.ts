@@ -66,3 +66,13 @@ export const adminProcedure = t.procedure.use(async ({ ctx, next }) => {
   }
   return next({ ctx: { user: ctx.user } });
 });
+
+/**
+ * Dev procedure - only available in development mode
+ */
+export const devProcedure = t.procedure.use(async ({ next }) => {
+  if (process.env.NODE_ENV !== 'development') {
+    throw new TRPCError({ code: 'FORBIDDEN', message: 'Only available in development mode' });
+  }
+  return next();
+});

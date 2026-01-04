@@ -4,6 +4,8 @@ import './login-screen.scss';
 
 import { useLogin } from 'hooks/useLogin';
 
+import { DevLogin } from './DevLogin';
+
 export function LoginScreen() {
   const { onSuccess, onError, error } = useLogin();
 
@@ -14,6 +16,7 @@ export function LoginScreen() {
         <GoogleLogin onSuccess={onSuccess} onError={onError} />
       </div>
       {error && <div className="error">{error}</div>}
+      <DevLogin />
     </div>
   );
 }
