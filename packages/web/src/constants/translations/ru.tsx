@@ -202,4 +202,16 @@ export const ru = {
     'Когда от идеального скора тебя удерживают только миссы из-за плохого моддинга падов',
   WEEK_LONG_TRAINING: 'Усердие',
   WEEK_LONG_TRAINING_DESC: 'Сыграть хотя бы один чарт 7 дней подряд',
+
+  // Admin
+  ADMIN_PANEL: 'Админ панель',
+  DELETE_RESULT: 'Удалить результат',
+  DELETE_RESULT_CONFIRM: 'Вы уверены, что хотите удалить этот результат? Это действие нельзя отменить.',
+  CAN_ADD_RESULTS_MANUALLY: 'Может добавлять результаты вручную',
+  ENABLED: 'Включено',
+  DISABLED: 'Выключено',
+  REGION: 'Регион',
+  TELEGRAM_TAG: 'Телеграм тег',
+  TELEGRAM_ID: 'Телеграм ID',
+  HIDDEN_PLAYER: 'Скрытый игрок',
 } satisfies BaseTranslation;

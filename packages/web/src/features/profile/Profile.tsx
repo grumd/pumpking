@@ -9,6 +9,7 @@ import { ModalTrigger } from 'components/ModalTrigger/ModalTrigger';
 import { useLanguage } from 'utils/context/translation';
 
 import { Achievements } from './components/Achievements/Achievements';
+import { AdminPanel } from './components/AdminPanel/AdminPanel';
 import { ExpFaq } from './components/Exp/ExpFaq';
 import { ExpProgress } from './components/Exp/ExpProgress';
 import { GradeGraphsCard } from './components/GradeGraphsCard';
@@ -24,6 +25,7 @@ const Profile = () => {
   return (
     <div className={css.profile}>
       <ProfileHeader />
+      <AdminPanel />
       <Stack gap="xs">
         <Card
           title={lang.EXP}

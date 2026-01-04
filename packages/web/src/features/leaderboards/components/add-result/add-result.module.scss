@@ -1,25 +1,8 @@
 .addResultPage {
   width: 100%;
-  padding: 0.4em 0;
   max-width: 400px;
   padding: 0.4em;
   font-size: 16px;
-}
-
-.addResultForm {
-  display: flex;
-  flex-flow: column nowrap;
-  gap: 0.5em;
-
-  label {
-    display: flex;
-    flex-flow: column nowrap;
-    gap: 0.25em;
-  }
-
-  .fileInput {
-    height: auto;
-  }
 }
 
 .confirmation {

@@ -1,5 +1,5 @@
 import type { ApiOutputs } from '@/api/trpc/router';
-import { Flex, Switch } from '@mantine/core';
+import { Anchor, Flex, Switch } from '@mantine/core';
 import classNames from 'classnames';
 import _ from 'lodash/fp';
 import { GiQueenCrown } from 'react-icons/gi';
@@ -64,15 +64,15 @@ export default function RankingList({ ranking, isLoading, preferences }: Ranking
                   <td className="name">
                     <Flex gap="xxs" align="center">
                       {player.region ? <Flag region={player.region} /> : null}
-                      <NavLink to={routes.profile.getPath({ id: player.id })}>
+                      <Anchor component={NavLink} to={routes.profile.getPath({ id: player.id })}>
                         {player.nickname}
-                      </NavLink>
+                      </Anchor>
                     </Flex>
                   </td>
                   <td className="name name-piu">
-                    <NavLink to={routes.profile.getPath({ id: player.id })}>
+                    <Anchor component={NavLink} to={routes.profile.getPath({ id: player.id })}>
                       {player.arcade_name}
-                    </NavLink>
+                    </Anchor>
                   </td>
                   <td className="rating secondary">
                     {player.pp != null ? Math.floor(player.pp) : ''}
@@ -84,8 +84,6 @@ export default function RankingList({ ranking, isLoading, preferences }: Ranking
                   </td>
                   <td className="hide-col">
                     <Switch
-                      withThumbIndicator={false}
-                      color="dark"
                       onChange={() => {
                         if (preferences) {
                           preferencesMutation.mutate(

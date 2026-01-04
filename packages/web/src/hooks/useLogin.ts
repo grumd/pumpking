@@ -1,5 +1,5 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type { CredentialResponse } from '@react-oauth/google';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import cookies from 'browser-cookies';
 import { useState } from 'react';
 
@@ -14,7 +14,7 @@ export const useLogin = () => {
       onSuccess: (data) => {
         // Cookie expires in 14 days to match backend session validity
         cookies.set('session', data.session, { expires: 14 });
-        queryClient.invalidateQueries({ queryKey: api.user.current.queryKey() });
+        queryClient.invalidateQueries(api.user.current.queryFilter());
       },
       onError: (err) => {
         console.error('Login error:', err);

@@ -10,13 +10,13 @@ export const useLogout = () => {
     api.auth.logout.mutationOptions({
       onSuccess: () => {
         cookies.erase('session');
-        queryClient.invalidateQueries({ queryKey: api.user.current.queryKey() });
+        queryClient.invalidateQueries(api.user.current.queryFilter());
       },
       onError: (err) => {
         console.error('Logout error:', err);
         // Still clear the cookie on error since we want to log out regardless
         cookies.erase('session');
-        queryClient.invalidateQueries({ queryKey: api.user.current.queryKey() });
+        queryClient.invalidateQueries(api.user.current.queryFilter());
       },
     })
   );

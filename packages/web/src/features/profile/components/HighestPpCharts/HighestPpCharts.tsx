@@ -1,4 +1,4 @@
-import { Button, Flex, SimpleGrid, Stack, Text } from '@mantine/core';
+import { Anchor, Button, Flex, SimpleGrid, Stack, Text } from '@mantine/core';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { MdExpandMore } from 'react-icons/md';
 import { useParams } from 'react-router';
@@ -52,13 +52,14 @@ export const HighestPpCharts = (): JSX.Element => {
                 ) : (
                   <span>{item.label}</span>
                 )}
-                <NavLink
+                <Anchor
+                  component={NavLink}
                   to={routes.leaderboard.sharedChart.getPath({
                     sharedChartId: item.shared_chart,
                   })}
                 >
                   {item.full_name}
-                </NavLink>
+                </Anchor>
                 <Text lh="1" c={dateColor} fz="xs">
                   {getLongTimeAgo(lang, date)}
                 </Text>

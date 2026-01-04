@@ -1,7 +1,18 @@
-import { Alert, Badge, Box, Flex, Group, Popover, Text, Tooltip } from '@mantine/core';
+import {
+  Alert,
+  Anchor,
+  Badge,
+  Box,
+  Button,
+  Flex,
+  Group,
+  Popover,
+  Text,
+  Tooltip,
+} from '@mantine/core';
 import classNames from 'classnames';
 import { useAtomValue } from 'jotai';
-import { FaAngleDoubleUp, FaExclamationTriangle } from 'react-icons/fa';
+import { FaAngleDoubleUp, FaExclamationTriangle, FaTrash } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
 
 import { Flag } from 'components/Flag/Flag';
@@ -12,6 +23,7 @@ import { colorsArray } from 'constants/colors';
 import { routes } from 'constants/routes';
 
 import { filterAtom } from 'features/leaderboards/hooks/useFilter';
+import { useDeleteResult } from 'features/profile/components/AdminPanel/useDeleteResult';
 
 import { useUser } from 'hooks/useUser';
 
@@ -80,6 +92,15 @@ const Result = ({ result, chart }: { result: ResultExtended; chart: ChartApiOutp
   const filter = useAtomValue(filterAtom);
   const isSortedByPp = filter.sortChartsBy === 'pp';
   const isCurrentPlayer = result.playerId === user.data?.id;
+  const isAdmin = !!user.data?.is_admin;
+
+  const deleteResultMutation = useDeleteResult();
+
+  const handleDeleteResult = async () => {
+    if (window.confirm(lang.DELETE_RESULT_CONFIRM)) {
+      deleteResultMutation.mutate({ resultId: result.id });
+    }
+  };
 
   const playerRoute =
     result.playerId == null ? null : routes.profile.getPath({ id: result.playerId });
@@ -109,7 +130,13 @@ const Result = ({ result, chart }: { result: ResultExtended; chart: ChartApiOutp
         <Flex gap="xxs" align="center">
           {result.region ? <Flag region={result.region} /> : null}
           <span className="nickname-text">
-            {playerRoute ? <Link to={playerRoute}>{result.playerName}</Link> : result.playerName}
+            {playerRoute ? (
+              <Anchor component={Link} to={playerRoute}>
+                {result.playerName}
+              </Anchor>
+            ) : (
+              result.playerName
+            )}
             {!!result.placeDifference && (
               <span className="change-holder up">
                 <span>{result.placeDifference}</span>
@@ -167,9 +194,9 @@ const Result = ({ result, chart }: { result: ResultExtended; chart: ChartApiOutp
                 </Text>
                 <Text component="dd" m={0} size="sm">
                   {playerRoute ? (
-                    <Link to={playerRoute}>
+                    <Anchor component={Link} to={playerRoute}>
                       {result.playerName} ({result.playerNameArcade})
-                    </Link>
+                    </Anchor>
                   ) : (
                     `${result.playerName} (${result.playerNameArcade})`
                   )}
@@ -239,6 +266,21 @@ const Result = ({ result, chart }: { result: ResultExtended; chart: ChartApiOutp
                 <Text size="sm" mt="xs">
                   {lang.SIGHTREAD}
                 </Text>
+              )}
+
+              {isAdmin && (
+                <Button
+                  mt="xs"
+                  size="xs"
+                  color="red"
+                  variant="light"
+                  fullWidth
+                  leftSection={<FaTrash />}
+                  onClick={handleDeleteResult}
+                  loading={deleteResultMutation.isPending}
+                >
+                  {lang.DELETE_RESULT}
+                </Button>
               )}
             </Box>
           </Popover.Dropdown>

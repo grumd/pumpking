@@ -1,5 +1,6 @@
 import TimeAgo, { type FixedFormatStyle } from 'javascript-time-ago';
 import en from 'javascript-time-ago/locale/en';
+import pl from 'javascript-time-ago/locale/pl';
 import ru from 'javascript-time-ago/locale/ru';
 import convenient from 'javascript-time-ago/modules/gradation/convenient';
 import ua from 'locale/uk';
@@ -12,6 +13,7 @@ TimeAgo.addLocale(
     ua: ua,
     en: en,
     ru: ru,
+    pl: pl,
   }[language]
 );
 const timeAgo = new TimeAgo(
@@ -19,6 +21,7 @@ const timeAgo = new TimeAgo(
     ua: 'uk-UA',
     ru: 'ru-RU',
     en: 'en-US',
+    pl: 'pl-PL',
   }[language]
 );
 

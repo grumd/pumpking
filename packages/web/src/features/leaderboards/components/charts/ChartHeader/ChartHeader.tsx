@@ -1,4 +1,4 @@
-import { Badge, Group, Text } from '@mantine/core';
+import { Anchor, Badge, Group, Text } from '@mantine/core';
 import qs from 'query-string';
 import { FaYoutube } from 'react-icons/fa';
 import { NavLink } from 'react-router-dom';
@@ -29,9 +29,14 @@ export const ChartHeader = ({ chart, children = null }: ChartHeaderProps): JSX.E
     <div className={css.songHeader}>
       <ChartLabel type={chartType} level={chartLevel ?? '?'} />
       <div className={css.songName}>
-        <NavLink to={routes.leaderboard.sharedChart.getPath({ sharedChartId: chart.id })}>
+        <Anchor
+          size="xl"
+          fw="bold"
+          component={NavLink}
+          to={routes.leaderboard.sharedChart.getPath({ sharedChartId: chart.id })}
+        >
           {chart.songName}
-        </NavLink>{' '}
+        </Anchor>{' '}
         <Text component="span" c="dimmed">
           {chart.difficulty ? `(${chart.difficulty.toFixed(1)}) ` : ''}
         </Text>

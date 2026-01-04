@@ -230,6 +230,19 @@ export const en = {
   PAD_MISS_DESC: 'When you are held back from a perfect score only by misses due to bad pads',
   WEEK_LONG_TRAINING: 'Dedication',
   WEEK_LONG_TRAINING_DESC: 'Play at least one chart every day for a week',
+
+  // Admin
+  ADMIN_PANEL: 'Admin Panel',
+  DELETE_RESULT: 'Delete result',
+  DELETE_RESULT_CONFIRM:
+    'Are you sure you want to delete this result? This action cannot be undone.',
+  CAN_ADD_RESULTS_MANUALLY: 'Can add results manually',
+  ENABLED: 'Enabled',
+  DISABLED: 'Disabled',
+  REGION: 'Region',
+  TELEGRAM_TAG: 'Telegram tag',
+  TELEGRAM_ID: 'Telegram ID',
+  HIDDEN_PLAYER: 'Hidden player',
   // Using "any" is totally okay in "satisfies" assertions
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
 } satisfies Record<string, React.ReactNode | ((...args: any[]) => React.ReactNode)>;

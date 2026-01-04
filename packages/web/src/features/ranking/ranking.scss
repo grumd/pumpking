@@ -135,13 +135,6 @@
         display: flex;
         flex-flow: row nowrap;
         align-items: center;
-        > .flag-img {
-          margin-right: 7px;
-          margin-bottom: 6px;
-          opacity: 1;
-          width: 22px;
-          height: 16px;
-        }
       }
     }
     &.rating {

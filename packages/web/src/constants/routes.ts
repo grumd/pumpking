@@ -20,9 +20,6 @@ export const routes = {
   },
   ranking: {
     path: `/ranking`,
-    faq: {
-      path: '/ranking/faq',
-    },
   },
   tournaments: {
     path: `/tournaments`,

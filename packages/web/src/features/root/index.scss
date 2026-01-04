@@ -51,6 +51,10 @@ body {
     -moz-appearance: textfield;
   }
 
+  table {
+    border-spacing: 0;
+  }
+
   button {
     &.btn-dark {
       background-color: #444;
@@ -152,6 +156,7 @@ body {
     margin: 0;
   }
 }
+
 #root {
   height: 100%;
   width: 100%;

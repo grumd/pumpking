@@ -1,8 +1,8 @@
-import { Badge, MantineProvider, createTheme } from '@mantine/core';
+import { Anchor, Badge, MantineProvider, Switch, createTheme } from '@mantine/core';
 import '@mantine/core/styles.css';
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import { QueryClientProvider } from '@tanstack/react-query';
-import { HashRouter } from 'react-router-dom';
+import { HashRouter, NavLink } from 'react-router-dom';
 
 import Root from 'features/root/Root';
 
@@ -26,6 +26,17 @@ const theme = createTheme({
         pl: '0.5em',
         pr: '0.5em',
         radius: 'sm',
+      },
+    }),
+    Switch: Switch.extend({
+      defaultProps: {
+        withThumbIndicator: false,
+        color: 'teal',
+      },
+    }),
+    Anchor: Anchor.extend({
+      defaultProps: {
+        // component: NavLink,
       },
     }),
   },

@@ -1,4 +1,5 @@
 import { createContext } from './context';
+import { admin } from './routes/admin';
 import { auth } from './routes/auth';
 import { charts } from './routes/charts';
 import { players } from './routes/players';
@@ -10,6 +11,7 @@ import type { inferRouterInputs, inferRouterOutputs } from '@trpc/server';
 import { createExpressMiddleware } from '@trpc/server/adapters/express';
 
 const appRouter = router({
+  admin,
   auth,
   user,
   players,

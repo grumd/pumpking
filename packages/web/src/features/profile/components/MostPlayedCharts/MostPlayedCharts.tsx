@@ -1,4 +1,4 @@
-import { Button, Flex, SimpleGrid, Text } from '@mantine/core';
+import { Anchor, Button, Flex, SimpleGrid, Text } from '@mantine/core';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { FaPlay } from 'react-icons/fa';
 import { MdExpandMore } from 'react-icons/md';
@@ -45,13 +45,14 @@ export const MostPlayedCharts = (): JSX.Element => {
                 ) : (
                   <span>{item.label}</span>
                 )}
-                <NavLink
+                <Anchor
+                  component={NavLink}
                   to={routes.leaderboard.sharedChart.getPath({
                     sharedChartId: item.shared_chart,
                   })}
                 >
                   {item.full_name}
-                </NavLink>
+                </Anchor>
                 <Text lh="1" c="grey" fz="xs" pr="2em">
                   {getLongTimeAgo(lang, new Date(item.latestDate))}
                 </Text>

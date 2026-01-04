@@ -15,7 +15,7 @@ export const usePreferencesMutation = (): UseMutationResult<
     api.user.preferencesMutation.mutationOptions({
       onSuccess: (newUser) => {
         queryClient.setQueryData(api.user.current.queryKey(), newUser);
-        queryClient.invalidateQueries({ queryKey: api.charts.search.queryKey() });
+        queryClient.invalidateQueries(api.charts.search.infiniteQueryFilter());
       },
     })
   );

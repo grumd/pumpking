@@ -201,4 +201,17 @@ export const ua = {
   PAD_MISS_DESC: 'Коли від ідеального скора тебе утримують тільки міси через поганий моддинг падів',
   WEEK_LONG_TRAINING: 'Старанність',
   WEEK_LONG_TRAINING_DESC: 'Зіграти хоча б один чарт 7 днів поспіль',
+
+  // Admin
+  ADMIN_PANEL: 'Адмін панель',
+  DELETE_RESULT: 'Видалити результат',
+  DELETE_RESULT_CONFIRM:
+    'Ви впевнені, що хочете видалити цей результат? Цю дію неможливо скасувати.',
+  CAN_ADD_RESULTS_MANUALLY: 'Може додавати результати вручну',
+  ENABLED: 'Увімкнено',
+  DISABLED: 'Вимкнено',
+  REGION: 'Регіон',
+  TELEGRAM_TAG: 'Телеграм тег',
+  TELEGRAM_ID: 'Телеграм ID',
+  HIDDEN_PLAYER: 'Схований гравець',
 } satisfies BaseTranslation;

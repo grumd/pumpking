@@ -1,11 +1,11 @@
 import React, { useContext } from 'react';
 
-import { en, ru, ua } from 'constants/translations';
+import { en, pl, ru, ua } from 'constants/translations';
 
 console.log('navigator.languages = ', navigator.languages.join(', '));
 
-let translation = en;
-let language: 'en' | 'ua' | 'ru' = 'en';
+let translation = pl;
+let language: 'en' | 'ua' | 'ru' | 'pl' = 'pl';
 
 for (const lang of navigator.languages) {
   if (/^uk\b/.test(lang)) {
@@ -18,6 +18,11 @@ for (const lang of navigator.languages) {
     language = 'ru';
     break;
   }
+  if (/^pl\b/.test(lang)) {
+    translation = pl;
+    language = 'pl';
+    break;
+  }
   if (/^en\b/.test(lang)) {
     translation = en;
     language = 'en';
@@ -25,7 +30,7 @@ for (const lang of navigator.languages) {
   }
 }
 
-const Language = React.createContext(en);
+const Language = React.createContext(translation);
 Language.displayName = 'Language';
 
 export const useLanguage = () => {

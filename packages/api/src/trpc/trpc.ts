@@ -56,3 +56,13 @@ const t = initTRPC.context<Context>().create({
  */
 export const router = t.router;
 export const publicProcedure = t.procedure;
+
+/**
+ * Admin procedure - requires user to be logged in and have is_admin=1
+ */
+export const adminProcedure = t.procedure.use(async ({ ctx, next }) => {
+  if (!ctx.user?.is_admin) {
+    throw new TRPCError({ code: 'UNAUTHORIZED', message: 'Admin access required' });
+  }
+  return next({ ctx: { user: ctx.user } });
+});

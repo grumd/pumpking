@@ -1,4 +1,4 @@
-import { Button } from '@mantine/core';
+import { Anchor, Button } from '@mantine/core';
 import { useQuery } from '@tanstack/react-query';
 import { NavLink } from 'react-router-dom';
 
@@ -21,20 +21,30 @@ export default function TopBar() {
       <nav>
         <ul>
           <li>
-            <NavLink to={routes.leaderboard.path}>{lang.LEADERBOARDS}</NavLink>
+            <Anchor fw="bold" size="xl" component={NavLink} to={routes.leaderboard.path}>
+              {lang.LEADERBOARDS}
+            </Anchor>
           </li>
           <li>
-            <NavLink to={routes.ranking.path}>{lang.RANKING}</NavLink>
+            <Anchor fw="bold" size="xl" component={NavLink} to={routes.ranking.path}>
+              {lang.RANKING}
+            </Anchor>
           </li>
           <li>
-            <NavLink to={routes.songs.path}>{lang.SONGS}</NavLink>
+            <Anchor fw="bold" size="xl" component={NavLink} to={routes.songs.path}>
+              {lang.SONGS}
+            </Anchor>
           </li>
         </ul>
       </nav>
       <div className="login-container">
-        <NavLink className="player-info" to={routes.profile.getPath({ id: user?.id })}>
+        <Anchor
+          component={NavLink}
+          className="player-info"
+          to={routes.profile.getPath({ id: user?.id })}
+        >
           {user?.nickname ?? ''}
-        </NavLink>
+        </Anchor>
         <Button size="xs" onClick={logout} disabled={isLoadingLogout || isLoadingUser}>
           {lang.LOGOUT}
         </Button>

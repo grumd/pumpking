@@ -1,4 +1,4 @@
-import { Alert } from '@mantine/core';
+import { Alert, Button, FileInput, Select, Stack, Text, TextInput, Title } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
@@ -23,6 +23,34 @@ import { compressFile } from './components/add-result/compressFile';
 import { getDateFromFile } from './components/add-result/getDate';
 import { useSingleChartQuery } from './hooks/useSingleChartQuery';
 
+const GRADE_OPTIONS = [
+  { value: 'SSS', label: 'SSS' },
+  { value: 'SS', label: 'SS' },
+  { value: 'S', label: 'S' },
+  { value: 'A+', label: 'A+' },
+  { value: 'A', label: 'A' },
+  { value: 'B', label: 'B' },
+  { value: 'C', label: 'C' },
+  { value: 'D', label: 'D' },
+  { value: 'F', label: 'F' },
+  { value: 'B+', label: 'B+' },
+  { value: 'C+', label: 'C+' },
+  { value: 'D+', label: 'D+' },
+  { value: 'F+', label: 'F+' },
+];
+
+const MIX_OPTIONS = [
+  { value: 'XX', label: 'XX' },
+  { value: 'Prime2', label: 'Prime 2' },
+  { value: 'Prime', label: 'Prime' },
+];
+
+const MOD_OPTIONS = [
+  { value: '', label: 'No mods' },
+  { value: 'VJ', label: 'Rank (VJ)' },
+  { value: 'HJ', label: 'HJ' },
+];
+
 interface AddResultFormData {
   screenshot: File | null;
   grade: string;
@@ -46,8 +74,8 @@ const AddResult = () => {
   const addResultMutation = useMutation(
     api.results.addResultMutation.mutationOptions({
       onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: api.charts.chart.queryKey() });
-        queryClient.invalidateQueries({ queryKey: api.charts.search.queryKey() });
+        queryClient.invalidateQueries(api.charts.chart.queryFilter());
+        queryClient.invalidateQueries(api.charts.search.infiniteQueryFilter());
       },
     })
   );
@@ -203,84 +231,77 @@ const AddResult = () => {
           </div>
         ),
       })}
-      <h2>Submit a result</h2>
-      <p>Chart: {label}</p>
-      <form onSubmit={form.onSubmit(onSubmit)} className={css.addResultForm}>
-        <label>
-          <span>Screenshot *</span>
-          <input
-            className={`${css.fileInput} form-control`}
-            type="file"
-            onChange={(e) => form.setFieldValue('screenshot', e.target.files?.[0] ?? null)}
+      <Title order={2} mb="xs">
+        Submit a result
+      </Title>
+      <Text mb="md">Chart: {label}</Text>
+      <form onSubmit={form.onSubmit(onSubmit)}>
+        <Stack gap="sm">
+          <FileInput
+            label="Screenshot"
+            placeholder="Select screenshot"
+            accept="image/*"
+            withAsterisk
+            {...form.getInputProps('screenshot')}
           />
-        </label>
-        {selectedScreenshot?.name.toLowerCase().endsWith('.heic') && (
-          <p>HEIC files are not supported. Please convert your screenshot to JPG or PNG.</p>
-        )}
-        {selectedScreenshot && <ScreenshotPreview showDate file={selectedScreenshot} />}
-        <label>
-          <span>Grade *</span>
-          <select className="form-control" {...form.getInputProps('grade')}>
-            <option value="" disabled hidden>
-              (select a grade)
-            </option>
-            <option value="SSS">SSS</option>
-            <option value="SS">SS</option>
-            <option value="S">S</option>
-            <option value="A+">A+</option>
-            <option value="A">A</option>
-            <option value="B">B</option>
-            <option value="C">C</option>
-            <option value="D">D</option>
-            <option value="F">F</option>
-            <option value="B+">B+</option>
-            <option value="C+">C+</option>
-            <option value="D+">D+</option>
-            <option value="F+">F+</option>
-          </select>
-        </label>
-        {(['perfect', 'great', 'good', 'bad', 'miss', 'combo'] as const).map((field) => {
-          return (
-            <label key={field}>
-              <span>{field[0].toUpperCase() + field.slice(1)} *</span>
-              <input
-                className="form-control"
-                inputMode="numeric"
-                placeholder="000"
-                {...form.getInputProps(field)}
-              />
-            </label>
-          );
-        })}
-        <label>
-          <span>Score *</span>
-          <input
-            className="form-control"
-            inputMode="numeric"
+          {selectedScreenshot?.name.toLowerCase().endsWith('.heic') && (
+            <Text c="red" size="sm">
+              HEIC files are not supported. Please convert your screenshot to JPG or PNG.
+            </Text>
+          )}
+          {selectedScreenshot && <ScreenshotPreview showDate file={selectedScreenshot} />}
+
+          <Select
+            label="Grade"
+            placeholder="Select a grade"
+            data={GRADE_OPTIONS}
+            withAsterisk
+            {...form.getInputProps('grade')}
+          />
+
+          {(['perfect', 'great', 'good', 'bad', 'miss', 'combo'] as const).map((field) => (
+            <TextInput
+              key={field}
+              label={field[0].toUpperCase() + field.slice(1)}
+              placeholder="000"
+              inputMode="numeric"
+              withAsterisk
+              {...form.getInputProps(field)}
+            />
+          ))}
+
+          <TextInput
+            label="Score"
             placeholder="000000"
+            inputMode="numeric"
+            withAsterisk
             {...form.getInputProps('score')}
           />
-        </label>
-        <label>
-          <span>Mix *</span>
-          <select className="form-control" {...form.getInputProps('mix')}>
-            <option value="XX">XX</option>
-            <option value="Prime2">Prime 2</option>
-            <option value="Prime">Prime</option>
-          </select>
-        </label>
-        <label>
-          <span>Judge/rank *</span>
-          <select className="form-control" {...form.getInputProps('mod')}>
-            <option value="">No mods</option>
-            <option value="VJ">Rank (VJ)</option>
-            <option value="HJ">HJ</option>
-          </select>
-        </label>
-        <button disabled={isUploading || !form.isValid()} className="btn btn-dark" type="submit">
-          {isUploading ? 'Loading...' : 'Submit'}
-        </button>
-        {error instanceof Error ? <div className="alert alert-danger">{error.message}</div> : null}
+
+          <Select
+            label="Mix"
+            data={MIX_OPTIONS}
+            withAsterisk
+            {...form.getInputProps('mix')}
+          />
+
+          <Select
+            label="Judge/rank"
+            data={MOD_OPTIONS}
+            withAsterisk
+            {...form.getInputProps('mod')}
+          />
+
+          <Button type="submit" loading={isUploading} disabled={!form.isValid()}>
+            Submit
+          </Button>
+
+          {error instanceof Error && (
+            <Alert color="red" variant="light">
+              {error.message}
+            </Alert>
+          )}
+        </Stack>
       </form>
     </div>
   );
