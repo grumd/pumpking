@@ -178,8 +178,10 @@ export const SearchForm = (): JSX.Element => {
   return (
     <form onSubmit={form.onSubmit(onSubmit)}>
       <Stack gap="sm">
-        <Group gap="md" grow>
+        <Flex gap="md" wrap="wrap" rowGap="xxs">
           <TextInputWithReset
+            miw={300}
+            flex={1}
             label={lang.SONG_NAME_LABEL}
             placeholder={lang.SONG_NAME_PLACEHOLDER}
             classNames={{
@@ -189,17 +191,19 @@ export const SearchForm = (): JSX.Element => {
             {...form.getInputProps('songName')}
           />
           <MultiSelect
+            flex={1}
             label={lang.MIXES_LABEL}
             checkIconPosition="left"
             data={mixOptions}
             {...form.getInputProps('mixes')}
           />
           <Select
+            flex={1}
             label={lang.SCORING_LABEL}
             data={scoringOptions}
             {...form.getInputProps('scoring')}
           />
-        </Group>
+        </Flex>
         <CollapsibleBar
           buttonClassName={isFiltersChanged ? css.highlight : ''}
           title={lang.FILTERS}

@@ -12,6 +12,20 @@ import { queryClient } from 'utils/trpc';
 const theme = createTheme({
   autoContrast: true,
   primaryColor: 'gray',
+  breakpoints: {
+    xs: '30em',
+    sm: '48em',
+    md: '64em',
+    lg: '74em',
+    xl: '90em',
+  },
+  lineHeights: {
+    xs: '1.2',
+    sm: '1.3',
+    md: '1.4',
+    lg: '1.5',
+    xl: '1.6',
+  },
   spacing: {
     xxs: '0.25rem',
     xs: '0.625rem',
