@@ -1,15 +1,13 @@
 import type { IArea } from '@bmunozg/react-image-area';
 
 /**
- * Crops an image to the selected area and returns a base64 data URL
- * @param displayedWidth - The width of the image as displayed on screen
- * @param displayedHeight - The height of the image as displayed on screen
+ * Crops a selected area from a square image and returns a base64 data URL.
+ * @param displayedSize - The size of the square image as displayed on screen
  */
-export const cropImageToBase64 = (
+export const cropAreaToDataUrl = (
   imageSrc: string,
   area: IArea,
-  displayedWidth: number,
-  displayedHeight: number
+  displayedSize: number
 ): Promise<string> => {
   return new Promise((resolve, reject) => {
     const img = new Image();
@@ -22,25 +20,17 @@ export const cropImageToBase64 = (
         return;
       }
 
-      // Scale coordinates from displayed size to actual image size
-      const scaleX = img.naturalWidth / displayedWidth;
-      const scaleY = img.naturalHeight / displayedHeight;
+      // Scale coordinates from displayed size to natural size
+      const scale = img.naturalWidth / displayedSize;
 
-      const scaledX = area.x * scaleX;
-      const scaledY = area.y * scaleY;
-      const scaledWidth = area.width * scaleX;
-      const scaledHeight = area.height * scaleY;
+      const scaledX = area.x * scale;
+      const scaledY = area.y * scale;
+      const scaledWidth = area.width * scale;
+      const scaledHeight = area.height * scale;
 
-      // Set canvas size to the cropped area dimensions (at original resolution)
       canvas.width = scaledWidth;
       canvas.height = scaledHeight;
 
-      console.log({
-        scaledWidth,
-        scaledHeight,
-      });
-
-      // Draw the cropped portion of the image
       ctx.drawImage(
         img,
         scaledX,
@@ -53,15 +43,10 @@ export const cropImageToBase64 = (
         scaledHeight
       );
 
-      // Convert to base64 (JPEG for smaller size)
-      const base64 = canvas.toDataURL('image/jpeg', 0.9);
-      resolve(base64);
+      resolve(canvas.toDataURL('image/jpeg', 0.95));
     };
 
-    img.onerror = () => {
-      reject(new Error('Failed to load image'));
-    };
-
+    img.onerror = () => reject(new Error('Failed to load image'));
     img.src = imageSrc;
   });
 };

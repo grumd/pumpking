@@ -24,13 +24,13 @@ export const ChartHeader = ({ chart, children = null }: ChartHeaderProps): JSX.E
   const [chartType, chartLevel] = labelToTypeLevel(chart.label);
 
   return (
-    <Group p="xs" bdrs="xl" gap="sm" align="center">
+    <Group p="xs" bdrs="xl" gap="sm" align="center" wrap="nowrap">
       <ChartLabel type={chartType} level={chartLevel ?? '?'} />
       <Anchor
-        flex="1 1 0"
         size="xl"
         lh="xs"
         fw="bold"
+        style={{ textOverflow: 'ellipsis', overflow: 'hidden' }}
         component={NavLink}
         to={routes.leaderboard.sharedChart.getPath({ sharedChartId: chart.id })}
       >

@@ -9,18 +9,18 @@ import { useNavigate, useParams } from 'react-router-dom';
 import css from './components/add-result/add-result.module.scss';
 
 import { useConfirmationPopup } from 'components/ConfirmationPopup/useConfirmationPopup';
+import Loader from 'components/Loader/Loader';
 
 import { routes } from 'constants/routes';
 
 import { useUser } from 'hooks/useUser';
 
-import { toBase64 } from 'utils/base64';
 import { useLanguage } from 'utils/context/translation';
 import { api } from 'utils/trpc';
 
-import { ScreenshotPreview } from './components/add-result/ScreenshotPreview';
-import { compressFile } from './components/add-result/compressFile';
-import { getDateFromFile } from './components/add-result/getDate';
+import { ScreenshotRecognition } from './components/add-result/ScreenshotRecognition';
+import { compressDataUrl } from './components/add-result/compressFile';
+import { useProcessedImage } from './components/add-result/useProcessedImage';
 import { useSingleChartQuery } from './hooks/useSingleChartQuery';
 
 const GRADE_OPTIONS = [
@@ -121,11 +121,17 @@ const AddResult = () => {
       score: (value) => (!value || value.length < 4 ? lang.SCORE_REQUIRED_MIN_DIGITS : null),
     },
   });
+
   const selectedScreenshot = form.values.screenshot;
+  const {
+    processedImage,
+    isProcessing,
+    error: processingError,
+  } = useProcessedImage(selectedScreenshot);
   const formData = form.values;
 
   const onSubmit = async ({ screenshot, ...rawData }: AddResultFormData) => {
-    if (!playerId || !sharedChartId || !screenshot) {
+    if (!playerId || !sharedChartId || !screenshot || !processedImage) {
       return;
     }
     try {
@@ -139,9 +145,7 @@ const AddResult = () => {
     setError(null);
 
     try {
-      // compress image
-      const compressedFile = await compressFile(screenshot);
-      const dateFromFile = await getDateFromFile(screenshot);
+      const compressedScreenshot = await compressDataUrl(processedImage.squareDataUrl);
 
       const data = {
         grade: rawData.grade,
@@ -154,10 +158,10 @@ const AddResult = () => {
         score: Number(rawData.score),
         mix: rawData.mix,
         mod: rawData.mod,
-        screenshot: await toBase64(compressedFile),
+        screenshot: compressedScreenshot,
         fileName: screenshot.name,
-        date: dateFromFile || new Date(),
-        isExactDate: !!dateFromFile,
+        date: processedImage.date || new Date(),
+        isExactDate: !!processedImage.date,
         sharedChartId: Number(sharedChartId),
         playerId,
       };
@@ -198,7 +202,13 @@ const AddResult = () => {
           <div className={css.confirmation}>
             <div className={css.splitPanels}>
               <div className={css.screenshotPanel}>
-                {selectedScreenshot && <ScreenshotPreview file={selectedScreenshot} />}
+                {processedImage && (
+                  <img
+                    src={processedImage.squareDataUrl}
+                    alt="Screenshot"
+                    style={{ maxWidth: '100%', maxHeight: 270 }}
+                  />
+                )}
               </div>
               <div className={css.formPanel}>
                 <div className={css.chartName}>{label}</div>
@@ -233,7 +243,9 @@ const AddResult = () => {
       <Title order={2} mb="xs">
         {lang.SUBMIT_RESULT}
       </Title>
-      <Text mb="md">{lang.CHART}: {label}</Text>
+      <Text mb="md">
+        {lang.CHART}: {label}
+      </Text>
       <form onSubmit={form.onSubmit(onSubmit)}>
         <Stack gap="sm">
           <FileInput
@@ -248,12 +260,18 @@ const AddResult = () => {
               {lang.HEIC_NOT_SUPPORTED}
             </Text>
           )}
-          {selectedScreenshot && (
+          {isProcessing && <Loader />}
+          {processingError && (
+            <Text c="red" size="sm">
+              {lang.ERROR}: {processingError}
+            </Text>
+          )}
+          {processedImage && (
             <>
-              <ScreenshotPreview
+              <ScreenshotRecognition
                 showDate
-                enableOcr
-                file={selectedScreenshot}
+                squareDataUrl={processedImage.squareDataUrl}
+                date={processedImage.date}
                 onScoreRecognized={(score) => {
                   if (score.perfect >= 0) form.setFieldValue('perfect', String(score.perfect));
                   if (score.great >= 0) form.setFieldValue('great', String(score.great));

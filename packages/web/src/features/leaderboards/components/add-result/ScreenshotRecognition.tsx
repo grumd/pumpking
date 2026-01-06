@@ -1,16 +1,15 @@
 import { AreaSelector, type IArea } from '@bmunozg/react-image-area';
-import { Alert, Button, Group, Stack, Text } from '@mantine/core';
+import { Alert, Button, Group, Popover, Stack, Text } from '@mantine/core';
 import { useMutation } from '@tanstack/react-query';
 import imageCompression from 'browser-image-compression';
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 
 import { useLanguage } from 'utils/context/translation';
 import { api } from 'utils/trpc';
 
-import { cropImageToBase64 } from './cropImage';
-import { getDateFromFile } from './getDate';
+import { cropAreaToDataUrl } from './cropImage';
 
-interface RecognizedScore {
+export interface RecognizedScore {
   perfect: number;
   great: number;
   good: number;
@@ -20,66 +19,44 @@ interface RecognizedScore {
   score: number;
 }
 
-export const ScreenshotPreview = ({
-  file,
-  showDate,
-  enableOcr,
-  onScoreRecognized,
-}: {
-  file: File | null;
+interface ScreenshotRecognitionProps {
+  squareDataUrl: string;
+  date?: Date | null;
   showDate?: boolean;
-  enableOcr?: boolean;
   onScoreRecognized?: (score: RecognizedScore) => void;
-}) => {
+}
+
+export const ScreenshotRecognition = ({
+  squareDataUrl,
+  date,
+  showDate,
+  onScoreRecognized,
+}: ScreenshotRecognitionProps) => {
   const lang = useLanguage();
-  const [src, setSrc] = useState<string | null>(null);
-  const [date, setDate] = useState<Date | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [areas, setAreas] = useState<IArea[]>([]);
   const [recognizedNumbers, setRecognizedNumbers] = useState<number[] | null>(null);
+  // const [croppedPreview, setCroppedPreview] = useState<string | null>(null);
   const imgRef = useRef<HTMLImageElement>(null);
+  const [isCropping, setIsCropping] = useState(false);
 
   const recognizeScoreMutation = useMutation(api.results.recognizeScoreMutation.mutationOptions());
 
-  useEffect(() => {
-    if (!FileReader) {
-      setError('FileReader not supported');
-      return;
-    }
-
-    if (file) {
-      try {
-        const fr = new FileReader();
-        fr.onload = async () => {
-          const dataUrl = fr.result;
-          if (typeof dataUrl !== 'string') throw new Error('Invalid file');
-
-          setSrc(dataUrl);
-          const date = await getDateFromFile(dataUrl);
-          setError(null);
-          setDate(date);
-        };
-        fr.readAsDataURL(file);
-      } catch (e: unknown) {
-        e instanceof Error && setError(e.message);
-      }
-    } else {
-      setSrc(null);
-      setDate(null);
-      setError(null);
-      setAreas([]);
-      setRecognizedNumbers(null);
-    }
-  }, [file]);
+  // useEffect(() => {
+  //   if (areas.length === 0 || !imgRef.current) return undefined;
+  //   const area = areas[0];
+  //   const displayedSize = imgRef.current.clientWidth;
+  //   cropAreaToDataUrl(squareDataUrl, area, displayedSize).then((t) => setCroppedPreview(t));
+  // }, [squareDataUrl, areas]);
 
   const handleRecognizeScore = async () => {
-    if (!src || areas.length === 0 || !imgRef.current) return;
+    if (areas.length === 0 || !imgRef.current) return;
 
     try {
       setError(null);
-      const displayedWidth = imgRef.current.clientWidth;
-      const displayedHeight = imgRef.current.clientHeight;
-      const croppedImage = await cropImageToBase64(src, areas[0], displayedWidth, displayedHeight);
+      setIsCropping(true);
+      const displayedSize = imgRef.current.clientWidth;
+      const croppedImage = await cropAreaToDataUrl(squareDataUrl, areas[0], displayedSize);
 
       // Compress the cropped image before sending for recognition
       const croppedFile = await imageCompression.getFilefromDataUrl(croppedImage, 'cropped.png');
@@ -87,9 +64,6 @@ export const ScreenshotPreview = ({
         maxWidthOrHeight: 360,
         maxSizeMB: 0.03,
         initialQuality: 0.9,
-        // maxWidthOrHeight: 360,
-        // maxSizeMB: 0.032,
-        // initialQuality: 0.95,
       });
       const compressedImage = await imageCompression.getDataUrlFromFile(compressedFile);
 
@@ -101,6 +75,8 @@ export const ScreenshotPreview = ({
     } catch (e) {
       console.error('OCR error:', e);
       setError(e instanceof Error ? e.message : 'Recognition failed');
+    } finally {
+      setIsCropping(false);
     }
   };
 
@@ -126,8 +102,6 @@ export const ScreenshotPreview = ({
     setRecognizedNumbers(null);
   };
 
-  if (!src) return null;
-
   return (
     <Stack gap="xs">
       {showDate && (
@@ -135,38 +109,56 @@ export const ScreenshotPreview = ({
           {lang.DATE_TAKEN}: {date ? date.toLocaleString() : lang.UNKNOWN}
         </Text>
       )}
-      {enableOcr ? (
-        <AreaSelector
-          areas={areas}
-          onChange={setAreas}
-          maxAreas={1}
-          wrapperStyle={{ maxWidth: '100%' }}
-        >
-          <img
-            ref={imgRef}
-            style={{ maxHeight: 400, maxWidth: '100%', objectFit: 'contain' }}
-            src={src}
-            alt="Screenshot preview"
-          />
-        </AreaSelector>
-      ) : (
+
+      <AreaSelector
+        areas={areas}
+        onChange={setAreas}
+        maxAreas={1}
+        globalAreaStyle={{
+          border: '1.5px solid rgba(0, 0, 0, 0.7)',
+          outline: '1.5px solid rgba(255, 255, 128, 0.7)',
+        }}
+      >
         <img
-          style={{ maxHeight: 270, maxWidth: '100%', objectFit: 'contain' }}
-          src={src}
+          ref={imgRef}
+          style={{ maxWidth: '100%' }}
+          src={squareDataUrl}
           alt="Screenshot preview"
         />
-      )}
+      </AreaSelector>
 
-      {enableOcr && !recognizedNumbers && (
+      {/* {croppedPreview && <img src={croppedPreview} alt="Cropped preview" />} */}
+
+      {!recognizedNumbers && (
         <>
-          <Text size="xs" c="dimmed">
-            {areas.length === 0 ? lang.OCR_DRAW_RECTANGLE_HINT : lang.OCR_AREA_SELECTED_HINT}
-          </Text>
+          {areas.length === 0 ? (
+            <Alert color="yellow" p="sm">
+              {lang.OCR_DRAW_RECTANGLE_HINT}
+              <div>
+                <Popover>
+                  <Popover.Target>
+                    <Button size="xs" color="blue" onClick={handleRecognizeScore}>
+                      Tutorial
+                    </Button>
+                  </Popover.Target>
+                  <Popover.Dropdown>
+                    <video width="244" height="294" autoPlay loop muted>
+                      <source src="crop_example.mp4" type="video/mp4" />
+                    </video>
+                  </Popover.Dropdown>
+                </Popover>
+              </div>
+            </Alert>
+          ) : (
+            <Text size="xs" c="dimmed">
+              {lang.OCR_AREA_SELECTED_HINT}
+            </Text>
+          )}
           <Button
             size="sm"
             variant="light"
             disabled={areas.length === 0}
-            loading={recognizeScoreMutation.isPending}
+            loading={recognizeScoreMutation.isPending || isCropping}
             onClick={handleRecognizeScore}
           >
             {lang.RECOGNIZE_SCORE}

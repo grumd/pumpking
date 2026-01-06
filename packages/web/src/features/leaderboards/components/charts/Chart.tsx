@@ -94,6 +94,7 @@ const Chart = memo(function _Chart({ chart }: { chart: ChartApiOutput }) {
       <ChartHeader chart={chart}>
         {hiddenResultsCount > 0 && (
           <ActionIcon
+            ml="auto"
             variant="subtle"
             aria-label="Show all"
             onClick={() => setShowHidden(!showHidden)}
