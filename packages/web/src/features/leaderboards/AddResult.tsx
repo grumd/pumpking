@@ -92,7 +92,7 @@ const AddResult = () => {
   const [isUploading, setUploading] = useState(false);
 
   const { renderPopup, confirm } = useConfirmationPopup({
-    okText: 'Submit',
+    okText: lang.SUBMIT,
   });
 
   const form = useForm<AddResultFormData>({
@@ -110,15 +110,15 @@ const AddResult = () => {
       mod: '',
     },
     validate: {
-      screenshot: (value) => (!value ? 'Screenshot is required' : null),
-      grade: (value) => (!value ? 'Grade is required' : null),
-      perfect: (value) => (!value ? 'Perfect is required' : null),
-      great: (value) => (!value ? 'Great is required' : null),
-      good: (value) => (!value ? 'Good is required' : null),
-      bad: (value) => (!value ? 'Bad is required' : null),
-      miss: (value) => (!value ? 'Miss is required' : null),
-      combo: (value) => (!value ? 'Combo is required' : null),
-      score: (value) => (!value || value.length < 4 ? 'Score is required (min 4 digits)' : null),
+      screenshot: (value) => (!value ? lang.SCREENSHOT_REQUIRED : null),
+      grade: (value) => (!value ? lang.GRADE_REQUIRED : null),
+      perfect: (value) => (!value ? lang.PERFECT_REQUIRED : null),
+      great: (value) => (!value ? lang.GREAT_REQUIRED : null),
+      good: (value) => (!value ? lang.GOOD_REQUIRED : null),
+      bad: (value) => (!value ? lang.BAD_REQUIRED : null),
+      miss: (value) => (!value ? lang.MISS_REQUIRED : null),
+      combo: (value) => (!value ? lang.COMBO_REQUIRED : null),
+      score: (value) => (!value || value.length < 4 ? lang.SCORE_REQUIRED_MIN_DIGITS : null),
     },
   });
   const selectedScreenshot = form.values.screenshot;
@@ -186,7 +186,7 @@ const AddResult = () => {
         title={lang.ERROR}
         icon={<FaExclamationCircle />}
       >
-        You don't have access to this page
+        {lang.NO_ACCESS_TO_PAGE}
       </Alert>
     );
   }
@@ -203,7 +203,7 @@ const AddResult = () => {
               <div className={css.formPanel}>
                 <div className={css.chartName}>{label}</div>
                 <div className={css.grid}>
-                  <div>Grade</div>
+                  <div>{lang.GRADE}</div>
                   <div>{formData.grade}</div>
                   <div style={{ color: '#29D7FF' }}>Perfect</div>
                   <div style={{ color: '#29D7FF' }}>{formData.perfect}</div>
@@ -219,82 +219,98 @@ const AddResult = () => {
                   <div>{formData.combo}</div>
                   <div style={{ fontWeight: 'bold', fontSize: '110%' }}>Score</div>
                   <div style={{ fontWeight: 'bold', fontSize: '110%' }}>{formData.score}</div>
-                  <div>Mods</div>
-                  <div>{formData.mod || 'None (normal mode)'}</div>
+                  <div>{lang.MODS}</div>
+                  <div>{formData.mod || lang.NONE_NORMAL_MODE}</div>
                 </div>
               </div>
             </div>
             <Alert radius="md" variant="light" color="yellow" icon={<IoIosWarning />}>
-              Submitting false results may result in a BAN. Make sure your screenshot is readable
-              and the numbers you selected are correct.
+              {lang.FALSE_RESULTS_WARNING}
             </Alert>
           </div>
         ),
       })}
       <Title order={2} mb="xs">
-        Submit a result
+        {lang.SUBMIT_RESULT}
       </Title>
-      <Text mb="md">Chart: {label}</Text>
+      <Text mb="md">{lang.CHART}: {label}</Text>
       <form onSubmit={form.onSubmit(onSubmit)}>
         <Stack gap="sm">
           <FileInput
-            label="Screenshot"
-            placeholder="Select screenshot"
+            label={lang.SCREENSHOT}
+            placeholder={lang.SELECT_SCREENSHOT}
             accept="image/*"
             withAsterisk
             {...form.getInputProps('screenshot')}
           />
           {selectedScreenshot?.name.toLowerCase().endsWith('.heic') && (
             <Text c="red" size="sm">
-              HEIC files are not supported. Please convert your screenshot to JPG or PNG.
+              {lang.HEIC_NOT_SUPPORTED}
             </Text>
           )}
-          {selectedScreenshot && <ScreenshotPreview showDate file={selectedScreenshot} />}
+          {selectedScreenshot && (
+            <>
+              <ScreenshotPreview
+                showDate
+                enableOcr
+                file={selectedScreenshot}
+                onScoreRecognized={(score) => {
+                  if (score.perfect >= 0) form.setFieldValue('perfect', String(score.perfect));
+                  if (score.great >= 0) form.setFieldValue('great', String(score.great));
+                  if (score.good >= 0) form.setFieldValue('good', String(score.good));
+                  if (score.bad >= 0) form.setFieldValue('bad', String(score.bad));
+                  if (score.miss >= 0) form.setFieldValue('miss', String(score.miss));
+                  if (score.combo >= 0) form.setFieldValue('combo', String(score.combo));
+                  if (score.score >= 0) form.setFieldValue('score', String(score.score));
+                }}
+              />
 
-          <Select
-            label="Grade"
-            placeholder="Select a grade"
-            data={GRADE_OPTIONS}
-            withAsterisk
-            {...form.getInputProps('grade')}
-          />
+              <Select
+                label={lang.GRADE}
+                placeholder={lang.SELECT_GRADE}
+                data={GRADE_OPTIONS}
+                withAsterisk
+                {...form.getInputProps('grade')}
+              />
 
-          {(['perfect', 'great', 'good', 'bad', 'miss', 'combo'] as const).map((field) => (
-            <TextInput
-              key={field}
-              label={field[0].toUpperCase() + field.slice(1)}
-              placeholder="000"
-              inputMode="numeric"
-              withAsterisk
-              {...form.getInputProps(field)}
-            />
-          ))}
+              {(['perfect', 'great', 'good', 'bad', 'miss', 'combo'] as const).map((field) => (
+                <TextInput
+                  key={field}
+                  label={field[0].toUpperCase() + field.slice(1)}
+                  placeholder="000"
+                  inputMode="numeric"
+                  withAsterisk
+                  {...form.getInputProps(field)}
+                />
+              ))}
 
-          <TextInput
-            label="Score"
-            placeholder="000000"
-            inputMode="numeric"
-            withAsterisk
-            {...form.getInputProps('score')}
-          />
+              <TextInput
+                label="Score"
+                placeholder="000000"
+                inputMode="numeric"
+                withAsterisk
+                {...form.getInputProps('score')}
+              />
 
-          <Select
-            label="Mix"
-            data={MIX_OPTIONS}
-            withAsterisk
-            {...form.getInputProps('mix')}
-          />
+              <Select
+                label={lang.MIX}
+                data={MIX_OPTIONS}
+                withAsterisk
+                {...form.getInputProps('mix')}
+              />
 
-          <Select
-            label="Judge/rank"
-            data={MOD_OPTIONS}
-            withAsterisk
-            {...form.getInputProps('mod')}
-          />
+              <Select
+                label={lang.JUDGE_RANK}
+                data={MOD_OPTIONS}
+                withAsterisk
+                {...form.getInputProps('mod')}
+              />
 
-          <Button type="submit" loading={isUploading} disabled={!form.isValid()}>
-            Submit
-          </Button>
+              <Button type="submit" loading={isUploading} disabled={!form.isValid()}>
+                {lang.SUBMIT}
+              </Button>
+            </>
+          )}
 
           {error instanceof Error && (
             <Alert color="red" variant="light">
