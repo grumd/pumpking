@@ -1,5 +1,7 @@
-import { useState, useRef } from 'react';
-import { Modal, Button, Group } from '@mantine/core';
+import { Button, Group, Modal } from '@mantine/core';
+import { useRef, useState } from 'react';
+
+import { useLanguage } from 'utils/context/translation';
 
 interface UseConfirmationPopupOptions {
   okText?: string;
@@ -11,6 +13,7 @@ interface RenderPopupProps {
 
 export const useConfirmationPopup = ({ okText = 'OK' }: UseConfirmationPopupOptions = {}) => {
   const [open, setOpen] = useState(false);
+  const lang = useLanguage();
   const closeCallback = useRef<((isConfirmed: boolean) => void) | null>(null);
 
   const close = (isConfirmed: boolean) => {
@@ -36,7 +39,7 @@ export const useConfirmationPopup = ({ okText = 'OK' }: UseConfirmationPopupOpti
           {content}
           <Group justify="space-between" mt="md">
             <Button color="red" onClick={() => close(false)}>
-              Cancel
+              {lang.CANCEL}
             </Button>
             <Button color="green" onClick={() => close(true)}>
               {okText}

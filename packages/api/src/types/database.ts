@@ -157,6 +157,9 @@ export interface Players {
   can_add_results_manually: Generated<number | null>;
   arcade_name: string | null;
   exp: Decimal | null;
+  openai_prompt_tokens: Generated<number>;
+  openai_completion_tokens: Generated<number>;
+  openai_cost: Generated<Decimal>;
 }
 
 export interface PpHistory {
