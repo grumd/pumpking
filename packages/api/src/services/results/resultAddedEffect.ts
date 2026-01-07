@@ -76,7 +76,8 @@ export const resultAddedEffect = async (resultId: number) => {
       max_combo != null
     ) {
       const scorePhoenix = Math.floor(
-        (995000 * (perfects + 0.6 * greats + 0.2 * goods + 0.1 * bads) + 5000 * max_combo) /
+        (1000000 *
+          (0.995 * (perfects + 0.6 * greats + 0.2 * goods + 0.1 * bads) + 0.005 * max_combo)) /
           (perfects + greats + goods + bads + misses)
       );
 
