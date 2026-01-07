@@ -48,9 +48,10 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
             set -e
-            cd ~/pumpking-deployment/packages/api
+            cd ~/pumpking-deployment
             echo "-- Installing dependencies"
             npm ci
+            cd ~/pumpking-deployment/packages/api
             echo "-- Running migrations"
             npm run migrate:latest
             echo "-- Restarting PM2"
