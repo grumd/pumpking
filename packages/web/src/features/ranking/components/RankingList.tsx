@@ -51,12 +51,13 @@ export default function RankingList({ ranking, isLoading, preferences }: Ranking
           <tbody>
             {ranking.map((player, playerIndex) => {
               const isHidden = preferences?.playersHiddenStatus?.[player.id];
-              if (isHidden && !preferences?.showHiddenPlayersInRanking) {
+              const isRegionHidden = player.region && preferences?.hiddenRegions?.[player.region];
+              if ((isHidden || isRegionHidden) && !preferences?.showHiddenPlayersInRanking) {
                 return null;
               }
 
               return (
-                <tr className={classNames('player', { 'hidden-player': isHidden })} key={player.id}>
+                <tr className={classNames('player', { 'hidden-player': isHidden || isRegionHidden })} key={player.id}>
                   <td className="place">
                     {playerIndex === 0 ? <GiQueenCrown /> : `#${playerIndex + 1}`}
                   </td>

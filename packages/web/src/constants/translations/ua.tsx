@@ -127,6 +127,7 @@ export const ua = {
 
   HIDE_UNSELECTED: 'сховати невибраних',
   SHOW_ALL: 'показати всіх',
+  HIDE_COUNTRIES: 'сховати країни',
   RANK: 'ранк',
   LAST_TIME_PLAYED: 'востаннє грав',
   COMPARE_WITH: 'порівняти із',

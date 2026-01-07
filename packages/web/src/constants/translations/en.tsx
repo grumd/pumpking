@@ -134,6 +134,7 @@ export const en = {
 
   HIDE_UNSELECTED: 'hide unselected',
   SHOW_ALL: 'show all',
+  HIDE_COUNTRIES: 'hide countries',
   RANK: 'rank',
   LAST_TIME_PLAYED: 'last time played',
   COMPARE_WITH: 'compare with',
