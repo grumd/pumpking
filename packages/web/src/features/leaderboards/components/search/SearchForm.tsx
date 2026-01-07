@@ -170,7 +170,10 @@ export const SearchForm = (): JSX.Element => {
     (searchFilter.sortChartsBy && searchFilter.sortChartsBy !== 'date') ||
     (searchFilter.sortChartsDir && searchFilter.sortChartsDir !== 'desc');
   const isChartFilterChanged =
-    (searchFilter.labels && searchFilter.labels.length !== 3) ||
+    (searchFilter.labels &&
+      searchFilter.labels.length !== 2 &&
+      searchFilter.labels[0] === initialFilter.labels?.[0] &&
+      searchFilter.labels[1] === initialFilter.labels?.[1]) ||
     (searchFilter.durations && searchFilter.durations.length !== 4) ||
     (searchFilter.minLevel && searchFilter.minLevel !== 1) ||
     (searchFilter.maxLevel && searchFilter.maxLevel !== 28);
