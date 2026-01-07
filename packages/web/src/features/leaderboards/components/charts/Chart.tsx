@@ -2,7 +2,10 @@ import { ActionIcon } from '@mantine/core';
 import { useAtomValue } from 'jotai';
 import _ from 'lodash/fp';
 import { Fragment, memo, useState } from 'react';
-import { FaGlobeAmericas } from 'react-icons/fa';
+import { FaGlobeAmericas, FaPlusCircle } from 'react-icons/fa';
+import { NavLink } from 'react-router-dom';
+
+import { routes } from 'constants/routes';
 
 import { filterAtom } from 'features/leaderboards/hooks/useFilter';
 import { useHighlightedPlayerIds } from 'features/leaderboards/hooks/useHighlightedPlayerIds';
@@ -15,7 +18,9 @@ import Result from './Result';
 import { ResultsCollapser } from './ResultsCollapser';
 
 const Chart = memo(function _Chart({ chart }: { chart: ChartApiOutput }) {
-  const currentPlayerId = useUser().data?.id;
+  const user = useUser().data;
+  const currentPlayerId = user?.id;
+  const canAddResults = user?.can_add_results_manually;
   const filter = useAtomValue(filterAtom);
   const highlightedPlayerIds = useHighlightedPlayerIds();
   const [showHidden, setShowHidden] = useState(false);
@@ -92,9 +97,20 @@ const Chart = memo(function _Chart({ chart }: { chart: ChartApiOutput }) {
   return (
     <div className="song-block">
       <ChartHeader chart={chart}>
-        {hiddenResultsCount > 0 && (
+        {canAddResults && (
           <ActionIcon
             ml="auto"
+            variant="subtle"
+            aria-label="Add result"
+            component={NavLink}
+            to={routes.leaderboard.sharedChart.addResult.getPath({ sharedChartId: String(chart.id) })}
+          >
+            <FaPlusCircle />
+          </ActionIcon>
+        )}
+        {hiddenResultsCount > 0 && (
+          <ActionIcon
+            ml={canAddResults ? undefined : 'auto'}
             variant="subtle"
             aria-label="Show all"
             onClick={() => setShowHidden(!showHidden)}
