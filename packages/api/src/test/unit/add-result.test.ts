@@ -31,6 +31,7 @@ describe('Add new result manually', () => {
       .field('date', '2020-01-01')
       .field('isExactDate', true)
       .field('sharedChartId', 1)
+      .field('pass', true)
       .expect(400);
   });
 
@@ -52,6 +53,7 @@ describe('Add new result manually', () => {
       .field('date', '2020-01-01')
       .field('isExactDate', true)
       .field('sharedChartId', 1)
+      .field('pass', true)
       .attach('screenshot', path.join(__dirname, '../files/test.jpg'))
       .expect(400);
 
@@ -79,6 +81,7 @@ describe('Add new result manually', () => {
       .field('date', '2020-01-01')
       .field('isExactDate', true)
       .field('sharedChartId', 1)
+      .field('pass', true)
       .attach('screenshot', path.join(__dirname, '../files/test.jpg'))
       .expect(400);
 
@@ -103,6 +106,7 @@ describe('Add new result manually', () => {
       .field('date', '2020-01-01')
       .field('isExactDate', true)
       .field('sharedChartId', 1)
+      .field('pass', true)
       .attach('screenshot', path.join(__dirname, '../files/test.jpg'))
       .expect(403);
 
@@ -127,6 +131,7 @@ describe('Add new result manually', () => {
       .field('date', '2020-01-01')
       .field('isExactDate', true)
       .field('sharedChartId', 1)
+      .field('pass', true)
       .attach('screenshot', path.join(__dirname, '../files/test.jpg'))
       .expect(200);
 
@@ -151,6 +156,7 @@ describe('Add new result manually', () => {
       .field('date', '2020-01-01')
       .field('isExactDate', true)
       .field('sharedChartId', 1)
+      .field('pass', true)
       .attach('screenshot', path.join(__dirname, '../files/test.jpg'))
       .expect(200);
 
@@ -181,6 +187,7 @@ describe('Add new result manually', () => {
       .field('date', '2020-01-02')
       .field('isExactDate', true)
       .field('sharedChartId', 1)
+      .field('pass', true)
       .attach('screenshot', path.join(__dirname, '../files/test.jpg'))
       .expect(200);
 
@@ -203,6 +210,7 @@ describe('Add new result manually', () => {
       .field('date', '2020-01-03')
       .field('isExactDate', true)
       .field('sharedChartId', 1)
+      .field('pass', true)
       .attach('screenshot', path.join(__dirname, '../files/test.jpg'))
       .expect(200);
 
@@ -231,6 +239,7 @@ describe('Add new result manually', () => {
       .field('date', '2020-01-01')
       .field('isExactDate', true)
       .field('sharedChartId', 1)
+      .field('pass', true)
       .attach('screenshot', path.join(__dirname, '../files/test.jpg'))
       .expect(200);
 
@@ -267,6 +276,7 @@ describe('Add new result manually', () => {
       .field('date', '2020-01-01')
       .field('isExactDate', true)
       .field('sharedChartId', 1)
+      .field('pass', true)
       .attach('screenshot', path.join(__dirname, '../files/test.jpg'))
       .expect(200);
     await req()
@@ -286,6 +296,7 @@ describe('Add new result manually', () => {
       .field('date', '2020-01-01')
       .field('isExactDate', true)
       .field('sharedChartId', 1)
+      .field('pass', true)
       .attach('screenshot', path.join(__dirname, '../files/test.jpg'))
       .expect(200);
 
@@ -330,6 +341,7 @@ describe('Add new result manually', () => {
       .field('date', '2020-01-01')
       .field('isExactDate', true)
       .field('sharedChartId', 1)
+      .field('pass', true)
       .attach('screenshot', path.join(__dirname, '../files/test.jpg'))
       .expect(200);
 
@@ -378,6 +390,7 @@ describe('Add new result manually', () => {
       .field('date', '2020-01-01')
       .field('isExactDate', true)
       .field('sharedChartId', 1)
+      .field('pass', true)
       .attach('screenshot', path.join(__dirname, '../files/test.jpg'))
       .expect(200);
 
@@ -437,6 +450,7 @@ describe('Add new result manually', () => {
       .field('date', '2020-01-01')
       .field('isExactDate', true)
       .field('sharedChartId', 2)
+      .field('pass', true)
       .attach('screenshot', path.join(__dirname, '../files/test.jpg'))
       .expect(200);
 
@@ -520,6 +534,7 @@ describe('Add new result manually', () => {
       .field('date', '2020-01-01')
       .field('isExactDate', true)
       .field('sharedChartId', 1)
+      .field('pass', false)
       .attach('screenshot', path.join(__dirname, '../files/test.jpg'))
       .expect(200);
     await req()
@@ -539,6 +554,7 @@ describe('Add new result manually', () => {
       .field('date', '2020-01-01')
       .field('isExactDate', true)
       .field('sharedChartId', 1)
+      .field('pass', true)
       .attach('screenshot', path.join(__dirname, '../files/test.jpg'))
       .expect(200);
 
@@ -546,5 +562,33 @@ describe('Add new result manually', () => {
 
     assert.strictEqual(results[0].is_pass, 0, `First score (A) is not a pass`);
     assert.strictEqual(results[1].is_pass, 1, `Second score (S) is a pass`);
+  });
+
+  it('for XX results + is added to grades', async () => {
+    await req()
+      .post('/results/add-result')
+      .set('session', addResultsSession)
+      .field('playerId', 7)
+      .field('grade', 'A')
+      .field('mix', 'XX')
+      .field('mod', '')
+      .field('score', 800000)
+      .field('perfect', 90)
+      .field('great', 5)
+      .field('good', 0)
+      .field('bad', 0)
+      .field('miss', 5)
+      .field('combo', 50)
+      .field('date', '2020-01-01')
+      .field('isExactDate', true)
+      .field('sharedChartId', 1)
+      .field('pass', true)
+      .attach('screenshot', path.join(__dirname, '../files/test.jpg'))
+      .expect(200);
+
+    const results = await db.selectFrom('results').selectAll().where('player_id', '=', 7).execute();
+
+    assert.strictEqual(results[0].is_pass, 1, `Score is a pass`);
+    assert.strictEqual(results[0].grade, 'A+', `Grade is A+`);
   });
 });

@@ -28,6 +28,7 @@ const MultipartResultData = z.object({
   date: date,
   isExactDate: boolean,
   sharedChartId: number,
+  pass: boolean,
 });
 
 export const addResultController = async (
