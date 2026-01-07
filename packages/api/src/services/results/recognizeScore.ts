@@ -1,6 +1,8 @@
+import { MIXES } from 'constants/mixes';
 import createDebug from 'debug';
 import fs from 'fs';
 import OpenAI from 'openai';
+import { Response } from 'openai/resources/responses/responses';
 import { error } from 'utils';
 
 const debug = createDebug('backend-ts:service:recognizeScore');
@@ -17,7 +19,10 @@ export interface RecognizeScoreResult {
   completionTokens: number;
 }
 
-export const recognizeScore = async (imagePath: string): Promise<RecognizeScoreResult> => {
+export const recognizeScore = async (
+  imagePath: string,
+  mix: keyof typeof MIXES
+): Promise<RecognizeScoreResult> => {
   if (!process.env.OPENAI_API_KEY || !openai) {
     throw error(500, 'OpenAI API key is not configured');
   }
@@ -31,14 +36,19 @@ export const recognizeScore = async (imagePath: string): Promise<RecognizeScoreR
 
   debug('Sending image to OpenAI for score recognition, size: %d bytes', imageBuffer.length);
 
-  const response = await openai.chat.completions.create({
+  const response: Response = await openai.responses.create({
     model: 'gpt-5-mini',
-    reasoning_effort: 'minimal',
-    response_format: {
-      type: 'json_schema',
-      json_schema: {
+    reasoning: {
+      effort: 'minimal',
+    },
+    text: {
+      format: {
         name: 'score_numbers_array',
-        description: 'An array of 8 numbers extracted from the game result screen',
+        type: 'json_schema',
+        description:
+          mix === 'Phoenix'
+            ? 'An array of 7 numbers extracted from the game result screen'
+            : 'An array of 8 numbers extracted from the game result screen',
         strict: true,
         schema: {
           type: 'object',
@@ -48,48 +58,48 @@ export const recognizeScore = async (imagePath: string): Promise<RecognizeScoreR
             numbers: {
               type: 'array',
               items: { type: 'number' },
-              minItems: 8,
-              maxItems: 8,
+              ...(mix === 'Phoenix' ? { minItems: 7, maxItems: 7 } : { minItems: 8, maxItems: 8 }),
             },
           },
         },
       },
     },
-    messages: [
+    input: [
+      { role: 'system', content: 'You are an AI OCR tool for recognizing numbers from images.' },
       {
         role: 'user',
         content: [
           {
-            type: 'text',
-            text: `Extract the vertically lined up white numbers from the photo according to the schema provided. One number per line, some numbers may have leading zeroes. All zeroes have a dot in the middle.`,
+            type: 'input_text',
+            text:
+              mix === 'Phoenix'
+                ? `Extract the vertically lined up white numbers from the photo according to the provided schema. One number per line, some numbers may have leading zeroes. All zeroes have a dot in the middle.`
+                : `Extract the vertically lined up white numbers from the photo according to the provided schema. One number per line, some numbers may have leading zeroes.`,
           },
           {
-            type: 'image_url',
-            image_url: {
-              url: `data:${mimeType};base64,${base64Image}`,
-              detail: 'high',
-            },
+            type: 'input_image',
+            detail: 'high',
+            image_url: `data:${mimeType};base64,${base64Image}`,
           },
         ],
       },
     ],
   });
 
-  const content = response.choices[0]?.message?.content;
-  debug('OpenAI response: %s', JSON.stringify(response));
+  const content = response.output_text;
 
   if (!content) {
     throw error(500, 'No response from OpenAI');
   }
 
-  const promptTokens = response.usage?.prompt_tokens ?? 0;
-  const completionTokens = response.usage?.completion_tokens ?? 0;
+  const promptTokens = response.usage?.input_tokens ?? 0;
+  const completionTokens = response.usage?.output_tokens ?? 0;
 
   try {
     const parsed = JSON.parse(content) as { numbers: number[] };
 
-    if (!Array.isArray(parsed.numbers) || parsed.numbers.length !== 8) {
-      throw new Error('Invalid response format: expected 8 numbers');
+    if (!Array.isArray(parsed.numbers)) {
+      throw new Error('Invalid OpenAI response: expected array of numbers');
     }
 
     return {

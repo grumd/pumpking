@@ -1,15 +1,10 @@
-import { Alert, Button } from '@mantine/core';
-import { FaExclamationCircle, FaInfoCircle, FaPlusCircle } from 'react-icons/fa';
+import { Alert } from '@mantine/core';
+import { FaExclamationCircle, FaInfoCircle } from 'react-icons/fa';
 import { useParams } from 'react-router';
-import { NavLink } from 'react-router-dom';
 
 import './components/charts/leaderboard.scss';
 
 import Loader from 'components/Loader/Loader';
-
-import { routes } from 'constants/routes';
-
-import { useUser } from 'hooks/useUser';
 
 import { useLanguage } from 'utils/context/translation';
 
@@ -18,7 +13,6 @@ import { useSingleChartQuery } from './hooks/useSingleChartQuery';
 
 const LeaderboardsChartsList = (): JSX.Element => {
   const params = useParams();
-  const user = useUser();
   const chart = useSingleChartQuery({
     sharedChartId: params.sharedChartId ? Number(params.sharedChartId) : 0,
   });
@@ -31,22 +25,6 @@ const LeaderboardsChartsList = (): JSX.Element => {
   return (
     <div className="leaderboard-page">
       <div className="content">
-        <div className="simple-search">
-          {user.data?.can_add_results_manually && params.sharedChartId ? (
-            <Button
-              component={NavLink}
-              to={routes.leaderboard.sharedChart.addResult.getPath({
-                sharedChartId: params.sharedChartId,
-              })}
-              size="xs"
-              ml="auto"
-              disabled={chart.isLoading}
-              leftSection={<FaPlusCircle />}
-            >
-              {lang.ADD_RESULT}
-            </Button>
-          ) : null}
-        </div>
         <div className="top-list">
           {chart.isError ? (
             <Alert

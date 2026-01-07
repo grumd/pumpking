@@ -1,3 +1,4 @@
+import type { MIXES } from '@/api/constants/mixes';
 import { AreaSelector, type IArea } from '@bmunozg/react-image-area';
 import { Alert, Button, Group, Popover, Stack, Text } from '@mantine/core';
 import { useMutation } from '@tanstack/react-query';
@@ -24,11 +25,13 @@ interface ScreenshotRecognitionProps {
   date?: Date | null;
   showDate?: boolean;
   onScoreRecognized?: (score: RecognizedScore) => void;
+  mix: keyof typeof MIXES;
 }
 
 export const ScreenshotRecognition = ({
   squareDataUrl,
   date,
+  mix,
   showDate,
   onScoreRecognized,
 }: ScreenshotRecognitionProps) => {
@@ -69,6 +72,7 @@ export const ScreenshotRecognition = ({
 
       const numbers = await recognizeScoreMutation.mutateAsync({
         image: compressedImage,
+        mix,
       });
 
       setRecognizedNumbers(numbers);

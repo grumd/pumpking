@@ -10,7 +10,7 @@ export const addResultMutation = publicProcedure
       fileName: z.string(),
       playerId: z.number(),
       grade: z.string(),
-      mix: z.enum(['XX', 'Prime2', 'Prime']),
+      mix: z.enum(['Phoenix', 'XX', 'Prime2', 'Prime']),
       mod: z.enum(['VJ', 'HJ', '']),
       score: z.number(),
       perfect: z.number(),
@@ -22,6 +22,7 @@ export const addResultMutation = publicProcedure
       date: z.coerce.date(),
       isExactDate: z.boolean(),
       sharedChartId: z.number(),
+      pass: z.boolean(),
     })
   )
   .mutation(async ({ ctx, input }) => {

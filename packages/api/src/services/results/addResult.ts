@@ -1,3 +1,4 @@
+import { MIXES } from 'constants/mixes';
 import { db } from 'db';
 import createDebug from 'debug';
 import fs from 'fs';
@@ -10,6 +11,7 @@ import {
   getScreenshotFilePath,
   type ScreenshotFileData,
 } from 'utils/pathPatterns';
+import { getPhoenixScore } from 'utils/scoring/phoenixScore';
 
 const debug = createDebug('backend-ts:controller:results');
 
@@ -30,18 +32,11 @@ const generateToken = () => {
   return token;
 };
 
-const mixIdByName = {
-  Phoenix: 27,
-  XX: 26,
-  Prime2: 25,
-  Prime: 24,
-};
-
 interface ManualResult {
   screenshotTempPath: string;
   playerId: number;
   grade: string;
-  mix: keyof typeof mixIdByName;
+  mix: keyof typeof MIXES;
   mod: 'VJ' | 'HJ' | '';
   score: number;
   perfect: number;
@@ -53,6 +48,7 @@ interface ManualResult {
   date: Date;
   isExactDate: boolean;
   sharedChartId: number;
+  pass: boolean;
 }
 
 export const addResult = async (userId: number, result: ManualResult) => {
@@ -83,7 +79,7 @@ export const addResult = async (userId: number, result: ManualResult) => {
   const chartInstance = await db
     .selectFrom('chart_instances')
     .where('shared_chart', '=', result.sharedChartId)
-    .where('mix', '=', mixIdByName[result.mix])
+    .where('mix', '=', MIXES[result.mix])
     .select([
       'id',
       'level',
@@ -146,7 +142,7 @@ export const addResult = async (userId: number, result: ManualResult) => {
       agent: -1,
       track_name: sharedChart.short_name || '',
       mix_name: result.mix,
-      mix: mixIdByName[result.mix],
+      mix: MIXES[result.mix],
       chart_label: chartInstance.label,
       shared_chart: result.sharedChartId,
       chart_instance: chartInstance.id,
@@ -163,10 +159,17 @@ export const addResult = async (userId: number, result: ManualResult) => {
       goods: result.good,
       greats: result.great,
       perfects: result.perfect,
-      grade: result.grade,
+      grade:
+        // Add a + to the grade letter for XX and earlier if not already provided (A => A+)
+        MIXES[result.mix] < MIXES.Phoenix &&
+        result.pass &&
+        ['A', 'B', 'C', 'D', 'F'].includes(result.grade)
+          ? result.grade + '+'
+          : result.grade,
       max_combo: result.combo,
       is_new_best_score: !maxScoreResult || result.score > (maxScoreResult.maxScore ?? 0) ? 1 : 0,
       is_manual_input: 1,
+      is_pass: result.pass ? 1 : 0,
     })
     .executeTakeFirst();
 
@@ -189,22 +192,42 @@ const getScoreError = (
 ): string | null => {
   const { score, perfect, great, good, bad, miss, combo } = result;
 
-  if (score < 0 || score % 100 !== 0) {
-    return 'Invalid score';
-  }
+  // XX AND EARLIER CHECKS
+  if (MIXES[result.mix] < MIXES.Phoenix) {
+    // Score must be multiples of 100
+    if (score < 0 || score % 100 !== 0) {
+      return 'Invalid score';
+    }
 
-  const minScore = 1000 * perfect + 500 * great + 100 * good - 200 * bad - 500 * miss;
-  if (score < minScore) {
-    return 'Score is lower than minimum possible';
-  }
+    // Rough check for min score
+    const minScore = 1000 * perfect + 500 * great + 100 * good - 200 * bad - 500 * miss;
+    if (score < minScore) {
+      return 'Score is lower than minimum possible';
+    }
 
-  if (chart.max_possible_score_norank) {
-    // Just a rough estimate of a max score to catch mistakes in the input
-    const maxScore = 1.5 * chart.max_possible_score_norank * (result.mod === 'VJ' ? 1.2 : 1);
-    if (score > maxScore) {
-      return 'Score is higher than maximum possible';
+    // Rough estimate of a max score to catch mistakes in the input
+    if (chart.max_possible_score_norank) {
+      const maxScore = 1.5 * chart.max_possible_score_norank * (result.mod === 'VJ' ? 1.2 : 1);
+      if (score > maxScore) {
+        return 'Score is higher than maximum possible';
+      }
+    }
+
+    // Rough SS check
+    if (result.grade.startsWith('SS') && combo !== perfect + great) {
+      return 'Combo is not equal to perfect + great with SS or SSS';
     }
   }
+
+  // ONLY PHOENIX AND LATER CHECKS
+  if (MIXES[result.mix] >= MIXES.Phoenix) {
+    const expectedScore = getPhoenixScore({ perfect, great, good, bad, miss, combo });
+    if (score !== expectedScore) {
+      return `Score ${score} doesn't match expected score ${expectedScore} (calculated from result stats)`;
+    }
+  }
+
+  // OTHER CHECKS FOR ALL MIXES
 
   const totalSteps = perfect + great + good + bad + miss;
   if (chart.max_total_steps && totalSteps > chart.max_total_steps) {
@@ -216,9 +239,6 @@ const getScoreError = (
 
   if (combo > 0 && perfect > 0 && great > 0 && combo > perfect + great) {
     return 'Combo is higher than perfect + great';
-  }
-  if (result.grade.startsWith('SS') && combo !== perfect + great) {
-    return 'Combo is not equal to perfect + great with SS or SSS';
   }
 
   return null;

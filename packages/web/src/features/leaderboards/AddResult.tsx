@@ -1,7 +1,18 @@
-import { Alert, Button, FileInput, Select, Stack, Text, TextInput, Title } from '@mantine/core';
+import {
+  Alert,
+  Button,
+  Checkbox,
+  FileInput,
+  Select,
+  Stack,
+  Text,
+  TextInput,
+  Title,
+} from '@mantine/core';
 import { useForm } from '@mantine/form';
+import { useLocalStorage } from '@mantine/hooks';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { FaExclamationCircle } from 'react-icons/fa';
 import { IoIosWarning } from 'react-icons/io';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -27,19 +38,34 @@ const GRADE_OPTIONS = [
   { value: 'SSS', label: 'SSS' },
   { value: 'SS', label: 'SS' },
   { value: 'S', label: 'S' },
+  { value: 'A', label: 'A' },
+  { value: 'B', label: 'B' },
+  { value: 'C', label: 'C' },
+  { value: 'D', label: 'D' },
+  { value: 'F', label: 'F' },
+];
+
+const GRADE_OPTIONS_PHOENIX = [
+  { value: 'SSS+', label: 'SSS+' },
+  { value: 'SSS', label: 'SSS' },
+  { value: 'SS+', label: 'SS+' },
+  { value: 'SS', label: 'SS' },
+  { value: 'S+', label: 'S+' },
+  { value: 'S', label: 'S' },
+  { value: 'AAA+', label: 'AAA+' },
+  { value: 'AAA', label: 'AAA' },
+  { value: 'AA+', label: 'AA+' },
+  { value: 'AA', label: 'AA' },
   { value: 'A+', label: 'A+' },
   { value: 'A', label: 'A' },
   { value: 'B', label: 'B' },
   { value: 'C', label: 'C' },
   { value: 'D', label: 'D' },
   { value: 'F', label: 'F' },
-  { value: 'B+', label: 'B+' },
-  { value: 'C+', label: 'C+' },
-  { value: 'D+', label: 'D+' },
-  { value: 'F+', label: 'F+' },
 ];
 
 const MIX_OPTIONS = [
+  { value: 'Phoenix', label: 'Phoenix' },
   { value: 'XX', label: 'XX' },
   { value: 'Prime2', label: 'Prime 2' },
   { value: 'Prime', label: 'Prime' },
@@ -53,7 +79,7 @@ const MOD_OPTIONS = [
 
 interface AddResultFormData {
   screenshot: File | null;
-  grade: string;
+  grade: string | null;
   perfect: string;
   great: string;
   good: string;
@@ -61,8 +87,9 @@ interface AddResultFormData {
   miss: string;
   combo: string;
   score: string;
-  mix: 'XX' | 'Prime2' | 'Prime';
+  mix: 'Phoenix' | 'XX' | 'Prime2' | 'Prime' | null;
   mod: '' | 'VJ' | 'HJ';
+  pass: boolean;
 }
 
 const AddResult = () => {
@@ -71,6 +98,10 @@ const AddResult = () => {
   const { sharedChartId } = useParams();
   const user = useUser();
   const queryClient = useQueryClient();
+  const [storedMix, setStoredMix] = useLocalStorage<AddResultFormData['mix']>({
+    key: 'addResult_lastMix',
+  });
+
   const addResultMutation = useMutation(
     api.results.addResultMutation.mutationOptions({
       onSuccess: () => {
@@ -98,7 +129,7 @@ const AddResult = () => {
   const form = useForm<AddResultFormData>({
     initialValues: {
       screenshot: null,
-      grade: '',
+      grade: null,
       perfect: '',
       great: '',
       good: '',
@@ -106,8 +137,9 @@ const AddResult = () => {
       miss: '',
       combo: '',
       score: '',
-      mix: 'XX',
+      mix: null,
       mod: '',
+      pass: false,
     },
     validate: {
       screenshot: (value) => (!value ? lang.SCREENSHOT_REQUIRED : null),
@@ -120,7 +152,19 @@ const AddResult = () => {
       combo: (value) => (!value ? lang.COMBO_REQUIRED : null),
       score: (value) => (!value || value.length < 4 ? lang.SCORE_REQUIRED_MIN_DIGITS : null),
     },
+    onValuesChange: (values, previous) => {
+      if (values.mix && values.mix !== previous.mix) {
+        setStoredMix(values.mix);
+        form.setFieldValue('grade', null);
+      }
+    },
   });
+
+  useEffect(() => {
+    if (!form.values.mix && storedMix) {
+      form.setFieldValue('mix', storedMix);
+    }
+  }, [form.values.mix, storedMix, setStoredMix, form]);
 
   const selectedScreenshot = form.values.screenshot;
   const {
@@ -131,7 +175,14 @@ const AddResult = () => {
   const formData = form.values;
 
   const onSubmit = async ({ screenshot, ...rawData }: AddResultFormData) => {
-    if (!playerId || !sharedChartId || !screenshot || !processedImage) {
+    if (
+      !playerId ||
+      !sharedChartId ||
+      !screenshot ||
+      !processedImage ||
+      !rawData.mix ||
+      !rawData.grade
+    ) {
       return;
     }
     try {
@@ -148,6 +199,7 @@ const AddResult = () => {
       const compressedScreenshot = await compressDataUrl(processedImage.squareDataUrl);
 
       const data = {
+        pass: rawData.pass,
         grade: rawData.grade,
         perfect: Number(rawData.perfect),
         great: Number(rawData.great),
@@ -248,6 +300,13 @@ const AddResult = () => {
       </Text>
       <form onSubmit={form.onSubmit(onSubmit)}>
         <Stack gap="sm">
+          <Select
+            clearable={false}
+            label={lang.MIX}
+            data={MIX_OPTIONS}
+            withAsterisk
+            {...form.getInputProps('mix')}
+          />
           <FileInput
             label={lang.SCREENSHOT}
             placeholder={lang.SELECT_SCREENSHOT}
@@ -266,12 +325,13 @@ const AddResult = () => {
               {lang.ERROR}: {processingError}
             </Text>
           )}
-          {processedImage && (
+          {processedImage && form.values.mix ? (
             <>
               <ScreenshotRecognition
                 showDate
                 squareDataUrl={processedImage.squareDataUrl}
                 date={processedImage.date}
+                mix={form.values.mix}
                 onScoreRecognized={(score) => {
                   if (score.perfect >= 0) form.setFieldValue('perfect', String(score.perfect));
                   if (score.great >= 0) form.setFieldValue('great', String(score.great));
@@ -284,12 +344,15 @@ const AddResult = () => {
               />
 
               <Select
+                clearable={false}
                 label={lang.GRADE}
                 placeholder={lang.SELECT_GRADE}
-                data={GRADE_OPTIONS}
+                data={form.values.mix === 'Phoenix' ? GRADE_OPTIONS_PHOENIX : GRADE_OPTIONS}
                 withAsterisk
                 {...form.getInputProps('grade')}
               />
+
+              <Checkbox label="Pass" checked={form.values.pass} {...form.getInputProps('pass')} />
 
               {(['perfect', 'great', 'good', 'bad', 'miss', 'combo'] as const).map((field) => (
                 <TextInput
@@ -311,13 +374,7 @@ const AddResult = () => {
               />
 
               <Select
-                label={lang.MIX}
-                data={MIX_OPTIONS}
-                withAsterisk
-                {...form.getInputProps('mix')}
-              />
-
-              <Select
+                clearable={false}
                 label={lang.JUDGE_RANK}
                 data={MOD_OPTIONS}
                 withAsterisk
@@ -328,7 +385,7 @@ const AddResult = () => {
                 {lang.SUBMIT}
               </Button>
             </>
-          )}
+          ) : null}
 
           {error instanceof Error && (
             <Alert color="red" variant="light">
