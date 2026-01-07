@@ -1,9 +1,9 @@
 import { addResult } from 'services/results/addResult';
-import { publicProcedure } from 'trpc/trpc';
+import { addResultProcedure } from 'trpc/trpc';
 import { base64 } from 'utils/zod';
 import { z } from 'zod';
 
-export const addResultMutation = publicProcedure
+export const addResultMutation = addResultProcedure
   .input(
     z.object({
       screenshot: base64,

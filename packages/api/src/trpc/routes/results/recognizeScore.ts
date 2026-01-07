@@ -1,12 +1,12 @@
 import { db } from 'db';
 import { sql } from 'kysely';
 import { recognizeScore } from 'services/results/recognizeScore';
-import { publicProcedure } from 'trpc/trpc';
+import { addResultProcedure } from 'trpc/trpc';
 import { getPhoenixScore } from 'utils/scoring/phoenixScore';
 import { base64 } from 'utils/zod';
 import { z } from 'zod';
 
-export const recognizeScoreMutation = publicProcedure
+export const recognizeScoreMutation = addResultProcedure
   .input(
     z.object({
       image: base64,

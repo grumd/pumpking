@@ -76,3 +76,10 @@ export const devProcedure = t.procedure.use(async ({ next }) => {
   }
   return next();
 });
+
+export const addResultProcedure = t.procedure.use(async ({ ctx, next }) => {
+  if (!ctx.user?.can_add_results_manually) {
+    throw new TRPCError({ code: 'UNAUTHORIZED', message: 'No access, contact an admin' });
+  }
+  return next({ ctx: { user: ctx.user } });
+});
