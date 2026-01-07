@@ -40,6 +40,7 @@ const theme = createTheme({
         pl: '0.5em',
         pr: '0.5em',
         radius: 'sm',
+        lh: 1,
       },
     }),
     Switch: Switch.extend({

@@ -173,25 +173,6 @@
         justify-content: flex-end;
       }
     }
-    &.change {
-      > .change-holder {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        &.up {
-          color: #4ebb4e;
-        }
-        &.down {
-          color: #d66161;
-        }
-        &.text {
-          color: #5cb8e6;
-        }
-        > span {
-          line-height: 100%;
-        }
-      }
-    }
   }
 }
 

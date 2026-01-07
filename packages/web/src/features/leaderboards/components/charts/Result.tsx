@@ -1,14 +1,4 @@
-import {
-  Alert,
-  Anchor,
-  Badge,
-  Box,
-  Button,
-  Group,
-  Popover,
-  Text,
-  Tooltip,
-} from '@mantine/core';
+import { Alert, Anchor, Badge, Box, Button, Group, Popover, Text, Tooltip } from '@mantine/core';
 import classNames from 'classnames';
 import { useAtomValue } from 'jotai';
 import { FaAngleDoubleUp, FaExclamationTriangle, FaTrash } from 'react-icons/fa';
@@ -128,21 +118,21 @@ const Result = ({ result, chart }: { result: ResultExtended; chart: ChartApiOutp
       >
         <Group gap="xxs" align="center">
           {result.region ? <Flag region={result.region} size="sm" /> : null}
-          <Text style={{ flex: '1 1 0', textOverflow: 'ellipsis', overflow: 'hidden' }}>
+          <Text size="sm" style={{ flex: '1 1 0', textOverflow: 'ellipsis', overflow: 'hidden' }}>
             {playerRoute ? (
               <Anchor component={Link} to={playerRoute} size="sm">
                 {result.playerName}
               </Anchor>
             ) : (
-              <Text size="sm">{result.playerName}</Text>
+              <span>{result.playerName}</span>
+            )}
+            {!!result.placeDifference && (
+              <Text component="span" ml="xxs">
+                <FaAngleDoubleUp style={{ paddingTop: '0.3em', width: '0.8em' }} />
+                {result.placeDifference}
+              </Text>
             )}
           </Text>
-          {!!result.placeDifference && (
-            <span className="change-holder up">
-              <span>{result.placeDifference}</span>
-              <FaAngleDoubleUp />
-            </span>
-          )}
           {(DEBUG || (isSortedByPp && result.highlightIndex >= 0)) && (
             <span className="debug-elo-info"> {result.pp && `${result.pp}pp`}</span>
           )}
@@ -201,11 +191,12 @@ const Result = ({ result, chart }: { result: ResultExtended; chart: ChartApiOutp
                 <Text component="dd" m={0} size="sm">
                   {playerRoute ? (
                     <Anchor component={Link} to={playerRoute}>
-                      {result.playerName} ({result.playerNameArcade})
+                      {result.playerName}
+                      {result.playerNameArcade ? ` (${result.playerNameArcade})` : null}
                     </Anchor>
-                  ) : (
-                    `${result.playerName} (${result.playerNameArcade})`
-                  )}
+                  ) : `${result.playerName}` + result.playerNameArcade ? (
+                    ` (${result.playerNameArcade})`
+                  ) : null}
                 </Text>
 
                 {result.exp ? (

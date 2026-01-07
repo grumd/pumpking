@@ -23,6 +23,8 @@ export const MixPlate = ({ mix }: MixPlateProps): JSX.Element | null => {
   }
 
   return isMixNumber(mix) && scoringToMix[scoring] !== mix ? (
-    <Badge color={colorByMix[mix]}>{Mixes[mix]}</Badge>
+    <Badge size="xs" color={colorByMix[mix]}>
+      {Mixes[mix]}
+    </Badge>
   ) : null;
 };
