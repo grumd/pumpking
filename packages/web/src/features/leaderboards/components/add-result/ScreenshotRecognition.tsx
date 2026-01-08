@@ -153,14 +153,14 @@ export const ScreenshotRecognition = ({
       const croppedCanvas = imageDataToCanvas(croppedImageData);
       const croppedFile = await imageCompression.canvasToFile(
         croppedCanvas,
-        'image/png',
-        'cropped.png',
+        'image/webp',
+        'cropped.webp',
         new Date().getTime()
       );
       const compressedFile = await imageCompression(croppedFile, {
-        maxWidthOrHeight: 360,
-        maxSizeMB: 0.03,
-        initialQuality: 0.9,
+        maxWidthOrHeight: 340,
+        maxSizeMB: 0.015,
+        fileType: 'image/webp',
       });
       const compressedImage = await imageCompression.getDataUrlFromFile(compressedFile);
 

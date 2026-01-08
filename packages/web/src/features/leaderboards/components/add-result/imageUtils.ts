@@ -33,9 +33,10 @@ export const compressImageData = async (imageData: ImageData): Promise<string> =
   const canvas = imageDataToCanvas(imageData);
   const file = await imageCompression.canvasToFile(canvas, 'image/jpeg', 'image.jpg', 0.95);
   const compressed = await imageCompression(file, {
-    maxWidthOrHeight: 1200,
+    maxWidthOrHeight: 1000,
     maxSizeMB: 0.1,
-    initialQuality: 0.8,
+    initialQuality: 0.9,
+    fileType: 'image/webp',
   });
   return imageCompression.getDataUrlFromFile(compressed);
 };
