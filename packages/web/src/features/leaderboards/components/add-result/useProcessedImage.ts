@@ -1,53 +1,43 @@
 import { useEffect, useState } from 'react';
 
-import { getDateFromFile } from './getDate';
+import { getDateFromFile } from './imageUtils';
 
 export interface ProcessedImage {
-  squareDataUrl: string;
+  imageData: ImageData;
+  naturalSize: number;
   date: Date | null;
 }
 
+interface CropResult {
+  imageData: ImageData;
+  naturalSize: number;
+}
+
 /**
- * Crops an image to a centered square and returns as dataUrl
+ * Crops an image to a centered square and returns ImageData
+ * Uses createImageBitmap for efficient off-main-thread decoding
  */
-const cropToSquare = (imageSrc: string): Promise<string> => {
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    img.onload = () => {
-      const size = Math.min(img.naturalWidth, img.naturalHeight);
-      const x = (img.naturalWidth - size) / 2;
-      const y = (img.naturalHeight - size) / 2;
+const cropToSquare = async (file: File): Promise<CropResult> => {
+  const bitmap = await createImageBitmap(file);
 
-      const canvas = document.createElement('canvas');
-      canvas.width = size;
-      canvas.height = size;
-      const ctx = canvas.getContext('2d');
-      if (!ctx) {
-        reject(new Error('Could not get canvas context'));
-        return;
-      }
+  const size = Math.min(bitmap.width, bitmap.height);
+  const x = (bitmap.width - size) / 2;
+  const y = (bitmap.height - size) / 2;
 
-      ctx.drawImage(img, x, y, size, size, 0, 0, size, size);
-      resolve(canvas.toDataURL('image/jpeg', 0.95));
-    };
-    img.onerror = () => reject(new Error('Failed to load image'));
-    img.src = imageSrc;
-  });
-};
+  const canvas = document.createElement('canvas');
+  canvas.width = size;
+  canvas.height = size;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) {
+    bitmap.close();
+    throw new Error('Could not get canvas context');
+  }
 
-const fileToDataUrl = (file: File): Promise<string> => {
-  return new Promise((resolve, reject) => {
-    const fr = new FileReader();
-    fr.onload = () => {
-      if (typeof fr.result === 'string') {
-        resolve(fr.result);
-      } else {
-        reject(new Error('Invalid file'));
-      }
-    };
-    fr.onerror = () => reject(new Error('Failed to read file'));
-    fr.readAsDataURL(file);
-  });
+  ctx.drawImage(bitmap, x, y, size, size, 0, 0, size, size);
+  bitmap.close();
+
+  const imageData = ctx.getImageData(0, 0, size, size);
+  return { imageData, naturalSize: size };
 };
 
 interface UseProcessedImageResult {
@@ -73,13 +63,13 @@ export const useProcessedImage = (file: File | null): UseProcessedImageResult =>
       setError(null);
 
       try {
-        const originalDataUrl = await fileToDataUrl(file);
-        const [squareDataUrl, date] = await Promise.all([
-          cropToSquare(originalDataUrl),
-          getDateFromFile(originalDataUrl),
-        ]);
+        const [cropResult, date] = await Promise.all([cropToSquare(file), getDateFromFile(file)]);
 
-        setProcessedImage({ squareDataUrl, date });
+        setProcessedImage({
+          imageData: cropResult.imageData,
+          naturalSize: cropResult.naturalSize,
+          date,
+        });
       } catch (e) {
         setError(e instanceof Error ? e.message : 'Failed to process image');
         setProcessedImage(null);

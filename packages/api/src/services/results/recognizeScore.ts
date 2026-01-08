@@ -73,8 +73,8 @@ export const recognizeScore = async (
             type: 'input_text',
             text:
               mix === 'Phoenix'
-                ? `Extract the vertically lined up white numbers from the photo according to the provided schema. One number per line, some numbers may have leading zeroes. All zeroes have a dot in the middle.`
-                : `Extract the vertically lined up white numbers from the photo according to the provided schema. One number per line, some numbers may have leading zeroes.`,
+                ? `Extract the vertically lined up numbers from the processed photo according to the provided schema. One number per line, some numbers may have leading zeroes. All zeroes have a dot in the middle.`
+                : `Extract the vertically lined up numbers from the processed photo according to the provided schema. One number per line, some numbers may have leading zeroes.`,
           },
           {
             type: 'input_image',
