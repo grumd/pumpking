@@ -15,7 +15,7 @@ import { RegistrationPage } from 'features/login/Registration';
 
 import { useUser } from 'hooks/useUser';
 
-const LazyAddResult = React.lazy(() => import('../leaderboards/AddResult'));
+const LazyAddResult = React.lazy(() => import('../leaderboards/components/add-result/AddResult'));
 const LazySingleChartLeaderboard = React.lazy(
   () => import('../leaderboards/LeaderboardsSingleChart')
 );

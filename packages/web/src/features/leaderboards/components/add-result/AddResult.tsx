@@ -17,7 +17,7 @@ import { FaExclamationCircle } from 'react-icons/fa';
 import { IoIosWarning } from 'react-icons/io';
 import { useNavigate, useParams } from 'react-router-dom';
 
-import css from './components/add-result/add-result.module.scss';
+import css from './add-result.module.scss';
 
 import { useConfirmationPopup } from 'components/ConfirmationPopup/useConfirmationPopup';
 import Loader from 'components/Loader/Loader';
@@ -29,10 +29,11 @@ import { useUser } from 'hooks/useUser';
 import { useLanguage } from 'utils/context/translation';
 import { api } from 'utils/trpc';
 
-import { ScreenshotRecognition } from './components/add-result/ScreenshotRecognition';
-import { compressDataUrl } from './components/add-result/compressFile';
-import { useProcessedImage } from './components/add-result/useProcessedImage';
-import { useSingleChartQuery } from './hooks/useSingleChartQuery';
+import { useSingleChartQuery } from '../../hooks/useSingleChartQuery';
+import { ImageDataPreview } from './ImageDataPreview';
+import { ScreenshotRecognition } from './ScreenshotRecognition';
+import { compressImageData } from './imageUtils';
+import { useProcessedImage } from './useProcessedImage';
 
 const GRADE_OPTIONS = [
   { value: 'SSS', label: 'SSS' },
@@ -196,7 +197,7 @@ const AddResult = () => {
     setError(null);
 
     try {
-      const compressedScreenshot = await compressDataUrl(processedImage.squareDataUrl);
+      const compressedScreenshot = await compressImageData(processedImage.imageData);
 
       const data = {
         pass: rawData.pass,
@@ -255,9 +256,8 @@ const AddResult = () => {
             <div className={css.splitPanels}>
               <div className={css.screenshotPanel}>
                 {processedImage && (
-                  <img
-                    src={processedImage.squareDataUrl}
-                    alt="Screenshot"
+                  <ImageDataPreview
+                    imageData={processedImage.imageData}
                     style={{ maxWidth: '100%', maxHeight: 270 }}
                   />
                 )}
@@ -329,7 +329,8 @@ const AddResult = () => {
             <>
               <ScreenshotRecognition
                 showDate
-                squareDataUrl={processedImage.squareDataUrl}
+                imageData={processedImage.imageData}
+                naturalSize={processedImage.naturalSize}
                 date={processedImage.date}
                 mix={form.values.mix}
                 onScoreRecognized={(score) => {
