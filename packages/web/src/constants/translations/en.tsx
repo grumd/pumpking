@@ -276,6 +276,30 @@ export const en = {
   TELEGRAM_TAG: 'Telegram tag',
   TELEGRAM_ID: 'Telegram ID',
   HIDDEN_PLAYER: 'Hidden player',
+
+  // Login / Registration
+  SIGN_IN_WITH_DISCORD: 'Sign in with Discord',
+  SIGN_UP_WITH_DISCORD: 'Sign up with Discord',
+  CREATE_NEW_ACCOUNT: 'Create a new account',
+  ALREADY_HAVE_ACCOUNT: 'Already have an account? Login',
+  VERIFYING_DISCORD: 'Verifying Discord account...',
+  SIGNING_IN_DISCORD: 'Signing in with Discord...',
+  NO_DISCORD_CODE: 'No authorization code received from Discord',
+  BACK_TO_REGISTRATION: 'Back to registration',
+  BACK_TO_LOGIN: 'Back to login',
+  CREATE_YOUR_ACCOUNT: 'Create your account',
+  EMAIL_LABEL: 'Email:',
+  NICKNAME: 'Nickname',
+  NICKNAME_PLACEHOLDER: 'Your display name',
+  REGION_SELECT_PLACEHOLDER: 'Select your country',
+  ARCADE_NAME_LABEL: 'Arcade Name (optional)',
+  ARCADE_NAME_PLACEHOLDER: 'Your in-game name on AMPASS',
+  REGISTER: 'Register',
+  VALIDATION_SELECT_COUNTRY: 'Please select a valid country',
+  VALIDATION_NICKNAME_REQUIRED: 'Nickname is required',
+  VALIDATION_NICKNAME_MIN: 'Nickname must be at least 2 characters',
+  VALIDATION_NICKNAME_MAX: 'Nickname must be at most 32 characters',
+  VALIDATION_ARCADE_NAME_MAX: 'Arcade name must be at most 64 characters',
   // Using "any" is totally okay in "satisfies" assertions
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
 } satisfies Record<string, React.ReactNode | ((...args: any[]) => React.ReactNode)>;

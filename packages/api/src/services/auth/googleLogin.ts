@@ -3,6 +3,7 @@ import { db } from 'db';
 import createDebug from 'debug';
 import { OAuth2Client } from 'google-auth-library';
 import { StatusError } from 'utils/errors';
+import { generateSessionId } from 'utils/session';
 
 const debug = createDebug('backend-ts:auth');
 
@@ -51,10 +52,6 @@ export function verifyRegistrationToken(token: string): string {
     if (e instanceof StatusError) throw e;
     throw new StatusError(400, 'Invalid registration token format');
   }
-}
-
-function generateSessionId(): string {
-  return crypto.randomBytes(16).toString('hex');
 }
 
 export async function loginWithGoogleCredential(credential: string): Promise<{ session: string }> {

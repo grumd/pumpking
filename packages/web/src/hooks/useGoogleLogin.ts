@@ -5,7 +5,7 @@ import { useState } from 'react';
 
 import { api } from 'utils/trpc';
 
-export const useLogin = () => {
+export const useGoogleLogin = () => {
   const [error, setError] = useState<string | null>(null);
   const queryClient = useQueryClient();
 

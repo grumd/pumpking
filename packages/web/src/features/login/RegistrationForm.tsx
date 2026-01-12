@@ -8,6 +8,8 @@ import { Flag } from 'components/Flag/Flag';
 
 import { useRegister } from 'hooks/useRegister';
 
+import { useLanguage } from 'utils/context/translation';
+
 interface RegistrationFormProps {
   email: string;
   registrationToken: string;
@@ -38,6 +40,7 @@ const renderCountryOption = ({ option }: { option: ComboboxItem }) => (
 );
 
 export function RegistrationForm({ email, registrationToken }: RegistrationFormProps) {
+  const lang = useLanguage();
   const { register, isLoading, error } = useRegister();
 
   const form = useForm<FormValues>({
@@ -49,18 +52,18 @@ export function RegistrationForm({ email, registrationToken }: RegistrationFormP
     validate: {
       region: (value) => {
         if (!COUNTRY_OPTIONS.some((option) => option.value === value)) {
-          return 'Please select a valid country';
+          return lang.VALIDATION_SELECT_COUNTRY;
         }
         return null;
       },
       nickname: (value) => {
-        if (!value.trim()) return 'Nickname is required';
-        if (value.trim().length < 2) return 'Nickname must be at least 2 characters';
-        if (value.trim().length > 32) return 'Nickname must be at most 32 characters';
+        if (!value.trim()) return lang.VALIDATION_NICKNAME_REQUIRED;
+        if (value.trim().length < 2) return lang.VALIDATION_NICKNAME_MIN;
+        if (value.trim().length > 32) return lang.VALIDATION_NICKNAME_MAX;
         return null;
       },
       arcadeName: (value) => {
-        if (value.trim().length > 64) return 'Arcade name must be at most 64 characters';
+        if (value.trim().length > 64) return lang.VALIDATION_ARCADE_NAME_MAX;
         return null;
       },
     },
@@ -79,23 +82,23 @@ export function RegistrationForm({ email, registrationToken }: RegistrationFormP
     <div className="registration-form">
       <h1 className="site-name">pumpking</h1>
       <Text size="lg" fw={500} mb="md">
-        Create your account
+        {lang.CREATE_YOUR_ACCOUNT}
       </Text>
       <Text size="sm" c="dimmed" mb="lg">
-        Email: {email}
+        {lang.EMAIL_LABEL} {email}
       </Text>
 
       <form onSubmit={form.onSubmit(onSubmit)}>
         <Stack gap="md">
           <TextInput
-            label="Nickname"
-            placeholder="Your display name"
+            label={lang.NICKNAME}
+            placeholder={lang.NICKNAME_PLACEHOLDER}
             {...form.getInputProps('nickname')}
           />
 
           <Select
-            label="Region"
-            placeholder="Select your country"
+            label={lang.REGION}
+            placeholder={lang.REGION_SELECT_PLACEHOLDER}
             data={COUNTRY_OPTIONS}
             clearable
             renderOption={renderCountryOption}
@@ -103,8 +106,8 @@ export function RegistrationForm({ email, registrationToken }: RegistrationFormP
           />
 
           <TextInput
-            label="Arcade Name (optional)"
-            placeholder="Your in-game name on AMPASS"
+            label={lang.ARCADE_NAME_LABEL}
+            placeholder={lang.ARCADE_NAME_PLACEHOLDER}
             {...form.getInputProps('arcadeName')}
           />
 
@@ -115,7 +118,7 @@ export function RegistrationForm({ email, registrationToken }: RegistrationFormP
           )}
 
           <Button type="submit" loading={isLoading} fullWidth>
-            Register
+            {lang.REGISTER}
           </Button>
         </Stack>
       </form>

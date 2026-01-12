@@ -1,4 +1,5 @@
 import { devLogin as devLoginService } from 'services/auth/devLogin';
+import { getDiscordRegistrationToken, loginWithDiscordCode } from 'services/auth/discordLogin';
 import { getRegistrationToken as getRegistrationTokenService } from 'services/auth/getRegistrationToken';
 import { loginWithGoogleCredential } from 'services/auth/googleLogin';
 import { logout as logoutService } from 'services/auth/logout';
@@ -24,6 +25,28 @@ export const getRegistrationToken = publicProcedure
   )
   .mutation(({ input }) => {
     return getRegistrationTokenService(input.credential);
+  });
+
+export const loginDiscord = publicProcedure
+  .input(
+    z.object({
+      code: z.string(),
+      redirectUri: z.string(),
+    })
+  )
+  .query(({ input }) => {
+    return loginWithDiscordCode(input.code, input.redirectUri);
+  });
+
+export const getDiscordRegToken = publicProcedure
+  .input(
+    z.object({
+      code: z.string(),
+      redirectUri: z.string(),
+    })
+  )
+  .query(({ input }) => {
+    return getDiscordRegistrationToken(input.code, input.redirectUri);
   });
 
 export const register = publicProcedure
@@ -57,7 +80,9 @@ export const devLogin = devProcedure
 
 export const auth = router({
   loginGoogle,
+  loginDiscord,
   getRegistrationToken,
+  getDiscordRegToken,
   register,
   logout,
   devLogin,

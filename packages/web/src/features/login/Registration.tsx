@@ -1,13 +1,18 @@
-import { Alert, Anchor } from '@mantine/core';
+import { Alert, Anchor, Button } from '@mantine/core';
+import { type CredentialResponse, GoogleLogin } from '@react-oauth/google';
 import { useMutation } from '@tanstack/react-query';
-import { GoogleLogin, type CredentialResponse } from '@react-oauth/google';
 import { useState } from 'react';
+import { FaDiscord } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
 
+import './registration-page.scss';
+
+import { useDiscordLogin } from 'hooks/useDiscordLogin';
+
+import { useLanguage } from 'utils/context/translation';
 import { api } from 'utils/trpc';
 
 import { RegistrationForm } from './RegistrationForm';
-import './registration-page.scss';
 
 interface RegistrationData {
   email: string;
@@ -15,8 +20,11 @@ interface RegistrationData {
 }
 
 export function RegistrationPage() {
+  const lang = useLanguage();
   const [error, setError] = useState<string | null>(null);
   const [registrationData, setRegistrationData] = useState<RegistrationData | null>(null);
+
+  const discord = useDiscordLogin({ redirectTo: 'register' });
 
   const getTokenMutation = useMutation(
     api.auth.getRegistrationToken.mutationOptions({
@@ -52,20 +60,32 @@ export function RegistrationPage() {
     );
   }
 
+  const combinedError = error || discord.error;
+
   return (
     <div className="registration-page">
       <h1 className="site-name">pumpking</h1>
-      <p>Create a new account</p>
+      <p>{lang.CREATE_NEW_ACCOUNT}</p>
       <div className="google-button">
         <GoogleLogin onSuccess={onGoogleSuccess} onError={onGoogleError} />
       </div>
-      {error && (
+      {discord.isConfigured && (
+        <Button
+          onClick={discord.handleLogin}
+          loading={discord.isLoading}
+          leftSection={<FaDiscord size={20} />}
+          color="#5865F2"
+        >
+          {lang.SIGN_UP_WITH_DISCORD}
+        </Button>
+      )}
+      {combinedError && (
         <Alert color="red" variant="light" mt="md">
-          {error}
+          {combinedError}
         </Alert>
       )}
       <Anchor component={Link} to="/" mt="md" size="sm">
-        Already have an account? Login
+        {lang.ALREADY_HAVE_ACCOUNT}
       </Anchor>
     </div>
   );

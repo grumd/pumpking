@@ -2,6 +2,11 @@ export const routes = {
   register: {
     path: '/register',
   },
+  discordCallback: {
+    path: '/discord-callback/code/:code/redirect/:redirectTo',
+    getPath: (params: { code?: string; redirectTo?: 'register' | 'login' }) =>
+      `/discord-callback/code/${params.code}/redirect/${params.redirectTo}`,
+  },
   leaderboard: {
     path: `/leaderboard`,
     sharedChart: {

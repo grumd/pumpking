@@ -1,5 +1,4 @@
 import React, { Suspense } from 'react';
-import 'react-responsive-ui/style.css';
 import { Navigate, Route, Routes } from 'react-router-dom';
 
 import './Root.scss';
@@ -10,8 +9,9 @@ import TopBar from 'components/TopBar/TopBar';
 
 import { routes } from 'constants/routes';
 
-import { LoginScreen } from 'features/login/Login';
+import { DiscordCallback } from 'features/login/DiscordCallback';
 import { RegistrationPage } from 'features/login/Registration';
+import { RootRedirect } from 'features/login/RootRedirect';
 
 import { useUser } from 'hooks/useUser';
 
@@ -40,7 +40,8 @@ function Root() {
     return (
       <Routes>
         <Route path={routes.register.path} element={<RegistrationPage />} />
-        <Route path="*" element={<LoginScreen />} />
+        <Route path={routes.discordCallback.path} element={<DiscordCallback />} />
+        <Route path="*" element={<RootRedirect />} />
       </Routes>
     );
   }
@@ -62,6 +63,7 @@ function Root() {
           <Route path={routes.profile.path} element={<LazyProfileNew />} />
           <Route path={routes.songs.path} element={<LazySongsTop />} />
           {/* <Route path={routes.tournaments.path} element={<LazyTournaments />} /> */}
+          <Route path="*" element={<Navigate to={routes.leaderboard.path} />} />
         </Routes>
       </Suspense>
     </div>
