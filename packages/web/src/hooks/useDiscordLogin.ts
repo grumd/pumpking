@@ -1,7 +1,6 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import cookies from 'browser-cookies';
 import { useEffect } from 'react';
-import { useDiscordLogin as useDiscordLoginLib } from 'react-discord-login';
 
 import { api } from 'utils/trpc';
 
@@ -47,25 +46,20 @@ export const useDiscordLogin = ({ redirectTo = 'login', code }: UseDiscordLoginO
     retry: false,
   });
 
-  const { buildUrl } = useDiscordLoginLib({
-    clientId: DISCORD_CLIENT_ID,
-    redirectUri,
-    responseType: 'code',
-    scopes: ['identify', 'email'],
-  });
-
-  const handleLogin = () => {
-    const url = buildUrl();
-    window.location.href = url;
-  };
-
   const data: RegistrationTokenData | undefined = registrationQuery.data;
 
+  const discordAuthQueryParams = new URLSearchParams({
+    client_id: DISCORD_CLIENT_ID,
+    response_type: 'code',
+    scope: 'email',
+    redirect_uri: redirectUri,
+  });
+
   return {
-    handleLogin,
     isLoading: loginQuery.isLoading || registrationQuery.isLoading,
     data,
     error: loginQuery.error?.message || registrationQuery.error?.message,
     isConfigured: !!DISCORD_CLIENT_ID,
+    authUrl: `https://discord.com/oauth2/authorize?${discordAuthQueryParams.toString()}`,
   };
 };

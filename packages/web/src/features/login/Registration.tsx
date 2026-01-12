@@ -67,12 +67,15 @@ export function RegistrationPage() {
       <h1 className="site-name">pumpking</h1>
       <p>{lang.CREATE_NEW_ACCOUNT}</p>
       <div className="google-button">
-        <GoogleLogin onSuccess={onGoogleSuccess} onError={onGoogleError} />
+        {/* Hack to make the google login background transparent */}
+        <div style={{ colorScheme: 'light' }}>
+          <GoogleLogin onSuccess={onGoogleSuccess} onError={onGoogleError} />
+        </div>
       </div>
       {discord.isConfigured && (
         <Button
-          onClick={discord.handleLogin}
-          loading={discord.isLoading}
+          component="a"
+          href={discord.authUrl}
           leftSection={<FaDiscord size={20} />}
           color="#5865F2"
         >

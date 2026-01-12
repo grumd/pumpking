@@ -30,8 +30,8 @@ export function LoginScreen() {
       {discord.isConfigured && (
         <div className="login-button">
           <Button
-            onClick={discord.handleLogin}
-            loading={discord.isLoading}
+            component="a"
+            href={discord.authUrl}
             leftSection={<FaDiscord size={20} />}
             color="#5865F2"
           >
