@@ -82,9 +82,14 @@ Already fine (no change needed):
 - [x] `src/features/leaderboards/components/add-result/AddResult.tsx`: Phoenix 2 in `MIX_OPTIONS`;
       `AddResultFormData.mix` derived from `keyof typeof MIXES`; grade dropdown uses
       `MIXES[mix] >= MIXES.Phoenix`.
-- [ ] `src/hooks/useMixes.ts` still returns only `[{ id: 26 }]` (the TODO). Deferred: widening to
-      27/28 makes the `getPlayers` inner-join return a row per mix, so players with arcade names
-      in several mixes would appear duplicated in the player dropdown until the query dedupes.
+- [x] `src/hooks/useMixes.ts` **removed** (2026-09-27): the player lists no longer filter by
+      mix. `getPlayers` now returns all players, each with their *latest* arcade name (newest
+      mix) via a `row_number()` over the existing per-mix `arcade_player_names` table - no new
+      columns, works for any future mix. The `mixes` input of the `players.list` tRPC procedure
+      is gone (DevLogin updated); the dead `usePlayersOptions` export in `hooks/usePlayers.ts`
+      (shadowed by the SearchForm-local one) was deleted too. This also fixed the same flaw in
+      `getPlayersStats`: its plain DISTINCT arcade-name join emitted players with names in
+      several mixes once per name (3 affected players in the prod data).
 
 Already fine (no change needed):
 

@@ -53,7 +53,7 @@ const usePlayersOptions = () => {
       options:
         players.data
           ?.map(({ nickname, arcade_name, id }) => ({
-            label: `${nickname} (${arcade_name})`,
+            label: arcade_name ? `${nickname} (${arcade_name})` : nickname,
             value: `${id}`,
             isCurrentPlayer: user?.data?.id === id,
           }))

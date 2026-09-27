@@ -13,7 +13,7 @@ export function DevLogin() {
   const [error, setError] = useState<string | null>(null);
   const queryClient = useQueryClient();
 
-  const playersQuery = useQuery(api.players.list.queryOptions({}));
+  const playersQuery = useQuery(api.players.list.queryOptions());
 
   const devLoginMutation = useMutation(
     api.auth.devLogin.mutationOptions({

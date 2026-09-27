@@ -1,34 +1,44 @@
 import { db } from 'db';
 import { sql } from 'kysely';
 
-export const getPlayers = async ({ mixes }: { mixes?: number[] } = {}): Promise<
+export const getPlayers = async (): Promise<
   {
     id: number;
     nickname: string;
     region: string | null;
     pp: number | null;
-    arcade_name?: string;
+    arcade_name: string | null;
   }[]
 > => {
-  if (mixes) {
-    return await db
-      .selectFrom('players')
-      .innerJoin('arcade_player_names', (join) =>
+  // All players, each with their latest arcade name (newest mix) - one row per player.
+  // The arcade_player_names table is per-mix by design, so no new columns per future mix.
+  return await db
+    .selectFrom('players')
+    .leftJoin(
+      (eb) =>
+        eb
+          .selectFrom('arcade_player_names as an')
+          .select([
+            'player_id',
+            'name',
+            sql<number>`row_number() over (partition by an.player_id order by an.mix_id desc)`.as(
+              'rn'
+            ),
+          ])
+          .as('latest_arcade_name'),
+      (join) =>
         join
-          .onRef('arcade_player_names.player_id', '=', 'players.id')
-          .on('arcade_player_names.mix_id', 'in', mixes)
-      )
-      .select([
-        'players.id',
-        'players.pp',
-        'players.nickname',
-        'players.region',
-        'arcade_player_names.name as arcade_name',
-      ])
-      .execute();
-  } else {
-    return await db.selectFrom('players').select(['id', 'pp', 'nickname', 'region']).execute();
-  }
+          .onRef('latest_arcade_name.player_id', '=', 'players.id')
+          .on('latest_arcade_name.rn', '=', 1)
+    )
+    .select([
+      'players.id',
+      'players.pp',
+      'players.nickname',
+      'players.region',
+      'latest_arcade_name.name as arcade_name',
+    ])
+    .execute();
 };
 
 export const getPlayersStats = async () => {
@@ -44,14 +54,24 @@ export const getPlayersStats = async () => {
           .limit(1)
       )
     )
+    // latest arcade name (newest mix), one row per player - a plain DISTINCT join here
+    // would emit players with names in several mixes once per name
     .leftJoin(
       (eb) =>
         eb
-          .selectFrom('arcade_player_names')
-          .select(['player_id', 'name'])
-          .distinct()
-          .as('first_arcade_name'),
-      (join) => join.onRef('first_arcade_name.player_id', '=', 'players.id')
+          .selectFrom('arcade_player_names as an')
+          .select([
+            'player_id',
+            'name',
+            sql<number>`row_number() over (partition by an.player_id order by an.mix_id desc)`.as(
+              'rn'
+            ),
+          ])
+          .as('latest_arcade_name'),
+      (join) =>
+        join
+          .onRef('latest_arcade_name.player_id', '=', 'players.id')
+          .on('latest_arcade_name.rn', '=', 1)
     )
     .leftJoin(
       (eb) =>
@@ -98,7 +118,7 @@ export const getPlayersStats = async () => {
       'players.pp',
       'players.nickname',
       'players.region',
-      'first_arcade_name.name as arcade_name',
+      'latest_arcade_name.name as arcade_name',
       'results_count',
       'best_results_count',
       'avg_score',
