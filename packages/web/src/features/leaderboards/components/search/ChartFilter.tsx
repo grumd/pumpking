@@ -37,11 +37,15 @@ export default function ChartFilter({
                   label: 'Double',
                 },
                 {
+                  value: 'HD',
+                  label: 'Half-Double',
+                },
+                {
                   value: 'COOP',
                   label: 'COOP',
                 },
               ]}
-              selected={form.values.labels ?? ['S', 'D', 'COOP']}
+              selected={form.values.labels ?? ['S', 'D', 'HD', 'COOP']}
               onChange={(value) => form.setFieldValue('labels', value)}
             />
           </Group>

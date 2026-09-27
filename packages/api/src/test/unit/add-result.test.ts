@@ -672,4 +672,21 @@ describe('Add a new Phoenix 2 result (mix 28) via tRPC', () => {
     assert.strictEqual(result.grade, 'A', 'grade stays A, no + is appended');
     assert.strictEqual(result.is_pass, 1, 'result is marked as pass');
   });
+
+  it('adds a result on an HD (half-double) chart', async () => {
+    await postPhoenix2Result({ sharedChartId: 4 }).expect(200);
+
+    const result = (
+      await db
+        .selectFrom('results')
+        .selectAll()
+        .where('shared_chart', '=', 4)
+        .orderBy('id', 'desc')
+        .executeTakeFirst()
+    )!;
+    assert.strictEqual(result.mix, 28, 'result mix is 28');
+    assert.strictEqual(result.chart_label, 'HD18', 'chart label is the HD one');
+    assert.strictEqual(result.chart_instance, 4, 'chart instance is the HD one');
+    assert.strictEqual(result.grade, 'S+', 'grade is stored as given');
+  });
 });

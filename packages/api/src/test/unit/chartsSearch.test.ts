@@ -54,6 +54,29 @@ describe('Charts search (Phoenix scoring only)', () => {
     );
   });
 
+  it('filters half-double (HD) charts by the HD label', async () => {
+    await db
+      .insertInto('results')
+      .values({
+        ...getResultDefaults({ playerId: 1, score: 900000 }),
+        shared_chart: 4,
+        chart_instance: 4,
+        mix: 28,
+        mix_name: 'Phoenix2',
+        chart_label: 'HD18',
+      })
+      .executeTakeFirstOrThrow();
+
+    const hdItems = await searchCharts({ limit: 10, offset: 0, labels: ['HD'] });
+    assert.lengthOf(hdItems, 1, 'only the HD chart matches the HD label');
+    assert.equal(hdItems[0].label, 'HD18');
+    assert.equal(hdItems[0].level, 18);
+
+    const sItems = await searchCharts({ limit: 10, offset: 0, labels: ['S'] });
+    assert.lengthOf(sItems, 1, 'the HD chart does not leak into the S label');
+    assert.equal(sItems[0].label, 'S20');
+  });
+
   it('single chart query also uses phoenix scoring', async () => {
     await db
       .insertInto('results')

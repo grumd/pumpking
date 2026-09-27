@@ -4,8 +4,9 @@ Mixes are identified by an integer (Prime=24, Prime2=25, XX=26, Phoenix=27) and 
 through a handful of hardcoded lists rather than one registry. Phoenix 2 keeps Phoenix scoring
 (1,000,000 scale, same grades and plates), so no scoring/grade changes are needed.
 
-**Status (2026-07-11): mix-28 code + tests + local DB data done and verified against the live
-dev stack. The HD half-double feature below is the remaining slice.**
+**Status (2026-09-27): mix-28 code + tests + local DB data done and verified against the live
+dev stack. The HD half-double feature below is done and verified (tests, live API, browser
+filter/label checks).**
 
 ## Database and data
 
@@ -111,8 +112,22 @@ explicit.
 
 # Half-Double chart type (label prefix `HD`)
 
-**Status: NEXT SLICE.** Phoenix 2 adds a new chart type: half-double. Decision: the label
+**Status (2026-09-27): DONE and verified.** Phoenix 2 adds a new chart type: half-double. Decision: the label
 prefix is **`HD`** (e.g. `HD18`).
+
+Data discovery that corrected the plan below: the legacy `HD-` labels (mixes 15-20, e.g.
+`HD-7`) are a **different chart family** - those shared charts appear as `S#` singles in mix 28
+and have zero shared-chart overlap with the new `HD#` labels. The backfill is therefore scoped
+to `label REGEXP '^HD[0-9]'` (790 mix-28 rows), not `LIKE 'HD%'`.
+
+Product decisions (defaults picked, easy to flip - confirm):
+- **PP**: HD charts earn PP (no `HD%` exclusion added; only `COOP%` is excluded).
+- **Rank mode (VJ)**: allowed on HD (no block added; VJ results have `score_phoenix` NULL and
+  never appear in leaderboards anyway).
+- **Profile grade stats**: HD is excluded from the S/D-specific views (`LevelAchievements`,
+  `DoubleSingleGradesGraph` unchanged - they hardcode S/D and simply ignore the HD rows the
+  API now returns). If the decision is to fold HD into doubles or add a third row/graph, only
+  those two components change.
 
 Known starting state (from the prod dump in the local dev DB):
 
@@ -136,30 +151,38 @@ automatically.
 
 ## Database
 
-- [ ] **Extend the type enum** with a migration:
-      `ALTER TABLE chart_instances MODIFY type ENUM('S','D','HD');`
-      then backfill `type` for HD (and, if desired, the NULL mix-28 S/D rows):
-      `UPDATE chart_instances SET type = 'HD' WHERE label LIKE 'HD%';`
-      Use a **`.ts` migration with a `down`** (revert to `ENUM('S','D')` + re-null the HD rows),
-      not the SQL template (`20240110152230_add_chart_instance_type.sql`): SQL migrations in this
-      repo have no `down` and an enum shrink would be irreversible.
-- [ ] **Regenerate `packages/api/src/types/database.ts`** so `ChartInstances.type` (line 77)
-      becomes `'D' | 'S' | 'HD' | null`.
-- [ ] **Chart data**: HD `chart_instances` rows arrive with the mix 28 import, with `level` set so
-      exp and the level filter work.
+- [x] **Extend the type enum** with migration
+      `migrations/20260927053730_add_hd_chart_type.ts` (**`.ts` with a `down`**, applied to the
+      local dev DB, picked up by every test-DB rebuild):
+      - `ALTER TABLE chart_instances MODIFY type ENUM('S','D','HD')`
+      - backfill `type='HD'` scoped to `label REGEXP '^HD[0-9]'` - NOT `LIKE 'HD%'`, which would
+        also hit the 843 legacy `HD-x` rows (different chart family, see above).
+      - also backfilled the mix-28 S/D rows (`mix = 28 AND label LIKE 'S%'/'D%'`): the mix 28
+        import skipped the original type backfill (all 5,465 rows were NULL), and without it the
+        current mix is invisible to profile grade stats (join on `type is not null`). All mix 28
+        S/D rows were NULL beforehand, so `down` reverts exactly this set.
+      - `down`: re-null the HD rows + mix-28 S/D rows, shrink back to `ENUM('S','D')`.
+      - Left alone (out of scope): the 914 NULL-type S/D rows of mix 27 - their shared charts
+        that also exist in mix 28 fall back to the (now typed) mix 28 instance.
+- [x] **Regenerate `packages/api/src/types/database.ts`** - took only the one-line change
+      (`type: 'D' | 'HD' | 'S' | null`). A full regeneration also pulled in unrelated drift:
+      `phoenix2_track_names` table, `players.arcade_phoenix2_name` columns, `best_results` table
+      (absent in the dev DB), the inferred `PlayerPreferencesJson` structure (inference depends
+      on the data present), and a quote-style flip. Needs a manual merge when it is next
+      regenerated; note the `generate-kysely` npm script hardcodes a no-password URL that fails.
+- [x] **Chart data**: HD `chart_instances` rows already present in the dev DB (790, mix 28),
+      `level` set (4-27) so exp and the level filter work.
 
 ## API (`packages/api`)
 
-- [ ] `src/services/players/playerGrades.ts`: the return types on lines 10–11 and the two
-      `$narrowType` calls (lines ~63 and ~103) pin `type` to `'S' | 'D'`. Widen to include `'HD'`
-      or derive from the DB type. The queries themselves already group by `type` and will return
-      HD rows unchanged.
-- [ ] **Decide on PP**: `src/services/results/resultsPp.ts:35` excludes only `COOP%` charts, so HD
-      earns PP by default. Add an `HD%` exclusion if half-double should not count towards PP.
-- [ ] **Decide on rank mode (VJ)**: `src/services/results/addResult.ts:102` blocks rank mode for
-      `SP`, `DP`, `COOP`. Add `HD` there if Phoenix 2 does not allow rank mode on half-double.
-- [ ] **Tests**: add an HD chart instance to `src/test/seeds/initialSeed.ts` and a search /
-      add-result case for it.
+- [x] `src/services/players/playerGrades.ts`: return types and both `$narrowType` calls now use
+      `GradeStatsChartType = NonNullable<ChartInstances['type']>` derived from the DB schema,
+      so future enum values flow in without touching this service.
+- [x] **PP**: HD earns PP - default kept, no `HD%` exclusion in `resultsPp.ts`. Confirm.
+- [x] **Rank mode (VJ)**: allowed on HD - no block added in `addResult.ts`. Confirm.
+- [x] **Tests**: `initialSeed.ts` gained a mix-28 `HD18` instance (chart 4); `chartsSearch.test.ts`
+      gained an HD-label filter case (HD matches `HD`, does not leak into `S`); `add-result.test.ts`
+      gained an add-result case on the HD chart (label/instance/mix/grade persisted).
 
 Already fine (no change needed):
 
@@ -173,24 +196,27 @@ Already fine (no change needed):
 
 ## Web (`packages/web`)
 
-- [ ] `src/features/leaderboards/components/search/ChartFilter.tsx:30`: add a `Half-Double` /
-      `HD` toggle option and include `'HD'` in the default selected list on line 44.
-- [ ] `src/features/leaderboards/hooks/useFilter.ts:12`: add `'HD'` to `initialFilter.labels`
-      (currently `['S', 'D']`). Same localStorage caveat as mixes — reuse the one-time migration
-      pattern already in that file (slice 1 migrated stored `[26,27]` mixes with a one-shot flag).
-- [ ] `src/components/ChartLabel/ChartLabel.tsx`: add `[css.halfdouble]: type === 'HD'`.
-- [ ] `src/components/ChartLabel/chart-label.module.css`: add a `.halfdouble` rule using a new
-      `--half_double_chart_color` variable.
-- [ ] `src/features/root/colors.scss`: add `--half_double_chart_color`. The legacy styles in
-      `src/features/root/Root.scss` (~line 106) mirror the same list; add HD there too if those
-      classes are still used.
-- [ ] **Profile grade stats are hardcoded to S and D** — needs a product decision (fold HD into
-      the double side, add a third row / separate graph, or exclude HD from these views):
-  - `src/features/profile/components/LevelAchievements/LevelAchievements.tsx:21`
+- [x] `src/features/leaderboards/components/search/ChartFilter.tsx`: `Half-Double` / `HD` toggle
+      option (between Double and COOP), `'HD'` in the default selected list.
+- [x] `src/features/leaderboards/hooks/useFilter.ts`: `'HD'` in `initialFilter.labels` plus a
+      second one-time migration (separate `filterAtom_hdLabelsMigrated` flag key, same pattern as
+      the Phoenix 2 mix migration): stored default `['S','D']` becomes `['S','D','HD']`, custom
+      label selections untouched, no storage-key bump.
+- [x] `src/components/ChartLabel/ChartLabel.tsx`: `[css.halfdouble]: type === 'HD'`.
+- [x] `src/components/ChartLabel/chart-label.module.css`: `.halfdouble` rule using
+      `--half_double_chart_color`.
+- [x] `src/features/root/colors.scss`: `--half_double_chart_color: #a8621d` (dark orange, between
+      the single red and the double green). The legacy `Root.scss` mirror block was **skipped** -
+      those classes (`chart-label`, `.single`, `.coop`, ...) are not referenced anywhere outside
+      the CSS module, the `ChartLabel` module is the only live one.
+- [x] **Profile grade stats**: default is to exclude HD from the S/D-specific views (components
+      unchanged; verified in the browser on a profile with HD results - no errors, HD rows are
+      silently ignored by the hardcoded S/D presentation). Open product decision remains: fold HD
+      into the double side, or add a third row / separate graph:
+  - `src/features/profile/components/LevelAchievements/LevelAchievements.tsx`
     (`types = ['S', 'D']`, colors by `type === 'D'`).
   - `src/features/profile/components/DoubleSingleGradesGraph.tsx`: mirrored bar chart (singles
-    positive, doubles negative), hardcoded S/D key list at line 39, `S-` / `D-` prefix filters in
-    the tooltip.
+    positive, doubles negative), hardcoded S/D key list, `S-` / `D-` prefix filters in the tooltip.
   - `src/features/profile/hooks/usePlayerGrades.ts` groups by whatever `type` the API returns, so
     only the presentation components change.
 

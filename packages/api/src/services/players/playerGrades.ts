@@ -1,14 +1,19 @@
 import { Transaction, db } from 'db';
 import { sql } from 'kysely';
 import _ from 'lodash/fp';
+import type { ChartInstances } from 'types/database';
 import { GradePhoenix, phoenixGradeOrder } from 'utils/scoring/grades';
+
+// Chart types counted in the profile stats, derived from the chart_instances.type enum
+// (S, D, HD, ...) so new types flow in without touching this service.
+export type GradeStatsChartType = NonNullable<ChartInstances['type']>;
 
 export const getPlayerGradeStats = async (
   playerId: number,
   trx?: Transaction
 ): Promise<{
-  totalCounts: { level: number; type: 'S' | 'D'; count: number }[];
-  gradeCounts: { level: number; type: 'S' | 'D'; grade: GradePhoenix; count: number }[];
+  totalCounts: { level: number; type: GradeStatsChartType; count: number }[];
+  gradeCounts: { level: number; type: GradeStatsChartType; grade: GradePhoenix; count: number }[];
 }> => {
   const mixesPlayed = (
     await (trx ?? db)
@@ -62,7 +67,7 @@ export const getPlayerGradeStats = async (
         ])
         .where('player_id', '=', playerId)
         .where('score_phoenix', 'is not', null)
-        .$narrowType<{ level: number; type: 'S' | 'D' }>();
+        .$narrowType<{ level: number; type: GradeStatsChartType }>();
     })
     .selectFrom('ranked_results')
     .select((eb) => ['level', 'type', 'grade_phoenix_order', eb.fn.countAll<number>().as('count')])
@@ -99,7 +104,7 @@ export const getPlayerGradeStats = async (
     )
     .groupBy(['level', 'type'])
     .orderBy('level')
-    .$narrowType<{ level: number; type: 'S' | 'D' }>()
+    .$narrowType<{ level: number; type: GradeStatsChartType }>()
     .execute();
 
   const gradeCounts = gradeStats.map(({ grade_phoenix_order, ...rest }) => ({

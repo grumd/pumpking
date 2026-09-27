@@ -25,6 +25,9 @@
 .doublep {
   background: var(--double_perf_chart_color);
 }
+.halfdouble {
+  background: var(--half_double_chart_color);
+}
 .coop {
   background: var(--coop_chart_color);
 }
