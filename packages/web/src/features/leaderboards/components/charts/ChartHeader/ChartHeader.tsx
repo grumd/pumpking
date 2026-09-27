@@ -13,6 +13,8 @@ import type { ChartApiOutput } from 'features/leaderboards/hooks/useChartsQuery'
 import { labelToTypeLevel } from 'utils/leaderboards';
 import { Mixes } from 'utils/scoring/grades';
 
+import css from './chart-header.module.css';
+
 interface ChartHeaderProps {
   chart: ChartApiOutput;
   children?: React.ReactNode;
@@ -24,43 +26,52 @@ export const ChartHeader = ({ chart, children = null }: ChartHeaderProps): JSX.E
   const [chartType, chartLevel] = labelToTypeLevel(chart.label);
 
   return (
-    <Group p="xs" bdrs="xl" gap="sm" align="center" wrap="nowrap">
-      <ChartLabel type={chartType} level={chartLevel ?? '?'} />
-      <Anchor
-        size="xl"
-        lh="xs"
-        fw="bold"
-        style={{ textOverflow: 'ellipsis', overflow: 'hidden' }}
-        component={NavLink}
-        to={routes.leaderboard.sharedChart.getPath({ sharedChartId: chart.id })}
-      >
-        {chart.songName}
-      </Anchor>{' '}
-      <Text component="span" c="dimmed">
-        {chart.difficulty ? `(${chart.difficulty.toFixed(1)}) ` : ''}
-      </Text>
-      <Anchor
-        href={`https://youtube.com/results?${qs.stringify({
-          search_query: `${chart.songName} ${chart.label}`.replace(/( -)|(- )/g, ' '),
-        })}`}
-        target="_blank"
-        rel="noopener noreferrer"
-        fz="xl"
-        lh={1}
-      >
-        <FaYoutube />
-      </Anchor>
-      {otherInstances.map((instance) => {
-        if (instance.level === chart.level) {
-          return null;
-        }
-        return (
-          <Badge key={instance.mix} color={colorByMix[instance.mix as keyof typeof colorByMix]}>
-            {Mixes[instance.mix as keyof typeof Mixes]}: {instance.label}
-          </Badge>
-        );
-      })}
-      {children}
+    <Group p="xs" bdrs="xl" gap="sm" align="center" wrap="wrap" className={css.header}>
+      <Group p={0} gap="sm" align="center" wrap="nowrap" className={css.titleRow}>
+        <ChartLabel type={chartType} level={chartLevel ?? '?'} />
+        <Anchor
+          size="xl"
+          lh="xs"
+          fw="bold"
+          style={{
+            textOverflow: 'ellipsis',
+            overflow: 'hidden',
+            whiteSpace: 'nowrap',
+            minWidth: 0,
+          }}
+          component={NavLink}
+          to={routes.leaderboard.sharedChart.getPath({ sharedChartId: chart.id })}
+        >
+          {chart.songName}
+        </Anchor>
+        <Text component="span" c="dimmed" style={{ whiteSpace: 'nowrap' }}>
+          {chart.difficulty ? `(${chart.difficulty.toFixed(1)})` : ''}
+        </Text>
+      </Group>
+      <Group p={0} gap="sm" align="center" wrap="wrap" className={css.actionsRow}>
+        <Anchor
+          href={`https://youtube.com/results?${qs.stringify({
+            search_query: `${chart.songName} ${chart.label}`.replace(/( -)|(- )/g, ' '),
+          })}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          fz="xl"
+          lh={1}
+        >
+          <FaYoutube />
+        </Anchor>
+        {otherInstances.map((instance) => {
+          if (instance.level === chart.level) {
+            return null;
+          }
+          return (
+            <Badge key={instance.mix} color={colorByMix[instance.mix as keyof typeof colorByMix]}>
+              {Mixes[instance.mix as keyof typeof Mixes]}: {instance.label}
+            </Badge>
+          );
+        })}
+        {children}
+      </Group>
     </Group>
   );
 };
