@@ -91,6 +91,7 @@ export const tracks = [
 export const sharedCharts = [
   { id: 1, track: 1, index_in_track: 1 },
   { id: 3, track: 1, index_in_track: 2 },
+  { id: 4, track: 1, index_in_track: 3 },
 ];
 
 export const chartInstances = [
@@ -117,6 +118,18 @@ export const chartInstances = [
     max_total_steps: 100,
     min_total_steps: 100,
     type: 'S' as const,
+  },
+  // Phoenix 2 (mix 28) half-double instance, used by the HD tests
+  {
+    id: 4,
+    track: 1,
+    shared_chart: 4,
+    mix: 28,
+    label: 'HD18',
+    level: 18,
+    max_total_steps: 100,
+    min_total_steps: 100,
+    type: 'HD' as const,
   },
 ];
 

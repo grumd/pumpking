@@ -8,6 +8,7 @@ export const ChartLabel = ({ type, level }: { type: string; level: number | stri
       className={classNames(css.chartLabel, {
         [css.single]: type === 'S',
         [css.singlep]: type === 'SP',
+        [css.halfdouble]: type === 'HD',
         [css.doublep]: type === 'DP',
         [css.double]: type === 'D',
         [css.coop]: type === 'COOP',
