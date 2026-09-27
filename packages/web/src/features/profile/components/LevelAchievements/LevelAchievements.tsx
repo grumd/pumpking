@@ -100,7 +100,7 @@ export const LevelAchievements = (): JSX.Element | null => {
             if (data?.level == null) {
               return (
                 <CardWithProgress key={`${type}-${grade}`} flex="1 1 0" progress={0} level={2}>
-                  <Grade fit="contain" h="2.8em" grade={grade} scoring="phoenix" isPass />
+                  <Grade fit="contain" h="2.8em" grade={grade} isPass />
                 </CardWithProgress>
               );
             }
@@ -113,7 +113,7 @@ export const LevelAchievements = (): JSX.Element | null => {
                 progress={Math.min(100, Math.round((100 * data.achieved) / data.required))}
                 level={2}
               >
-                <Grade pt="0.3em" h="3em" fit="contain" grade={grade} scoring="phoenix" isPass />
+                <Grade pt="0.3em" h="3em" fit="contain" grade={grade} isPass />
                 <Text
                   size="2.3em"
                   lh="1.2"

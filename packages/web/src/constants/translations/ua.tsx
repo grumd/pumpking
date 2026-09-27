@@ -28,7 +28,6 @@ export const ua = {
   CHARTS: 'чарти',
   MIXES_LABEL: 'мікси',
   SONG_NAME_LABEL: 'назва треку',
-  SCORING_LABEL: 'скорінг',
   SONG_NAME_PLACEHOLDER: 'назва пісні...',
   PLAYERS_PLACEHOLDER: 'гравці...',
   ADD_RESULT: 'додати результат',

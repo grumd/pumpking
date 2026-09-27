@@ -29,7 +29,6 @@ export const pl: BaseTranslation = {
   CHARTS: 'czarty',
   MIXES_LABEL: 'miksy',
   SONG_NAME_LABEL: 'nazwa piosenki',
-  SCORING_LABEL: 'punktacja',
   SONG_NAME_PLACEHOLDER: 'nazwa piosenki...',
   PLAYERS_PLACEHOLDER: 'gracze...',
   ADD_RESULT: 'dodaj wynik',

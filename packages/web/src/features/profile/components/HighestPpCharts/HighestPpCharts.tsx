@@ -77,7 +77,6 @@ export const HighestPpCharts = (): JSX.Element => {
                   w="100%"
                   score={item.score ?? 0}
                   isPass={item.is_pass ?? false}
-                  scoring="phoenix"
                 />
                 <Text pl="0.5em" fw="bold" ta="right">
                   {item.pp?.toFixed(2)}

@@ -18,7 +18,6 @@ export const resultAddedEffect = async (resultId: number) => {
       'id',
       'shared_chart',
       'grade',
-      'score_xx',
       'score_phoenix',
       'rank_mode',
       'player_id',

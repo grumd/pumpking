@@ -185,6 +185,20 @@ const Result = ({ result, chart }: { result: ResultExtended; chart: ChartApiOutp
                   </>
                 )}
 
+                {result.originalScore != null && result.originalScore !== result.score && (
+                  <>
+                    <Text component="dt" c="dimmed" size="sm">
+                      {lang.ORIGINAL_SCORE}
+                    </Text>
+                    <Text component="dd" m={0} size="sm" style={{ whiteSpace: 'nowrap' }}>
+                      {Math.floor(result.originalScore / 1000)},
+                      <span style={{ fontSize: '70%' }}>
+                        {`${result.originalScore % 1000}`.padStart(3, '0')}
+                      </span>
+                    </Text>
+                  </>
+                )}
+
                 <Text component="dt" c="dimmed" size="sm">
                   {lang.PLAYER}:
                 </Text>
@@ -285,17 +299,7 @@ const Result = ({ result, chart }: { result: ResultExtended; chart: ChartApiOutp
       </td>
       <td className={classNames('grade')}>
         <div className="img-holder">
-          {!filter.scoring || filter.scoring === 'phoenix' ? (
-            <Grade
-              w="auto"
-              h="1rem"
-              score={result.score}
-              isPass={result.passed ?? false}
-              scoring="phoenix"
-            />
-          ) : (
-            <Grade w="auto" h="1rem" grade={result.grade} scoring="xx" />
-          )}
+          <Grade w="auto" h="1rem" score={result.score} isPass={result.passed ?? false} />
         </div>
       </td>
       <td className={classNames('number', 'miss')}>{result.stats[4]}</td>

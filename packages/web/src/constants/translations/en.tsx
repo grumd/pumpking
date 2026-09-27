@@ -27,7 +27,6 @@ export const en = {
   CHARTS: 'charts',
   MIXES_LABEL: 'mixes',
   SONG_NAME_LABEL: 'song name',
-  SCORING_LABEL: 'scoring',
   SONG_NAME_PLACEHOLDER: 'song name...',
   PLAYERS_PLACEHOLDER: 'players...',
   ADD_RESULT: 'add result',

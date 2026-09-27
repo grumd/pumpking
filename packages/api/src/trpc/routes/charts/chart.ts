@@ -5,7 +5,6 @@ import z from 'zod';
 export const chart = publicProcedure
   .input(
     z.object({
-      scoring: z.enum(['xx', 'phoenix']).optional(),
       sharedChartId: z.number(),
     })
   )

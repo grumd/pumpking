@@ -26,7 +26,6 @@ const getPlayerResults = async ({
         .innerJoin('tracks', 'tracks.id', 'chart_instances.track')
         .select([
           'r.id as result_id',
-          'r.score_xx',
           'r.grade',
           'r.perfects',
           'r.greats',

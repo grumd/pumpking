@@ -4,8 +4,6 @@ import { useMemo } from 'react';
 
 import { api } from 'utils/trpc';
 
-import { useFilter } from './useFilter';
-
 export type SingleChartFilter = ApiInputs['charts']['chart'];
 
 export const useSingleChartQuery = ({
@@ -13,11 +11,9 @@ export const useSingleChartQuery = ({
 }: {
   sharedChartId: number;
 }): UseQueryResult<ApiOutputs['charts']['chart'], unknown> => {
-  const filter = useFilter();
-
   const input = useMemo(() => {
-    return { scoring: filter.scoring, sharedChartId };
-  }, [filter.scoring, sharedChartId]);
+    return { sharedChartId };
+  }, [sharedChartId]);
 
   return useQuery(api.charts.chart.queryOptions(input));
 };
