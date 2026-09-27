@@ -6,5 +6,9 @@ node_modules
 *.tsbuildinfo
 .tsbuildinfo
 
+# local tooling artifacts
+.pi/
+.playwright-cli/
+
 packages/*/build
 packages/*/types
