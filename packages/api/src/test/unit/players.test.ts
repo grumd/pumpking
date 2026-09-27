@@ -1,7 +1,9 @@
 // import createDebug from 'debug';
 // const debug = createDebug('backend-ts:test:players');
 import { assert } from 'chai';
+import { db } from 'db';
 import { req } from 'test/helpers';
+import { getResultDefaults } from 'test/seeds/initialSeed';
 
 describe('Players', () => {
   it('has players', async () => {
@@ -37,5 +39,24 @@ describe('Players', () => {
     assert.isNumber(res.body.totalCounts[0].level, 'count is a number');
     assert.isNumber(res.body.gradeCounts[0].level, 'count is a number');
     assert.isString(res.body.gradeCounts[0].grade, 'grade is a string');
+  });
+
+  it('derives the chart type from the label, not the type column', async () => {
+    // The seeded S15 instance (chart 6) has a NULL type column
+    await db
+      .insertInto('results')
+      .values({
+        ...getResultDefaults({ playerId: 1, score: 900000 }),
+        shared_chart: 6,
+        chart_instance: 5,
+        chart_label: 'S15',
+      })
+      .executeTakeFirstOrThrow();
+
+    const res = await req().get('/players/1/grades').expect(200);
+    const typeByLevel = Object.fromEntries(
+      res.body.totalCounts.map((t: { level: number; type: string }) => [t.level, t.type])
+    );
+    assert.equal(typeByLevel[15], 'S', 'the NULL-type S15 chart is counted by its label');
   });
 });

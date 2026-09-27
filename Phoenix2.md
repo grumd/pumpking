@@ -162,8 +162,12 @@ automatically.
         current mix is invisible to profile grade stats (join on `type is not null`). All mix 28
         S/D rows were NULL beforehand, so `down` reverts exactly this set.
       - `down`: re-null the HD rows + mix-28 S/D rows, shrink back to `ENUM('S','D')`.
-      - Left alone (out of scope): the 914 NULL-type S/D rows of mix 27 - their shared charts
-        that also exist in mix 28 fall back to the (now typed) mix 28 instance.
+      - Left alone (out of scope): the 914 NULL-type S/D rows of mix 27.
+      - **Superseded (2026-09-27):** the code no longer reads the `type` column at all -
+        profile stats derive the type from the label prefix (see API section below). The
+        backfilled values are now inert data; the column and the migration are left in place
+        (decision: don't modify the database further; dropping the column would be a separate
+        migration if ever wanted).
 - [x] **Regenerate `packages/api/src/types/database.ts`** - took only the one-line change
       (`type: 'D' | 'HD' | 'S' | null`). A full regeneration also pulled in unrelated drift:
       `phoenix2_track_names` table, `players.arcade_phoenix2_name` columns, `best_results` table
@@ -175,14 +179,24 @@ automatically.
 
 ## API (`packages/api`)
 
-- [x] `src/services/players/playerGrades.ts`: return types and both `$narrowType` calls now use
-      `GradeStatsChartType = NonNullable<ChartInstances['type']>` derived from the DB schema,
-      so future enum values flow in without touching this service.
+- [x] `src/services/players/playerGrades.ts`: **stops reading the `chart_instances.type`
+      column entirely** and derives the type from the label prefix in the query
+      (`CASE label LIKE 'S%' -> 'S', 'D%' -> 'D', 'HD%' -> 'HD'`). The join subqueries select
+      the latest-mix instance with `level > 0` **and an S/D/HD label** (replacing
+      `type is not null`), so COOP/legacy-labelled charts still fall through to the newest
+      gradeable instance. `GradeStatsChartType` is now the literal `'S' | 'D' | 'HD'`.
+      This makes the stats immune to import-time `type` backfill drift - the 914 NULL-type
+      mix-27 rows (and any future import gap) now count correctly, and the `type` column is
+      dead weight the code never touches. The API output shape is unchanged, so the web
+      presentation components needed no changes.
 - [x] **PP**: HD earns PP - default kept, no `HD%` exclusion in `resultsPp.ts`. Confirm.
 - [x] **Rank mode (VJ)**: allowed on HD - no block added in `addResult.ts`. Confirm.
-- [x] **Tests**: `initialSeed.ts` gained a mix-28 `HD18` instance (chart 4); `chartsSearch.test.ts`
-      gained an HD-label filter case (HD matches `HD`, does not leak into `S`); `add-result.test.ts`
-      gained an add-result case on the HD chart (label/instance/mix/grade persisted).
+- [x] **Tests**: `initialSeed.ts` gained a mix-28 `HD18` instance (chart 4) and an `S15`
+      instance with a NULL `type` column (chart 6); `chartsSearch.test.ts` gained an HD-label
+      filter case (HD matches `HD`, does not leak into `S`); `add-result.test.ts` gained an
+      add-result case on the HD chart (label/instance/mix/grade persisted); `players.test.ts`
+      gained a regression case asserting the NULL-type S15 chart is counted by its label in the
+      profile grade stats.
 
 Already fine (no change needed):
 
