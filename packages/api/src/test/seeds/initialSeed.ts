@@ -76,6 +76,19 @@ export const arcade_player_names = [
     name: 'ADDRESULTS',
     name_edist: 0,
   },
+  // newer-mix names: the player lists must show the latest arcade name per player
+  {
+    mix_id: 28,
+    player_id: 2,
+    name: 'DUMMY2P2',
+    name_edist: 0,
+  },
+  {
+    mix_id: 27,
+    player_id: 3,
+    name: 'DUMMY3P',
+    name_edist: 0,
+  },
 ];
 
 export const tracks = [
@@ -216,6 +229,7 @@ export const initialSeed = async () => {
   await db.deleteFrom('tracks').execute();
   await db.deleteFrom('sessions').execute();
   await db.deleteFrom('players').execute();
+  await db.deleteFrom('arcade_player_names').execute();
 
   await db.insertInto('players').values(players).execute();
   await db.insertInto('sessions').values(sessions).execute();
@@ -223,4 +237,5 @@ export const initialSeed = async () => {
   await db.insertInto('shared_charts').values(sharedCharts).execute();
   await db.insertInto('chart_instances').values(chartInstances).execute();
   await db.insertInto('results').values(results).execute();
+  await db.insertInto('arcade_player_names').values(arcade_player_names).execute();
 };

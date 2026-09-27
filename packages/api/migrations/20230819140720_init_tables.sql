@@ -39,7 +39,6 @@ CREATE TABLE IF NOT EXISTS `arcade_player_names` (
   `player_id` int(11) NOT NULL,
   `name` varchar(20) NOT NULL,
   `name_edist` int(11) NOT NULL DEFAULT '0',
-  `new_column_test` varchar(100) NOT NULL,
   PRIMARY KEY (`mix_id`,`player_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;

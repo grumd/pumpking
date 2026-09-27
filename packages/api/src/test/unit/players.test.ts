@@ -2,6 +2,7 @@
 // const debug = createDebug('backend-ts:test:players');
 import { assert } from 'chai';
 import { db } from 'db';
+import { getPlayersStats } from 'services/players/players';
 import { req } from 'test/helpers';
 import { getResultDefaults } from 'test/seeds/initialSeed';
 
@@ -58,5 +59,25 @@ describe('Players', () => {
       res.body.totalCounts.map((t: { level: number; type: string }) => [t.level, t.type])
     );
     assert.equal(typeByLevel[15], 'S', 'the NULL-type S15 chart is counted by its label');
+  });
+
+  it('lists all players with their latest arcade name', async () => {
+    const res = await req().get('/players/all').expect(200);
+    const arcadeNameById = Object.fromEntries(
+      res.body.map((p: { id: number; arcade_name: string | null }) => [p.id, p.arcade_name])
+    );
+    assert.equal(arcadeNameById[1], 'DUMMY1', 'a player with one name gets that name');
+    assert.equal(arcadeNameById[2], 'DUMMY2P2', 'the newest mix name (28) wins over 26');
+    assert.equal(arcadeNameById[3], 'DUMMY3P', 'the newest mix name (27) wins over 26');
+    assert.equal(arcadeNameById[4], 'DUMMY4', 'players without a newer name keep the older one');
+  });
+
+  it('does not duplicate players with arcade names in several mixes in the stats list', async () => {
+    await db.updateTable('players').set({ pp: 100 }).where('id', '=', 2).execute();
+
+    const stats = await getPlayersStats();
+    const player2 = stats.filter((p) => p.id === 2);
+    assert.lengthOf(player2, 1, 'player 2 appears once despite two arcade names');
+    assert.equal(player2[0].arcade_name, 'DUMMY2P2', 'stats show the latest arcade name');
   });
 });
