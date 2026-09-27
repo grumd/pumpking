@@ -125,14 +125,14 @@ Data discovery that corrected the plan below: the legacy `HD-` labels (mixes 15-
 and have zero shared-chart overlap with the new `HD#` labels. The backfill is therefore scoped
 to `label REGEXP '^HD[0-9]'` (790 mix-28 rows), not `LIKE 'HD%'`.
 
-Product decisions (defaults picked, easy to flip - confirm):
-- **PP**: HD charts earn PP (no `HD%` exclusion added; only `COOP%` is excluded).
-- **Rank mode (VJ)**: allowed on HD (no block added; VJ results have `score_phoenix` NULL and
-  never appear in leaderboards anyway).
+Product decisions (**all three confirmed by the owner, 2026-09-27**):
+- **PP**: HD charts earn PP (no `HD%` exclusion; only `COOP%` is excluded).
+- **Rank mode (VJ)**: allowed on HD (no block; VJ results have `score_phoenix` NULL and never
+  appear in leaderboards anyway).
 - **Profile grade stats**: HD is excluded from the S/D-specific views (`LevelAchievements`,
   `DoubleSingleGradesGraph` unchanged - they hardcode S/D and simply ignore the HD rows the
-  API now returns). If the decision is to fold HD into doubles or add a third row/graph, only
-  those two components change.
+  API returns). If this is ever revisited (fold into doubles, third row/graph), only those two
+  components change.
 
 Known starting state (from the prod dump in the local dev DB):
 
@@ -140,9 +140,9 @@ Known starting state (from the prod dump in the local dev DB):
   missing `max_total_steps`/`max_possible_score_norank` (same partial state as the rest of mix 28);
   the `type` column is still `ENUM('S','D')`.
 - HD rows for mix 27 and earlier: none.
-- Open product decisions that must land with (or before) the code: **PP** (do HD charts earn PP?),
-  **rank mode** (is VJ allowed on HD in Phoenix 2?), **profile grade stats** (how to present HD
-  alongside S/D).
+- Open product decisions that had to land with (or before) the code: **PP** (do HD charts earn
+  PP?), **rank mode** (is VJ allowed on HD in Phoenix 2?), **profile grade stats** (how to
+  present HD alongside S/D) - all three resolved and confirmed 2026-09-27, see above.
 - Suggested order: enum migration → `database.ts` regen → `playerGrades` widening → web display
   (ChartFilter/ChartLabel/colors) → tests. The localStorage label list (`initialFilter.labels`) gets
   the same one-time `[26,27]-style` migration pattern already used for mixes in slice 1 (old stored
@@ -194,8 +194,8 @@ automatically.
       mix-27 rows (and any future import gap) now count correctly, and the `type` column is
       dead weight the code never touches. The API output shape is unchanged, so the web
       presentation components needed no changes.
-- [x] **PP**: HD earns PP - default kept, no `HD%` exclusion in `resultsPp.ts`. Confirm.
-- [x] **Rank mode (VJ)**: allowed on HD - no block added in `addResult.ts`. Confirm.
+- [x] **PP**: HD earns PP - confirmed, no `HD%` exclusion in `resultsPp.ts`.
+- [x] **Rank mode (VJ)**: allowed on HD - confirmed, no block added in `addResult.ts`.
 - [x] **Tests**: `initialSeed.ts` gained a mix-28 `HD18` instance (chart 4) and an `S15`
       instance with a NULL `type` column (chart 6); `chartsSearch.test.ts` gained an HD-label
       filter case (HD matches `HD`, does not leak into `S`); `add-result.test.ts` gained an
@@ -228,10 +228,10 @@ Already fine (no change needed):
       the single red and the double green). The legacy `Root.scss` mirror block was **skipped** -
       those classes (`chart-label`, `.single`, `.coop`, ...) are not referenced anywhere outside
       the CSS module, the `ChartLabel` module is the only live one.
-- [x] **Profile grade stats**: default is to exclude HD from the S/D-specific views (components
-      unchanged; verified in the browser on a profile with HD results - no errors, HD rows are
-      silently ignored by the hardcoded S/D presentation). Open product decision remains: fold HD
-      into the double side, or add a third row / separate graph:
+- [x] **Profile grade stats**: HD is excluded from the S/D-specific views (**confirmed**
+      2026-09-27) - components unchanged; verified in the browser on a profile with HD results
+      (no errors, HD rows are silently ignored by the hardcoded S/D presentation). If revisited
+      later (fold HD into the double side, or a third row / separate graph), only these change:
   - `src/features/profile/components/LevelAchievements/LevelAchievements.tsx`
     (`types = ['S', 'D']`, colors by `type === 'D'`).
   - `src/features/profile/components/DoubleSingleGradesGraph.tsx`: mirrored bar chart (singles
