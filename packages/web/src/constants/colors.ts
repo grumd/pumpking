@@ -7,6 +7,7 @@ export const colorByMix: Record<MixNumbers, DefaultMantineColor> = {
   25: '#432a4e99',
   26: '#2d2a4e99',
   27: '#2a434e99',
+  28: '#2a4e4399',
 };
 
 export const colorsArray = [

@@ -17,6 +17,8 @@ import { FaExclamationCircle } from 'react-icons/fa';
 import { IoIosWarning } from 'react-icons/io';
 import { useNavigate, useParams } from 'react-router-dom';
 
+import { MIXES } from '@/api/constants/mixes';
+
 import css from './add-result.module.scss';
 
 import { useConfirmationPopup } from 'components/ConfirmationPopup/useConfirmationPopup';
@@ -66,6 +68,7 @@ const GRADE_OPTIONS_PHOENIX = [
 ];
 
 const MIX_OPTIONS = [
+  { value: 'Phoenix2', label: 'Phoenix 2' },
   { value: 'Phoenix', label: 'Phoenix' },
   { value: 'XX', label: 'XX' },
   { value: 'Prime2', label: 'Prime 2' },
@@ -88,7 +91,7 @@ interface AddResultFormData {
   miss: string;
   combo: string;
   score: string;
-  mix: 'Phoenix' | 'XX' | 'Prime2' | 'Prime' | null;
+  mix: keyof typeof MIXES | null;
   mod: '' | 'VJ' | 'HJ';
   pass: boolean;
 }
@@ -348,7 +351,11 @@ const AddResult = () => {
                 clearable={false}
                 label={lang.GRADE}
                 placeholder={lang.SELECT_GRADE}
-                data={form.values.mix === 'Phoenix' ? GRADE_OPTIONS_PHOENIX : GRADE_OPTIONS}
+                data={
+                  form.values.mix && MIXES[form.values.mix] >= MIXES.Phoenix
+                    ? GRADE_OPTIONS_PHOENIX
+                    : GRADE_OPTIONS
+                }
                 withAsterisk
                 {...form.getInputProps('grade')}
               />

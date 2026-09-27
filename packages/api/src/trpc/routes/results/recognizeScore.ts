@@ -1,3 +1,4 @@
+import { MIXES, MIX_NAMES } from 'constants/mixes';
 import { db } from 'db';
 import { sql } from 'kysely';
 import { recognizeScore } from 'services/results/recognizeScore';
@@ -6,11 +7,14 @@ import { getPhoenixScore } from 'utils/scoring/phoenixScore';
 import { base64 } from 'utils/zod';
 import { z } from 'zod';
 
+// Derived from the MIXES registry so new mixes only need to be added there
+const mixEnum = z.enum(MIX_NAMES);
+
 export const recognizeScoreMutation = addResultProcedure
   .input(
     z.object({
       image: base64,
-      mix: z.enum(['Phoenix', 'XX', 'Prime2', 'Prime']),
+      mix: mixEnum,
     })
   )
   .mutation(async ({ ctx, input }) => {
@@ -31,7 +35,7 @@ export const recognizeScoreMutation = addResultProcedure
         .where('id', '=', ctx.user.id)
         .execute();
 
-      if (input.mix === 'Phoenix') {
+      if (MIXES[input.mix] >= MIXES.Phoenix) {
         // Calculate and insert the score
         return [
           ...result.numbers.slice(0, 6),

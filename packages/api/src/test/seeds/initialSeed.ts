@@ -88,7 +88,10 @@ export const tracks = [
   },
 ];
 
-export const sharedCharts = [{ id: 1, track: 1, index_in_track: 1 }];
+export const sharedCharts = [
+  { id: 1, track: 1, index_in_track: 1 },
+  { id: 3, track: 1, index_in_track: 2 },
+];
 
 export const chartInstances = [
   {
@@ -99,6 +102,18 @@ export const chartInstances = [
     label: 'S20',
     level: 20,
     max_possible_score_norank: 1000000,
+    max_total_steps: 100,
+    min_total_steps: 100,
+    type: 'S' as const,
+  },
+  // Phoenix 2 (mix 28) instance, used by the Phoenix 2 add-result tests
+  {
+    id: 3,
+    track: 1,
+    shared_chart: 3,
+    mix: 28,
+    label: 'S20',
+    level: 20,
     max_total_steps: 100,
     min_total_steps: 100,
     type: 'S' as const,

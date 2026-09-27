@@ -22,6 +22,10 @@ import type { SearchFormValues } from './formTypes';
 
 const mixOptions = [
   {
+    label: 'Phoenix 2',
+    value: '28',
+  },
+  {
     label: 'Prime',
     value: '24',
   },
@@ -90,7 +94,7 @@ const filterToForm = (filter: ChartsFilter): SearchFormValues => ({
     filter.sortChartsBy && filter.sortChartsDir
       ? `${filter.sortChartsBy},${filter.sortChartsDir}`
       : 'date,desc',
-  mixes: filter.mixes?.map(String) ?? ['26', '27'],
+  mixes: filter.mixes?.map(String) ?? ['26', '27', '28'],
   playersAll: filter.playersAll?.map(String) ?? [],
   playersSome: filter.playersSome?.map(String) ?? [],
   playersNone: filter.playersNone?.map(String) ?? [],
