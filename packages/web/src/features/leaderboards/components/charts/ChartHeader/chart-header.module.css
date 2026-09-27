@@ -1,0 +1,14 @@
+.header {
+  row-gap: 4px;
+}
+
+.titleRow {
+  flex: 1 1 200px;
+  min-width: 0;
+}
+
+.actionsRow {
+  flex: 0 1 auto;
+  min-width: 0;
+  margin-left: auto;
+}
