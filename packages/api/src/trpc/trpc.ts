@@ -37,16 +37,26 @@ const t = initTRPC.context<Context>().create({
           httpStatus: error.cause.status,
         },
       };
-    } else {
+    }
+    if (error.code === 'BAD_REQUEST') {
+      // Input validation (Zod) errors and other client errors are not server faults
       return {
         ...shape,
         data: {
           ...shape.data,
-          code: 'INTERNAL_SERVER_ERROR',
-          httpStatus: 500,
+          code: 'BAD_REQUEST',
+          httpStatus: 400,
         },
       };
     }
+    return {
+      ...shape,
+      data: {
+        ...shape.data,
+        code: 'INTERNAL_SERVER_ERROR',
+        httpStatus: 500,
+      },
+    };
   },
 });
 

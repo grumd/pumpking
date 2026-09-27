@@ -1,7 +1,11 @@
+import { MIX_NAMES } from 'constants/mixes';
 import { addResult } from 'services/results/addResult';
 import { addResultProcedure } from 'trpc/trpc';
 import { base64 } from 'utils/zod';
 import { z } from 'zod';
+
+// Derived from the MIXES registry so new mixes only need to be added there
+const mixEnum = z.enum(MIX_NAMES);
 
 export const addResultMutation = addResultProcedure
   .input(
@@ -10,7 +14,7 @@ export const addResultMutation = addResultProcedure
       fileName: z.string(),
       playerId: z.number(),
       grade: z.string(),
-      mix: z.enum(['Phoenix', 'XX', 'Prime2', 'Prime']),
+      mix: mixEnum,
       mod: z.enum(['VJ', 'HJ', '']),
       score: z.number(),
       perfect: z.number(),

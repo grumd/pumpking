@@ -1,8 +1,10 @@
 import { assert } from 'chai';
+import fs from 'fs';
 import { db } from 'db';
 import path from 'path';
 import { req } from 'test/helpers';
 import { addResultsSession } from 'test/helpers/sessions';
+import { getPhoenixScore } from 'utils/scoring/phoenixScore';
 
 describe('Add new result manually', () => {
   it('error 401 when user is not authorized', async () => {
@@ -590,5 +592,84 @@ describe('Add new result manually', () => {
 
     assert.strictEqual(results[0].is_pass, 1, `Score is a pass`);
     assert.strictEqual(results[0].grade, 'A+', `Grade is A+`);
+  });
+});
+
+describe('Add a new Phoenix 2 result (mix 28) via tRPC', () => {
+  // The mix 28 instance of the second seeded chart
+  const sharedChartId = 3;
+  const screenshotDataUrl =
+    'data:image/jpeg;base64,' +
+    fs.readFileSync(path.join(__dirname, '../files/test.jpg')).toString('base64');
+  const stats = { perfect: 90, great: 5, good: 3, bad: 1, miss: 1, combo: 95 };
+  const score = getPhoenixScore(stats);
+
+  const postPhoenix2Result = (overrides: Record<string, unknown> = {}) =>
+    req()
+      .post('/trpc/results.addResultMutation')
+      .set('session', addResultsSession)
+      .send({
+        json: {
+          screenshot: screenshotDataUrl,
+          fileName: 'test.jpg',
+          playerId: 7,
+          grade: 'S+',
+          mix: 'Phoenix2',
+          mod: '',
+          score,
+          ...stats,
+          date: '2020-01-01',
+          isExactDate: true,
+          sharedChartId,
+          pass: true,
+          ...overrides,
+        },
+      });
+
+  const getLatestResult = () =>
+    db
+      .selectFrom('results')
+      .selectAll()
+      .where('shared_chart', '=', sharedChartId)
+      .orderBy('id', 'desc')
+      .executeTakeFirst();
+
+  // tRPC responses are superjson-encoded, the error message lives in `error.json`
+  const getErrorMessage = (res: { body: { error: { json: { message: string } } } }) =>
+    res.body.error.json.message;
+
+  it('rejects an unknown mix', async () => {
+    const res = await postPhoenix2Result({ mix: 'NotAMix' }).expect(400);
+    assert.match(getErrorMessage(res), /Invalid enum value/);
+  });
+
+  it('rejects a score that does not match the phoenix formula', async () => {
+    const res = await postPhoenix2Result({ score: score + 100 }).expect(400);
+    assert.match(
+      getErrorMessage(res),
+      new RegExp(`Score ${score + 100} doesn't match expected score ${score}`)
+    );
+  });
+
+  it('adds the result with mix 28 and the given grade', async () => {
+    await postPhoenix2Result().expect(200);
+
+    const result = (await getLatestResult())!;
+    assert.strictEqual(result.mix, 28, 'result mix is 28');
+    assert.strictEqual(result.mix_name, 'Phoenix2', 'result mix name is Phoenix2');
+    assert.strictEqual(result.score, score, 'score matches the phoenix formula');
+    assert.strictEqual(result.score_phoenix, score, 'phoenix score is stored');
+    assert.strictEqual(result.grade, 'S+', 'grade is stored as given');
+    assert.strictEqual(result.is_pass, 1, 'result is marked as pass');
+    assert.strictEqual(result.chart_label, 'S20', 'chart label is taken from the mix 28 instance');
+    assert.strictEqual(result.chart_instance, 3, 'chart instance is the mix 28 one');
+  });
+
+  it('does not append + to the grade (unlike XX and earlier)', async () => {
+    await postPhoenix2Result({ grade: 'A' }).expect(200);
+
+    const result = (await getLatestResult())!;
+    assert.strictEqual(result.grade, 'A', 'grade stays A, no + is appended');
+    assert.strictEqual(result.is_pass, 1, 'result is marked as pass');
   });
 });

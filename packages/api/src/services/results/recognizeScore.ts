@@ -27,6 +27,10 @@ export const recognizeScore = async (
     throw error(500, 'OpenAI API key is not configured');
   }
 
+  // Phoenix and all later mixes (Phoenix 2, ...) use the Phoenix scoring result screen:
+  // 7 numbers instead of 8, dotted-zero font, score calculated from stats
+  const isPhoenixScoring = MIXES[mix] >= MIXES.Phoenix;
+
   // Read the image file and convert to base64
   const imageBuffer = fs.readFileSync(imagePath);
   const base64Image = imageBuffer.toString('base64');
@@ -46,7 +50,7 @@ export const recognizeScore = async (
         name: 'score_numbers_array',
         type: 'json_schema',
         description:
-          mix === 'Phoenix'
+          isPhoenixScoring
             ? 'An array of 7 numbers extracted from the game result screen'
             : 'An array of 8 numbers extracted from the game result screen',
         strict: true,
@@ -58,7 +62,9 @@ export const recognizeScore = async (
             numbers: {
               type: 'array',
               items: { type: 'number' },
-              ...(mix === 'Phoenix' ? { minItems: 7, maxItems: 7 } : { minItems: 8, maxItems: 8 }),
+              ...(isPhoenixScoring
+                ? { minItems: 7, maxItems: 7 }
+                : { minItems: 8, maxItems: 8 }),
             },
           },
         },
@@ -72,7 +78,7 @@ export const recognizeScore = async (
           {
             type: 'input_text',
             text:
-              mix === 'Phoenix'
+              isPhoenixScoring
                 ? `Extract the vertically lined up numbers from the processed photo according to the provided schema. One number per line, some numbers may have leading zeroes. All zeroes have a dot in the middle.`
                 : `Extract the vertically lined up numbers from the processed photo according to the provided schema. One number per line, some numbers may have leading zeroes.`,
           },

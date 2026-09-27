@@ -5,6 +5,7 @@ export const Mixes = {
   25: 'Prime2',
   26: 'XX',
   27: 'Phoenix',
+  28: 'Phoenix2',
 } as const;
 
 export type MixNumbers = keyof typeof Mixes;
