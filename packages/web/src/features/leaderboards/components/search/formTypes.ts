@@ -1,7 +1,6 @@
 export interface SearchFormValues {
   songName?: string;
   mixes: string[];
-  scoring: 'phoenix' | 'xx';
   playersAll?: string[];
   playersSome?: string[];
   playersNone?: string[];

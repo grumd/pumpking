@@ -7,43 +7,16 @@ const getFilename = (grade: GradePhoenix, isPass: boolean) => {
 };
 
 export const Grade = (
-  props: ImageProps &
-    (
-      | {
-          score: number;
-          isPass: boolean;
-          scoring: 'phoenix';
-          grade?: undefined;
-        }
-      | {
-          grade: string | null;
-          scoring: 'xx';
-          isPass?: undefined;
-          score?: undefined;
-        }
-      | {
-          grade: GradePhoenix;
-          isPass: boolean;
-          scoring: 'phoenix';
-          score?: undefined;
-        }
-    )
-) => {
-  if (props.scoring === 'phoenix') {
-    const { grade, isPass, score, ...rest } = props;
-    const gradeCalc = grade ?? getPhoenixGrade(score);
-    return gradeCalc == null ? null : (
-      <Image
-        {...rest}
-        fit="contain"
-        src={getFilename(gradeCalc, isPass ?? false)}
-        alt={gradeCalc}
-      />
-    );
-  } else {
-    const { grade, ...rest } = props;
-    return !grade || grade === '?' ? null : (
-      <Image {...rest} fit="contain" src={`/grades/${grade}.png`} alt={grade ?? '?'} />
-    );
+  props: ImageProps & {
+    isPass: boolean;
+    /** Explicit grade, if not provided it is calculated from the score */
+    grade?: GradePhoenix;
+    score?: number;
   }
+) => {
+  const { grade, isPass, score, ...rest } = props;
+  const gradeCalc = grade ?? getPhoenixGrade(score);
+  return gradeCalc == null ? null : (
+    <Image {...rest} fit="contain" src={getFilename(gradeCalc, isPass)} alt={gradeCalc} />
+  );
 };

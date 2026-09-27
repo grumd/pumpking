@@ -7,7 +7,6 @@ import type { ChartsFilter } from './useChartsQuery';
 
 export const initialFilter: ChartsFilter = {
   mixes: [26, 27],
-  scoring: 'phoenix',
   songName: '',
   labels: ['S', 'D'],
 };
@@ -15,7 +14,6 @@ export const initialFilter: ChartsFilter = {
 export const filterAtom = atomWithValidatedStorage<ChartsFilter>(
   'filterAtom',
   z.object({
-    scoring: z.enum(['xx', 'phoenix']).optional(),
     durations: z.array(z.enum(['Full', 'Remix', 'Short', 'Standard'])).optional(),
     minLevel: z.number().optional(),
     maxLevel: z.number().optional(),

@@ -5,7 +5,6 @@ import z from 'zod';
 export const search = publicProcedure
   .input(
     z.object({
-      scoring: z.enum(['xx', 'phoenix']).optional(),
       durations: z.array(z.enum(['Full', 'Remix', 'Short', 'Standard'])).optional(),
       minLevel: z.number().optional(),
       maxLevel: z.number().optional(),

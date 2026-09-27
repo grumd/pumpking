@@ -6,23 +6,16 @@ import { Mixes, isMixNumber } from 'utils/scoring/grades';
 
 import { useFilter } from '../../hooks/useFilter';
 
-const scoringToMix = {
-  xx: 26,
-  phoenix: 27,
-};
-
 interface MixPlateProps {
   mix: number;
 }
 
 export const MixPlate = ({ mix }: MixPlateProps): JSX.Element | null => {
-  const { scoring } = useFilter();
+  const { mixes } = useFilter();
 
-  if (!scoring || !scoringToMix[scoring]) {
-    return null;
-  }
+  const currentMix = mixes?.length ? Math.max(...mixes) : null;
 
-  return isMixNumber(mix) && scoringToMix[scoring] !== mix ? (
+  return isMixNumber(mix) && currentMix !== null && currentMix !== mix ? (
     <Badge size="xs" color={colorByMix[mix]}>
       {Mixes[mix]}
     </Badge>

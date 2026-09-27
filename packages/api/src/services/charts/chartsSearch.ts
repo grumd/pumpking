@@ -8,8 +8,6 @@ export interface ChartsSearchParams {
   /** Used to filter hidden players/regions from preferences */
   currentPlayerId?: number; // TODO: make required later
   /** */
-  scoring?: 'xx' | 'phoenix';
-  /** */
   durations?: Array<Tracks['duration']> | undefined;
   /** */
   minLevel?: number;
@@ -57,6 +55,8 @@ export interface ResultViewModel {
   gained: Date;
   stats: [number | null, number | null, number | null, number | null, number | null];
   combo: number | null;
+  /** Raw score from the original scoring system (1.8M scale for XX and earlier), differs from `score` for pre-Phoenix results */
+  originalScore: number | null;
   grade: string | null;
   plate: string | null;
   passed: boolean | null;
@@ -90,7 +90,6 @@ export interface ChartViewModel {
 export const searchCharts = async (params: ChartsSearchParams) => {
   const {
     currentPlayerId,
-    scoring = 'xx',
     mixes = [26, 27],
     durations,
     labels,
@@ -112,7 +111,8 @@ export const searchCharts = async (params: ChartsSearchParams) => {
     return [];
   }
 
-  const scoreField = scoring === 'xx' ? 'score_xx' : 'score_phoenix';
+  // Phoenix scoring is the only scoring system used for leaderboards
+  const scoreField = 'score_phoenix';
 
   const songNameParts = songName?.split(' ').filter((part) => part.length > 0);
 
@@ -363,6 +363,7 @@ export const searchCharts = async (params: ChartsSearchParams) => {
           'players.region',
           'arcade_player_names.name as arcade_nickname',
           `${scoreField} as score`,
+          'r.score as original_score',
           // score - LEAD(score, 1) OVER (
           //   PARTITION BY player_id, shared_chart
           //   ORDER BY score DESC
@@ -457,6 +458,7 @@ export const searchCharts = async (params: ChartsSearchParams) => {
         playerName: r.nickname,
         playerNameArcade: r.arcade_nickname,
         score: r.score,
+        originalScore: r.original_score,
         scoreIncrease: r.score_increase_real,
         pp: r.pp,
         added: r.added,

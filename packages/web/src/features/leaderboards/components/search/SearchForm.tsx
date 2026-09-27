@@ -39,17 +39,6 @@ const mixOptions = [
   },
 ];
 
-const scoringOptions = [
-  {
-    label: 'Phoenix',
-    value: 'phoenix',
-  },
-  {
-    label: 'XX',
-    value: 'xx',
-  },
-];
-
 const usePlayersOptions = () => {
   const players = usePlayers();
   const user = useUser();
@@ -107,7 +96,6 @@ const filterToForm = (filter: ChartsFilter): SearchFormValues => ({
   playersNone: filter.playersNone?.map(String) ?? [],
   sortChartsByPlayers: filter.sortChartsByPlayers?.map(String) ?? [],
   levels: [filter.minLevel ?? 1, filter.maxLevel ?? 28],
-  scoring: filter.scoring ?? 'phoenix',
 });
 
 export const SearchForm = (): JSX.Element => {
@@ -199,12 +187,6 @@ export const SearchForm = (): JSX.Element => {
             checkIconPosition="left"
             data={mixOptions}
             {...form.getInputProps('mixes')}
-          />
-          <Select
-            flex={1}
-            label={lang.SCORING_LABEL}
-            data={scoringOptions}
-            {...form.getInputProps('scoring')}
           />
         </Flex>
         <CollapsibleBar

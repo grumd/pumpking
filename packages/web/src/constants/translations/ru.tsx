@@ -28,7 +28,6 @@ export const ru = {
   CHARTS: 'чарты',
   MIXES_LABEL: 'миксы',
   SONG_NAME_LABEL: 'название',
-  SCORING_LABEL: 'скоринг',
   SONG_NAME_PLACEHOLDER: 'название песни...',
   PLAYERS_PLACEHOLDER: 'игроки...',
   ADD_RESULT: 'добавить результат',
