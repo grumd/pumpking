@@ -1,12 +1,19 @@
 import { Transaction, db } from 'db';
 import { sql } from 'kysely';
 import _ from 'lodash/fp';
-import type { ChartInstances } from 'types/database';
 import { GradePhoenix, phoenixGradeOrder } from 'utils/scoring/grades';
 
-// Chart types counted in the profile stats, derived from the chart_instances.type enum
-// (S, D, HD, ...) so new types flow in without touching this service.
-export type GradeStatsChartType = NonNullable<ChartInstances['type']>;
+// Chart type derived from the label prefix (S20 -> 'S', D18 -> 'D', HD18 -> 'HD').
+// The label is the source of truth: the chart_instances.type column is import-time data
+// that has drifted (whole mixes were left NULL), so the stats derive the type in the query.
+export type GradeStatsChartType = 'S' | 'D' | 'HD';
+
+const chartTypeFromLabel = (labelRef: string) =>
+  sql<GradeStatsChartType>`case
+    when ${sql.ref(labelRef)} like 'S%' then 'S'
+    when ${sql.ref(labelRef)} like 'D%' then 'D'
+    when ${sql.ref(labelRef)} like 'HD%' then 'HD'
+  end`;
 
 export const getPlayerGradeStats = async (
   playerId: number,
@@ -29,21 +36,27 @@ export const getPlayerGradeStats = async (
       return _db
         .selectFrom('results')
         .leftJoin('chart_instances', (join) =>
-          // take level/type from the latest mix
+          // take level/type from the latest mix that has a level and an S/D/HD label
           join.on('chart_instances.id', '=', (eb) =>
             eb
               .selectFrom('chart_instances')
               .select('id')
               .where('shared_chart', '=', sql.ref('results.shared_chart'))
-              .where('type', 'is not', null)
               .where('level', '>', 0)
+              .where(({ or, cmpr }) =>
+                or([
+                  cmpr('chart_instances.label', 'like', 'S%'),
+                  cmpr('chart_instances.label', 'like', 'D%'),
+                  cmpr('chart_instances.label', 'like', 'HD%'),
+                ])
+              )
               .orderBy('mix', 'desc')
               .limit(1)
           )
         )
         .select([
           'level',
-          'type',
+          chartTypeFromLabel('chart_instances.label').as('type'),
           sql<number>`case
             when ${sql.ref('score_phoenix')} < 450000 then 15
             when ${sql.ref('score_phoenix')} < 550000 then 14
@@ -77,31 +90,42 @@ export const getPlayerGradeStats = async (
     .execute();
 
   const totalCounts = await (trx ?? db)
-    .selectFrom('shared_charts')
-    .leftJoin('chart_instances', (join) =>
-      // take level/type from the latest mix even if the player only played older mixes
-      join.on('chart_instances.id', '=', (eb) =>
-        eb
-          .selectFrom('chart_instances')
-          .select('id')
-          .where('shared_chart', '=', sql.ref('shared_charts.id'))
-          .where('type', 'is not', null)
-          .where('level', '>', 0)
-          .orderBy('mix', 'desc')
-          .limit(1)
-      )
+    .with('chart_totals', (_db) =>
+      _db
+        .selectFrom('shared_charts')
+        .leftJoin('chart_instances', (join) =>
+          // take level/type from the latest mix even if the player only played older mixes
+          join.on('chart_instances.id', '=', (eb) =>
+            eb
+              .selectFrom('chart_instances')
+              .select('id')
+              .where('shared_chart', '=', sql.ref('shared_charts.id'))
+              .where('level', '>', 0)
+              .where(({ or, cmpr }) =>
+                or([
+                  cmpr('chart_instances.label', 'like', 'S%'),
+                  cmpr('chart_instances.label', 'like', 'D%'),
+                  cmpr('chart_instances.label', 'like', 'HD%'),
+                ])
+              )
+              .orderBy('mix', 'desc')
+              .limit(1)
+          )
+        )
+        .select(['level', chartTypeFromLabel('chart_instances.label').as('type')])
+        .where(({ exists }) =>
+          // but only take shared_charts that exist in the mixes the player played
+          exists((eb) =>
+            eb
+              .selectFrom('chart_instances')
+              .select('id')
+              .where('mix', 'in', mixesPlayed)
+              .where('shared_chart', '=', sql.ref('shared_charts.id'))
+          )
+        )
     )
-    .select(['level', 'type', (eb) => eb.fn.countAll<number>().as('count')])
-    .where(({ exists }) =>
-      // but only take shared_charts that exist in the mixes the player played
-      exists((eb) =>
-        eb
-          .selectFrom('chart_instances')
-          .select('id')
-          .where('mix', 'in', mixesPlayed)
-          .where('shared_chart', '=', sql.ref('shared_charts.id'))
-      )
-    )
+    .selectFrom('chart_totals')
+    .select((eb) => ['level', 'type', eb.fn.countAll<number>().as('count')])
     .groupBy(['level', 'type'])
     .orderBy('level')
     .$narrowType<{ level: number; type: GradeStatsChartType }>()

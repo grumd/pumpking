@@ -92,6 +92,8 @@ export const sharedCharts = [
   { id: 1, track: 1, index_in_track: 1 },
   { id: 3, track: 1, index_in_track: 2 },
   { id: 4, track: 1, index_in_track: 3 },
+  // id 2 is reserved for the legacy add-result tests, which insert it themselves
+  { id: 6, track: 1, index_in_track: 4 },
 ];
 
 export const chartInstances = [
@@ -130,6 +132,17 @@ export const chartInstances = [
     max_total_steps: 100,
     min_total_steps: 100,
     type: 'HD' as const,
+  },
+  // Label S15 with a NULL type column - profile stats must derive the type from the label
+  {
+    id: 5,
+    track: 1,
+    shared_chart: 6,
+    mix: 26,
+    label: 'S15',
+    level: 15,
+    max_total_steps: 100,
+    min_total_steps: 100,
   },
 ];
 
