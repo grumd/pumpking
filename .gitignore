@@ -9,6 +9,7 @@ node_modules
 # local tooling artifacts
 .pi/
 .playwright-cli/
+.playwright-mcp/
 
 packages/*/build
 packages/*/types
