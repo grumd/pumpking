@@ -89,6 +89,29 @@ describe('Players', () => {
     assert.isEmpty(level0, 'the level-0 COOP chart is not counted');
   });
 
+  it('derives grades with the Phoenix 2 formula for all mixes', async () => {
+    // 930k is AA under the Phoenix 2 formula; the old Phoenix formula would give AA+ there
+    await db
+      .insertInto('results')
+      .values({
+        ...getResultDefaults({ playerId: 1, score: 930000 }),
+        shared_chart: 3,
+        chart_instance: 3,
+        chart_label: 'S20',
+        mix: 28,
+        mix_name: 'Phoenix2',
+      })
+      .executeTakeFirstOrThrow();
+
+    const res = await req().get('/players/1/grades').expect(200);
+    const grades = res.body.gradeCounts
+      .filter((g: { level: number; type: string }) => g.level === 20 && g.type === 'S')
+      .map((g: { grade: string }) => g.grade);
+    assert.include(grades, 'AA', '930k is graded AA by the Phoenix 2 formula');
+    assert.notInclude(grades, 'AA+', 'the old Phoenix formula band (925k-940k) is not used');
+    assert.include(grades, 'SSS+', 'the seeded 1M result is still SSS+');
+  });
+
   it('lists all players with their latest arcade name', async () => {
     const res = await req().get('/players/all').expect(200);
     const arcadeNameById = Object.fromEntries(

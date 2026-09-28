@@ -99,6 +99,7 @@ export const en = {
   ORIGINAL_MIX: 'was played on',
   ORIGINAL_CHART: 'original chart:',
   ORIGINAL_SCORE: 'original score:',
+  ORIGINAL_GRADE: 'original grade:',
   SIGHTREAD: '* sightread',
 
   // Other

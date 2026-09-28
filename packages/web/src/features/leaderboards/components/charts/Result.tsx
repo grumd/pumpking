@@ -199,6 +199,17 @@ const Result = ({ result, chart }: { result: ResultExtended; chart: ChartApiOutp
                   </>
                 )}
 
+                {result.grade != null && (
+                  <>
+                    <Text component="dt" c="dimmed" size="sm">
+                      {lang.ORIGINAL_GRADE}
+                    </Text>
+                    <Text component="dd" m={0} size="sm">
+                      {result.grade}
+                    </Text>
+                  </>
+                )}
+
                 <Text component="dt" c="dimmed" size="sm">
                   {lang.PLAYER}:
                 </Text>

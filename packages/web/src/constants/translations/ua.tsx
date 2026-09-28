@@ -93,6 +93,7 @@ export const ua = {
   ORIGINAL_MIX: 'було зіграно на',
   ORIGINAL_CHART: 'оригінальний чарт:',
   ORIGINAL_SCORE: 'оригінальний скор:',
+  ORIGINAL_GRADE: 'оригінальна оцінка:',
   SIGHTREAD: '* сайтрід',
   MY_BEST_SCORE_WARNING: 'рекорд взято із my best. частина даних недоступна',
   // Other
