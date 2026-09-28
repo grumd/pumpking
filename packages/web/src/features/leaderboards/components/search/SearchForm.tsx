@@ -161,11 +161,10 @@ export const SearchForm = (): JSX.Element => {
   const isSortingChanged =
     (searchFilter.sortChartsBy && searchFilter.sortChartsBy !== 'date') ||
     (searchFilter.sortChartsDir && searchFilter.sortChartsDir !== 'desc');
+  // compare label sets (order in the stored array follows the user's toggles, not the default order)
   const isChartFilterChanged =
-    (searchFilter.labels &&
-      searchFilter.labels.length !== 2 &&
-      searchFilter.labels[0] === initialFilter.labels?.[0] &&
-      searchFilter.labels[1] === initialFilter.labels?.[1]) ||
+    (searchFilter.labels?.slice().sort().join('|') ?? '') !==
+      initialFilter.labels?.slice().sort().join('|') ||
     (searchFilter.durations && searchFilter.durations.length !== 4) ||
     (searchFilter.minLevel && searchFilter.minLevel !== 1) ||
     (searchFilter.maxLevel && searchFilter.maxLevel !== 28);
