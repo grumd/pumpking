@@ -10,7 +10,6 @@ import { routes } from 'constants/routes';
 
 import type { ChartApiOutput } from 'features/leaderboards/hooks/useChartsQuery';
 
-import { labelToTypeLevel } from 'utils/leaderboards';
 import { Mixes } from 'utils/scoring/grades';
 
 import css from './chart-header.module.css';
@@ -23,12 +22,11 @@ interface ChartHeaderProps {
 export const ChartHeader = ({ chart, children = null }: ChartHeaderProps): JSX.Element => {
   // TODO: change to "toSorted" when more widely supported
   const otherInstances = chart.otherChartInstances.slice().sort((a, b) => b.mix - a.mix);
-  const [chartType, chartLevel] = labelToTypeLevel(chart.label);
 
   return (
     <Group p="xs" bdrs="xl" gap="sm" align="center" wrap="wrap" className={css.header}>
       <Group p={0} gap="sm" align="center" wrap="nowrap" className={css.titleRow}>
-        <ChartLabel type={chartType} level={chartLevel ?? '?'} />
+        <ChartLabel label={chart.label} />
         <Anchor
           size="xl"
           lh="xs"
