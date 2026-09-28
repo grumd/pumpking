@@ -49,6 +49,10 @@ export const PlatePhoenix = {
 
 export type PlatePhoenix = (typeof PlatePhoenix)[keyof typeof PlatePhoenix];
 
+/**
+ * Phoenix 2 (mix 28) grade formula - the latest one, applied to all mixes.
+ * The original per-result grade is only shown in the result details popup.
+ */
 export const getPhoenixGrade = (score?: number | null): GradePhoenix | null => {
   if (score == null) return null;
   switch (true) {
@@ -68,19 +72,19 @@ export const getPhoenixGrade = (score?: number | null): GradePhoenix | null => {
       return GradePhoenix.AAAP;
     case score >= 950_000:
       return GradePhoenix.AAA;
-    case score >= 925_000:
+    case score >= 940_000:
       return GradePhoenix.AAP;
-    case score >= 900_000:
+    case score >= 920_000:
       return GradePhoenix.AA;
-    case score >= 825_000:
+    case score >= 900_000:
       return GradePhoenix.AP;
-    case score >= 750_000:
+    case score >= 800_000:
       return GradePhoenix.A;
-    case score >= 650_000:
+    case score >= 700_000:
       return GradePhoenix.B;
-    case score >= 550_000:
+    case score >= 600_000:
       return GradePhoenix.C;
-    case score >= 450_000:
+    case score >= 500_000:
       return GradePhoenix.D;
     default:
       return GradePhoenix.F;

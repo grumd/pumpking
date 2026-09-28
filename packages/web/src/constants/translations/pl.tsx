@@ -101,6 +101,7 @@ export const pl: BaseTranslation = {
   ORIGINAL_MIX: 'zagrano na',
   ORIGINAL_CHART: 'oryginalny czart:',
   ORIGINAL_SCORE: 'oryginalny wynik:',
+  ORIGINAL_GRADE: 'oryginalna ocena:',
   SIGHTREAD: '* sightread',
 
   // Other

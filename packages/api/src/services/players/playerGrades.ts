@@ -45,14 +45,15 @@ export const getPlayerGradeStats = async (
         .select([
           'sc.type as type',
           'latest_ci.level as level',
+          // Phoenix 2 (mix 28) grade formula - the latest one, applied to all mixes
           sql<number>`case
-            when ${sql.ref('r.score_phoenix')} < 450000 then 15
-            when ${sql.ref('r.score_phoenix')} < 550000 then 14
-            when ${sql.ref('r.score_phoenix')} < 650000 then 13
-            when ${sql.ref('r.score_phoenix')} < 750000 then 12
-            when ${sql.ref('r.score_phoenix')} < 825000 then 11
-            when ${sql.ref('r.score_phoenix')} < 900000 then 10
-            when ${sql.ref('r.score_phoenix')} < 925000 then 9
+            when ${sql.ref('r.score_phoenix')} < 500000 then 15
+            when ${sql.ref('r.score_phoenix')} < 600000 then 14
+            when ${sql.ref('r.score_phoenix')} < 700000 then 13
+            when ${sql.ref('r.score_phoenix')} < 800000 then 12
+            when ${sql.ref('r.score_phoenix')} < 900000 then 11
+            when ${sql.ref('r.score_phoenix')} < 920000 then 10
+            when ${sql.ref('r.score_phoenix')} < 940000 then 9
             when ${sql.ref('r.score_phoenix')} < 950000 then 8
             when ${sql.ref('r.score_phoenix')} < 960000 then 7
             when ${sql.ref('r.score_phoenix')} < 970000 then 6

@@ -93,6 +93,7 @@ export const ru = {
   ORIGINAL_MIX: 'было сыграно на',
   ORIGINAL_CHART: 'оригинальный чарт:',
   ORIGINAL_SCORE: 'оригинальный скор:',
+  ORIGINAL_GRADE: 'оригинальная оценка:',
   SIGHTREAD: '* сайтрид',
   MY_BEST_SCORE_WARNING: 'рекорд взят с my best. часть данных недоступна',
   // Other
