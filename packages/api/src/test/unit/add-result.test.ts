@@ -418,7 +418,10 @@ describe('Add new result manually', () => {
     );
     assert.strictEqual(secondResult?.pp, secondPp, 'player pp and result pp are equal');
 
-    await db.insertInto('shared_charts').values({ id: 2, track: 1, index_in_track: 2 }).execute();
+    await db
+      .insertInto('shared_charts')
+      .values({ id: 2, track: 1, index_in_track: 2, type: 'S' })
+      .execute();
     await db
       .insertInto('chart_instances')
       .values({

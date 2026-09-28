@@ -74,7 +74,7 @@ export interface ChartInstances {
   max_possible_score_norank: number | null;
   max_possible_score_norank_from_result: number | null;
   interpolated_difficulty: number | null;
-  type: 'D' | 'HD' | 'S' | null;
+  type: 'D' | 'S' | null;
 }
 
 export interface DraftScores {
@@ -264,6 +264,7 @@ export interface SharedCharts {
   id: Generated<number>;
   track: number;
   index_in_track: number;
+  type: 'COOP' | 'D' | 'HD' | 'S';
   pumpout_id: number | null;
   last_updated_at: Date | null;
   top_results_added_at: Date | null;

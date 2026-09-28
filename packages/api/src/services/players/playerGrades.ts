@@ -1,19 +1,14 @@
 import { Transaction, db } from 'db';
 import { sql } from 'kysely';
-import _ from 'lodash/fp';
 import { GradePhoenix, phoenixGradeOrder } from 'utils/scoring/grades';
 
-// Chart type derived from the label prefix (S20 -> 'S', D18 -> 'D', HD18 -> 'HD').
-// The label is the source of truth: the chart_instances.type column is import-time data
-// that has drifted (whole mixes were left NULL), so the stats derive the type in the query.
+// Chart type is read from shared_charts.type - the canonical per-chart type
+// (S/D/HD/COOP) maintained by the tracklist update process. COOP charts are
+// excluded from these S/D/HD stats. (chart_instances.type is import-time data
+// that drifted - whole mixes left NULL - so it is not read.)
 export type GradeStatsChartType = 'S' | 'D' | 'HD';
 
-const chartTypeFromLabel = (labelRef: string) =>
-  sql<GradeStatsChartType>`case
-    when ${sql.ref(labelRef)} like 'S%' then 'S'
-    when ${sql.ref(labelRef)} like 'D%' then 'D'
-    when ${sql.ref(labelRef)} like 'HD%' then 'HD'
-  end`;
+const gradeableTypes: GradeStatsChartType[] = ['S', 'D', 'HD'];
 
 export const getPlayerGradeStats = async (
   playerId: number,
@@ -34,53 +29,47 @@ export const getPlayerGradeStats = async (
   const gradeStats = await (trx ?? db)
     .with('ranked_results', (_db) => {
       return _db
-        .selectFrom('results')
-        .leftJoin('chart_instances', (join) =>
-          // take level/type from the latest mix that has a level and an S/D/HD label
-          join.on('chart_instances.id', '=', (eb) =>
+        .selectFrom('results as r')
+        .innerJoin('shared_charts as sc', 'sc.id', 'r.shared_chart')
+        .leftJoin('chart_instances as latest_ci', (join) =>
+          // take the level from the chart's latest-mix instance ((shared_chart, mix) is unique)
+          join.on('latest_ci.id', '=', (eb) =>
             eb
               .selectFrom('chart_instances')
               .select('id')
-              .where('shared_chart', '=', sql.ref('results.shared_chart'))
-              .where('level', '>', 0)
-              .where(({ or, cmpr }) =>
-                or([
-                  cmpr('chart_instances.label', 'like', 'S%'),
-                  cmpr('chart_instances.label', 'like', 'D%'),
-                  cmpr('chart_instances.label', 'like', 'HD%'),
-                ])
-              )
+              .where('shared_chart', '=', sql.ref('r.shared_chart'))
               .orderBy('mix', 'desc')
               .limit(1)
           )
         )
         .select([
-          'level',
-          chartTypeFromLabel('chart_instances.label').as('type'),
+          'sc.type as type',
+          'latest_ci.level as level',
           sql<number>`case
-            when ${sql.ref('score_phoenix')} < 450000 then 15
-            when ${sql.ref('score_phoenix')} < 550000 then 14
-            when ${sql.ref('score_phoenix')} < 650000 then 13
-            when ${sql.ref('score_phoenix')} < 750000 then 12
-            when ${sql.ref('score_phoenix')} < 825000 then 11
-            when ${sql.ref('score_phoenix')} < 900000 then 10
-            when ${sql.ref('score_phoenix')} < 925000 then 9
-            when ${sql.ref('score_phoenix')} < 950000 then 8
-            when ${sql.ref('score_phoenix')} < 960000 then 7
-            when ${sql.ref('score_phoenix')} < 970000 then 6
-            when ${sql.ref('score_phoenix')} < 975000 then 5
-            when ${sql.ref('score_phoenix')} < 980000 then 4
-            when ${sql.ref('score_phoenix')} < 985000 then 3
-            when ${sql.ref('score_phoenix')} < 990000 then 2
-            when ${sql.ref('score_phoenix')} < 995000 then 1
+            when ${sql.ref('r.score_phoenix')} < 450000 then 15
+            when ${sql.ref('r.score_phoenix')} < 550000 then 14
+            when ${sql.ref('r.score_phoenix')} < 650000 then 13
+            when ${sql.ref('r.score_phoenix')} < 750000 then 12
+            when ${sql.ref('r.score_phoenix')} < 825000 then 11
+            when ${sql.ref('r.score_phoenix')} < 900000 then 10
+            when ${sql.ref('r.score_phoenix')} < 925000 then 9
+            when ${sql.ref('r.score_phoenix')} < 950000 then 8
+            when ${sql.ref('r.score_phoenix')} < 960000 then 7
+            when ${sql.ref('r.score_phoenix')} < 970000 then 6
+            when ${sql.ref('r.score_phoenix')} < 975000 then 5
+            when ${sql.ref('r.score_phoenix')} < 980000 then 4
+            when ${sql.ref('r.score_phoenix')} < 985000 then 3
+            when ${sql.ref('r.score_phoenix')} < 990000 then 2
+            when ${sql.ref('r.score_phoenix')} < 995000 then 1
             else 0 end`.as('grade_phoenix_order'),
-          sql<number>`row_number() over (partition by results.shared_chart, results.player_id order by ${sql.ref(
-            'score_phoenix'
+          sql<number>`row_number() over (partition by r.shared_chart, r.player_id order by ${sql.ref(
+            'r.score_phoenix'
           )} desc)`.as('score_rank'),
         ])
-        .where('player_id', '=', playerId)
-        .where('score_phoenix', 'is not', null)
-        .$narrowType<{ level: number; type: GradeStatsChartType }>();
+        .where('r.player_id', '=', playerId)
+        .where('r.score_phoenix', 'is not', null)
+        .where('sc.type', 'in', gradeableTypes)
+        .$narrowType<{ type: GradeStatsChartType; level: number }>();
     })
     .selectFrom('ranked_results')
     .select((eb) => ['level', 'type', 'grade_phoenix_order', eb.fn.countAll<number>().as('count')])
@@ -90,45 +79,37 @@ export const getPlayerGradeStats = async (
     .execute();
 
   const totalCounts = await (trx ?? db)
-    .with('chart_totals', (_db) =>
-      _db
-        .selectFrom('shared_charts')
-        .leftJoin('chart_instances', (join) =>
-          // take level/type from the latest mix even if the player only played older mixes
-          join.on('chart_instances.id', '=', (eb) =>
-            eb
-              .selectFrom('chart_instances')
-              .select('id')
-              .where('shared_chart', '=', sql.ref('shared_charts.id'))
-              .where('level', '>', 0)
-              .where(({ or, cmpr }) =>
-                or([
-                  cmpr('chart_instances.label', 'like', 'S%'),
-                  cmpr('chart_instances.label', 'like', 'D%'),
-                  cmpr('chart_instances.label', 'like', 'HD%'),
-                ])
-              )
-              .orderBy('mix', 'desc')
-              .limit(1)
-          )
-        )
-        .select(['level', chartTypeFromLabel('chart_instances.label').as('type')])
-        .where(({ exists }) =>
-          // but only take shared_charts that exist in the mixes the player played
-          exists((eb) =>
-            eb
-              .selectFrom('chart_instances')
-              .select('id')
-              .where('mix', 'in', mixesPlayed)
-              .where('shared_chart', '=', sql.ref('shared_charts.id'))
-          )
-        )
+    .selectFrom('shared_charts as sc')
+    .leftJoin('chart_instances as latest_ci', (join) =>
+      // take the level from the latest mix even if the player only played older mixes
+      join.on('latest_ci.id', '=', (eb) =>
+        eb
+          .selectFrom('chart_instances')
+          .select('id')
+          .where('shared_chart', '=', sql.ref('sc.id'))
+          .orderBy('mix', 'desc')
+          .limit(1)
+      )
     )
-    .selectFrom('chart_totals')
-    .select((eb) => ['level', 'type', eb.fn.countAll<number>().as('count')])
-    .groupBy(['level', 'type'])
-    .orderBy('level')
-    .$narrowType<{ level: number; type: GradeStatsChartType }>()
+    .select([
+      'sc.type as type',
+      'latest_ci.level as level',
+      (eb) => eb.fn.countAll<number>().as('count'),
+    ])
+    .where('sc.type', 'in', gradeableTypes)
+    .where(({ exists }) =>
+      // but only take shared_charts that exist in the mixes the player played
+      exists((eb) =>
+        eb
+          .selectFrom('chart_instances')
+          .select('id')
+          .where('mix', 'in', mixesPlayed)
+          .where('shared_chart', '=', sql.ref('sc.id'))
+      )
+    )
+    .groupBy(['sc.type', 'latest_ci.level'])
+    .orderBy('latest_ci.level')
+    .$narrowType<{ level: number; type: GradeStatsChartType; count: number }>()
     .execute();
 
   const gradeCounts = gradeStats.map(({ grade_phoenix_order, ...rest }) => ({
