@@ -122,8 +122,19 @@ prefix is **`HD`** (e.g. `HD18`).
 
 Data discovery that corrected the plan below: the legacy `HD-` labels (mixes 15-20, e.g.
 `HD-7`) are a **different chart family** - those shared charts appear as `S#` singles in mix 28
-and have zero shared-chart overlap with the new `HD#` labels. The backfill is therefore scoped
-to `label REGEXP '^HD[0-9]'` (790 mix-28 rows), not `LIKE 'HD%'`.
+and have zero shared-chart overlap with the new `HD#` labels. Anything that classifies HD by
+label prefix should match `^HD[0-9]` (790 mix-28 rows), not `LIKE 'HD%'` - that distinction
+matters for the `shared_charts.type` backfill in the migration and for any future type
+handling by the import process.
+
+**Discovered 2026-09-28 (from the 2026-09-27 prod dump):** prod already has the canonical
+chart-type column - `shared_charts.type enum('S','D','HD','COOP') NOT NULL`, added and
+maintained by the manual tracklist update process. The branch has since converged on it:
+`chart_instances.type` is dead (see Database section) and `playerGrades` reads
+`shared_charts.type`. Prod's assignment rule, reverse-engineered from the data and verified
+1:1 across all 8,543 charts: type of the **latest-mix instance**, with `HD#`→HD, `COOP`→COOP,
+the 24 Dp/`aNM`→COOP-reclassified charts→COOP, `Dp`→D (double-perfect counts as double),
+`Sp`→S, and the experimental `HD-/CZ-/NL- (a)`→S / `FS-/NM- (a)`→D.
 
 Product decisions (**all three confirmed by the owner, 2026-09-27**):
 - **PP**: HD charts earn PP (no `HD%` exclusion; only `COOP%` is excluded).
@@ -149,59 +160,65 @@ Known starting state (from the prod dump in the local dev DB):
   default `['S','D']` → `['S','D','HD']`, one-shot flag, no key bump).
 
 Chart types are mostly convention: a free-text `label` on `chart_instances` (`S20`, `D18`, `SP`,
-`DP`, `COOP`) that code parses by prefix, plus a stricter `type ENUM('S','D')` column used only by
-the profile grade stats. `HD` does not collide with the existing `LIKE 'S%'` / `LIKE 'D%'` prefix
-filters, and the web label parser (`labelToTypeLevel`) splits it into type `HD` and level `18`
+`DP`, `COOP`) that code parses by prefix, plus a dead `type ENUM('S','D')` column that nothing
+reads anymore (superseded by the canonical `shared_charts.type`, see Database section). `HD`
+still does not collide with the `LIKE 'S%'` / `LIKE 'D%'` prefix filters used by chart search,
+and the web label parser (`labelToTypeLevel`) splits `HD18` into type `HD` and level `18`
 automatically.
 
 ## Database
 
-- [x] **Extend the type enum** with migration
-      `migrations/20260927053730_add_hd_chart_type.ts` (**`.ts` with a `down`**, applied to the
-      local dev DB, picked up by every test-DB rebuild):
-      - `ALTER TABLE chart_instances MODIFY type ENUM('S','D','HD')`
-      - backfill `type='HD'` scoped to `label REGEXP '^HD[0-9]'` - NOT `LIKE 'HD%'`, which would
-        also hit the 843 legacy `HD-x` rows (different chart family, see above).
-      - also backfilled the mix-28 S/D rows (`mix = 28 AND label LIKE 'S%'/'D%'`): the mix 28
-        import skipped the original type backfill (all 5,465 rows were NULL), and without it the
-        current mix is invisible to profile grade stats (join on `type is not null`). All mix 28
-        S/D rows were NULL beforehand, so `down` reverts exactly this set.
-      - `down`: re-null the HD rows + mix-28 S/D rows, shrink back to `ENUM('S','D')`.
-      - Left alone (out of scope): the 914 NULL-type S/D rows of mix 27.
-      - **Superseded (2026-09-27):** the code no longer reads the `type` column at all -
-        profile stats derive the type from the label prefix (see API section below). The
-        backfilled values are now inert data; the column and the migration are left in place
-        (decision: don't modify the database further; dropping the column would be a separate
-        migration if ever wanted).
-- [x] **Regenerate `packages/api/src/types/database.ts`** - took only the one-line change
-      (`type: 'D' | 'HD' | 'S' | null`). A full regeneration also pulled in unrelated drift:
-      `phoenix2_track_names` table, `players.arcade_phoenix2_name` columns, `best_results` table
-      (absent in the dev DB), the inferred `PlayerPreferencesJson` structure (inference depends
-      on the data present), and a quote-style flip. Needs a manual merge when it is next
-      regenerated; note the `generate-kysely` npm script hardcodes a no-password URL that fails.
+- [x] **`shared_charts.type` migration**
+      `migrations/20260928000000_add_shared_chart_type.ts` (**`.ts` with a `down`**, applied to
+      the local dev DB, picked up by every test-DB rebuild):
+      - **No-op on prod-shaped databases** (column exists - added by the tracklist update
+        process). On fresh DBs (test DBs, clones of older dumps) it adds
+        `type enum('S','D','HD','COOP')` and backfills it from the latest-mix chart label;
+        the label→type CASE reproduces the prod values 1:1 for all 8,543 charts (verified
+        2026-09-28). `down` drops the column - only on dev/test DBs, since on prod-shaped
+        DBs the column belongs to the tracklist process.
+      - **Supersedes the abandoned
+        `20260927053730_add_hd_chart_type.ts`** (which extended `chart_instances.type` to
+        `ENUM('S','D','HD')` with data backfills, then was trimmed to schema-only, and is now
+        deleted from the branch - it never ran anywhere: prod's `kysely_migration` ends at
+        `20250106000000`). `chart_instances.type` stays `enum('S','D')` and is **dead**: no
+        code reads it, and it is known-wrong in places (all 1,044 `Dp` co-op/2P rows are
+        stamped `'D'` by the `20240110152230` `LIKE 'D%'` backfill; mix 28 is fully NULL).
+- [x] **`packages/api/src/types/database.ts` hand-merge** (regen still blocked - the
+      `generate-kysely` npm script hardcodes a no-password URL that fails, and a full regen
+      pulls in unrelated drift: `phoenix2_track_names` table, `players.arcade_phoenix2_name`
+      columns, `best_results` table absent in the dev DB, inferred `PlayerPreferencesJson`
+      structure, quote-style flip). Taken: `SharedCharts` gains `type: 'COOP' | 'D' | 'HD' | 'S'`;
+      `ChartInstances.type` matches prod (`'D' | 'S' | null` - the interim `'HD'` entry from
+      the abandoned enum migration is gone).
 - [x] **Chart data**: HD `chart_instances` rows already present in the dev DB (790, mix 28),
       `level` set (4-27) so exp and the level filter work.
 
 ## API (`packages/api`)
 
-- [x] `src/services/players/playerGrades.ts`: **stops reading the `chart_instances.type`
-      column entirely** and derives the type from the label prefix in the query
-      (`CASE label LIKE 'S%' -> 'S', 'D%' -> 'D', 'HD%' -> 'HD'`). The join subqueries select
-      the latest-mix instance with `level > 0` **and an S/D/HD label** (replacing
-      `type is not null`), so COOP/legacy-labelled charts still fall through to the newest
-      gradeable instance. `GradeStatsChartType` is now the literal `'S' | 'D' | 'HD'`.
-      This makes the stats immune to import-time `type` backfill drift - the 914 NULL-type
-      mix-27 rows (and any future import gap) now count correctly, and the `type` column is
-      dead weight the code never touches. The API output shape is unchanged, so the web
-      presentation components needed no changes.
+- [x] `src/services/players/playerGrades.ts`: reads the chart type from the canonical
+      **`shared_charts.type`** column (filter `IN ('S','D','HD')` - COOP charts excluded by
+      the column, no label parsing left in the query) and takes the level from the
+      latest-mix instance (`(shared_chart, mix)` is unique, plain `ORDER BY mix DESC LIMIT 1`
+      join - no more label/level filters in the join subqueries). `GradeStatsChartType` is
+      the literal `'S' | 'D' | 'HD'`. The intermediate label-derivation version (CASE on
+      `label LIKE 'S%'/'D%'/'HD%'`, shipped as commit `84506cb9`) was replaced once the 2026-09-27
+      prod dump showed the tracklist process had already added and maintained
+      `shared_charts.type`. Semantics follow prod: Dp counts as D, the 24 Dp/`aNM`→COOP
+      charts are excluded (they were excluded before too - level guard), `chart_instances.type`
+      is never read. The API output shape is unchanged, so the web presentation components
+      needed no changes.
 - [x] **PP**: HD earns PP - confirmed, no `HD%` exclusion in `resultsPp.ts`.
 - [x] **Rank mode (VJ)**: allowed on HD - confirmed, no block added in `addResult.ts`.
-- [x] **Tests**: `initialSeed.ts` gained a mix-28 `HD18` instance (chart 4) and an `S15`
-      instance with a NULL `type` column (chart 6); `chartsSearch.test.ts` gained an HD-label
-      filter case (HD matches `HD`, does not leak into `S`); `add-result.test.ts` gained an
-      add-result case on the HD chart (label/instance/mix/grade persisted); `players.test.ts`
-      gained a regression case asserting the NULL-type S15 chart is counted by its label in the
-      profile grade stats.
+- [x] **Tests**: `initialSeed.ts` gained a mix-28 `HD18` instance (chart 4, instance type
+      NULL like prod), an `S15` instance with a NULL instance type (chart 6, whose
+      `shared_charts.type` is `'S'`), and a COOP chart (chart 7, `COOP2` instance, level 0);
+      `shared_charts` seed rows all carry the required `type`. `chartsSearch.test.ts` gained
+      an HD-label filter case (HD matches `HD`, does not leak into `S`); `add-result.test.ts`
+      gained an add-result case on the HD chart (label/instance/mix/grade persisted); its
+      legacy shared-chart insert gained the required `type`. `players.test.ts` gained two
+      cases: the NULL-instance-type S15 chart is counted by its `shared_charts.type`, and
+      COOP charts are excluded from the grade stats. Full suite: 29 passing.
 
 Already fine (no change needed):
 
@@ -250,3 +267,9 @@ Already fine (no change needed):
 The legacy Python API does arcade screenshot recognition and chart imports. It must learn to
 recognize the half-double result screen and emit the `HD` label, or arcade uploads for those
 charts will be mislabeled or rejected.
+
+The manual tracklist update process now also owns `shared_charts.type` (it created and
+populated it in prod, 2026-09-27 dump). It must keep maintaining it on every tracklist update
+- it is `NOT NULL`, so a gap would fail the update rather than hide, but a wrong assignment
+(e.g. forgetting the Dp/`aNM`→COOP charts or the `^HD[0-9]` vs `HD-` scoping) would silently
+skew profile grade stats.

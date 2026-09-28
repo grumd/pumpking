@@ -42,8 +42,8 @@ describe('Players', () => {
     assert.isString(res.body.gradeCounts[0].grade, 'grade is a string');
   });
 
-  it('derives the chart type from the label, not the type column', async () => {
-    // The seeded S15 instance (chart 6) has a NULL type column
+  it('reads the chart type from shared_charts.type, not the instance type column', async () => {
+    // The seeded S15 instance (chart 6) has a NULL type column; the chart's type is 'S'
     await db
       .insertInto('results')
       .values({
@@ -58,7 +58,35 @@ describe('Players', () => {
     const typeByLevel = Object.fromEntries(
       res.body.totalCounts.map((t: { level: number; type: string }) => [t.level, t.type])
     );
-    assert.equal(typeByLevel[15], 'S', 'the NULL-type S15 chart is counted by its label');
+    assert.equal(
+      typeByLevel[15],
+      'S',
+      'the NULL-instance-type S15 chart is counted by its shared chart type'
+    );
+  });
+
+  it('excludes COOP charts from the grade stats', async () => {
+    await db
+      .insertInto('results')
+      .values({
+        ...getResultDefaults({ playerId: 1, score: 900000 }),
+        shared_chart: 7,
+        chart_instance: 7,
+        chart_label: 'COOP2',
+      })
+      .executeTakeFirstOrThrow();
+
+    const res = await req().get('/players/1/grades').expect(200);
+    const types = [
+      ...new Set(
+        [...res.body.totalCounts, ...res.body.gradeCounts].map((t: { type: string }) => t.type)
+      ),
+    ];
+    assert.isFalse(types.includes('COOP'), 'no COOP entries in the grade stats');
+    const level0 = res.body.totalCounts.filter(
+      (t: { level: number | null }) => t.level === 0
+    );
+    assert.isEmpty(level0, 'the level-0 COOP chart is not counted');
   });
 
   it('lists all players with their latest arcade name', async () => {

@@ -101,12 +101,16 @@ export const tracks = [
   },
 ];
 
+// The chart type lives on shared_charts (the canonical column); chart_instances
+// rows below deliberately carry no meaningful `type` (prod leaves mix 28 rows NULL).
 export const sharedCharts = [
-  { id: 1, track: 1, index_in_track: 1 },
-  { id: 3, track: 1, index_in_track: 2 },
-  { id: 4, track: 1, index_in_track: 3 },
+  { id: 1, track: 1, index_in_track: 1, type: 'S' as const },
+  { id: 3, track: 1, index_in_track: 2, type: 'S' as const },
+  { id: 4, track: 1, index_in_track: 3, type: 'HD' as const },
   // id 2 is reserved for the legacy add-result tests, which insert it themselves
-  { id: 6, track: 1, index_in_track: 4 },
+  { id: 6, track: 1, index_in_track: 4, type: 'S' as const },
+  // co-op chart: must be excluded from the S/D/HD profile grade stats
+  { id: 7, track: 1, index_in_track: 5, type: 'COOP' as const },
 ];
 
 export const chartInstances = [
@@ -134,7 +138,8 @@ export const chartInstances = [
     min_total_steps: 100,
     type: 'S' as const,
   },
-  // Phoenix 2 (mix 28) half-double instance, used by the HD tests
+  // Phoenix 2 (mix 28) half-double instance, used by the HD tests.
+  // No `type` here (prod's mix 28 rows are untyped): the type is shared_charts.type = 'HD'
   {
     id: 4,
     track: 1,
@@ -144,9 +149,8 @@ export const chartInstances = [
     level: 18,
     max_total_steps: 100,
     min_total_steps: 100,
-    type: 'HD' as const,
   },
-  // Label S15 with a NULL type column - profile stats must derive the type from the label
+  // S15 with a NULL instance type column - the chart's type comes from shared_charts (chart 6 = 'S')
   {
     id: 5,
     track: 1,
@@ -154,6 +158,17 @@ export const chartInstances = [
     mix: 26,
     label: 'S15',
     level: 15,
+    max_total_steps: 100,
+    min_total_steps: 100,
+  },
+  // Co-op instance (mix 28): level 0, untyped - co-op charts are excluded from the grade stats
+  {
+    id: 7,
+    track: 1,
+    shared_chart: 7,
+    mix: 28,
+    label: 'COOP2',
+    level: 0,
     max_total_steps: 100,
     min_total_steps: 100,
   },
