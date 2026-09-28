@@ -53,6 +53,9 @@ export function DevLogin() {
           root: { width: 200 },
         }}
       />
+      {playersQuery.isError && (
+        <div className="error">Failed to load players: {playersQuery.error.message}</div>
+      )}
       {error && <div className="error">{error}</div>}
     </div>
   );
