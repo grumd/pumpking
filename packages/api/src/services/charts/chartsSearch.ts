@@ -1,3 +1,4 @@
+import { MIXES } from 'constants/mixes';
 import { db } from 'db';
 import { sql } from 'kysely';
 import type { Tracks } from 'types/database';
@@ -15,7 +16,7 @@ export interface ChartsSearchParams {
   maxLevel?: number;
   /** Example: ['S', 'D', 'COOP'], etc */
   labels?: string[] | undefined;
-  /** Id of mixes to include in leaderboards, by default [26, 27, 28] */
+  /** Ids of mixes to include in leaderboards, by default [XX, Phoenix, Phoenix2] */
   mixes?: number[];
   /** Song name search, can be any text, @example 'matador d22', 'l i a d z' */
   songName?: string;
@@ -90,7 +91,7 @@ export interface ChartViewModel {
 export const searchCharts = async (params: ChartsSearchParams) => {
   const {
     currentPlayerId,
-    mixes = [26, 27, 28],
+    mixes = [MIXES.XX, MIXES.Phoenix, MIXES.Phoenix2],
     durations,
     labels,
     minLevel,
