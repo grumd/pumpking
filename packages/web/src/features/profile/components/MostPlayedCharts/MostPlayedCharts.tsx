@@ -12,7 +12,6 @@ import Loader from 'components/Loader/Loader';
 import { routes } from 'constants/routes';
 
 import { useLanguage } from 'utils/context/translation';
-import { labelToTypeLevel } from 'utils/leaderboards';
 import { getLongTimeAgo } from 'utils/timeAgo';
 import { api } from 'utils/trpc';
 
@@ -35,16 +34,11 @@ export const MostPlayedCharts = (): JSX.Element => {
       <SimpleGrid spacing="xs" className={css.grid}>
         {charts.data?.pages.flatMap((page) =>
           page.items.map((item) => {
-            const [chartType, chartLevel] = labelToTypeLevel(item.label);
             return (
               <Card key={item.shared_chart} fz="md" p="0.5em" level={2} className={css.row}>
-                {chartType && chartLevel ? (
-                  <Flex>
-                    <ChartLabel type={chartType} level={chartLevel} />
-                  </Flex>
-                ) : (
-                  <span>{item.label}</span>
-                )}
+                <Flex>
+                  <ChartLabel label={item.label} />
+                </Flex>
                 <Anchor
                   component={NavLink}
                   to={routes.leaderboard.sharedChart.getPath({
