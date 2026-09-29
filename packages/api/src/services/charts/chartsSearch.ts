@@ -182,9 +182,9 @@ export const searchCharts = async (params: ChartsSearchParams) => {
           fn.max('r.added').as('chart_update_date'),
           sortChartsBy === 'difficulty'
             ? fn
-                .coalesce(fn.max('latest_ci.interpolated_difficulty'), fn.max('latest_ci.level'))
+                .coalesce(fn.max('sc.interpolated_difficulty'), fn.max('latest_ci.level'))
                 .as('difficulty')
-            : fn.max('latest_ci.interpolated_difficulty').as('difficulty'),
+            : fn.max('sc.interpolated_difficulty').as('difficulty'),
           fn.max('r.pp').as('best_pp'),
           fn.max('latest_ci.label').as('latest_chart_label'),
           fn.max('latest_ci.level').as('latest_chart_level'),
