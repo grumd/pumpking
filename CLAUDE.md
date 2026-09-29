@@ -107,3 +107,12 @@ Backend tests use Mocha + Chai with a separate test database. Tests are in `pack
 npm run test --prefix packages/api        # Run all tests
 npm run test:watch --prefix packages/api  # Watch mode
 ```
+
+## Trello
+
+A Trello workspace and board are available for tracking tasks:
+
+- **Workspace**: Pumpking — https://trello.com/w/pumpking1
+- **Board**: Pumpking — https://trello.com/b/aSxSZhd7/pumpking
+
+Use the board for task/work items related to this project.
