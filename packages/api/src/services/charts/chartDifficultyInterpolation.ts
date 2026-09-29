@@ -11,7 +11,7 @@ const debug = createDebug('backend-ts:services:chart-difficulty');
 
 type AccPoint = { level: number; scorePercent: number };
 
-export const getInterpolatedDifficultyPerChartInstance = async () => {
+export const getInterpolatedDifficultyPerSharedChart = async () => {
   const bestResults = await db
     .with('ranked_results', (_db) => {
       return _db
@@ -141,7 +141,7 @@ export const getInterpolatedDifficultyPerChartInstance = async () => {
 
         weight *= Math.min(1, Math.max(0.1, (8 - Math.abs(difficulty - r.level)) / 8));
 
-        return { difficulty, weight, r };
+        return { difficulty, weight };
       });
 
     const sums = resultsData.reduce(
@@ -164,78 +164,64 @@ export const getInterpolatedDifficultyPerChartInstance = async () => {
 
     return {
       sharedChartId: latestMixResult.shared_chart_id,
-      chartInstances: _.uniq(chartResults.map((r) => r.chart_instance_id)),
       level: latestMixResult.level,
       name: latestMixResult.track_short_name,
       difficulty: sums.diffSum / sums.weightSum,
-      affectedBy: resultsData
-        .filter((res) => res)
-        .map((res) => {
-          return {
-            player: res?.r.nickname,
-            difficultyGuess: res?.difficulty,
-            weight: res?.weight,
-          };
-        }),
     };
   }, groupedBySharedChart);
 
-  const chartsGroupedByChartInstance: Record<
-    number,
-    { chartInstanceId: number } & Omit<
-      (typeof groupedBySharedChartWithDiff)[number],
-      'chartInstances'
-    >
-  > = {};
+  return groupedBySharedChartWithDiff;
+};
 
-  for (const sharedChartId in groupedBySharedChartWithDiff) {
-    const { chartInstances, ...chart } = groupedBySharedChartWithDiff[sharedChartId];
-    for (const chartInstanceId of chartInstances) {
-      chartsGroupedByChartInstance[chartInstanceId] = { ...chart, chartInstanceId };
-    }
+export const updateChartsInterpolatedDifficulty = async (): Promise<number> => {
+  debug('Recalculating charts difficulty');
+
+  const difficulties = await getInterpolatedDifficultyPerSharedChart();
+
+  const values = Object.entries(difficulties)
+    .map(([sharedChartId, chart]) => ({
+      shared_chart: Number(sharedChartId),
+      difficulty: chart.difficulty,
+    }))
+    .filter(({ difficulty }) => difficulty > 0);
+
+  if (values.length === 0) {
+    return 0;
   }
 
-  return chartsGroupedByChartInstance;
+  const sharedChartsUpdated = await db.transaction().execute(async (trx) => {
+    await trx.schema.dropTable('temp_chart_difficulty').ifExists().execute();
+    await trx.schema
+      .createTable('temp_chart_difficulty')
+      .temporary()
+      .addColumn('shared_chart', 'integer', (col) => col.primaryKey())
+      .addColumn('difficulty', 'float8')
+      .execute();
+
+    // Just for Typescript
+    const tempDb = trx.withTables<{
+      temp_chart_difficulty: { shared_chart: number; difficulty: number };
+    }>();
+
+    await tempDb.insertInto('temp_chart_difficulty').values(values).execute();
+
+    // Kysely doesn't support MySQL syntax for update-join-set, using raw SQL instead
+    const updated = await sql`
+      UPDATE shared_charts
+      JOIN temp_chart_difficulty ON temp_chart_difficulty.shared_chart = shared_charts.id
+      SET shared_charts.interpolated_difficulty = temp_chart_difficulty.difficulty
+    `.execute(tempDb);
+
+    return Number(updated.numAffectedRows ?? 0n);
+  });
+
+  debug(`Updated interpolated difficulty on ${sharedChartsUpdated} shared charts`);
+
+  return sharedChartsUpdated;
 };
 
 export const updateChartsDifficulty = async () => {
-  debug('Recalculating charts difficulty');
-
-  const interpolatedDiffs = await getInterpolatedDifficultyPerChartInstance();
-
-  const chartLevels = await db
-    .selectFrom('chart_instances')
-    .leftJoin('shared_charts', 'chart_instances.shared_chart', 'shared_charts.id')
-    .leftJoin('tracks', 'chart_instances.track', 'tracks.id')
-    .select([
-      'chart_instances.id as chart_instance_id',
-      'chart_instances.level',
-      'chart_instances.mix',
-      'tracks.full_name',
-      'chart_instances.label',
-    ])
-    .where('mix', '>=', 25)
-    .where('chart_instances.level', 'is not', null)
-    .execute();
-
-  const updateCharts = chartLevels
-    .map((chart) => {
-      return {
-        ...chart,
-        interpolated: interpolatedDiffs[chart.chart_instance_id]?.difficulty,
-      };
-    })
-    .filter((ch) => ch.interpolated && ch.level);
-
-  updateCharts.reduce(async (_acc, { chart_instance_id, interpolated }) => {
-    await db
-      .updateTable('chart_instances')
-      .set({ interpolated_difficulty: interpolated })
-      .where('id', '=', chart_instance_id)
-      .execute();
-  }, Promise.resolve());
-
-  debug('Updated charts difficulty');
+  await updateChartsInterpolatedDifficulty();
 
   const allResultsPp = await calculateResultsPp();
   const idPpPairs = Array.from(allResultsPp.entries()).map(([id, pp]) => ({ id, pp }));
@@ -268,7 +254,7 @@ export const updateChartsDifficulty = async () => {
 
   const playerIds = await db.selectFrom('players').select('id').execute();
 
-  playerIds.reduce(async (prev, { id }) => {
+  await playerIds.reduce(async (prev, { id }) => {
     await prev;
     const totalPp = await getSinglePlayerTotalPp(id);
     debug(`Updating player ${id} with total pp ${totalPp}`);

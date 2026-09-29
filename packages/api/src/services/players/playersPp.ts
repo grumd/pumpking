@@ -22,6 +22,7 @@ const getPlayerResults = async ({
       return _db
         .selectFrom('results as r')
         .innerJoin('chart_instances', 'chart_instances.id', 'r.chart_instance')
+        .innerJoin('shared_charts', 'shared_charts.id', 'r.shared_chart')
         .innerJoin('players', 'players.id', 'r.player_id')
         .innerJoin('tracks', 'tracks.id', 'chart_instances.track')
         .select([
@@ -38,7 +39,7 @@ const getPlayerResults = async ({
           'r.player_id',
           'chart_instances.level',
           'chart_instances.label',
-          'chart_instances.interpolated_difficulty',
+          'shared_charts.interpolated_difficulty',
           'tracks.short_name',
           'players.nickname',
           sql<number>`row_number() over (partition by r.shared_chart, r.player_id order by ${sql.ref(

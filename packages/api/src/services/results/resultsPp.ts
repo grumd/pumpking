@@ -17,6 +17,7 @@ export const calculateResultsPp = async ({
       return _db
         .selectFrom('results')
         .innerJoin('chart_instances', 'chart_instances.id', 'results.chart_instance')
+        .innerJoin('shared_charts', 'shared_charts.id', 'results.shared_chart')
         .innerJoin('players', 'players.id', 'results.player_id')
         .select([
           'results.id',
@@ -24,7 +25,7 @@ export const calculateResultsPp = async ({
           'results.shared_chart',
           'results.chart_instance',
           'chart_instances.level',
-          'chart_instances.interpolated_difficulty',
+          'shared_charts.interpolated_difficulty',
           sql<number>`row_number() over (partition by results.shared_chart, results.player_id order by ${sql.ref(
             'score_phoenix'
           )} desc)`.as('score_rank'),

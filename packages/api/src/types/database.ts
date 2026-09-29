@@ -73,7 +73,6 @@ export interface ChartInstances {
   min_total_steps: number | null;
   max_possible_score_norank: number | null;
   max_possible_score_norank_from_result: number | null;
-  interpolated_difficulty: number | null;
   type: 'D' | 'S' | null;
 }
 
@@ -269,6 +268,7 @@ export interface SharedCharts {
   last_updated_at: Date | null;
   top_results_added_at: Date | null;
   max_pp: number | null;
+  interpolated_difficulty: number | null;
 }
 
 export interface TournamentBrackets {
