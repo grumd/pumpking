@@ -8,6 +8,9 @@ export const MIXES = {
 
 export type MixName = keyof typeof MIXES;
 
+/** Mixes that share one tournament pool (docs/tournaments/PLAN.md). */
+export const SUPPORTED_MIXES: number[] = [MIXES.XX, MIXES.Phoenix, MIXES.Phoenix2];
+
 /**
  * Mix names as a literal tuple, for use in Zod enums:
  * `z.enum(MIX_NAMES)` keeps the per-mix literal types.
