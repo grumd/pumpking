@@ -59,6 +59,13 @@ export interface ArcadeTrackNames {
   name_edist: Generated<number>;
 }
 
+export interface BotState {
+  plugin: string;
+  key: string;
+  value: Json;
+  updated_at: Date;
+}
+
 export interface ChartInstances {
   id: Generated<number>;
   track: number;
@@ -391,6 +398,7 @@ export interface DB {
   apscheduler_jobs: ApschedulerJobs;
   arcade_player_names: ArcadePlayerNames;
   arcade_track_names: ArcadeTrackNames;
+  bot_state: BotState;
   chart_instances: ChartInstances;
   draft_scores: DraftScores;
   elo_changes: EloChanges;
