@@ -1,4 +1,4 @@
-import { SITE_TIMEZONE } from 'constants/tournaments';
+import { SITE_TIMEZONE } from '@pumpking/core/constants/tournaments';
 import createDebug from 'debug';
 import cron from 'node-cron';
 import { createTournament, currentSiteMonth, endTournaments } from 'services/tournaments/lifecycle';

@@ -9,7 +9,7 @@ import {
   TOURNAMENT_END_DAY,
   TQ_QUALIFY_SCORE,
   type LadderSlot,
-} from 'constants/tournaments';
+} from '@pumpking/core/constants/tournaments';
 import { db, type Transaction } from '@pumpking/core/db';
 import { sql } from 'kysely';
 import _ from 'lodash/fp';

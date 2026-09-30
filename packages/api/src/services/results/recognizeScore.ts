@@ -1,4 +1,4 @@
-import { MIXES } from 'constants/mixes';
+import { MIXES } from '@pumpking/core/constants/mixes';
 import createDebug from 'debug';
 import fs from 'fs';
 import OpenAI from 'openai';
@@ -49,10 +49,9 @@ export const recognizeScore = async (
       format: {
         name: 'score_numbers_array',
         type: 'json_schema',
-        description:
-          isPhoenixScoring
-            ? 'An array of 7 numbers extracted from the game result screen'
-            : 'An array of 8 numbers extracted from the game result screen',
+        description: isPhoenixScoring
+          ? 'An array of 7 numbers extracted from the game result screen'
+          : 'An array of 8 numbers extracted from the game result screen',
         strict: true,
         schema: {
           type: 'object',
@@ -62,9 +61,7 @@ export const recognizeScore = async (
             numbers: {
               type: 'array',
               items: { type: 'number' },
-              ...(isPhoenixScoring
-                ? { minItems: 7, maxItems: 7 }
-                : { minItems: 8, maxItems: 8 }),
+              ...(isPhoenixScoring ? { minItems: 7, maxItems: 7 } : { minItems: 8, maxItems: 8 }),
             },
           },
         },
@@ -77,10 +74,9 @@ export const recognizeScore = async (
         content: [
           {
             type: 'input_text',
-            text:
-              isPhoenixScoring
-                ? `Extract the vertically lined up numbers from the processed photo according to the provided schema. One number per line, some numbers may have leading zeroes. All zeroes have a dot in the middle.`
-                : `Extract the vertically lined up numbers from the processed photo according to the provided schema. One number per line, some numbers may have leading zeroes.`,
+            text: isPhoenixScoring
+              ? `Extract the vertically lined up numbers from the processed photo according to the provided schema. One number per line, some numbers may have leading zeroes. All zeroes have a dot in the middle.`
+              : `Extract the vertically lined up numbers from the processed photo according to the provided schema. One number per line, some numbers may have leading zeroes.`,
           },
           {
             type: 'input_image',

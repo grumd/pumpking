@@ -1,4 +1,4 @@
-import { SUPPORTED_MIXES } from 'constants/mixes';
+import { SUPPORTED_MIXES } from '@pumpking/core/constants/mixes';
 import { db, type Transaction } from '@pumpking/core/db';
 import { sql, type RawBuilder } from 'kysely';
 

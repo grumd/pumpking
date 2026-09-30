@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Pumpking is a Pump It Up (arcade rhythm game) score tracking and leaderboard system. It's a monorepo with these packages:
 
-- **packages/core**: Code shared by the services (DB client, Kysely types, migrations). Never deployed on its own; services import its TS sources as `@pumpking/core/*`
+- **packages/core**: Code shared by the services (DB client, Kysely types, migrations, constants, pure domain logic like scoring and exp). Never deployed on its own; services import its TS sources as `@pumpking/core/*`
 - **packages/api**: Node.js backend (Express + tRPC + Kysely + MySQL)
 - **packages/web**: React frontend (Vite + Mantine + tRPC client)
 - **Legacy Python API**: A legacy API exists in a separate repository, not part of this monorepo, but still rarely used in legacy frontend code. Avoid using when possible and gradually phase out.

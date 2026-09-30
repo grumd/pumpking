@@ -21,5 +21,5 @@
     "typeRoots": ["./src/typings"]
   },
   "include": ["./src/typings/*.d.ts", "./src"],
-  "references": [{ "path": "../api/tsconfig.ref.json" }]
+  "references": [{ "path": "../core" }, { "path": "../api/tsconfig.ref.json" }]
 }

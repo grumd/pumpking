@@ -1,6 +1,6 @@
 import { eligibleResults } from './eligibility';
 import { rankLeaderboard, type LeaderboardEntry, type Medal } from './rules';
-import { SUPPORTED_MIXES } from 'constants/mixes';
+import { SUPPORTED_MIXES } from '@pumpking/core/constants/mixes';
 import { db, type Transaction } from '@pumpking/core/db';
 import { sql } from 'kysely';
 import _ from 'lodash/fp';

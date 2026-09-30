@@ -1,6 +1,6 @@
-import { sql } from 'kysely';
+import { mix as currentMix } from '@pumpking/core/constants/currentMix';
 import { db } from '@pumpking/core/db';
-import { mix as currentMix } from 'constants/currentMix';
+import { sql } from 'kysely';
 
 export interface TrackStat {
   id: number;

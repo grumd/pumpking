@@ -1,4 +1,4 @@
-import { minMixToGetPp } from 'constants/currentMix';
+import { minMixToGetPp } from '@pumpking/core/constants/currentMix';
 import { db, type Transaction } from '@pumpking/core/db';
 import { sql } from 'kysely';
 import _ from 'lodash/fp';

@@ -1,10 +1,10 @@
+import { db } from '@pumpking/core/db';
+import { getPhoenixScore } from '@pumpking/core/scoring/phoenixScore';
 import { assert } from 'chai';
 import fs from 'fs';
-import { db } from '@pumpking/core/db';
 import path from 'path';
 import { req } from 'test/helpers';
 import { addResultsSession } from 'test/helpers/sessions';
-import { getPhoenixScore } from 'utils/scoring/phoenixScore';
 
 describe('Add new result manually', () => {
   it('error 401 when user is not authorized', async () => {
@@ -679,14 +679,12 @@ describe('Add a new Phoenix 2 result (mix 28) via tRPC', () => {
   it('adds a result on an HD (half-double) chart', async () => {
     await postPhoenix2Result({ sharedChartId: 4 }).expect(200);
 
-    const result = (
-      await db
-        .selectFrom('results')
-        .selectAll()
-        .where('shared_chart', '=', 4)
-        .orderBy('id', 'desc')
-        .executeTakeFirst()
-    )!;
+    const result = (await db
+      .selectFrom('results')
+      .selectAll()
+      .where('shared_chart', '=', 4)
+      .orderBy('id', 'desc')
+      .executeTakeFirst())!;
     assert.strictEqual(result.mix, 28, 'result mix is 28');
     assert.strictEqual(result.chart_label, 'HD18', 'chart label is the HD one');
     assert.strictEqual(result.chart_instance, 4, 'chart instance is the HD one');

@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
   push:
     branches: ['master']
-    paths: ['packages/web/**']
+    paths: ['packages/web/**', 'packages/core/**']
 
 permissions:
   contents: read
