@@ -1,8 +1,8 @@
 # Monthly Tournaments — Relaunch Plan (shared cross-mix pool)
 
 Status: design decisions finalized 2026-09-29 · M1 (ID moved to
-`shared_charts`) and M2 (legacy tables parked, v2 tables created) done · no
-tournament code written yet
+`shared_charts`), M2 (legacy tables parked, v2 tables created), M3 (backend)
+and M4 (web page) done · creation job not enabled yet (M5)
 
 ## Summary
 
@@ -765,6 +765,15 @@ and the new creation job does not exist until M3/M5. Merge M6 first if October
 should still have a legacy tournament; otherwise the errored run above is the
 accepted outcome and M2 can merge now.
 
+**Update (2026-09-30): the legacy code is removed and never fires.** piu-top
+has had its whole tournament scheduler commented out since `36cdaf0`
+(2026-09-29), so no legacy cron runs on 1 Oct, whether or not M2 is merged.
+The dead code (backend modules, `jobs/` scheduler, models, the bot's
+`tournament` command) is deleted in
+[Zdreni/piu-top#23](https://github.com/Zdreni/piu-top/pull/23). The two notes
+above are superseded; merging M2 only decides when the legacy tables get
+parked.
+
 Database: no drops of tournament data — migration A parks the old rows in
 `_legacy_2026` tables. The new tables are fresh; nothing is backfilled into them.
 
@@ -796,8 +805,8 @@ process) so the cron removal actually stops tournament creation.
 | M0 | ~~Review this doc, confirm open decisions~~ — **done 2026-09-28/29** (re-reviewed 2026-09-29 against prod data: ladder pools, minimal eligibility, fresh tables, date convention) | — |
 | M1 | ~~ID storage~~ — **done 2026-09-29** (ID moved to `shared_charts`: one value per chart, 5,372 charts backfilled with 0 conflicts, no NULL ID left among the 3,117 pool charts; all readers moved off `chart_instances`, whose copy is dropped by the following migration; 3 tests; also fixes the un-awaited update loops) | — |
 | M2 | ~~Migrations A + B~~ — **done 2026-09-30** (`20260930000000_park_legacy_tournaments` + `20260930010000_init_tournaments_v2`, verified up/down/up with legacy rows, `database.ts` regenerated). Bracket sizes were measured beforehand with a throwaway query (not committed — see "Indicative bracket sizes") | — |
-| M3 | Backend: eligibility predicate as one shared SQL fragment; skill service (5th-highest 950k+ level → bracket range); ladder pool drawer; tournament creation job (1st, env-gated, `timezone: 'Europe/Warsaw'`); state-transition job (Ended on 25th); scoring/leaderboard service (top 3 of 6); tRPC router; Mocha tests on a seeded 3-mix scenario (XX `score_phoenix` normalization, approximate-date exclusion, HJ result included, unrated → Easy, the worked skill-rule examples, ladder composition per bracket, top-3-of-6, tie sharing) | 3 d |
-| M4 | Web: tournament page (pool with per-mix labels, bracket leaderboards, my progress incl. which 3 count, past list) + nav link | 2–3 d |
+| M3 | ~~Backend~~ — **done 2026-09-30**: `services/tournaments/` (`eligibility.ts` shared predicate + pool query, `rules.ts` pure skill/bracket/ranking rules, `lifecycle.ts` create/end, `tournament.ts` read side), `constants/tournaments.ts`, env-gated cron (`jobs/tournamentsJob.ts`), CLI `npm run tournament -- create [YYYY-MM] \| end`, tRPC `tournaments.get({ tournamentId? })` (tournament + brackets + pools + live leaderboards + own bracket) and `tournaments.list`; 17 tests in `src/test/unit/tournaments.test.ts`. Mid's double sits at 14 | — |
+| M4 | ~~Web~~ — **done 2026-09-30**: `features/tournaments/Tournaments.tsx` at `/tournaments` + nav link: tournament picker, state/dates card with the player's bracket and placement reason, bracket tabs (default: own bracket) with the pool (per-mix labels, ID) and the leaderboard (counted scores bold) | — |
 | M5 | Enable creation job; first live month; watch participation per bracket | 0.5 d |
 | M6 | Retire the piu-top **Python** tournament code (separate repo; note `36cdaf0` already commented the tournament logic out) + merge [piu-top#22](https://github.com/Zdreni/piu-top/pull/22) and the held-back drop migration; confirm the prod scheduler no longer creates tournaments — **before 1 Oct** | 0.5 d |
 | M7 | Cups: `tournament_results` + population by the Ended job; profile cups (per-medal counts + award list with bracket); ranking-list cup counters replacing grade-based stats; `getCurrent`/`getLeaderboard`/`list` (Ended) read from the table | 1.5–2 d |
@@ -806,6 +815,18 @@ process) so the cron removal actually stops tournament creation.
 
 Total: ~1.5–2 weeks single dev (launch, M1–M6); +1.5–2 d post-launch for M7;
 +0.5–1 d for M8; +0.5 d for M9.
+
+## Running it by hand
+
+The creation and end logic runs without the cron through the CLI (same code as
+the jobs, idempotent per month):
+
+    npm run tournament --prefix packages/api -- create 2026-10   # default: current month
+    npm run tournament --prefix packages/api -- end              # ends every Live tournament past its end_date
+
+`DELETE FROM tournaments WHERE id = ?` removes a tournament with its brackets,
+pool and assignments (cascade), e.g. to redraw in a dev database. On prod the
+cron runs only with `TOURNAMENT_JOB=enabled`.
 
 ## Decisions
 
