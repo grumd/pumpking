@@ -4,7 +4,7 @@ on:
   workflow_call:
   pull_request:
     branches: ['master']
-    paths: ['packages/web/**']
+    paths: ['packages/web/**', 'packages/core/**']
 
 jobs:
   test_web:

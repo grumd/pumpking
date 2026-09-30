@@ -1,3 +1,5 @@
+import { GradePhoenix, PlatePhoenix } from '@pumpking/core/scoring/grades';
+
 import type { ResultApiOutput } from 'features/leaderboards/hooks/useChartsQuery';
 
 export const Mixes = {
@@ -15,39 +17,7 @@ export const isMixNumber = (mix: number): mix is MixNumbers => {
   return mix in Mixes;
 };
 
-export const GradePhoenix = {
-  SSSP: 'SSS+',
-  SSS: 'SSS',
-  SSP: 'SS+',
-  SS: 'SS',
-  SP: 'S+',
-  S: 'S',
-  AAAP: 'AAA+',
-  AAA: 'AAA',
-  AAP: 'AA+',
-  AA: 'AA',
-  AP: 'A+',
-  A: 'A',
-  B: 'B',
-  C: 'C',
-  D: 'D',
-  F: 'F',
-} as const;
-
-export type GradePhoenix = (typeof GradePhoenix)[keyof typeof GradePhoenix];
-
-export const PlatePhoenix = {
-  R: 'R',
-  F: 'F',
-  T: 'T',
-  M: 'M',
-  S: 'S',
-  E: 'E',
-  U: 'U',
-  P: 'P',
-} as const;
-
-export type PlatePhoenix = (typeof PlatePhoenix)[keyof typeof PlatePhoenix];
+export { GradePhoenix, PlatePhoenix };
 
 /**
  * Phoenix 2 (mix 28) grade formula - the latest one, applied to all mixes.

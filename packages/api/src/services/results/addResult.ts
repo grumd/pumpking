@@ -1,5 +1,6 @@
-import { MIXES } from 'constants/mixes';
+import { MIXES } from '@pumpking/core/constants/mixes';
 import { db } from '@pumpking/core/db';
+import { getPhoenixScore } from '@pumpking/core/scoring/phoenixScore';
 import createDebug from 'debug';
 import fs from 'fs';
 import path from 'path';
@@ -11,7 +12,6 @@ import {
   getScreenshotFilePath,
   type ScreenshotFileData,
 } from 'utils/pathPatterns';
-import { getPhoenixScore } from 'utils/scoring/phoenixScore';
 
 const debug = createDebug('backend-ts:controller:results');
 

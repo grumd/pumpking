@@ -1,4 +1,4 @@
-import { MIX_NAMES } from 'constants/mixes';
+import { MIX_NAMES } from '@pumpking/core/constants/mixes';
 import { addResult } from 'services/results/addResult';
 import { addResultProcedure } from 'trpc/trpc';
 import { base64 } from 'utils/zod';

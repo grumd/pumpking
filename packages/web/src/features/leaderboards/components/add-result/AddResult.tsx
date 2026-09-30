@@ -11,13 +11,12 @@ import {
 } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { useLocalStorage } from '@mantine/hooks';
+import { MIXES } from '@pumpking/core/constants/mixes';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
 import { FaExclamationCircle } from 'react-icons/fa';
 import { IoIosWarning } from 'react-icons/io';
 import { useNavigate, useParams } from 'react-router-dom';
-
-import { MIXES } from '@/api/constants/mixes';
 
 import css from './add-result.module.scss';
 

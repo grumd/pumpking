@@ -13,7 +13,6 @@
     "paths": {
       "app": ["./src/app.ts"],
       "envconfig": ["./src/envconfig.ts"],
-      "constants/*": ["./src/constants/*"],
       "controllers/*": ["./src/controllers/*"],
       "jobs/*": ["./src/jobs/*"],
       "middlewares/*": ["./src/middlewares/*"],

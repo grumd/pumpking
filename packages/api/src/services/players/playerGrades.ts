@@ -1,6 +1,6 @@
 import { Transaction, db } from '@pumpking/core/db';
+import { GradePhoenix, phoenixGradeOrder } from '@pumpking/core/scoring/grades';
 import { sql } from 'kysely';
-import { GradePhoenix, phoenixGradeOrder } from 'utils/scoring/grades';
 
 // Chart type is read from shared_charts.type - the canonical per-chart type
 // (S/D/HD/COOP) maintained by the tracklist update process. COOP charts are

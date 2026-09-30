@@ -1,6 +1,6 @@
-import type { MIXES } from '@/api/constants/mixes';
 import { AreaSelector, type IArea } from '@bmunozg/react-image-area';
 import { Alert, Button, Group, Popover, Stack, Text } from '@mantine/core';
+import type { MIXES } from '@pumpking/core/constants/mixes';
 import { useMutation } from '@tanstack/react-query';
 import imageCompression from 'browser-image-compression';
 import { useCallback, useEffect, useRef, useState } from 'react';

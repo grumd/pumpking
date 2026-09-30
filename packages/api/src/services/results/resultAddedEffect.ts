@@ -1,13 +1,13 @@
 import { calculateResultsPp } from './resultsPp';
-import { gradeSortValue, isValidGrade } from 'constants/grades';
+import { gradeSortValue, isValidGrade } from '@pumpking/core/constants/grades';
 import { db } from '@pumpking/core/db';
+import { getResultExp } from '@pumpking/core/profile/exp';
 import createDebug from 'debug';
 import { sql } from 'kysely';
 import _ from 'lodash/fp';
 import { refreshPlayerTotalExp } from 'services/players/playerExp';
 import { getSinglePlayerTotalPp, updatePpHistoryIfNeeded } from 'services/players/playersPp';
 import { error } from 'utils';
-import { getResultExp } from 'utils/profile/exp';
 
 const debug = createDebug('backend-ts:processor:on-result-added');
 
