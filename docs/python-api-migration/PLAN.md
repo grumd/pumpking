@@ -5,9 +5,9 @@ decisions") · deploy approach revised 2026-09-30 (tsx + pm2 release dirs, see
 "Build and release") · P1.1 and P1.2 deployed 2026-09-30 · P1.3 + P1.4
 done 2026-09-30 (PR #39), which completes P1 · P2 deployed 2026-09-30
 (PR #40) · P3 deployed 2026-09-30 (PR #41) · P4 deployed 2026-09-30
-(PRs #42, #43), which completes the platform track · next: the web admin
-track, W3 (see "Next") · nothing ported yet beyond what TS already owns (see
-"Already in TS")
+(PRs #42, #43), which completes the platform track · W3 (admin shell) built
+2026-09-30, not merged yet (see "Progress") · nothing ported yet beyond what
+TS already owns (see "Already in TS")
 
 ## Progress
 
@@ -26,7 +26,8 @@ comes next. The rest of the document is the design it follows.
 | P3 events + effects worker | **Deployed** 2026-09-30 (PR #41). The first Deploy run with the migration guard was green (all three guards passed); the release step ran both migrations on prod, and all three services moved to release `c2b241b5` (a `packages/core` change counts for every service). Checked on prod afterwards: every pm2 app online, API `/healthz` ok, no errors in the API log, `@@auto_increment_increment` = 1, and the backfill scored the rank mode rows (4,591 with a `score_phoenix`, 773 without full stats still null). **Not exercised on prod yet:** no result had arrived by 19:51 UTC (the newest was from 2026-09-29), so `events` was empty and there was no `effects` cursor row. The tests cover the path end to end; no action planned, but if an effect ever seems missing, look at `events`, `event_cursors` and `event_failures` first |
 | P4a stop using `results_best_grade` | **Deployed** 2026-09-30 (PR #42). Before merging: API tests pass (76), all packages type-check; master's tests pass with the new migration (the guard's check, run locally); on the dev DB (a copy of prod data), deleting a result the table points at fails before the migration and works after it (rolled back), and the migration's `down` works. The Deploy run was green (guards passed, migration ran on prod), all three services run `5a241f21`, and the table has no foreign keys left on prod |
 | P4b drop `results_best_grade` | **Deployed** 2026-09-30 (PR #43). API tests pass (76; the test code is P4a's, so this was also the guard's check), all packages type-check from a clean build, and the migration's up / down / up works on the dev DB. The Deploy run was green (guards passed, migration ran on prod), all three services run `e70880c3`, and the table is gone on prod |
-| W tracks | Not started. Next: W3 (see "Next") |
+| W3 admin shell | **Built, not merged.** API tests pass (84: 8 new for the file route), all packages type-check, `npm run build:web` works. Tried in the browser against the dev DB, with one prod result's video + scan JSON copied into the local uploads folder (removed afterwards): an admin sees the nav link and the Files tab, the video plays, the JSON is pretty-printed, both download under their real names, a purgatory row whose files aren't on disk shows "File not found", and a non-admin gets no link and is sent from `#/admin` to the leaderboard. The CORS headers the cross-origin prod setup needs were checked with curl |
+| Other W tracks | Not started |
 
 ### What P1.2 did
 
@@ -326,25 +327,62 @@ table, so the table can only be dropped once P4a runs everywhere.
   brings it back empty, in its P4a shape.
 - `ResultsBestGrade` removed from `database.ts` by hand, the way codegen would.
 
+### What W3 did
+
+- **Web**: `#/admin` (`features/admin/Admin.tsx`) is a tab layout, one tab
+  per admin area, each a nested route (`/admin/<tab>`). Root renders it only
+  for `is_admin` users and sends everyone else to the leaderboard; the top
+  bar shows an "admin" link to admins only. The API still checks every call
+  (`adminProcedure`, `adminAuth`). For now the only tab is **Files**.
+- **Files tab**: look up a result or a purgatory row by id (kept in the URL,
+  `#/admin/files?source=results&id=123`) and see its screen file (the video
+  plays, a jpg shows as an image) and its scan JSON (pretty-printed), each
+  with a download button that saves it under its real name. The viewer is a
+  component (`features/admin/components/AdminFiles`), so W6 / W8 can show it
+  next to a result or purgatory row. This replaces B21 for the admin UI.
+- **API**: `GET /admin/files/:source/:id/:kind` (`routes/admin.ts`), where
+  `source` is `results` or `purgatory` and `kind` is `screen` or `scan` (the
+  `.json` that piu-spy uploads next to the screen file). Admins only
+  (`adminAuth`). It's a REST route, not tRPC, because it sends binary files.
+  A link can't send the `session` header, so the web fetches the file with
+  the header and shows it from a blob URL. The file name comes from
+  `Content-Disposition`, which CORS now exposes (`app.ts`). In dev, Vite
+  proxies `/admin/files` to the API, like `/trpc` and `/results`.
+- **`services/uploads/uploadPath.ts`** (`getUploadPath`) resolves a
+  `screen_file` path: web-added results (negative agent ids) are under
+  `SCREENSHOT_BASE_FOLDER`, agent ones under `SCREENSHOT_AGENT_BASE_FOLDER`.
+  It returns a 404 for a path outside that folder or a missing file. The
+  public screenshot route (`GET /results/:id/screenshot`) uses it too, so it
+  gained the same path check; its "file missing" message is now "File not
+  found".
+- **Tests** (`adminFiles.test.ts`): screen file and scan JSON for results and
+  purgatory rows, both upload folders, admins only, 404s (unknown row, no
+  `screen_file`, missing file), a path outside the uploads folder, and 400s
+  for an unknown source or kind. The seed now empties `purgatory` too.
+- **Left for W4**: the shared panel for per-action results (the desktop
+  tool's log panel). Nothing in W3 is an action that reports anything, so it
+  comes with the first one.
+
 ### Next
 
-The platform track (P1–P4) is done and verified on prod; nothing in it needs
-checking again. **Start the web admin track with W3** (admin shell), then
-W4 / W5 → W6 → W8 (see "Workstreams"). The other tracks (W1, W9) can start
-any time; W10's rivals plugin can consume `resultAdded` already.
+1. **Merge W3.** No migration and no server change; the API deploy and the
+   GitHub Pages deploy pick it up. Afterwards, open `#/admin/files` on prod as
+   an admin with a recent result id, and check that the video and the scan
+   JSON load (that exercises the cross-origin fetch, which dev doesn't).
+2. Then W4 / W5 → W6 → W8 (see "Workstreams"), each adding its tab to
+   `Admin.tsx`. W4 brings the per-action results panel. The other tracks (W1,
+   W9) can start any time; W10's rivals plugin can consume `resultAdded`
+   already.
 
-Where W3 starts from (as of 2026-09-30):
-- **API**: `adminProcedure` (`packages/api/src/trpc/trpc.ts`) rejects
-  non-admins (`players.is_admin`). The `admin` router
+Where the rest of the admin track starts from (as of 2026-09-30):
+- **API**: the `admin` tRPC router
   (`packages/api/src/trpc/routes/admin/index.ts`) has `getPlayerAdminInfo`,
   `deleteResult` and `updatePlayer`.
-- **Web**: there is no `/admin` section yet. The admin UI today is the
-  `AdminPanel` on the profile page (`features/profile/components/AdminPanel/`,
-  with `useDeleteResult` / `useUpdatePlayer`) and a delete button on
-  leaderboard results for admins (`features/leaderboards/components/charts/Result.tsx`,
-  `user.data?.is_admin`). Routes are declared in `constants/routes.ts`.
-- W3's scope and the feature list to mirror are in "Workstreams" and "Admin
-  desktop tool features".
+- **Web**: besides `#/admin`, the admin UI is the `AdminPanel` on the
+  profile page (`features/profile/components/AdminPanel/`, with
+  `useDeleteResult` / `useUpdatePlayer`) and a delete button on leaderboard
+  results for admins (`features/leaderboards/components/charts/Result.tsx`).
+  W5 / W6 decide whether those move into `#/admin` or stay as shortcuts.
 
 ## Target architecture overview
 
@@ -654,7 +692,7 @@ diffs a local tracklist JSON against B17 and pushes changes through B18–B20.
 | B8 result delete | `admin.deleteResult` → `services/results/deleteResult.ts` | None known; the web admin uses it |
 | B5 player edit | `admin.updatePlayer` (can-add-manually, region, telegram tag/id, hidden) | No nickname / arcade names / `discard_results` / `is_admin` / `actual_player_id` / create. `hidden` doesn't set `hidden_since` or bump `shared_charts.last_updated_at` |
 | A3 manual submit | `results.addResultMutation` + `recognizeScoreMutation` (web manual add) | Different flow: the web user picks the chart; no agent, no fuzzy matching. Decide whether agent-side manual mode is still needed |
-| B21 downloads (for the web) | `GET /results/:id/screenshot` (incl. mp4 first frame) | The admin tool's raw file download isn't covered |
+| B21 downloads (for the web) | `GET /results/:id/screenshot` (incl. mp4 first frame); for admins, `GET /admin/files/:source/:id/:kind` and the Files tab (W3) | None for results and purgatory rows |
 
 ## Dead or broken on the legacy side (don't port)
 
@@ -949,8 +987,8 @@ including testing. The Priority column is left for triage.
 | W2 | Agent heartbeat and uploads | A6, A7, A8 | S | Keep the `<agent>/<path>` layout under the shared uploads directory | |
 | W7 | Result ingestion pipeline | A1, A3, A5 for screen and manual (stream A2 and test A4 deferred) | **L** | Highest risk. Sub-steps: player / track / chart resolvers → combo + million validators, mods, rank mode → XX quirks → dedup / merge → persist the complete result row + `resultAdded` event in one transaction → purgatory write. Shadow-validate before cutover | |
 | **Web admin track** | | | | | |
-| W3 | Admin shell | `/admin` section in the web, guarded by `is_admin` (route guard + nav entry for admins only; server-side `adminProcedure`); tab layout; a shared panel for per-action results; admin-only file viewer / download for screenshots and scan JSON (replaces B21) | S–M | Nothing | |
-| W4 | Admin: tracks and charts | B13–B20, tracklist sync (page or script) | M | W3 | |
+| W3 | Admin shell | **Built** (see "What W3 did"; the per-action results panel moved to W4). `/admin` section in the web, guarded by `is_admin` (route guard + nav entry for admins only; server-side `adminProcedure`); tab layout; a shared panel for per-action results; admin-only file viewer / download for screenshots and scan JSON (replaces B21) | S–M | Nothing | |
+| W4 | Admin: tracks and charts | B13–B20, tracklist sync (page or script), the shared per-action results panel | M | W3 | |
 | W5 | Admin: players and agents | B1–B5: extend `admin.updatePlayer` (nickname, email, discard, is admin, alias, create, per-mix arcade names), hidden → `hidden_since` + chart bump; agent create and token rotation | M | W3 | |
 | W6 | Admin: results | B6–B8, plus the missing track / player search and recalculation after edits (fixes the broken refresh callback) | M | W3; B7 reuses the W7 mods / rank validators (port those first if W6 goes before W7) | |
 | W8 | Admin: purgatory | B9–B12, reason-field highlighting, edit + recheck, batch recheck that doesn't block | M | W3, W7 (reuses the pipeline) | |

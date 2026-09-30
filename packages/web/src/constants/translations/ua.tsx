@@ -267,6 +267,14 @@ export const ua = {
   TELEGRAM_TAG: 'Телеграм тег',
   TELEGRAM_ID: 'Телеграм ID',
   HIDDEN_PLAYER: 'Схований гравець',
+  ADMIN: 'адмін',
+  ADMIN_FILES: 'Файли',
+  ADMIN_SCREEN_FILE: 'Скріншот',
+  ADMIN_SCAN_FILE: 'Скан JSON',
+  ADMIN_RESULT: 'Результат',
+  ADMIN_PURGATORY: 'Чистилище',
+  ADMIN_OPEN: 'Відкрити',
+  DOWNLOAD: 'Завантажити',
 
   // Login / Registration
   SIGN_IN_WITH_DISCORD: 'Увійти через Discord',

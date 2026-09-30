@@ -47,6 +47,13 @@ export default function TopBar() {
               </Anchor>
             </NoticeIndicator>
           </li>
+          {user?.is_admin && (
+            <li>
+              <Anchor fw="bold" size="xl" component={NavLink} to={routes.admin.path}>
+                {lang.ADMIN}
+              </Anchor>
+            </li>
+          )}
         </ul>
       </nav>
       <div className="login-container">

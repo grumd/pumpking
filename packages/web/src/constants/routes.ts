@@ -33,4 +33,10 @@ export const routes = {
     path: `/profiles/:id`,
     getPath: (params: { id?: number | string }) => `/profiles/${params.id}`,
   },
+  admin: {
+    path: `/admin`,
+    files: {
+      path: `/admin/files`,
+    },
+  },
 } as const;

@@ -15,6 +15,7 @@ import { RootRedirect } from 'features/login/RootRedirect';
 
 import { useUser } from 'hooks/useUser';
 
+const LazyAdmin = React.lazy(() => import('../admin/Admin'));
 const LazyAddResult = React.lazy(() => import('../leaderboards/components/add-result/AddResult'));
 const LazySingleChartLeaderboard = React.lazy(
   () => import('../leaderboards/LeaderboardsSingleChart')
@@ -63,6 +64,12 @@ function Root() {
           <Route path={routes.profile.path} element={<LazyProfileNew />} />
           <Route path={routes.songs.path} element={<LazySongsTop />} />
           <Route path={routes.tournaments.path} element={<LazyTournaments />} />
+          <Route
+            path={routes.admin.path + '/*'}
+            element={
+              userQuery.data.is_admin ? <LazyAdmin /> : <Navigate to={routes.leaderboard.path} />
+            }
+          />
           <Route path="*" element={<Navigate to={routes.leaderboard.path} />} />
         </Routes>
       </Suspense>

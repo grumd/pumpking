@@ -240,6 +240,7 @@ export const results = [
 export const initialSeed = async () => {
   await db.deleteFrom('tournaments').execute();
   await db.deleteFrom('results').execute();
+  await db.deleteFrom('purgatory').execute();
   await db.deleteFrom('chart_instances').execute();
   await db.deleteFrom('shared_charts').execute();
   await db.deleteFrom('tracks').execute();
