@@ -70,6 +70,8 @@ export type RecheckOutcome =
  * new reason. Returns the outcome per row and the report lines of the stored results
  */
 export const recheckPurgatory = async (id?: number) => {
+  // The naive datetimes as strings: these columns come after `*`, so they replace the
+  // DATETIME ones in the rows
   let query = db
     .selectFrom('purgatory')
     .selectAll()
