@@ -1,0 +1,83 @@
+name: Test a service
+
+# Type-checks and tests one service (api, ingest or bot). Called by the PR test workflows,
+# and by the Deploy workflow, which also uses it as the migration guard: a deployed commit's
+# tests, run against the new commit's migrations
+on:
+  workflow_call:
+    inputs:
+      service:
+        required: true
+        type: string
+      ref:
+        description: The commit to test (default the one that triggered the workflow)
+        type: string
+        default: ''
+      migrations_ref:
+        description: Replace packages/core/migrations with this commit's (migration guard)
+        type: string
+        default: ''
+
+jobs:
+  test:
+    name: ${{ inputs.migrations_ref && format('{0} at {1}', inputs.service, inputs.ref) || inputs.service }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Setup MySQL
+        run: sudo systemctl start mysql.service
+
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
+
+      - name: Use the new migrations
+        if: inputs.migrations_ref
+        env:
+          MIGRATIONS_REF: ${{ inputs.migrations_ref }}
+        run: |
+          git fetch --depth 1 origin "$MIGRATIONS_REF"
+          rm -rf packages/core/migrations
+          git checkout FETCH_HEAD -- packages/core/migrations
+          git status --short
+
+      - name: Setup node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: 'npm'
+      - run: npm ci
+
+      - name: 'Create core .env file'
+        uses: iamsauravsharma/create-dotenv@v1.2.2
+        with:
+          file-name: '.env'
+          directory: 'packages/core'
+        env:
+          DB_DATABASE_TEST: test
+          DB_USERNAME: root
+          DB_PASSWORD: root
+
+      - name: 'Create API .env file'
+        if: inputs.service == 'api'
+        uses: iamsauravsharma/create-dotenv@v1.2.2
+        with:
+          file-name: '.env'
+          directory: 'packages/api'
+        env:
+          SCREENSHOT_BASE_FOLDER: ~/test-screenshots
+          SCREENSHOT_AGENT_BASE_FOLDER: ~/test-screenshots
+          SCREENSHOT_FILE_PATH_DB: '{nickname}/{dateAdded}/{dateTimeAdded}.jpg'
+
+      # The guard only cares whether the deployed code works on the new schema
+      - name: Type-check core
+        if: inputs.service == 'api' && !inputs.migrations_ref
+        run: npm run ts-check --prefix packages/core
+
+      - name: Type-check ${{ inputs.service }}
+        if: '!inputs.migrations_ref'
+        run: npm run ts-check --prefix packages/${{ inputs.service }}
+
+      - name: Test ${{ inputs.service }}
+        run: npm run test:${{ inputs.service }}

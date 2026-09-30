@@ -18,7 +18,6 @@
     "start": "nodemon",
     "start:tsx": "tsx ./src/index.ts",
     "debug": "cross-env NODE_ENV=development DEBUG=backend-ts:* tsx --inspect ./src/index.ts",
-    "pm2": "(pm2 delete pumpking-api --silent || true) && pm2 start ./pm2.config.js && pm2 save",
     "ts-check": "tsc --noEmit --pretty",
     "test:run": "cross-env NODE_ENV=test mocha --import=tsx -r ./src/test/helpers/rootHooks.ts ./src/test/**/*.test.ts",
     "test": "cross-env DEBUG=backend-ts:test:* npm run test:run -- --exit",

@@ -3,8 +3,9 @@
 Status: inventory done 2026-09-30 · direction agreed 2026-09-30 (see "Agreed
 decisions") · deploy approach revised 2026-09-30 (tsx + pm2 release dirs, see
 "Build and release") · P1.1 and P1.2 deployed 2026-09-30 · P1.3 + P1.4
-done 2026-09-30 (PR #39), which completes P1 · P2 next (see "Progress") ·
-nothing ported yet beyond what TS
+done 2026-09-30 (PR #39), which completes P1 · P2 built 2026-09-30, not
+merged yet: its first run needs the server's `shared/` env files (see
+"Progress") · nothing ported yet beyond what TS
 already owns (see "Already in TS") · priorities not set yet
 
 ## Progress
@@ -20,7 +21,7 @@ comes next. The rest of the document is the design it follows.
 | Side fix | PR #34 merged 2026-09-30: `chart_instances.interpolated_difficulty` dropped in prod (migration renamed to `20260930040000_…` so it sorts after the tournaments migrations prod had already run — Kysely 0.25 rejects anything that sorts earlier) |
 | P1.3 constants + pure logic into core | Done 2026-09-30 (PR #39, together with P1.4). Core / API / web type-check, API tests pass, `npm run build:web` bundles `MIXES` from core. Nothing server-side changes: the API deploy runs it as before |
 | P1.4 `ingest` / `bot` skeletons | Done 2026-09-30 (PR #39). Both type-check, their `/healthz` tests pass, and a local start serves `/healthz` (200, and 503 with a bad `DB_DATABASE`). Not deployed: the API deploy rsyncs them to the server, but nothing starts them |
-| P2 deploy pipeline | **Next** |
+| P2 deploy pipeline | **Built, not merged** (branch `feature/deploy-pipeline`). `deploy.yml` replaces `deploy-api.yml`. Tested locally against a fake `~/pumpking` (first deploy, redeploy, the move off an old cwd, rollback of a broken release, pruning, change detection); actionlint clean. Before merging: create `~/pumpking/shared/*.env` on the server (see "Next: merge P2") |
 | P3 onwards | Not started |
 
 ### What P1.2 did
@@ -101,7 +102,8 @@ comes next. The rest of the document is the design it follows.
 
 - Still the old layout: `~/pumpking-deployment/` (rsync into the live dir).
   Env files: `packages/core/.env` (DB) and `packages/api/.env` (the rest);
-  both are excluded from rsync, so deploys never touch them.
+  both are excluded from rsync, so deploys never touch them. P2 moves this to
+  `~/pumpking/` (see "Next: merge P2").
 - `ssh piutop@api.pumpking.top` works from the dev machine. When touching env
   files over SSH, print key names only (`sed "s/=.*//"`), never values.
 - The dev machine's `packages/core/.env` holds the local DB config; the local
@@ -136,26 +138,104 @@ comes next. The rest of the document is the design it follows.
   excludes `packages/web`), and its root `npm ci` installs their
   dependencies, all of which the API already has. They sit unused until P2.
 
-### Next: P2, deploy pipeline
+### What P2 did
 
-Start from a branch off `master` once PR #39 is merged and its API deploy is
-green. The design is in "Build and release" and "Pipeline"; the order the
-workstream table gives is "move the existing API deploy onto it first".
+- **One `Deploy` workflow** (`.github/workflows/deploy.yml`) for every service
+  on the host; `deploy-api.yml` is gone. Jobs: `changes` → `test` (per
+  affected service) + `guard` → `release` (upload, `npm ci`, prod migrations)
+  → `deploy` (per service, in parallel, `fail-fast: false`). Runs on pushes to
+  `master` that touch a service, core, the root `package.json` / lockfile,
+  `pm2.config.js` or `deploy/`, and by hand (`force` redeploys everything).
+  `concurrency: deploy` queues runs instead of interleaving them.
+- **Change detection compares against the `deployed/<service>` tags**, not the
+  push's parent: a service deploys when `packages/<service>`, `packages/core`,
+  `package.json`, `package-lock.json`, `pm2.config.js` or `deploy/` differ
+  from the commit it runs, or when it has no tag yet. So a failed or skipped
+  deploy is picked up by the next run. The deploy job moves the tag only
+  after its health check passes (a rollback leaves it on the old commit).
+- **Migration guard**: for every service whose `deployed/<service>` commit has
+  other `packages/core/migrations` than the new commit, `test-service.yml`
+  checks out that commit, swaps in the new commit's migrations folder and runs
+  its tests (no type-check). Nothing is released or migrated unless the tests
+  and the guard pass.
+- **`test-service.yml`** is the one reusable test workflow (inputs `service`,
+  `ref`, `migrations_ref`); `test-api.yml` and `test-services.yml` are
+  PR-triggered callers.
+- **Prod migrations run always** in the `release` job, inside the new release
+  directory, before any symlink moves ("already up to date" when nothing is
+  pending). Always rather than only on `migrations/` changes: a run whose
+  migrate step failed would otherwise leave the next run's code on the old
+  schema. The guard is what's conditional.
+- **Server side lives in `deploy/`**, run from the release over SSH:
+  - `release.sh`: links `shared/<package>.env` to `packages/<package>/.env`
+    (fails without `shared/core.env`), `HUSKY=0 npm ci`, marks the release
+    ready (`.release-ready`, so a re-run or a later service of the same commit
+    reuses it), prunes to the 5 newest releases plus any a symlink points at.
+  - `activate.sh <service>`: moves `~/pumpking/<service>` atomically, `pm2
+    startOrReload` from the release's `pm2.config.js`, polls `/healthz`, and
+    checks that the process's cwd is the new release. On failure it points the
+    link back, reloads, and exits 1. It prints no app logs: the repo is
+    public, so they stay on the server (`pm2 logs pumpking-<service>`).
+    Requires `shared/<service>.env`.
+- **pm2 and symlinks** (checked locally with pm2 5.3): an app whose `cwd` is
+  the symlink path itself starts the new target on reload. But `startOrReload`
+  keeps an existing app's old `cwd` even when the ecosystem file changes it,
+  so `activate.sh` deletes and restarts an app that runs from anywhere else.
+  That's what moves `pumpking-api` off `~/pumpking-deployment` on the first
+  run (a few seconds of downtime, like any restart).
+- **One root `pm2.config.js`** for the three apps; the per-package configs,
+  the API's `npm run pm2` and `restart-server.sh` are gone. Loaded from
+  `~/pumpking/releases/<sha>/`, an app's `cwd` is
+  `~/pumpking/<service>/packages/<service>`; from anywhere else, the checkout.
+- **Uploads**: plain `rsync -az --delete` of the CI checkout into
+  `releases/<sha>/`, without `.git`, `node_modules` and `packages/web` (served
+  from GitHub Pages; including it would add the web toolchain to every
+  install). No `--link-dest`: the rest is ~2 MB, and `node_modules` is
+  installed fresh anyway (~290 MB per release, 5 kept, 132 GB free).
+- **SSH**: `.github/actions/ssh` sets up `ssh pumpking` from
+  `SSH_PRIVATE_KEY`, with the host's ed25519 key pinned instead of
+  `ssh-keyscan`. The appleboy / rsync-deployments actions are no longer used.
+- **Ingest and bot listen on 127.0.0.1** (`APP_HOST` overrides it): the host
+  has no firewall (ufw inactive). Prod ports: ingest 3002, bot 3003 (free on
+  the host; the API has 3001, Flask 5000 / 5001). The ingestion smoke test
+  against `/results/screen/validate` joins `activate.sh` with W1 / W7, once
+  that endpoint exists.
+- No pm2 memory limits yet (the API uses ~210 MB of 8 GB); add
+  `max_memory_restart` in `pm2.config.js` if one misbehaves.
 
-- Build `~/pumpking/` (`releases/<sha>/`, `shared/core.env`,
-  `shared/<service>.env`, one symlink per service) and move `pumpking-api` onto
-  it, with `/healthz` + auto-rollback. The old `~/pumpking-deployment/` stays
-  until the new layout has served a deploy.
-- Check on the first run whether `pm2 startOrReload` re-resolves a symlinked
-  `cwd` (see "Build and release").
-- Migrations: over SSH, `npm run migrate:latest --prefix packages/core`
-  inside the new release directory, before any symlink moves.
-- Then one workflow with change detection, the migration guard and
-  `deployed/<service>` tags; ingest and bot join it. They need prod ports
-  (the legacy Flask backend has 5000 / 5001, the API has 3001) and a
-  `shared/<service>.env` each.
-- Env files on the server: print key names only (see "Server state after
-  P1.2").
+### Next: merge P2
+
+1. **Create the shared env files on the server** (not done: the session's
+   permission rules block remote writes). `ssh piutop@api.pumpking.top`,
+   then:
+
+   ```bash
+   mkdir -p ~/pumpking/releases ~/pumpking/shared && chmod 700 ~/pumpking/shared
+   cd ~/pumpking/shared
+   cp -p ~/pumpking-deployment/packages/core/.env core.env
+   cp -p ~/pumpking-deployment/packages/api/.env api.env
+   printf 'NODE_ENV=production\nAPP_PORT=3002\n' > ingest.env
+   printf 'NODE_ENV=production\nAPP_PORT=3003\n' > bot.env
+   chmod 600 *.env && for f in *.env; do echo "$f: $(sed 's/=.*//' "$f" | tr '\n' ' ')"; done
+   ```
+
+   Without them the run fails safely in `release.sh`, before any migration
+   or symlink move.
+2. Merge the PR and watch the first `Deploy` run. With no `deployed/*` tags
+   yet, it deploys all three services and skips the guard. Then check on the
+   server: `pm2 ls` (`pumpking-ingest` and `pumpking-bot` online),
+   `readlink ~/pumpking/*`, `pm2 describe pumpking-api` (cwd
+   `~/pumpking/api/packages/api`), `curl -s 127.0.0.1:3002/healthz`, and that
+   the tags exist.
+3. **If the API's first deploy fails**, there's no previous release in the
+   new layout to roll back to. Bring the old one back by hand: `cd
+   ~/pumpking-deployment/packages/api && pm2 delete pumpking-api; pm2 start
+   ./pm2.config.js && pm2 save` (the old dir still has its per-package pm2
+   config; nothing deploys there anymore).
+4. Once a second deploy has gone through the new layout, remove
+   `~/pumpking-deployment/` and update "Server state after P1.2".
+5. Then P3 (events + effects worker), P4 any time, or start a track
+   (W1, W3, W9): P1 and P2 unblock all of them.
 
 ## Target architecture overview
 
@@ -601,11 +681,11 @@ references, so the web's `tsc --build` keeps working.
 - After a successful deploy, CI moves the git tag `deployed/<service>` to
   that commit.
 
-This replaces today's deploy, which rsyncs with `--delete` into the live
-directory and then runs `npm ci`, migrations and a pm2 restart in place. That
-leaves broken files under the running process if any step fails. P1 step 1
-already dropped its build step (the API runs on tsx) and added a `/healthz`
-check at the end, without auto-rollback yet.
+This replaced the old deploy (P2), which rsynced with `--delete` into the
+live directory and then ran `npm ci`, migrations and a pm2 restart in place,
+leaving broken files under the running process if any step failed. How it's
+implemented, and where it differs from the sketch above (no `--link-dest`,
+`packages/web` left out, pm2 `cwd` = the symlink), is in "What P2 did".
 
 ### Production host
 
@@ -750,7 +830,7 @@ including testing. The Priority column is left for triage.
 |---|---|---|---|---|---|
 | **Platform track** | | | | | |
 | P1 | Package split | Steps, one PR each: (1) run the API on tsx in prod + `/healthz` — **done**; (2) `packages/core` with the DB layer (client without dotenv, Kysely types + codegen, migrations + `MigrationProvider` + scripts, test-DB helpers) as a composite TS project — **done**; (3) move the existing constants and pure logic (`constants/*`, `utils/scoring/*`, `utils/profile/exp.ts`), with the web importing mixes from core — **done**; (4) `packages/ingest` / `packages/bot` skeletons with `/healthz` — **done** (3 and 4 in one PR). Other logic moves to core when a second consumer needs it | M | Needed by W1, W9 | |
-| P2 | Deploy pipeline | Whole-repo release dirs + a symlink per service, one pm2 app per service, health check + ingestion smoke test + auto-rollback, `deployed/<service>` tags, single workflow with change detection, migration guard, one migrate step before deploys (run over SSH from the new release). Move the existing API deploy onto it first | M | P1 | |
+| P2 | Deploy pipeline | **Built** (see "What P2 did"). Whole-repo release dirs + a symlink per service, one pm2 app per service, health check + ingestion smoke test + auto-rollback, `deployed/<service>` tags, single workflow with change detection, migration guard, one migrate step before deploys (run over SSH from the new release). Move the existing API deploy onto it first | M | P1 | |
 | P3 | Events + effects worker | `events` table and producer helper in `core`; effects worker with a cursor in the API process; `result-added-effect` REST route enqueues instead of running inline; make effects safe to replay | S–M | P1 | |
 | P4 | Drop `results_best_grade` | Remove it from `resultAddedEffect`, `deleteResult`, tests and seeds; drop-table migration; regenerate types | S | Nothing (Python B8 is already broken; the table is never read) | |
 | **Ingestion track** | | | | | |
