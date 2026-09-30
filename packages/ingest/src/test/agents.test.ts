@@ -65,16 +65,16 @@ describe('Agents', () => {
       delete process.env.UPLOADS_ROOT;
     });
 
-    // `filepath` sends the name with its folders, as piu-spy does (`filename` would be
-    // cut to the base name)
-    const upload = (filePath: string, contentType = 'application/json', content = '{}') =>
-      request(app)
+    // `filepath` sends the name with its folders, as piu-spy does (form-data cuts
+    // `filename` to the base name)
+    const upload = (filePath: string, contentType = 'application/json', content = '{}') => {
+      const file = { filepath: filePath, filename: filePath, contentType };
+      return request(app)
         .post('/upload')
         .set('agent-name', ARCADE.name)
         .set('agent-token', ARCADE.token)
-        .attach('file', Buffer.from(content), { filepath: filePath, contentType } as {
-          filename: string;
-        });
+        .attach('file', Buffer.from(content), file);
+    };
 
     const info = (filePath: string) =>
       request(app)
