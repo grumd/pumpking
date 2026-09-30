@@ -1,5 +1,4 @@
 import { calculateResultsPp } from './resultsPp';
-import { gradeSortValue, isValidGrade } from '@pumpking/core/constants/grades';
 import { db } from '@pumpking/core/db';
 import { getResultExp } from '@pumpking/core/profile/exp';
 import { getPhoenixScore } from '@pumpking/core/scoring/phoenixScore';
@@ -107,44 +106,6 @@ export const resultAddedEffect = async (resultId: number) => {
       const exp = getResultExp({ score: score_phoenix }, { level, label });
       await trx.updateTable('results').set({ exp }).where('id', '=', resultId).executeTakeFirst();
       await refreshPlayerTotalExp(playerId, trx);
-    }
-
-    // Updating best grade result if needed
-    const bestGradeResult = await trx
-      .selectFrom('results_best_grade as rbg')
-      .innerJoin('results', 'result_id', 'results.id')
-      .select(['grade', 'rbg.shared_chart_id', 'rbg.player_id'])
-      .where('rbg.player_id', '=', playerId)
-      .where('rbg.shared_chart_id', '=', sharedChartId)
-      .executeTakeFirst();
-
-    // if new grade is better than last best grade
-    if (
-      isValidGrade(result.grade) &&
-      (!bestGradeResult ||
-        !isValidGrade(bestGradeResult.grade) ||
-        gradeSortValue[bestGradeResult.grade] < gradeSortValue[result.grade])
-    ) {
-      if (bestGradeResult) {
-        await trx
-          .updateTable('results_best_grade')
-          .set({ result_id: result.id })
-          .where('player_id', '=', playerId)
-          .where('shared_chart_id', '=', sharedChartId)
-          .executeTakeFirst();
-      } else {
-        await trx
-          .insertInto('results_best_grade')
-          .values({
-            player_id: playerId,
-            shared_chart_id: sharedChartId,
-            result_id: result.id,
-          })
-          .executeTakeFirst();
-      }
-      sharedChartIsChanged = true;
-    } else {
-      debug('Not a new best grade result');
     }
 
     const firstTopScore = await trx
