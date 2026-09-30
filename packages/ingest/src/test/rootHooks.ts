@@ -1,3 +1,4 @@
+import { seed } from './seed';
 import { createTestDatabase, deleteTestDatabase } from '@pumpking/core/test/testDatabase';
 import type { AsyncFunc, Context, RootHookObject } from 'mocha';
 
@@ -11,7 +12,12 @@ const afterAll: AsyncFunc = async function (this: Context) {
   await deleteTestDatabase();
 };
 
+const beforeEach: AsyncFunc = async function () {
+  await seed();
+};
+
 export const mochaHooks: RootHookObject = {
   beforeAll,
   afterAll,
+  beforeEach,
 };

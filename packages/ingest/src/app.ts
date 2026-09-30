@@ -1,7 +1,8 @@
-import { agentRoute } from './legacy';
+import { agentRoute, errorMessage } from './legacy';
 import { submitResults, validateResults } from './results';
 import { saveStatus } from './status';
 import { getUploadInfo, MAX_UPLOAD_BYTES, uploadFile } from './uploads';
+import { getAgentLastPlayers } from '@pumpking/core/agents/activity';
 import { pingDb } from '@pumpking/core/health';
 import createDebug from 'debug';
 import express, { type ErrorRequestHandler } from 'express';
@@ -48,6 +49,17 @@ app.post(
   '/results/manual/validate',
   agentRoute((call) => validateResults(call, 'manual'))
 );
+
+// Public: who played on an agent in the last hours, and its uptime. owjibot posts it to
+// its group chats
+app.get('/agent/:id/lastPlayers', async (req, res) => {
+  try {
+    res.json(await getAgentLastPlayers(Number(req.params.id)));
+  } catch (error) {
+    debug(error);
+    res.status(500).json({ error: errorMessage(error) });
+  }
+});
 
 // A body that isn't JSON, or is too large
 const bodyError: ErrorRequestHandler = (error, _req, res, _next) => {

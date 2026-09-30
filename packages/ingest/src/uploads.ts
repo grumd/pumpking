@@ -58,7 +58,12 @@ const readFile = (req: Parameters<RequestHandler>[0]) =>
     let tooLarge = false;
     let parser: busboy.Busboy;
     try {
-      parser = busboy({ headers: req.headers, limits: { fileSize: MAX_UPLOAD_BYTES } });
+      // The file name is the path in the agent's folder: keep its folders
+      parser = busboy({
+        headers: req.headers,
+        preservePath: true,
+        limits: { fileSize: MAX_UPLOAD_BYTES },
+      });
     } catch (e) {
       resolve({ status: 400, error: errorMessage(e) });
       return;
