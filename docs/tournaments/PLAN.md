@@ -577,9 +577,10 @@ RENAME TABLE tournaments           TO tournaments_legacy_2026,
          tournament_charts         TO tournament_charts_legacy_2026;
 ```
 
-(`down` renames back. If we never want the history again, a later migration
-drops the `_legacy_2026` tables. Before merging, take a plain
-`mysqldump --no-create-info` of the three tables and archive it off-repo.)
+(`down` renames back. The rename deletes nothing, so no dump is needed to merge
+it. If we never want the history again, a later migration drops the
+`_legacy_2026` tables — take a `mysqldump` of those three tables right before
+that one runs.)
 
 Consequences to accept: the new web app shows no past tournaments until the
 first new one ends (it never showed the legacy ones anyway), and the retired
