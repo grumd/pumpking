@@ -18,6 +18,8 @@
     "debug": "^4.3.1",
     "dotenv": "^16.3.1",
     "express": "^4.18.2",
+    "grammy": "^1.46.0",
+    "kysely": "^0.25.0",
     "tsx": "^4.21.0"
   },
   "devDependencies": {

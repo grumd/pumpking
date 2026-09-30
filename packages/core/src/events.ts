@@ -16,6 +16,9 @@ export interface EventPayloads {
   // An admin edited or deleted a result. `playerIds` are the players whose results on the
   // chart changed: the result's owner, and its previous owner when the edit moved it
   resultChanged: { resultId: number; sharedChartId: number; playerIds: number[] };
+  // The tournaments job created a tournament (it is Live from then on) or ended one
+  tournamentStarted: { tournamentId: number };
+  tournamentEnded: { tournamentId: number };
 }
 
 export type EventType = keyof EventPayloads;
