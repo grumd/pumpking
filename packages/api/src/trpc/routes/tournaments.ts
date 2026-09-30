@@ -1,4 +1,4 @@
-import { getTournament, listTournaments } from 'services/tournaments/tournament';
+import { getPlayerAwards, getTournament, listTournaments } from 'services/tournaments/tournament';
 import { publicProcedure, router } from 'trpc/trpc';
 import { z } from 'zod';
 
@@ -9,4 +9,7 @@ export const tournaments = router({
     .query(({ ctx, input }) =>
       getTournament({ tournamentId: input.tournamentId, playerId: ctx.user?.id })
     ),
+  awards: publicProcedure
+    .input(z.object({ playerId: z.number() }))
+    .query(({ input }) => getPlayerAwards(input.playerId)),
 });

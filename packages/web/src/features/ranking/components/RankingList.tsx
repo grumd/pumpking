@@ -8,6 +8,7 @@ import { NavLink } from 'react-router-dom';
 import { ExpRankImg } from 'components/ExpRankImg/ExpRankImg';
 import { Flag } from 'components/Flag/Flag';
 import Loader from 'components/Loader/Loader';
+import { MedalCounts } from 'components/Medal/Medal';
 
 import { routes } from 'constants/routes';
 
@@ -45,6 +46,7 @@ export default function RankingList({ ranking, isLoading, preferences }: Ranking
               <th className="playcount">{lang.PLAYCOUNT}</th>
               <th className="playcount">{lang.SCORES_count}</th>
               <th className="accuracy">{lang.ACCURACY}</th>
+              <th className="cups">{lang.TOURNAMENT_CUPS}</th>
               <th className="hide-col"> </th>
             </tr>
           </thead>
@@ -57,11 +59,16 @@ export default function RankingList({ ranking, isLoading, preferences }: Ranking
               }
 
               return (
-                <tr className={classNames('player', { 'hidden-player': isHidden || isRegionHidden })} key={player.id}>
+                <tr
+                  className={classNames('player', { 'hidden-player': isHidden || isRegionHidden })}
+                  key={player.id}
+                >
                   <td className="place">
                     {playerIndex === 0 ? <GiQueenCrown /> : `#${playerIndex + 1}`}
                   </td>
-                  <td className="exp-rank">{player.exp != null ? <ExpRankImg exp={player.exp} /> : null}</td>
+                  <td className="exp-rank">
+                    {player.exp != null ? <ExpRankImg exp={player.exp} /> : null}
+                  </td>
                   <td className="name">
                     <Flex gap="xxs" align="center">
                       {player.region ? <Flag region={player.region} /> : null}
@@ -82,6 +89,9 @@ export default function RankingList({ ranking, isLoading, preferences }: Ranking
                   <td className="playcount">{player.best_results_count}</td>
                   <td className="accuracy">
                     {player.accuracy ? `${player.accuracy.toFixed(2)}%` : ''}
+                  </td>
+                  <td className="cups">
+                    <MedalCounts cups={player.cups} />
                   </td>
                   <td className="hide-col">
                     <div className="switch-wrapper">

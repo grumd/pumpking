@@ -1,5 +1,6 @@
 import { eligibleResults, poolChartIds } from './eligibility';
-import { bracketForSkill, skillLevel } from './rules';
+import { bracketForSkill, medalForRank, skillLevel } from './rules';
+import { getBracketLeaderboard } from './tournament';
 import {
   FRESH_POOL_MONTHS,
   SITE_TIMEZONE,
@@ -12,6 +13,7 @@ import {
 import { db, type Transaction } from 'db';
 import { sql } from 'kysely';
 import _ from 'lodash/fp';
+import { raiseNotices } from 'services/notices/notices';
 
 const MONTH_NAMES = [
   'January',
@@ -177,17 +179,58 @@ export const createTournament = async ({ year, month }: { year: number; month: n
         )
         .execute();
     }
+    await raiseNotices(
+      trx,
+      'tournament',
+      tournamentId,
+      skills.map((s) => s.playerId)
+    );
 
     return { id: tournamentId, created: true };
   });
 };
 
-export const endTournaments = async (now: string = siteNow()) => {
-  const result = await db
-    .updateTable('tournaments')
-    .set({ state: 'Ended' })
-    .where('state', '=', 'Live')
-    .where('end_date', '<=', sql<Date>`${now}`)
-    .executeTakeFirst();
-  return Number(result.numUpdatedRows);
-};
+// Ends Live tournaments past their end date and freezes their final results.
+export const endTournaments = async (now: string = siteNow()) =>
+  db.transaction().execute(async (trx) => {
+    const ending = await trx
+      .selectFrom('tournaments')
+      .select('id')
+      .where('state', '=', 'Live')
+      .where('end_date', '<=', sql<Date>`${now}`)
+      .forUpdate()
+      .execute();
+
+    for (const { id } of ending) {
+      const brackets = await trx
+        .selectFrom('tournament_brackets')
+        .select('id')
+        .where('tournament_id', '=', id)
+        .execute();
+
+      for (const bracket of brackets) {
+        const leaderboard = await getBracketLeaderboard(bracket.id, trx);
+        if (leaderboard.length) {
+          await trx
+            .insertInto('tournament_results')
+            .values(
+              leaderboard.map((entry) => ({
+                tournament_id: id,
+                bracket_id: bracket.id,
+                player_id: entry.playerId,
+                rank: entry.rank,
+                score: entry.total,
+                medal: medalForRank(entry.rank),
+                charts: JSON.stringify(entry.charts),
+                created_at: new Date(),
+              }))
+            )
+            .execute();
+        }
+      }
+
+      await trx.updateTable('tournaments').set({ state: 'Ended' }).where('id', '=', id).execute();
+    }
+
+    return ending.length;
+  });

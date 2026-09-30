@@ -20,15 +20,22 @@ export const bracketForSkill = (skill: number | null): BracketCode => {
   return bracket.code;
 };
 
+export type Medal = 'gold' | 'silver' | 'bronze';
+
+export const medalForRank = (rank: number): Medal | null =>
+  (['gold', 'silver', 'bronze'] as const)[rank - 1] ?? null;
+
 export interface PlayerChartBests {
   playerId: number;
   nickname: string;
+  region: string | null;
   bests: { sharedChartId: number; score: number }[];
 }
 
 export interface LeaderboardEntry {
   playerId: number;
   nickname: string;
+  region: string | null;
   rank: number;
   total: number;
   charts: { sharedChartId: number; score: number; counted: boolean }[];
@@ -43,6 +50,7 @@ export const rankLeaderboard = (players: PlayerChartBests[]): LeaderboardEntry[]
     return {
       playerId: player.playerId,
       nickname: player.nickname,
+      region: player.region,
       total: counted.reduce((sum, chart) => sum + chart.score, 0),
       bestSingle: sorted[0]?.score ?? 0,
       charts: sorted.map((chart) => ({ ...chart, counted: counted.includes(chart) })),

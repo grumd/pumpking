@@ -1,15 +1,17 @@
 import { eligibleResults } from './eligibility';
-import { rankLeaderboard } from './rules';
+import { rankLeaderboard, type LeaderboardEntry, type Medal } from './rules';
 import { SUPPORTED_MIXES } from 'constants/mixes';
-import { db } from 'db';
+import { db, type Transaction } from 'db';
 import { sql } from 'kysely';
 import _ from 'lodash/fp';
 
-export const getBracketLeaderboard = async (bracketId: number) => {
-  const rows = await eligibleResults({
-    from: sql.ref<Date>('t.start_date'),
-    to: sql.ref<Date>('t.end_date'),
-  })
+const tournamentWindow = {
+  from: sql.ref<Date>('t.start_date'),
+  to: sql.ref<Date>('t.end_date'),
+};
+
+export const getBracketLeaderboard = async (bracketId: number, trx?: Transaction) => {
+  const rows = await eligibleResults(tournamentWindow, trx)
     .innerJoin('tournament_charts as tc', (join) =>
       join.onRef('tc.shared_chart_id', '=', 'r.shared_chart').on('tc.bracket_id', '=', bracketId)
     )
@@ -20,6 +22,7 @@ export const getBracketLeaderboard = async (bracketId: number) => {
     .select([
       'p.id',
       'p.nickname',
+      'p.region',
       'tc.shared_chart_id',
       sql<number>`max(r.score_phoenix)`.as('score'),
     ])
@@ -30,9 +33,33 @@ export const getBracketLeaderboard = async (bracketId: number) => {
     Object.values(_.groupBy('id', rows)).map((playerRows) => ({
       playerId: playerRows[0].id,
       nickname: playerRows[0].nickname,
+      region: playerRows[0].region,
       bests: playerRows.map((row) => ({ sharedChartId: row.shared_chart_id, score: row.score })),
     }))
   );
+};
+
+const getFinalLeaderboard = async (
+  bracketId: number
+): Promise<(LeaderboardEntry & { medal: Medal | null })[]> => {
+  const rows = await db
+    .selectFrom('tournament_results as tr')
+    .innerJoin('players as p', 'p.id', 'tr.player_id')
+    .select(['p.id', 'p.nickname', 'p.region', 'tr.rank', 'tr.score', 'tr.medal', 'tr.charts'])
+    .where('tr.bracket_id', '=', bracketId)
+    .orderBy('tr.rank')
+    .orderBy('tr.id')
+    .execute();
+
+  return rows.map((row) => ({
+    playerId: row.id,
+    nickname: row.nickname,
+    region: row.region,
+    rank: row.rank,
+    total: row.score,
+    medal: row.medal,
+    charts: row.charts,
+  }));
 };
 
 export const listTournaments = () =>
@@ -113,7 +140,13 @@ export const getTournament = async ({
     .orderBy('mix')
     .execute();
 
-  const leaderboards = await Promise.all(brackets.map((b) => getBracketLeaderboard(b.id)));
+  const leaderboards = await Promise.all(
+    brackets.map(async (bracket) =>
+      tournament.state === 'Ended'
+        ? getFinalLeaderboard(bracket.id)
+        : (await getBracketLeaderboard(bracket.id)).map((entry) => ({ ...entry, medal: null }))
+    )
+  );
 
   return {
     ...tournament,
@@ -135,5 +168,52 @@ export const getTournament = async ({
         })),
       leaderboard: leaderboards[index],
     })),
+  };
+};
+
+export const getPlayerAwards = (playerId: number) =>
+  db
+    .selectFrom('tournament_results as tr')
+    .innerJoin('tournaments as t', 't.id', 'tr.tournament_id')
+    .innerJoin('tournament_brackets as b', 'b.id', 'tr.bracket_id')
+    .select([
+      't.id as tournamentId',
+      't.start_date as startDate',
+      'b.code as bracketCode',
+      'tr.rank',
+      'tr.score',
+      'tr.medal',
+    ])
+    .where('tr.player_id', '=', playerId)
+    .where('tr.medal', 'is not', null)
+    .orderBy('t.start_date', 'desc')
+    .execute();
+
+// Pool charts of the Live tournament, and which of the given results count for it.
+export const getLiveTournamentMarks = async (resultIds: number[]) => {
+  const pool = await db
+    .selectFrom('tournament_charts as tc')
+    .innerJoin('tournaments as t', 't.id', 'tc.tournament_id')
+    .select('tc.shared_chart_id')
+    .where('t.state', '=', 'Live')
+    .execute();
+
+  const counting =
+    pool.length && resultIds.length
+      ? await eligibleResults(tournamentWindow)
+          .innerJoin('tournament_charts as tc', 'tc.shared_chart_id', 'r.shared_chart')
+          .innerJoin('tournament_player_brackets as tpb', (join) =>
+            join.onRef('tpb.player_id', '=', 'p.id').onRef('tpb.bracket_id', '=', 'tc.bracket_id')
+          )
+          .innerJoin('tournaments as t', 't.id', 'tc.tournament_id')
+          .select('r.id')
+          .where('t.state', '=', 'Live')
+          .where('r.id', 'in', resultIds)
+          .execute()
+      : [];
+
+  return {
+    poolChartIds: new Set(pool.map((row) => row.shared_chart_id)),
+    countingResultIds: new Set(counting.map((row) => row.id)),
   };
 };

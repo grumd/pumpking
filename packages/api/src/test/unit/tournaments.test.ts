@@ -2,11 +2,14 @@ import { assert } from 'chai';
 import { TOURNAMENT_BRACKETS } from 'constants/tournaments';
 import { db } from 'db';
 import { sql } from 'kysely';
+import { searchCharts } from 'services/charts/chartsSearch';
+import { getPlayersStats } from 'services/players/players';
 import { poolChartIds } from 'services/tournaments/eligibility';
 import { createTournament, endTournaments } from 'services/tournaments/lifecycle';
 import { bracketForSkill, rankLeaderboard, skillLevel } from 'services/tournaments/rules';
-import { getTournament } from 'services/tournaments/tournament';
+import { getPlayerAwards, getTournament } from 'services/tournaments/tournament';
 import { req } from 'test/helpers';
+import { addResultsSession } from 'test/helpers/sessions';
 import { getResultDefaults } from 'test/seeds/initialSeed';
 
 const MIXES = [26, 27, 28];
@@ -150,15 +153,17 @@ describe('Tournaments', () => {
         {
           playerId: 1,
           nickname: 'a',
+          region: null,
           bests: [900, 990, 950, 800, 970, 100].map((score, i) => ({ sharedChartId: i, score })),
         },
         {
           playerId: 2,
           nickname: 'b',
+          region: null,
           bests: [1000, 950, 960].map((score, i) => ({ sharedChartId: i, score })),
         },
-        { playerId: 3, nickname: 'c', bests: [{ sharedChartId: 0, score: 999 }] },
-        { playerId: 4, nickname: 'd', bests: [{ sharedChartId: 0, score: 999 }] },
+        { playerId: 3, nickname: 'c', region: null, bests: [{ sharedChartId: 0, score: 999 }] },
+        { playerId: 4, nickname: 'd', region: null, bests: [{ sharedChartId: 0, score: 999 }] },
       ]);
 
       assert.deepEqual(
@@ -384,6 +389,7 @@ describe('Tournaments', () => {
 
       assert.equal(await endTournaments('2026-10-24 23:59:59'), 0);
       assert.equal(await endTournaments('2026-10-25 00:00:00'), 1);
+      assert.equal(await endTournaments('2026-10-26 00:00:00'), 0);
 
       const { state } = await db
         .selectFrom('tournaments')
@@ -391,6 +397,176 @@ describe('Tournaments', () => {
         .where('id', '=', id)
         .executeTakeFirstOrThrow();
       assert.equal(state, 'Ended');
+    });
+
+    describe('when it ends', () => {
+      let tournamentId: number;
+      let easy: number[];
+
+      beforeEach(async () => {
+        tournamentId = (await createTournament({ year: 2026, month: 10 })).id;
+        easy = (await getPool(tournamentId))
+          .filter((c) => c.code === 'Easy')
+          .map((c) => c.shared_chart_id);
+        const t = '2026-10-10 12:00:00';
+        // players 2 and 3 tie for 1st, 4 is 3rd, 7 is 4th
+        await addResult(2, easy[0], 990000, t);
+        await addResult(2, easy[1], 980000, t);
+        await addResult(3, easy[2], 985000, t);
+        await addResult(3, easy[3], 985000, t);
+        await addResult(4, easy[4], 960000, t);
+        await addResult(7, easy[5], 950000, t);
+        await endTournaments('2026-10-25 00:00:00');
+      });
+
+      it('freezes the final results with medals, ties sharing the cup', async () => {
+        const rows = await db
+          .selectFrom('tournament_results')
+          .select(['player_id', 'rank', 'score', 'medal', 'charts'])
+          .where('tournament_id', '=', tournamentId)
+          .orderBy('id')
+          .execute();
+
+        assert.deepEqual(
+          rows.map((r) => [r.player_id, r.rank, r.score, r.medal]),
+          [
+            [2, 1, 1970000, 'gold'],
+            [3, 1, 1970000, 'gold'],
+            [4, 3, 960000, 'bronze'],
+            [7, 4, 950000, null],
+          ]
+        );
+        assert.deepEqual(rows[0].charts, [
+          { sharedChartId: easy[0], score: 990000, counted: true },
+          { sharedChartId: easy[1], score: 980000, counted: true },
+        ]);
+      });
+
+      it('serves the ended leaderboard from the frozen results', async () => {
+        await addResult(7, easy[0], 1000000, '2026-10-20 12:00:00');
+        await db.deleteFrom('results').where('player_id', '=', 4).execute();
+
+        const tournament = await getTournament({ tournamentId });
+        const bracket = tournament!.brackets.find((b) => b.code === 'Easy')!;
+
+        assert.deepEqual(
+          bracket.leaderboard.map((e) => [e.playerId, e.rank, e.total, e.medal]),
+          [
+            [2, 1, 1970000, 'gold'],
+            [3, 1, 1970000, 'gold'],
+            [4, 3, 960000, 'bronze'],
+            [7, 4, 950000, null],
+          ]
+        );
+        assert.deepEqual(bracket.leaderboard[2].charts, [
+          { sharedChartId: easy[4], score: 960000, counted: true },
+        ]);
+      });
+
+      it('counts cups on the profile and in the ranking', async () => {
+        const next = await createTournament({ year: 2026, month: 11 });
+        const nextEasy = (await getPool(next.id)).find((c) => c.code === 'Easy')!;
+        await addResult(3, nextEasy.shared_chart_id, 900000, '2026-11-10 12:00:00');
+        await endTournaments('2026-11-25 00:00:00');
+
+        const awards = await getPlayerAwards(3);
+        assert.deepEqual(
+          awards.map((a) => [a.tournamentId, a.bracketCode, a.rank, a.medal]),
+          [
+            [next.id, 'Easy', 1, 'gold'],
+            [tournamentId, 'Easy', 1, 'gold'],
+          ]
+        );
+        assert.lengthOf(await getPlayerAwards(7), 0);
+
+        await db.updateTable('players').set({ pp: 100 }).execute();
+        const stats = await getPlayersStats();
+        const cups = (playerId: number) => stats.find((p) => p.id === playerId)!.cups;
+        assert.deepEqual(cups(3), { gold: 2, silver: 0, bronze: 0 });
+        assert.deepEqual(cups(4), { gold: 0, silver: 0, bronze: 1 });
+        assert.deepEqual(cups(7), { gold: 0, silver: 0, bronze: 0 });
+      });
+    });
+
+    it('marks pool charts and counting results on the main leaderboard while Live', async () => {
+      const { id } = await createTournament({ year: 2026, month: 10 });
+      const chart = (await getPool(id)).find((c) => c.code === 'Easy')!.shared_chart_id;
+      const top = await db
+        .selectFrom('tournament_brackets')
+        .select('id')
+        .where('tournament_id', '=', id)
+        .where('code', '=', 'Top')
+        .executeTakeFirstOrThrow();
+      await db
+        .updateTable('tournament_player_brackets')
+        .set({ bracket_id: top.id })
+        .where('player_id', '=', 6)
+        .execute();
+      await addResult(2, chart, 990000, '2026-10-10 12:00:00');
+      // outside the window, and a player from another bracket
+      await addResult(3, chart, 995000, '2026-09-30 12:00:00');
+      await addResult(6, chart, 999000, '2026-10-10 12:00:00');
+
+      const marks = async () => {
+        const [item] = await searchCharts({ sharedChartId: chart });
+        return {
+          inTournament: item.inTournament,
+          counting: item.results.filter((r) => r.countsForTournament).map((r) => r.playerId),
+        };
+      };
+
+      assert.deepEqual(await marks(), { inTournament: true, counting: [2] });
+      const [unrelated] = await searchCharts({ sharedChartId: 1 });
+      assert.isFalse(unrelated.inTournament);
+
+      await endTournaments('2026-10-25 00:00:00');
+      assert.deepEqual(await marks(), { inTournament: false, counting: [] });
+    });
+
+    describe('notices', () => {
+      const unread = () =>
+        req()
+          .get('/trpc/notices.unread')
+          .set('session', addResultsSession)
+          .expect(200)
+          .then((res) => res.body.result.data.json);
+
+      it('raises a tournament notice per assigned player until they visit', async () => {
+        const { id } = await createTournament({ year: 2026, month: 10 });
+
+        const rows = await db
+          .selectFrom('player_notices')
+          .select(['player_id', 'ref_id'])
+          .where('scope', '=', 'tournament')
+          .orderBy('player_id')
+          .execute();
+        assert.deepEqual(
+          rows.map((r) => r.player_id),
+          [1, 2, 3, 4, 6, 7]
+        );
+        assert.isTrue(rows.every((r) => r.ref_id === id));
+
+        assert.deepEqual(await unread(), { tournament: true });
+        const res = await req()
+          .post('/trpc/notices.markRead')
+          .set('session', addResultsSession)
+          .send({ json: 'tournament' })
+          .expect(200);
+        assert.deepEqual(res.body.result.data.json, {});
+        assert.deepEqual(await unread(), {});
+
+        const next = await createTournament({ year: 2026, month: 11 });
+        assert.deepEqual(await unread(), { tournament: true });
+        const notices = await db.selectFrom('player_notices').selectAll().execute();
+        assert.lengthOf(notices, 6);
+        assert.isTrue(notices.every((n) => n.ref_id === next.id && n.read_at === null));
+      });
+
+      it('has nothing for guests', async () => {
+        await createTournament({ year: 2026, month: 10 });
+        const res = await req().get('/trpc/notices.unread').expect(200);
+        assert.deepEqual(res.body.result.data.json, {});
+      });
     });
 
     it('serves the latest tournament over tRPC', async () => {

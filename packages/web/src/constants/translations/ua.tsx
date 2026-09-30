@@ -126,7 +126,6 @@ export const ua = {
   BRACKETS: 'Групи чартів:',
   TOURNAMENT_LIVE: 'триває',
   TOURNAMENT_ENDED: 'завершено',
-  TOURNAMENT_ENDED_NOTICE: 'Підсумкові результати. Новий турнір почнеться 1-го числа.',
   TOURNAMENT_NONE: 'Турнірів поки немає. Новий починається 1-го числа кожного місяця.',
   TOURNAMENT_YOUR_BRACKET: 'Ваша група',
   TOURNAMENT_PLACEMENT: (level: number) => `у вас 5 чартів на 950k+ рівня ${level} або складніше`,
@@ -139,6 +138,9 @@ export const ua = {
   TOURNAMENT_LEADERBOARD: 'Таблиця результатів',
   TOURNAMENT_PLAYERS: 'гравців',
   TOURNAMENT_NO_SCORES: 'Результатів поки немає',
+  TOURNAMENT_CUPS: 'кубки',
+  TOURNAMENT_CHART: 'Турнір',
+  TOURNAMENT_RESULT: 'Зараховується в турнір',
   SKILL: 'рівень',
   UNRATED: 'без рівня',
 

@@ -113,6 +113,20 @@ export const getPlayersStats = async () => {
           .as('best_results_count'),
       (join) => join.onRef('best_results_count.player_id', '=', 'players.id')
     )
+    .leftJoin(
+      (eb) =>
+        eb
+          .selectFrom('tournament_results')
+          .select([
+            'player_id',
+            sql<number>`count(case when medal = 'gold' then 1 end)`.as('gold'),
+            sql<number>`count(case when medal = 'silver' then 1 end)`.as('silver'),
+            sql<number>`count(case when medal = 'bronze' then 1 end)`.as('bronze'),
+          ])
+          .groupBy('player_id')
+          .as('cups'),
+      (join) => join.onRef('cups.player_id', '=', 'players.id')
+    )
     .select([
       'players.id',
       'players.pp',
@@ -124,6 +138,9 @@ export const getPlayersStats = async () => {
       'avg_score',
       'players.exp',
       'latest_result.gained as last_result_date',
+      'cups.gold',
+      'cups.silver',
+      'cups.bronze',
     ])
     .where('players.pp', 'is not', null)
     .where('players.pp', '>', 0)
@@ -133,6 +150,9 @@ export const getPlayersStats = async () => {
   return players.map(
     ({
       avg_score,
+      gold,
+      silver,
+      bronze,
       ...player
     }): {
       id: number;
@@ -145,9 +165,11 @@ export const getPlayersStats = async () => {
       results_count: number | null;
       best_results_count: number | null;
       last_result_date: Date | null;
+      cups: { gold: number; silver: number; bronze: number };
     } => {
       return {
         ...player,
+        cups: { gold: gold ?? 0, silver: silver ?? 0, bronze: bronze ?? 0 },
         exp: player.exp ? parseFloat(player.exp) : null,
         accuracy: avg_score ? avg_score / 10_000 : null,
       };

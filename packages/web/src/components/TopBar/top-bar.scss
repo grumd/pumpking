@@ -12,15 +12,20 @@
     flex-flow: row wrap;
     padding-left: 0;
     margin: 6px 0;
-    > li > a {
-      color: #555;
-      margin: 5px;
-      &.active {
-        color: #fff;
-      }
-      &:hover {
-        color: #fff;
-        cursor: pointer;
+    > li {
+      line-height: 1.1;
+      a {
+        line-height: 1.1;
+        color: #555;
+        margin: 5px;
+        
+        &.active {
+          color: #fff;
+        }
+        &:hover {
+          color: #fff;
+          cursor: pointer;
+        }
       }
     }
     > li + li::before {
@@ -46,7 +51,7 @@
 @media screen and (max-width: 500px) {
   .top-bar > nav > ul {
     font-size: 16px;
-    > li > a {
+    > li a {
       margin: 4px;
     }
   }
