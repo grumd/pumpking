@@ -89,9 +89,9 @@ VITE_API_BASE_PATH=http://localhost:3001
 
 ## Deployment
 
-- Pushes to `master` run `.github/workflows/deploy.yml` for the server-side services (api, ingest, bot): each service whose package, `packages/core`, root `package.json` / lockfile, `pm2.config.js` or `deploy/` changed since its `deployed/<service>` tag is tested, then the commit goes to `~/pumpking/releases/<sha>` on the host (`deploy/release.sh`, prod migrations run there), and `deploy/activate.sh` switches the service's symlink with a health check and automatic rollback. Details: "What P2 did" in `docs/python-api-migration/PLAN.md`
-- The web deploys to GitHub Pages (`deploy-web.yml`)
+- Pushes to `master` run `.github/workflows/deploy.yml` for the services on the host (api, ingest, bot): tests, a migration guard when migrations changed, then `deploy/release.sh` prepares `~/pumpking/releases/<sha>` (install + prod migrations) and `deploy/deploy-service.sh` switches each changed service to it, with a health check and rollback. Details: "What P2 did" in `docs/python-api-migration/PLAN.md`
 - pm2 apps for all services: root `pm2.config.js`
+- The web deploys to GitHub Pages (`deploy-web.yml`)
 
 ## Adding New Features
 

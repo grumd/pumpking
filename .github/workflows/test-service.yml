@@ -1,26 +1,25 @@
 name: Test a service
 
-# Type-checks and tests one service (api, ingest or bot). Called by the PR test workflows,
-# and by the Deploy workflow, which also uses it as the migration guard: a deployed commit's
-# tests, run against the new commit's migrations
+# Type-checks and tests one service. Called by the PR test workflows and by the Deploy
+# workflow, whose migration guard runs a deployed commit's tests on new migrations
 on:
   workflow_call:
     inputs:
       service:
+        description: api, ingest or bot
         required: true
         type: string
       ref:
         description: The commit to test (default the one that triggered the workflow)
         type: string
         default: ''
-      migrations_ref:
-        description: Replace packages/core/migrations with this commit's (migration guard)
+      migrations_from:
+        description: Test with this commit's packages/core/migrations instead
         type: string
         default: ''
 
 jobs:
   test:
-    name: ${{ inputs.migrations_ref && format('{0} at {1}', inputs.service, inputs.ref) || inputs.service }}
     runs-on: ubuntu-latest
 
     steps:
@@ -32,15 +31,12 @@ jobs:
         with:
           ref: ${{ inputs.ref }}
 
-      - name: Use the new migrations
-        if: inputs.migrations_ref
-        env:
-          MIGRATIONS_REF: ${{ inputs.migrations_ref }}
+      - name: Use the migrations of ${{ inputs.migrations_from }}
+        if: inputs.migrations_from != ''
         run: |
-          git fetch --depth 1 origin "$MIGRATIONS_REF"
+          git fetch --depth 1 origin ${{ inputs.migrations_from }}
           rm -rf packages/core/migrations
           git checkout FETCH_HEAD -- packages/core/migrations
-          git status --short
 
       - name: Setup node
         uses: actions/setup-node@v4
@@ -70,13 +66,10 @@ jobs:
           SCREENSHOT_AGENT_BASE_FOLDER: ~/test-screenshots
           SCREENSHOT_FILE_PATH_DB: '{nickname}/{dateAdded}/{dateTimeAdded}.jpg'
 
-      # The guard only cares whether the deployed code works on the new schema
       - name: Type-check core
-        if: inputs.service == 'api' && !inputs.migrations_ref
         run: npm run ts-check --prefix packages/core
 
       - name: Type-check ${{ inputs.service }}
-        if: '!inputs.migrations_ref'
         run: npm run ts-check --prefix packages/${{ inputs.service }}
 
       - name: Test ${{ inputs.service }}
