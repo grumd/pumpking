@@ -1,0 +1,47 @@
+name: Test Services
+
+# The services other than the API (the API has test-api.yml)
+on:
+  workflow_call:
+  pull_request:
+    branches: ['master']
+    paths: ['packages/ingest/**', 'packages/bot/**', 'packages/core/**']
+
+jobs:
+  test_service:
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        service: [ingest, bot]
+
+    steps:
+      - name: Setup MySQL
+        run: sudo systemctl start mysql.service
+
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Setup node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 24
+          cache: 'npm'
+      - run: npm ci
+
+      - name: 'Create core .env file'
+        uses: iamsauravsharma/create-dotenv@v1.2.2
+        with:
+          file-name: '.env'
+          directory: 'packages/core'
+        env:
+          DB_DATABASE_TEST: test
+          DB_USERNAME: root
+          DB_PASSWORD: root
+
+      - name: Type-check ${{ matrix.service }}
+        run: npm run ts-check --prefix packages/${{ matrix.service }}
+
+      - name: Test ${{ matrix.service }}
+        run: npm run test:${{ matrix.service }}

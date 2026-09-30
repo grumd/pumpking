@@ -1,0 +1,35 @@
+{
+  "name": "@pumpking/bot",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Telegram bot platform and its feature plugins",
+  "main": "src/index.ts",
+  "scripts": {
+    "start": "cross-env NODE_ENV=development DEBUG=bot:* tsx watch ./src/index.ts",
+    "start:tsx": "tsx ./src/index.ts",
+    "ts-check": "tsc --noEmit --pretty",
+    "test:run": "cross-env NODE_ENV=test mocha --import=tsx -r ./src/test/rootHooks.ts ./src/**/*.test.ts",
+    "test": "cross-env DEBUG=bot:*,backend-ts:test:* npm run test:run -- --exit"
+  },
+  "author": "grumd",
+  "license": "MIT",
+  "dependencies": {
+    "@pumpking/core": "*",
+    "debug": "^4.3.1",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "tsx": "^4.21.0"
+  },
+  "devDependencies": {
+    "@types/chai": "^4.2.18",
+    "@types/debug": "^4.1.8",
+    "@types/express": "^4.17.17",
+    "@types/mocha": "^8.2.2",
+    "@types/node": "^24.10.7",
+    "@types/supertest": "^2.0.11",
+    "chai": "^4.3.4",
+    "cross-env": "^7.0.3",
+    "mocha": "^8.4.0",
+    "supertest": "^6.1.3"
+  }
+}
