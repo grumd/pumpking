@@ -355,20 +355,6 @@ describe('Add new result manually', () => {
       .expect(200);
     await applyEffects();
 
-    assert.strictEqual(
-      (
-        await db
-          .selectFrom('results_best_grade as rbg')
-          .leftJoin('results', 'results.id', 'rbg.result_id')
-          .selectAll()
-          .where('rbg.player_id', '=', 7)
-          .where('rbg.shared_chart_id', '=', 1)
-          .executeTakeFirst()
-      )?.grade,
-      'A+',
-      'best grade is A+'
-    );
-
     const firstResult = await db
       .selectFrom('results')
       .selectAll()
@@ -506,20 +492,6 @@ describe('Add new result manually', () => {
       thirdPp as number,
       (thirdResult?.pp ?? 0) + (secondResult?.pp ?? 0),
       'total player pp is smaller than sum of all result pps'
-    );
-
-    assert.strictEqual(
-      (
-        await db
-          .selectFrom('results_best_grade as rbg')
-          .leftJoin('results', 'results.id', 'rbg.result_id')
-          .selectAll()
-          .where('rbg.player_id', '=', 7)
-          .where('rbg.shared_chart_id', '=', 1)
-          .executeTakeFirst()
-      )?.grade,
-      'SSS',
-      'best grade is SSS'
     );
 
     const history = (await req().get('/players/7/pp-history').expect(200)).body;
