@@ -17,3 +17,17 @@ export const SUPPORTED_MIXES: number[] = [MIXES.XX, MIXES.Phoenix, MIXES.Phoenix
  * Add new mixes to MIXES only - everything else derives from it.
  */
 export const MIX_NAMES = Object.keys(MIXES) as [MixName, ...MixName[]];
+
+export const MIX_NAME_BY_ID = Object.fromEntries(
+  Object.entries(MIXES).map(([name, id]) => [id, name])
+) as Record<number, MixName>;
+
+/**
+ * Mixes that piu-spy recognizes results on. Arcade names of players
+ * (`arcade_player_names`) and tracks (`arcade_track_names`) are kept per mix for them,
+ * since they change between mixes.
+ */
+export const ARCADE_NAME_MIXES: number[] = [MIXES.XX, MIXES.Phoenix, MIXES.Phoenix2];
+
+/** Mixes from Phoenix on score up to 1,000,000; their score is also the phoenix score. */
+export const isMillionScoringMix = (mixId: number) => mixId >= MIXES.Phoenix;

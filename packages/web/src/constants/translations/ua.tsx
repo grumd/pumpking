@@ -260,21 +260,10 @@ export const ua = {
   DELETE_RESULT: 'Видалити результат',
   DELETE_RESULT_CONFIRM:
     'Ви впевнені, що хочете видалити цей результат? Цю дію неможливо скасувати.',
-  CAN_ADD_RESULTS_MANUALLY: 'Може додавати результати вручну',
   ENABLED: 'Увімкнено',
   DISABLED: 'Вимкнено',
   REGION: 'Регіон',
-  TELEGRAM_TAG: 'Телеграм тег',
-  TELEGRAM_ID: 'Телеграм ID',
-  HIDDEN_PLAYER: 'Схований гравець',
   ADMIN: 'адмін',
-  ADMIN_FILES: 'Файли',
-  ADMIN_SCREEN_FILE: 'Скріншот',
-  ADMIN_SCAN_FILE: 'Скан JSON',
-  ADMIN_RESULT: 'Результат',
-  ADMIN_PURGATORY: 'Чистилище',
-  ADMIN_OPEN: 'Відкрити',
-  DOWNLOAD: 'Завантажити',
 
   // Login / Registration
   SIGN_IN_WITH_DISCORD: 'Увійти через Discord',

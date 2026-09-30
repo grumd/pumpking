@@ -261,21 +261,10 @@ export const ru = {
   DELETE_RESULT: 'Удалить результат',
   DELETE_RESULT_CONFIRM:
     'Вы уверены, что хотите удалить этот результат? Это действие нельзя отменить.',
-  CAN_ADD_RESULTS_MANUALLY: 'Может добавлять результаты вручную',
   ENABLED: 'Включено',
   DISABLED: 'Выключено',
   REGION: 'Регион',
-  TELEGRAM_TAG: 'Телеграм тег',
-  TELEGRAM_ID: 'Телеграм ID',
-  HIDDEN_PLAYER: 'Скрытый игрок',
   ADMIN: 'админ',
-  ADMIN_FILES: 'Файлы',
-  ADMIN_SCREEN_FILE: 'Скриншот',
-  ADMIN_SCAN_FILE: 'Скан JSON',
-  ADMIN_RESULT: 'Результат',
-  ADMIN_PURGATORY: 'Чистилище',
-  ADMIN_OPEN: 'Открыть',
-  DOWNLOAD: 'Скачать',
 
   // Login / Registration
   SIGN_IN_WITH_DISCORD: 'Войти через Discord',

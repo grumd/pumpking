@@ -3,25 +3,27 @@ import { type UseMutationResult, useMutation, useQueryClient } from '@tanstack/r
 
 import { api } from 'utils/trpc';
 
+// Deletes a result from its leaderboard. pp / exp are recalculated by the effects job
+// a moment later, so the leaderboards and ranking are refetched again after that
 export const useDeleteResult = (): UseMutationResult<
-  ApiOutputs['admin']['deleteResult'],
+  ApiOutputs['admin']['results']['delete'],
   unknown,
-  ApiInputs['admin']['deleteResult'],
+  ApiInputs['admin']['results']['delete'],
   undefined
 > => {
   const queryClient = useQueryClient();
 
-  const deleteResultMutation = useMutation(
-    api.admin.deleteResult.mutationOptions({
+  return useMutation(
+    api.admin.results.delete.mutationOptions({
       onSuccess: () => {
-        // Invalidate chart queries to refresh the leaderboards
-        queryClient.invalidateQueries(api.charts.search.infiniteQueryFilter());
-        queryClient.invalidateQueries(api.charts.chart.queryFilter());
-        // Invalidate player stats in case PP/EXP changed
-        queryClient.invalidateQueries(api.players.stats.queryFilter());
+        const refetch = () => {
+          queryClient.invalidateQueries(api.charts.search.infiniteQueryFilter());
+          queryClient.invalidateQueries(api.charts.chart.queryFilter());
+          queryClient.invalidateQueries(api.players.stats.queryFilter());
+        };
+        refetch();
+        setTimeout(refetch, 3000);
       },
     })
   );
-
-  return deleteResultMutation;
 };
