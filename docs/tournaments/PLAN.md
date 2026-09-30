@@ -1,8 +1,9 @@
 # Monthly Tournaments — Relaunch Plan (shared cross-mix pool)
 
 Status: design decisions finalized 2026-09-29 · M1 (ID moved to
-`shared_charts`), M2 (legacy tables parked, v2 tables created), M3 (backend)
-and M4 (web page) done · creation job not enabled yet (M5)
+`shared_charts`), M2 (legacy tables parked, v2 tables created), M3 (backend),
+M4 (web page), M7 (cups), M8 (leaderboard highlight) and M9 (nav notice) done ·
+creation job not enabled yet (M5)
 
 ## Summary
 
@@ -62,7 +63,7 @@ below for how the old system worked.
 | Tables | Fresh `tournaments` / `tournament_brackets` / `tournament_charts` / `tournament_player_brackets` built from scratch; legacy rows parked in `*_legacy_2026` |
 | Code location | All new code in the pumpking repo; piu-top tournament code deleted |
 | Cups (M7) | Gold/silver/bronze per bracket podium (ties share); recorded in `tournament_results` at end; profile + ranking list show accumulated counts |
-| Main leaderboard highlight (M8) | While Live: badge on pool charts + on counting results, and a banner linking to `/tournaments` |
+| Main leaderboard highlight (M8) | While Live: badge on pool charts + on counting results (no banner) |
 | Nav notice badge (M9) | Red "!" on the Tournaments nav link while an unread notice exists (materialized `player_notices` rows written at tournament creation, cleared by one mutation on page visit) |
 
 ## Why this works (data, measured on prod 2026-09-28/29)
@@ -445,6 +446,19 @@ applies to the live window only.
   grade-based stat columns; EXP/PP/play-count stay. Exact column layout is a UI
   detail at implementation time.
 
+### M7 as built (2026-09-30)
+
+- `tournament_results` has one more column than specced: `charts JSON` — the
+  per-chart bests with their `counted` flag, exactly what the live leaderboard
+  returns. An ended leaderboard therefore looks the same as the live one did and
+  is fully frozen; without it the 6 per-chart columns would have had to be
+  recomputed live (and drift from the medals) or dropped.
+- Display order inside a tie is kept by insertion order (`order by rank, id`).
+- The ranking list had no grade-based stat columns left to replace, so the cup
+  counts are a new column next to accuracy.
+- One trophy icon coloured by medal; per-bracket icon variants are not done.
+- `tournaments.list` still only feeds the month picker (no top 3 per bracket).
+
 ## Main leaderboard highlight (post-launch — M8)
 
 While a tournament is **Live**, the main leaderboard (charts list page +
@@ -455,9 +469,8 @@ see there is a tournament and can go participate:
   badge in the `ChartHeader` (cup icon / "T" mark).
 - **Result badge**: result rows that count for the tournament (pool chart,
   `gained` inside the window, eligible) get a small mark.
-- **Banner** (main leaderboard page): "<Month> tournament is live — ends on the
-  25th" with a link to `/tournaments`. Shown while Live only; the ended
-  25th–1st window stays quiet (nav link + tournament page cover it).
+- ~~**Banner**~~ — dropped 2026-09-30: the M9 nav notice is the only
+  announcement.
 
 Backend: the leaderboard query tags rows server-side — `inTournament` on the
 chart (its `shared_chart_id` is in the Live tournament's `tournament_charts`)
@@ -523,11 +536,14 @@ Creation-job upsert (per assigned player; set-based in the real implementation):
 INSERT INTO player_notices (player_id, scope, ref_id, created_at, read_at)
 VALUES (:pid, 'tournament', :tid, NOW(), NULL)
 ON DUPLICATE KEY UPDATE
+  created_at = IF(read_at IS NULL, created_at, VALUES(created_at)),
+  -- ^ keep created_at if one was already pending, else reset it
   ref_id = VALUES(ref_id),
-  read_at = NULL,  -- always pending after a new event...
-  created_at = IF(read_at IS NULL, created_at, VALUES(created_at));
-  -- ...keep created_at if one was already pending, else reset it
+  read_at = NULL;  -- always pending after a new event
 ```
+
+(MySQL assigns left to right, so `created_at` has to come before `read_at` is
+cleared — the first draft had them the other way round.)
 
 The table is bounded by players × scopes (a few hundred rows total) — no
 retention policy needed.
@@ -809,9 +825,9 @@ process) so the cron removal actually stops tournament creation.
 | M4 | ~~Web~~ — **done 2026-09-30**: `features/tournaments/Tournaments.tsx` at `/tournaments` + nav link: tournament picker, state/dates card with the player's bracket and placement reason, bracket tabs (default: own bracket) with the pool (per-mix labels, ID) and the leaderboard (counted scores bold) | — |
 | M5 | Enable creation job; first live month; watch participation per bracket | 0.5 d |
 | M6 | Retire the piu-top **Python** tournament code (separate repo; note `36cdaf0` already commented the tournament logic out) + merge [piu-top#22](https://github.com/Zdreni/piu-top/pull/22) and the held-back drop migration; confirm the prod scheduler no longer creates tournaments — **before 1 Oct** | 0.5 d |
-| M7 | Cups: `tournament_results` + population by the Ended job; profile cups (per-medal counts + award list with bracket); ranking-list cup counters replacing grade-based stats; `getCurrent`/`getLeaderboard`/`list` (Ended) read from the table | 1.5–2 d |
-| M8 | Main leaderboard highlight while Live: pool-chart badge, counting-result badge, "tournament is live" banner linking to `/tournaments` | 0.5–1 d |
-| M9 | Nav notice badge: `player_notices` table + write from the creation job, `notices.unread` query + `notices.markRead(scope)` mutation, red "!" on the TopBar Tournaments link | 0.5 d |
+| M7 | ~~Cups~~ — **done 2026-09-30**: `20260930020000_add_tournament_results`; `endTournaments` freezes every bracket's leaderboard into it in the same transaction as the state change; `tournaments.get` serves an Ended tournament from it (medal next to the rank); `tournaments.awards({ playerId })` + a profile "cups" card (per-medal counts + award list); a "cups" column in the ranking. See "M7 as built" | — |
+| M8 | ~~Main leaderboard highlight~~ — **done 2026-09-30**: `searchCharts` tags `inTournament` / `countsForTournament` from one extra query (the shared eligibility predicate, Live tournaments only); "Tournament" badge in `ChartHeader`, trophy mark on counting result rows; the banner was dropped (the nav notice of M9 covers it) | — |
+| M9 | ~~Nav notice badge~~ — **done 2026-09-30**: `20260930030000_add_player_notices`, notices raised in the creation transaction, `notices.unread` / `notices.markRead`, red "!" on the TopBar link, cleared when the tournaments page opens | — |
 
 Total: ~1.5–2 weeks single dev (launch, M1–M6); +1.5–2 d post-launch for M7;
 +0.5–1 d for M8; +0.5 d for M9.
@@ -824,8 +840,13 @@ the jobs, idempotent per month):
     npm run tournament --prefix packages/api -- create 2026-10   # default: current month
     npm run tournament --prefix packages/api -- end              # ends every Live tournament past its end_date
 
+`end` also writes the final results and medals (`tournament_results`), and
+`create` raises the tournament notice for every assigned player.
+
 `DELETE FROM tournaments WHERE id = ?` removes a tournament with its brackets,
-pool and assignments (cascade), e.g. to redraw in a dev database. On prod the
+pool, assignments and final results (cascade), e.g. to redraw in a dev
+database. To re-run an end in a dev database: `DELETE FROM tournament_results
+WHERE tournament_id = ?`, set `state = 'Live'`, run `end` again. On prod the
 cron runs only with `TOURNAMENT_JOB=enabled`.
 
 ## Decisions
