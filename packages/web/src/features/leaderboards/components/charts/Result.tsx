@@ -11,8 +11,8 @@ import { ResultScreenshotLink } from 'components/ResultScreenshotLink/ResultScre
 import { colorsArray } from 'constants/colors';
 import { routes } from 'constants/routes';
 
+import { useDeleteResult } from 'features/admin/hooks/useDeleteResult';
 import { filterAtom } from 'features/leaderboards/hooks/useFilter';
-import { useDeleteResult } from 'features/profile/components/AdminPanel/useDeleteResult';
 
 import { useUser } from 'hooks/useUser';
 
@@ -87,7 +87,7 @@ const Result = ({ result, chart }: { result: ResultExtended; chart: ChartApiOutp
 
   const handleDeleteResult = async () => {
     if (window.confirm(lang.DELETE_RESULT_CONFIRM)) {
-      deleteResultMutation.mutate({ resultId: result.id });
+      deleteResultMutation.mutate({ id: result.id });
     }
   };
 
@@ -297,6 +297,18 @@ const Result = ({ result, chart }: { result: ResultExtended; chart: ChartApiOutp
                 </Text>
               )}
 
+              {isAdmin && (
+                <Button
+                  mt="xs"
+                  size="xs"
+                  variant="default"
+                  fullWidth
+                  component={Link}
+                  to={routes.admin.results.getPath({ id: result.id })}
+                >
+                  Open in admin
+                </Button>
+              )}
               {isAdmin && (
                 <Button
                   mt="xs"

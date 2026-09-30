@@ -13,6 +13,9 @@ export interface EventPayloads {
   // A result was inserted, or updated by the Python ingestion (it makes the same call
   // for both)
   resultAdded: { resultId: number };
+  // An admin edited or deleted a result. `playerIds` are the players whose results on the
+  // chart changed: the result's owner, and its previous owner when the edit moved it
+  resultChanged: { resultId: number; sharedChartId: number; playerIds: number[] };
 }
 
 export type EventType = keyof EventPayloads;

@@ -35,8 +35,26 @@ export const routes = {
   },
   admin: {
     path: `/admin`,
-    files: {
-      path: `/admin/files`,
+    purgatory: {
+      path: `/admin/purgatory`,
+      getPath: (params: { id: number }) => `/admin/purgatory/${params.id}`,
+    },
+    results: {
+      path: `/admin/results`,
+      getPath: (params: { id: number }) => `/admin/results/${params.id}`,
+    },
+    players: {
+      path: `/admin/players`,
+      getPath: (params: { id: number | 'new' }) => `/admin/players/${params.id}`,
+    },
+    tracks: {
+      path: `/admin/tracks`,
+      getPath: (params: { id: number; chartInstanceId?: number }) =>
+        `/admin/tracks/${params.id}` +
+        (params.chartInstanceId ? `?chart=${params.chartInstanceId}` : ''),
+    },
+    agents: {
+      path: `/admin/agents`,
     },
   },
 } as const;

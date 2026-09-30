@@ -42,13 +42,13 @@ npm run migrate:make --prefix packages/core -- migrationName  # Create migration
 - **API Layer**: tRPC router at `src/trpc/router.ts`, routes in `src/trpc/routes/`
 - **Business Logic**: Services in `src/services/{domain}/`
 - **Database**: Kysely client from `@pumpking/core/db`, with types auto-generated in `packages/core/src/database.ts`
-- **Events**: code that adds a result also adds a `resultAdded` event in the same transaction (`addEvent` from `@pumpking/core/events`). The effects job (`src/jobs/effectsJob.ts`) applies pp / exp / totals from the events about a second later; tests call `applyEffects()`
+- **Events**: code that adds a result also adds a `resultAdded` event in the same transaction (`addEvent` from `@pumpking/core/events`); admin edits and deletes add `resultChanged`. The effects job (`src/jobs/effectsJob.ts`) applies pp / exp / totals from the events about a second later; tests call `applyEffects()`
 - **Legacy REST** (to be removed): Routes in `src/routes/`, controllers in `src/controllers/` (being phased out)
 
 ### Frontend (packages/web)
 
 - **Entry**: `src/main.tsx` → `src/App.tsx`
-- **Features**: Organized by domain in `src/features/` (login, leaderboards, profile, ranking)
+- **Features**: Organized by domain in `src/features/` (login, leaderboards, profile, ranking, admin)
 - **API Client**: tRPC client configured in `src/utils/trpc.ts`
 - **Hooks**: Custom hooks in `src/hooks/` wrap tRPC queries
 
@@ -80,6 +80,8 @@ DB_PASSWORD=
 NODE_ENV=development
 APP_PORT=3001
 SCREENSHOT_BASE_FOLDER=~/screenshots
+# optional: the legacy Python API, which the admin purgatory recheck calls
+LEGACY_API_URL=http://127.0.0.1:5000
 ```
 
 **Web** (`packages/web/.env.development`):

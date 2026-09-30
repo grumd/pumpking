@@ -288,21 +288,10 @@ export const en = {
   DELETE_RESULT: 'Delete result',
   DELETE_RESULT_CONFIRM:
     'Are you sure you want to delete this result? This action cannot be undone.',
-  CAN_ADD_RESULTS_MANUALLY: 'Can add results manually',
   ENABLED: 'Enabled',
   DISABLED: 'Disabled',
   REGION: 'Region',
-  TELEGRAM_TAG: 'Telegram tag',
-  TELEGRAM_ID: 'Telegram ID',
-  HIDDEN_PLAYER: 'Hidden player',
   ADMIN: 'admin',
-  ADMIN_FILES: 'Files',
-  ADMIN_SCREEN_FILE: 'Screen file',
-  ADMIN_SCAN_FILE: 'Scan JSON',
-  ADMIN_RESULT: 'Result',
-  ADMIN_PURGATORY: 'Purgatory',
-  ADMIN_OPEN: 'Open',
-  DOWNLOAD: 'Download',
 
   // Login / Registration
   SIGN_IN_WITH_DISCORD: 'Sign in with Discord',

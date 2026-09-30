@@ -5,9 +5,9 @@ decisions") · deploy approach revised 2026-09-30 (tsx + pm2 release dirs, see
 "Build and release") · P1.1 and P1.2 deployed 2026-09-30 · P1.3 + P1.4
 done 2026-09-30 (PR #39), which completes P1 · P2 deployed 2026-09-30
 (PR #40) · P3 deployed 2026-09-30 (PR #41) · P4 deployed 2026-09-30
-(PRs #42, #43), which completes the platform track · W3 (admin shell) built
-2026-09-30, not merged yet (see "Progress") · nothing ported yet beyond what
-TS already owns (see "Already in TS")
+(PRs #42, #43), which completes the platform track · the web admin (W3–W6,
+W8) built 2026-09-30 in PR #44, not merged yet (see "Progress"); its
+purgatory recheck still runs in Python until W7
 
 ## Progress
 
@@ -26,7 +26,7 @@ comes next. The rest of the document is the design it follows.
 | P3 events + effects worker | **Deployed** 2026-09-30 (PR #41). The first Deploy run with the migration guard was green (all three guards passed); the release step ran both migrations on prod, and all three services moved to release `c2b241b5` (a `packages/core` change counts for every service). Checked on prod afterwards: every pm2 app online, API `/healthz` ok, no errors in the API log, `@@auto_increment_increment` = 1, and the backfill scored the rank mode rows (4,591 with a `score_phoenix`, 773 without full stats still null). **Not exercised on prod yet:** no result had arrived by 19:51 UTC (the newest was from 2026-09-29), so `events` was empty and there was no `effects` cursor row. The tests cover the path end to end; no action planned, but if an effect ever seems missing, look at `events`, `event_cursors` and `event_failures` first |
 | P4a stop using `results_best_grade` | **Deployed** 2026-09-30 (PR #42). Before merging: API tests pass (76), all packages type-check; master's tests pass with the new migration (the guard's check, run locally); on the dev DB (a copy of prod data), deleting a result the table points at fails before the migration and works after it (rolled back), and the migration's `down` works. The Deploy run was green (guards passed, migration ran on prod), all three services run `5a241f21`, and the table has no foreign keys left on prod |
 | P4b drop `results_best_grade` | **Deployed** 2026-09-30 (PR #43). API tests pass (76; the test code is P4a's, so this was also the guard's check), all packages type-check from a clean build, and the migration's up / down / up works on the dev DB. The Deploy run was green (guards passed, migration ran on prod), all three services run `e70880c3`, and the table is gone on prod |
-| W3 admin shell | **Built, not merged.** API tests pass (84: 8 new for the file route), all packages type-check, `npm run build:web` works. Tried in the browser against the dev DB, with one prod result's video + scan JSON copied into the local uploads folder (removed afterwards): an admin sees the nav link and the Files tab, the video plays, the JSON is pretty-printed, both download under their real names, a purgatory row whose files aren't on disk shows "File not found", and a non-admin gets no link and is sent from `#/admin` to the leaderboard. The CORS headers the cross-origin prod setup needs were checked with curl |
+| Web admin (W3–W6, W8) | **Built, not merged** (PR #44, see "What the web admin did"). API tests pass (114: 38 new), ingest / bot tests pass, all packages type-check, `npm run build:web` works, lint has only master's old errors. Tried in the browser against a fresh copy of prod data (the dev DB was reloaded from `~/dump.sql.gz`), with the legacy Python backend running locally (piu-top `origin/master` from `/tmp`, through `uv`) and a few prod videos copied into the local uploads folder: fixed chart #20968's step range from purgatory #8021's reason link, rechecked the row, and it moved to results (#303187) through Python, whose callback added the event, and got pp and exp from the effects job; edited that result (notes; bad mods got the validation error); players, agents (token shown on demand) and a tracklist sync preview of a file made from the DB (1,108 tracks, no errors) |
 | Other W tracks | Not started |
 
 ### What P1.2 did
@@ -327,62 +327,135 @@ table, so the table can only be dropped once P4a runs everywhere.
   brings it back empty, in its P4a shape.
 - `ResultsBestGrade` removed from `database.ts` by hand, the way codegen would.
 
-### What W3 did
+### What the web admin did (W3–W6, W8)
 
-- **Web**: `#/admin` (`features/admin/Admin.tsx`) is a tab layout, one tab
-  per admin area, each a nested route (`/admin/<tab>`). Root renders it only
-  for `is_admin` users and sends everyone else to the leaderboard; the top
-  bar shows an "admin" link to admins only. The API still checks every call
-  (`adminProcedure`, `adminAuth`). For now the only tab is **Files**.
-- **Files tab**: look up a result or a purgatory row by id (kept in the URL,
-  `#/admin/files?source=results&id=123`) and see its screen file (the video
-  plays, a jpg shows as an image) and its scan JSON (pretty-printed), each
-  with a download button that saves it under its real name. The viewer is a
-  component (`features/admin/components/AdminFiles`), so W6 / W8 can show it
-  next to a result or purgatory row. This replaces B21 for the admin UI.
-- **API**: `GET /admin/files/:source/:id/:kind` (`routes/admin.ts`), where
-  `source` is `results` or `purgatory` and `kind` is `screen` or `scan` (the
-  `.json` that piu-spy uploads next to the screen file). Admins only
-  (`adminAuth`). It's a REST route, not tRPC, because it sends binary files.
-  A link can't send the `session` header, so the web fetches the file with
-  the header and shows it from a blob URL. The file name comes from
-  `Content-Disposition`, which CORS now exposes (`app.ts`). In dev, Vite
-  proxies `/admin/files` to the API, like `/trpc` and `/results`.
-- **`services/uploads/uploadPath.ts`** (`getUploadPath`) resolves a
-  `screen_file` path: web-added results (negative agent ids) are under
-  `SCREENSHOT_BASE_FOLDER`, agent ones under `SCREENSHOT_AGENT_BASE_FOLDER`.
-  It returns a 404 for a path outside that folder or a missing file. The
-  public screenshot route (`GET /results/:id/screenshot`) uses it too, so it
-  gained the same path check; its "file missing" message is now "File not
-  found".
-- **Tests** (`adminFiles.test.ts`): screen file and scan JSON for results and
-  purgatory rows, both upload folders, admins only, 404s (unknown row, no
-  `screen_file`, missing file), a path outside the uploads folder, and 400s
-  for an unknown source or kind. The seed now empties `purgatory` too.
-- **Left for W4**: the shared panel for per-action results (the desktop
-  tool's log panel). Nothing in W3 is an action that reports anything, so it
-  comes with the first one.
+The admin section replaces the PyQt desktop tool: every feature in "Admin
+desktop tool features" is there, apart from the gaps listed at the end.
+
+- **Layout** (`packages/web/src/features/admin/`): `#/admin` has one tab per
+  area: **Purgatory** (with the row count), **Results**, **Players**,
+  **Tracks**, **Agents**. Each list opens a row in a drawer, and the open
+  row and the search are in the URL (e.g. `#/admin/results/123?player=2`), so
+  links work and the back button closes it. Root renders the section for
+  `is_admin` only; every procedure checks it again (`adminProcedure`). The
+  admin UI is in English only (like the desktop tool); only the nav link is
+  translated.
+- **Feedback**: every change goes through `useAdminAction`, which shows a
+  notification (`@mantine/notifications`, new dependency) and adds an entry to
+  the **Activity** log (button next to the tabs, kept for the browser
+  session). Admin mutations return `report` lines saying what changed, like
+  the desktop tool's log panel. After any change every query is refetched.
+- **Media** (`components/MediaViewer.tsx`): the screen file (a video plays, a
+  jpg shows), buttons to copy the current frame / image to the clipboard and
+  to download the screen file and the scan JSON, and the scan JSON itself. It
+  uses W3's `GET /admin/files/:source/:id/:kind` (REST, because it sends
+  binary files; the web fetches it with the `session` header into a blob).
+  `getUploadPath` resolves `screen_file` in both upload folders and rejects
+  paths outside them; the public screenshot route uses it too.
+- **Purgatory** (B9–B12): the list with a filter; a row shows its media, the
+  reason with the fields it's about highlighted, and links to what it names
+  (`Open chart #N` for step-count reasons, `Find player` for unknown ones).
+  **Save and recheck** saves the changed fields, then rechecks the row; when
+  the row leaves purgatory, the next one opens. **Recheck all** and delete.
+  - **The recheck runs in Python** until W7 ports validation:
+    `recheckPurgatory` calls `POST {LEGACY_API_URL}/admin/purgatory/recheck`
+    as the super agent (agent #1, whose name and token it reads from
+    `agents`). Python moves valid rows to results and calls TS
+    `result-added-effect` for them, as for any result. TS compares the rows
+    before and after to say what happened to each (moved / discarded / still
+    there, with the new reason). Python's errors come back as 200 with a
+    traceback; its last line becomes a 502. Without `LEGACY_API_URL` the
+    recheck is a 503. W7 replaces this call and nothing else.
+  - The edit itself is TS (Kysely), with the fields Python's editAndRecheck
+    took.
+- **Results** (B6–B8): search by id, score (or phoenix score), player, track
+  name, chart label; the newest 100 matches. A result shows its media, info
+  (chart with a link to its leaderboard, recognized player, agent, pp / exp,
+  the chart's step range) and the edit form: scores, grade, plate, pass,
+  stats, calories, mods, actual player, hidden, notes. Delete asks first.
+  - **Edits and deletes recalculate** (fixes the broken refresh callback):
+    they store a new `resultChanged` event (`{ resultId, sharedChartId,
+    playerIds }`, both players when the result moved) in the same
+    transaction, and the effects job runs `recalculatePlayerChart` for each
+    player: exp (and pass up to XX) of each of their results on the chart, pp
+    only on the best one (cleared on the others first, since an edit can make
+    another result the best), then the player's pp, exp and pp history.
+    `deleteResult` (also the leaderboard's delete button) now works the same
+    way instead of recalculating inline.
+  - Scores stay consistent with ingestion: from Phoenix on, the score is also
+    the phoenix score; before it, the phoenix score is recomputed from the
+    stats, and on XX the score is also `score_xx`.
+  - Mods are validated by `core/scoring/mods.ts` (ported from
+    `scoring_combo.py`, same messages), which also sets rank mode (VJ only on
+    Standard, non-performance charts of level 13+, not with HJ / BGADARK /
+    BGAOFF). W7 can reuse it.
+- **Players** (B4, B5): the list filtered by nickname or arcade name; create
+  and edit every admin field: nickname, e-mail, region, telegram tag / id,
+  alias of (can't point at an alias: ingestion follows one step), per-mix
+  arcade names with their edit distance, hidden, discard results, can add
+  results, admin. Nicknames and arcade names per mix must be unique. Arcade
+  names are stored upper case, like all existing ones. Hiding sets
+  `hidden_since` and bumps `last_updated_at` of the player's charts, as
+  Python did. The profile's admin card is now a link to the player here.
+- **Tracks** (B13–B16): the list filtered by name, external id or arcade
+  name; `Open chart` looks a chart instance up by id. A track shows its
+  arcade names per mix (editable) and every chart instance per mix with its
+  step range (editable per row); a chart linked from purgatory is
+  highlighted.
+- **Tracklist sync** (B17–B20 and `admin/admin_tracklist.py`): a dialog on
+  the Tracks tab. Pick the tracklist file, see the changes (tracks, charts,
+  chart instances to add or update, plus errors and warnings), then apply
+  them in one transaction. Same matching as the CLI (`arcadeID` / `altID`,
+  mix ids from the file's mix order, label normalization, a new chart on a
+  mix copies the previous mix's arcade name or the full name), plus a
+  duration diff for tracks. The web sends only the fields the sync reads.
+- **Agents** (B1–B3): the list with when each was last seen; create (the
+  token is shown once, and can be shown again later), rename / retitle (with
+  a warning that piu-spy logs in by name), and **replace token**. Tokens are
+  no longer in the list; each is fetched only when shown.
+- **Arcade names** are one row per mix in `arcade_player_names` /
+  `arcade_track_names`, whose `name` is NOT NULL: an empty name deletes the
+  row (Python's player edit tried to store NULL there, which fails).
+- **Fixed on the way**:
+  - **Registration** (`services/auth/register.ts`) wrote
+    `players.arcade_phoenix_name`, a column prod no longer has since piu-top
+    `2f9b96e` (2026-09-29), so registering with an arcade name failed. It
+    now stores it for the current mix in `arcade_player_names`; the field's
+    limit is 20 characters, the column's length (it said 64).
+  - `database.ts` lost the columns and table prod doesn't have
+    (`players.arcade_xx_name[_edist]`, `arcade_phoenix_name[_edist]`,
+    `arcade_name`, `phoenix_track_names`), found by a codegen against the
+    fresh prod copy. The test DB still has them (the init migration creates
+    them); nothing uses them.
+  - The tRPC error formatter turned every tRPC error into a 500; errors like
+    `adminProcedure`'s UNAUTHORIZED keep their status now.
+- **Tests**: `adminResults`, `adminPlayers`, `adminTracks` (with the sync),
+  `adminAgentsPurgatory` (the recheck against a fake Python server), and
+  W3's `adminFiles`. The seed now has agents (#1 is the super agent) and
+  empties `agents`, `agent_sessions`, `arcade_track_names`.
+- **Not done** (and why):
+  - **The recheck is still Python's**, and synchronous (fine for the 14 rows
+    prod has; W7).
+  - **Chart instance `is_hidden`**: the legacy B14 accepts it, but prod's
+    `chart_instances` has no such column.
+  - **Result `is_hidden` changes nothing visible** except tournaments: the
+    leaderboard and pp don't look at it (unchanged; as before).
+  - The dead `players.stat_top_*` counters aren't shown.
 
 ### Next
 
-1. **Merge W3.** No migration and no server change; the API deploy and the
-   GitHub Pages deploy pick it up. Afterwards, open `#/admin/files` on prod as
-   an admin with a recent result id, and check that the video and the scan
-   JSON load (that exercises the cross-origin fetch, which dev doesn't).
-2. Then W4 / W5 → W6 → W8 (see "Workstreams"), each adding its tab to
-   `Admin.tsx`. W4 brings the per-action results panel. The other tracks (W1,
-   W9) can start any time; W10's rivals plugin can consume `resultAdded`
-   already.
-
-Where the rest of the admin track starts from (as of 2026-09-30):
-- **API**: the `admin` tRPC router
-  (`packages/api/src/trpc/routes/admin/index.ts`) has `getPlayerAdminInfo`,
-  `deleteResult` and `updatePlayer`.
-- **Web**: besides `#/admin`, the admin UI is the `AdminPanel` on the
-  profile page (`features/profile/components/AdminPanel/`, with
-  `useDeleteResult` / `useUpdatePlayer`) and a delete button on leaderboard
-  results for admins (`features/leaderboards/components/charts/Result.tsx`).
-  W5 / W6 decide whether those move into `#/admin` or stay as shortcuts.
+1. **Before merging**, add `LEGACY_API_URL=http://127.0.0.1:5001` to
+   `~/pumpking/shared/api.env` on the server (gunicorn listens there;
+   checked 2026-09-30). Without it everything works except rechecks (503).
+2. **Merge PR #44.** No migration. The API deploy and GitHub Pages pick it
+   up; the lockfile changed (new web dependency), so ingest and bot redeploy
+   too. Afterwards on prod, as an admin: open a purgatory row (its video
+   loads through the cross-origin file fetch), recheck it, and check the
+   Activity log.
+3. **Retire the desktop tool** once the admins have used the web admin for a
+   while (W12). It keeps working meanwhile: nothing it uses changed.
+4. The other tracks: W1 → W2 → W7 (ingestion; W7 then replaces the Python
+   recheck call in `services/admin/purgatory.ts`), W9 → W10 (bot).
 
 ## Target architecture overview
 
@@ -689,8 +762,7 @@ diffs a local tracklist JSON against B17 and pushes changes through B18–B20.
 | Legacy piece | TS counterpart | Gap |
 |---|---|---|
 | Post-insert effects | `POST /results/result-added-effect/:id` (REST, called by Python) | Since P3 it only enqueues a `resultAdded` event, which the effects job processes (see "What P3 did"). W12 drops the route once Python ingestion is gone |
-| B8 result delete | `admin.deleteResult` → `services/results/deleteResult.ts` | None known; the web admin uses it |
-| B5 player edit | `admin.updatePlayer` (can-add-manually, region, telegram tag/id, hidden) | No nickname / arcade names / `discard_results` / `is_admin` / `actual_player_id` / create. `hidden` doesn't set `hidden_since` or bump `shared_charts.last_updated_at` |
+| Group B (admin) | `admin.*` tRPC procedures and the web admin (see "What the web admin did") | Purgatory recheck (B10, B11) still calls Python until W7 |
 | A3 manual submit | `results.addResultMutation` + `recognizeScoreMutation` (web manual add) | Different flow: the web user picks the chart; no agent, no fuzzy matching. Decide whether agent-side manual mode is still needed |
 | B21 downloads (for the web) | `GET /results/:id/screenshot` (incl. mp4 first frame); for admins, `GET /admin/files/:source/:id/:kind` and the Files tab (W3) | None for results and purgatory rows |
 
@@ -698,7 +770,9 @@ diffs a local tracklist JSON against B17 and pushes changes through B18–B20.
 
 - **Broken callback**: Python calls `POST shared-charts/:id/refresh` after an
   admin result edit or delete (B7, B8), but TS has no such route, so those
-  edits silently skip recalculation today.
+  edits silently skip recalculation. Edits in the web admin recalculate
+  (`resultChanged` events); the desktop tool's still don't, until it's
+  retired.
 - **Python admin delete is broken**: B8 deletes from
   `results_highest_score_no_rank` / `_rank`, but a 2023 migration dropped those
   tables. The transaction rolls back and the endpoint returns a traceback with
@@ -987,11 +1061,11 @@ including testing. The Priority column is left for triage.
 | W2 | Agent heartbeat and uploads | A6, A7, A8 | S | Keep the `<agent>/<path>` layout under the shared uploads directory | |
 | W7 | Result ingestion pipeline | A1, A3, A5 for screen and manual (stream A2 and test A4 deferred) | **L** | Highest risk. Sub-steps: player / track / chart resolvers → combo + million validators, mods, rank mode → XX quirks → dedup / merge → persist the complete result row + `resultAdded` event in one transaction → purgatory write. Shadow-validate before cutover | |
 | **Web admin track** | | | | | |
-| W3 | Admin shell | **Built** (see "What W3 did"; the per-action results panel moved to W4). `/admin` section in the web, guarded by `is_admin` (route guard + nav entry for admins only; server-side `adminProcedure`); tab layout; a shared panel for per-action results; admin-only file viewer / download for screenshots and scan JSON (replaces B21) | S–M | Nothing | |
-| W4 | Admin: tracks and charts | B13–B20, tracklist sync (page or script), the shared per-action results panel | M | W3 | |
-| W5 | Admin: players and agents | B1–B5: extend `admin.updatePlayer` (nickname, email, discard, is admin, alias, create, per-mix arcade names), hidden → `hidden_since` + chart bump; agent create and token rotation | M | W3 | |
-| W6 | Admin: results | B6–B8, plus the missing track / player search and recalculation after edits (fixes the broken refresh callback) | M | W3; B7 reuses the W7 mods / rank validators (port those first if W6 goes before W7) | |
-| W8 | Admin: purgatory | B9–B12, reason-field highlighting, edit + recheck, batch recheck that doesn't block | M | W3, W7 (reuses the pipeline) | |
+| W3 | Admin shell | **Built** (PR #44, see "What the web admin did"). `/admin` section, `is_admin` guard, tabs, activity log, file viewer (replaces B21) | S–M | Nothing | |
+| W4 | Admin: tracks and charts | **Built** (PR #44). B13–B20, tracklist sync as a dialog | M | W3 | |
+| W5 | Admin: players and agents | **Built** (PR #44). B1–B5, token rotation | M | W3 | |
+| W6 | Admin: results | **Built** (PR #44). B6–B8, player / track search, recalculation through `resultChanged` events | M | W3 | |
+| W8 | Admin: purgatory | **Built** (PR #44), except that the recheck calls Python until W7. B9–B12, reason-field highlighting and links, edit + recheck | M | W3; W7 to drop the Python call | |
 | **Telegram track** | | | | | |
 | W9 | Bot platform | `packages/bot`: grammY runner, plugin contract, state and preferences storage, events cursor, jobs, error reporting, health alerts for ingestion / API | M–L | P1, P2; P3 for events | |
 | W10 | Port bot features | Plugins: account link, rivals notifications + settings (best-results logic from C2), location monitoring + dialog, heater (Kasa). Event stats is dropped; owjibot stays as is for now | M–L | W9; rivals uses `resultAdded` events (produced since P3, even while Python ingests) | |

@@ -92,6 +92,12 @@ export const arcade_player_names = [
   },
 ];
 
+// Agent #1 is the legacy super agent, which the purgatory recheck logs in to Python as
+export const agents = [
+  { id: 1, name: 'root', token: 'root-token', title: 'root' },
+  { id: 2, name: 'test-arcade', token: 'arcade-token', title: 'Test Arcade' },
+];
+
 export const tracks = [
   {
     id: 1,
@@ -247,6 +253,9 @@ export const initialSeed = async () => {
   await db.deleteFrom('sessions').execute();
   await db.deleteFrom('players').execute();
   await db.deleteFrom('arcade_player_names').execute();
+  await db.deleteFrom('arcade_track_names').execute();
+  await db.deleteFrom('agent_sessions').execute();
+  await db.deleteFrom('agents').execute();
   // Truncate, not delete: event ids start at 1 again, matching the reset cursors
   await sql`truncate table events`.execute(db);
   await db.deleteFrom('event_cursors').execute();
@@ -259,4 +268,5 @@ export const initialSeed = async () => {
   await db.insertInto('chart_instances').values(chartInstances).execute();
   await db.insertInto('results').values(results).execute();
   await db.insertInto('arcade_player_names').values(arcade_player_names).execute();
+  await db.insertInto('agents').values(agents).execute();
 };
