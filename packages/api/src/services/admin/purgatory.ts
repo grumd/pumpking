@@ -1,11 +1,9 @@
 import { describeChanges } from './report';
 import type { Purgatory } from '@pumpking/core/database';
 import { db } from '@pumpking/core/db';
-import createDebug from 'debug';
+import { recheckPurgatory as recheckRows } from '@pumpking/core/ingestion/purgatory';
 import type { Updateable } from 'kysely';
 import { error } from 'utils';
-
-const debug = createDebug('backend-ts:service:admin-purgatory');
 
 // Purgatory holds the results that ingestion couldn't match to a player, track or chart,
 // or whose stats failed validation, with the reason. An admin fixes the row (or the
@@ -88,129 +86,38 @@ export const deletePurgatoryRow = async (id: number) => {
   return { report: [`Purgatory #${id} deleted`] };
 };
 
-// What happened to a row in a recheck
-export type RecheckOutcome =
-  | { id: number; outcome: 'added' }
-  | { id: number; outcome: 'discarded'; reason: string }
-  | { id: number; outcome: 'stays'; reason: string; reasonChanged: boolean };
-
-interface LegacyRecheckResponse {
-  error?: string;
-  // One per row: the result's add / update status when it left purgatory, or what
-  // changed for the rows that didn't
-  updates?: (
-    | { status: string }
-    | { id: number; from: string; to: string }
-    | { id: number; from: string; discarded: string }
-  )[];
-  report?: string[];
-}
-
 /**
  * Rechecks purgatory rows, all of them or one: rows that are valid now move to results,
- * discarded ones are deleted, the others get their new reason.
- *
- * Until ingestion is ported to TS (W7), validation exists only in the Python backend, so
- * this calls its `/admin/purgatory/recheck` as the super agent (agent #1). Needs
- * LEGACY_API_URL. Python adds the moved results itself and calls the TS
- * result-added-effect route for them, as for any new result
+ * discarded ones are deleted, the others get their new reason. Uses the ingestion's own
+ * validation (core), so a row is judged exactly as a new result would be
  */
 export const recheckPurgatory = async (id?: number) => {
-  const baseUrl = process.env.LEGACY_API_URL;
-  if (!baseUrl) {
-    throw error(
-      503,
-      'Rechecking needs the legacy Python API: set LEGACY_API_URL in packages/api/.env'
-    );
-  }
-  const superAgent = await db
-    .selectFrom('agents')
-    .select(['name', 'token'])
-    .where('id', '=', 1)
-    .executeTakeFirst();
-  if (!superAgent) {
-    throw error(500, 'The super agent (agent #1) is missing');
-  }
-
-  let before = db.selectFrom('purgatory').select(['id', 'reason']);
   if (id != null) {
-    before = before.where('id', '=', id);
+    await getPurgatoryRow(id);
   }
-  const rows = await before.execute();
-  if (rows.length === 0) {
-    throw error(404, id != null ? `Purgatory row not found: id ${id}` : 'Purgatory is empty');
-  }
-
-  let body: LegacyRecheckResponse;
-  try {
-    const response = await fetch(`${baseUrl}/admin/purgatory/recheck`, {
-      method: 'POST',
-      headers: {
-        'content-type': 'application/json',
-        'agent-name': superAgent.name,
-        'agent-token': superAgent.token,
-      },
-      body: JSON.stringify(id != null ? { ids: [id, id] } : {}),
-      signal: AbortSignal.timeout(120_000),
-    });
-    body = (await response.json()) as LegacyRecheckResponse;
-  } catch (e) {
-    debug(e);
-    throw error(502, `The legacy Python API didn't answer: ${(e as Error).message}`);
-  }
-  if (body.error || !body.updates) {
-    // Python answers errors with 200 and the traceback, whose last line is the error
-    const lastLine = body.error?.trim().split('\n').pop();
-    throw error(502, `The legacy Python API failed: ${lastLine ?? 'no updates in its response'}`);
+  const { outcomes, report } = await recheckRows(id);
+  if (outcomes.length === 0) {
+    throw error(404, 'Purgatory is empty');
   }
 
-  const after = new Map(
-    (
-      await db
-        .selectFrom('purgatory')
-        .select(['id', 'reason'])
-        .where(
-          'id',
-          'in',
-          rows.map((row) => row.id)
-        )
-        .execute()
-    ).map((row) => [row.id, row.reason])
-  );
-  const discarded = new Map(
-    body.updates.flatMap((update) =>
-      'discarded' in update ? [[update.id, update.discarded] as const] : []
-    )
-  );
-
-  const outcomes: RecheckOutcome[] = rows.map((row) => {
-    const reason = after.get(row.id);
-    const discardReason = discarded.get(row.id);
-    if (reason !== undefined) {
-      return { id: row.id, outcome: 'stays', reason, reasonChanged: reason !== row.reason };
-    }
-    if (discardReason !== undefined) {
-      return { id: row.id, outcome: 'discarded', reason: discardReason };
-    }
-    return { id: row.id, outcome: 'added' };
-  });
-
-  const report = [
-    ...outcomes.map((o) => {
-      switch (o.outcome) {
-        case 'added':
-          return `Purgatory #${o.id}: valid, moved to results`;
-        case 'discarded':
-          return `Purgatory #${o.id}: discarded (${o.reason})`;
-        case 'stays':
-          return `Purgatory #${o.id}: still invalid${o.reasonChanged ? ', new reason' : ''}: ${
-            o.reason
-          }`;
-      }
-    }),
-    ...(body.report ?? []),
-  ];
-  return { outcomes, report };
+  return {
+    outcomes,
+    report: [
+      ...outcomes.map((o) => {
+        switch (o.outcome) {
+          case 'added':
+            return `Purgatory #${o.id}: valid, moved to results (${o.status})`;
+          case 'discarded':
+            return `Purgatory #${o.id}: discarded (${o.reason})`;
+          case 'stays':
+            return `Purgatory #${o.id}: still invalid${o.reasonChanged ? ', new reason' : ''}: ${
+              o.reason
+            }`;
+        }
+      }),
+      ...report,
+    ],
+  };
 };
 
 export const updateAndRecheckPurgatoryRow = async (id: number, edit: PurgatoryEdit) => {

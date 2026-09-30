@@ -9,7 +9,8 @@ Pumpking is a Pump It Up (arcade rhythm game) score tracking and leaderboard sys
 - **packages/core**: Code shared by the services (DB client, Kysely types, migrations, constants, pure domain logic like scoring and exp). Never deployed on its own; services import its TS sources as `@pumpking/core/*`
 - **packages/api**: Node.js backend (Express + tRPC + Kysely + MySQL)
 - **packages/web**: React frontend (Vite + Mantine + tRPC client)
-- **packages/ingest**, **packages/bot**: future result-ingestion and Telegram bot services (see `docs/python-api-migration/PLAN.md`). Skeletons with only `/healthz` for now (ports 3002 / 3003, `APP_PORT` in their optional `.env`; they listen on 127.0.0.1)
+- **packages/ingest**: result ingestion for piu-spy, compatible with the legacy Python API's endpoints (port 3002). The pipeline itself (validation, player / track matching, de-duplication, purgatory) is in `packages/core/src/ingestion/`, which the admin purgatory recheck also uses
+- **packages/bot**: the Telegram bot, a grammY bot with plugins in `src/plugins/` (port 3003 for `/healthz`). Ingest and bot listen on 127.0.0.1 (see `docs/python-api-migration/PLAN.md`)
 - **Legacy Python API**: A legacy API exists in a separate repository, not part of this monorepo, but still rarely used in legacy frontend code. Avoid using when possible and gradually phase out.
 
 ## Common Commands
@@ -80,9 +81,16 @@ DB_PASSWORD=
 NODE_ENV=development
 APP_PORT=3001
 SCREENSHOT_BASE_FOLDER=~/screenshots
-# optional: the legacy Python API, which the admin purgatory recheck calls
-LEGACY_API_URL=http://127.0.0.1:5000
 ```
+
+**Ingest** (`packages/ingest/.env`, optional `APP_PORT`):
+
+```
+# piu-spy's uploads, one folder per agent (the API serves screenshots from the same tree)
+UPLOADS_ROOT=~/uploads
+```
+
+**Bot** (`packages/bot/.env`, see `packages/bot/.env.example`): without `TELEGRAM_BOT_TOKEN` it serves only `/healthz`
 
 **Web** (`packages/web/.env.development`):
 

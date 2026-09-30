@@ -196,7 +196,7 @@ export const updateResult = async (resultId: number, edit: ResultEdit) => {
   if (edit.modsList !== undefined) {
     const modsList = edit.modsList?.trim() ?? '';
     try {
-      const mods = parseModsList(modsList);
+      const mods = parseModsList(modsList, { millionScoring: isMillionScoringMix(result.mix) });
       const rankMode = getRankMode(mods, {
         label: result.chart_label,
         level: result.level,

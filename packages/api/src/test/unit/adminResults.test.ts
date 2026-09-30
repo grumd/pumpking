@@ -106,7 +106,12 @@ describe('Admin results', () => {
   });
 
   it('validates the mods and sets rank mode from them', async () => {
-    const id = await insertPhoenixResult(4, 900000);
+    // The seeded XX chart: shared chart 1, instance 1 (S20, Standard track)
+    const { insertId } = await db
+      .insertInto('results')
+      .values({ ...getResultDefaults({ playerId: 4, score: 1500000 }), mods_list: '' })
+      .executeTakeFirstOrThrow();
+    const id = Number(insertId);
 
     const invalid = await trpcMutation('admin.results.update', {
       id,
@@ -123,6 +128,23 @@ describe('Admin results', () => {
     const result = await getResult(id);
     assert.equal(result.mods_list, 'VJ 2x');
     assert.equal(result.rank_mode, 1);
+  });
+
+  it('validates Phoenix mods against the Phoenix list', async () => {
+    const id = await insertPhoenixResult(4, 900000);
+
+    // No rank mode mod from Phoenix on, but the arcade's pass options
+    const vj = await trpcMutation('admin.results.update', { id, edit: { modsList: 'VJ' } });
+    assert.equal(vj.status, 400);
+    assert.equal(errorMessage(vj), "Mod 'VJ' is invalid");
+
+    await trpcMutation('admin.results.update', {
+      id,
+      edit: { modsList: 'AV500 BGADARK PASS_G' },
+    }).expect(200);
+    const result = await getResult(id);
+    assert.equal(result.mods_list, 'AV500 BGADARK PASS_G');
+    assert.equal(result.rank_mode, 0);
   });
 
   it('moves pp to the new best result when the best one is lowered', async () => {
