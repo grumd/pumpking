@@ -2,6 +2,8 @@ import type { AdminFileKind, AdminFileSource } from '@/api/services/admin/files'
 import { type UseQueryResult, useQuery } from '@tanstack/react-query';
 import cookies from 'browser-cookies';
 
+export const ADMIN_FILE_KEY = 'adminFile';
+
 export interface AdminFile {
   fileName: string;
   blob: Blob;
@@ -37,7 +39,7 @@ export const useAdminFile = (
   kind: AdminFileKind
 ): UseQueryResult<AdminFile, Error> => {
   return useQuery({
-    queryKey: ['adminFile', source, id, kind],
+    queryKey: [ADMIN_FILE_KEY, source, id, kind],
     queryFn: () => fetchAdminFile(source, id, kind),
     // A missing file stays missing
     retry: false,

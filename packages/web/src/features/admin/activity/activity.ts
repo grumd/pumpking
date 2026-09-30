@@ -2,6 +2,8 @@ import { notifications } from '@mantine/notifications';
 import { type UseMutationOptions, useMutation, useQueryClient } from '@tanstack/react-query';
 import { atom, useAtomValue, useSetAtom } from 'jotai';
 
+import { ADMIN_FILE_KEY } from '../hooks/useAdminFile';
+
 // The admin activity log: what each admin action did, as the desktop tool's log panel
 // showed. Kept for the browser session
 
@@ -58,7 +60,9 @@ export const useAdminAction = <
     onSuccess: (...args) => {
       const [data, variables] = args;
       logActivity({ title: title(variables), ok: true, lines: data.report ?? [] });
-      queryClient.invalidateQueries();
+      // Except the screen files, which admin changes don't touch (a refetch would restart
+      // the video)
+      queryClient.invalidateQueries({ predicate: (query) => query.queryKey[0] !== ADMIN_FILE_KEY });
       options.onSuccess?.(...args);
     },
     onError: (...args) => {
