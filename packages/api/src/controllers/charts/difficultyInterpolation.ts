@@ -1,4 +1,4 @@
-import { db } from 'db';
+import { db } from '@pumpking/core/db';
 import type { Response, Request, NextFunction } from 'express';
 import _ from 'lodash/fp';
 import { updateChartsDifficulty } from 'services/charts/chartDifficultyInterpolation';

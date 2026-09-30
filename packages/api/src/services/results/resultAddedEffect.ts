@@ -1,6 +1,6 @@
 import { calculateResultsPp } from './resultsPp';
 import { gradeSortValue, isValidGrade } from 'constants/grades';
-import { db } from 'db';
+import { db } from '@pumpking/core/db';
 import createDebug from 'debug';
 import { sql } from 'kysely';
 import _ from 'lodash/fp';

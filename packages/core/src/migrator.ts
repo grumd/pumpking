@@ -1,16 +1,16 @@
-import { db } from 'db';
-import { Migrator } from 'kysely';
+import { Migrator, type Kysely } from 'kysely';
 import path from 'path';
-import { MigrationProvider } from 'utils/MigrationProvider';
+import { MigrationProvider } from './MigrationProvider';
 
-const migrator = new Migrator({
-  db,
-  provider: new MigrationProvider({
-    folder: path.join(__dirname, '../../../migrations'),
-  }),
-});
+export const createMigrator = (db: Kysely<any>) =>
+  new Migrator({
+    db,
+    provider: new MigrationProvider({
+      folder: path.join(__dirname, '../migrations'),
+    }),
+  });
 
-export async function migrateToLatest() {
+export async function migrateToLatest(migrator: Migrator) {
   const { error, results } = await migrator.migrateToLatest();
 
   results?.forEach((it) => {

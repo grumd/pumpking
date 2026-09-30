@@ -24,17 +24,13 @@
     "test": "cross-env DEBUG=backend-ts:test:* npm run test:run -- --exit",
     "test:trace": "cross-env DEBUG=backend-ts:* npm run test:run -- --exit",
     "test:watch": "cross-env DEBUG=backend-ts:test:* npm run test:run -- --watch --watch-files ./src/**/*",
-    "migrate:make": "tsx ./scripts/migrationMake.ts",
-    "migrate:make-sql": "tsx ./scripts/migrationMakeSql.ts",
-    "migrate:latest": "tsx ./scripts/migrateToLatest.ts",
-    "migrate:rollback": "tsx ./scripts/migrationRollback.ts",
-    "tournament": "tsx ./scripts/tournament.ts",
-    "generate-kysely": "kysely-codegen --url mysql://root:@localhost/piutop --out-file ./src/types/database.ts"
+    "tournament": "tsx ./scripts/tournament.ts"
   },
   "keywords": [],
   "author": "grumd",
   "license": "MIT",
   "dependencies": {
+    "@pumpking/core": "*",
     "@trpc/server": "^11.8.1",
     "concat-stream": "^2.0.0",
     "cors": "^2.8.5",
@@ -72,7 +68,6 @@
     "@types/express-form-data": "^2.0.2",
     "@types/lodash": "^4.14.170",
     "@types/lusca": "^1.7.0",
-    "@types/minimist": "^1.2.2",
     "@types/mocha": "^8.2.2",
     "@types/morgan": "^1.9.2",
     "@types/node": "^24.10.7",
@@ -82,8 +77,6 @@
     "@types/validatorjs": "^3.15.0",
     "chai": "^4.3.4",
     "esm": "^3.2.25",
-    "kysely-codegen": "^0.10.0",
-    "minimist": "^1.2.8",
     "mocha": "^8.4.0",
     "supertest": "^6.1.3"
   }

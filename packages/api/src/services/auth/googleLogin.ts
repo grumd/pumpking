@@ -1,5 +1,5 @@
 import crypto from 'crypto';
-import { db } from 'db';
+import { db } from '@pumpking/core/db';
 import createDebug from 'debug';
 import { OAuth2Client } from 'google-auth-library';
 import { StatusError } from 'utils/errors';

@@ -2,7 +2,7 @@ import './envconfig';
 import routes from './routes';
 import bodyParser from 'body-parser';
 import cors from 'cors';
-import { db } from 'db';
+import { db } from '@pumpking/core/db';
 import createDebug from 'debug';
 import express from 'express';
 import formData from 'express-form-data';

@@ -1,4 +1,4 @@
-import { db } from 'db';
+import { db } from '@pumpking/core/db';
 import createDebug from 'debug';
 import { StatusError } from 'utils/errors';
 import { generateSessionId } from 'utils/session';

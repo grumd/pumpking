@@ -2,9 +2,9 @@
 
 Status: inventory done 2026-09-30 · direction agreed 2026-09-30 (see "Agreed
 decisions") · deploy approach revised 2026-09-30 (tsx + pm2 release dirs, see
-"Build and release") · P1 step 1 implemented, waiting for merge + deploy check
-(see "Progress") · nothing ported yet beyond what TS already owns (see
-"Already in TS") · priorities not set yet
+"Build and release") · P1.1 deployed 2026-09-30 · P1.2 implemented, waiting
+for merge + deploy check (see "Progress") · nothing ported yet beyond what TS
+already owns (see "Already in TS") · priorities not set yet
 
 ## Progress
 
@@ -14,59 +14,86 @@ comes next. The rest of the document is the design it follows.
 | Step | State |
 |---|---|
 | Inventory, direction, deploy approach | Done 2026-09-30 |
-| P1.1 API runs on tsx in prod + `/healthz` | Implemented on branch `feature/python-api-migration` (PR to `master`, which also carries this plan). Waiting for merge and a check of the first deploy |
-| P1.2 `packages/core` with the DB layer | **Next** |
-| P1.3 constants + pure logic into core | Not started |
+| P1.1 API runs on tsx in prod + `/healthz` | Done 2026-09-30 (PR #37). Deploy workflow green, `/healthz` ok. Still to confirm on the server: `pm2 describe pumpking-api` shows `src/index.ts` with `--import tsx`, and `pm2 list` shows all 5 apps online |
+| P1.2 `packages/core` with the DB layer | Implemented on branch `feature/core-db-layer`. Waiting for merge and a check of the first deploy |
+| P1.3 constants + pure logic into core | **Next** |
 | P1.4 `ingest` / `bot` skeletons | Not started |
 | P2 onwards | Not started |
 
-### Checking the P1.1 deploy
+### What P1.2 did
 
-The first deploy after merging switches the running API from `build/index.js`
-to tsx. Check:
-
-- The "Deploy API (rsync)" workflow is green, including its last step, which
-  curls `/healthz` on the server.
-- `https://api.pumpking.top:3001/healthz` returns `{"status":"ok"}`, and the
-  web works.
-- On the server, `pm2 describe pumpking-api` shows the script
-  `…/packages/api/src/index.ts` with interpreter args `--import tsx`, and
-  `pm2 list` shows all 5 apps online. The deploy ran `pm2 save`, so the saved
-  process list is now current.
-
-If it's broken, revert the PR on `master`; the deploy workflow redeploys the
-previous flow. Manual fallback on the server:
-`cd ~/pumpking-deployment/packages/api && npm run pm2`.
-
-### Next: P1.2, `packages/core` with the DB layer
-
-Findings so far, so the next session doesn't need to repeat them:
-
-- **What moves (`git mv`, to keep history):**
-  - `src/db.ts`, minus its `./envconfig` import (each service loads its own
-    env).
-  - `src/types/database.ts` and the `generate-kysely` script.
-  - `migrations/`. They import only `kysely`, so moving them is a file move.
-  - `src/utils/MigrationProvider.ts`.
-  - `scripts/db.ts` and the migrate / rollback / make scripts.
-  - The test-DB helpers (`src/test/testDatabaseUtils.ts`,
-    `src/test/seeds/migration.ts`). The seeds stay in the API.
-- **Imports:** 38 API files import `db` through the `db` path alias.
-  Rewriting them to `@pumpking/core/…` is mechanical.
-- **Package shape:** `@pumpking/core` is a workspace package whose `exports`
-  point at `.ts` files. It uses only relative imports (see "Services"). It's a
-  composite TS project that the API's `tsconfig.json` / `tsconfig.ref.json`
-  reference. Verify with `npm run ts` and `npm run build:web`, since the web
-  type-checks the API through project references.
-- **Env:** the migrate scripts load `packages/api/.env` today. Keep
-  `npm run migrate:* --prefix packages/api` working (the API scripts call
-  core's, with the API's env), or update CLAUDE.md if the commands change.
-- **CI:** add `packages/core/**` to the paths of `deploy-api.yml` and
+- `packages/core` (`@pumpking/core`) is a workspace package whose `exports`
+  map `./*` to `./src/*.ts`. It holds `src/db.ts` (the Kysely client),
+  `src/database.ts` (generated types, `npm run generate-kysely --prefix
+  packages/core`), `src/MigrationProvider.ts`, `src/migrator.ts`
+  (`createMigrator`, `migrateToLatest`), `src/test/testDatabase.ts` (create /
+  drop the test DB), `migrations/` and `scripts/` (migrate, rollback, make).
+  The seeds stay in the API.
+- **Core owns the DB, including its config.** The DB variables (`DB_DATABASE`,
+  `DB_DATABASE_TEST`, `DB_USERNAME`, `DB_PASSWORD`) live in
+  `packages/core/.env`, which `src/env.ts` loads for whichever service,
+  script or test imports core. Variables already set in the environment win.
+  A missing one fails on the first query with "`X` is not set: add it to
+  packages/core/.env". Service `.env` files hold only their own settings.
+- **Migrations are core's:** `npm run migrate:latest|migrate:rollback|migrate:make
+  --prefix packages/core`. The API has no migrate scripts anymore.
+  `generate-kysely` builds its URL from core's `.env`.
+- **Prod, until P2:** the API deploy still runs the migrations (the rsync into
+  the live directory is the only way code reaches the server), now with
+  `npm run migrate:latest --prefix packages/core` from the repo root. A step
+  before the rsync fails the deploy if `packages/core/.env` or
+  `packages/api/.env` is missing on the server. P2 moves migrations to their
+  own pipeline step (see "Pipeline").
+- **Type resolution:** the API resolves modules like node10 (no `exports`), so
+  its `tsconfig.json` maps `@pumpking/core/*` to `../core/src/*`. At runtime
+  Node resolves the package `exports` and tsx loads the `.ts` files. `rootDir`
+  moved from the API's `tsconfig.json` to `tsconfig.ref.json`, which
+  references core's composite project, so the web's `tsc --build` goes
+  web → API → core. Services that start fresh (ingest, bot) can use
+  `moduleResolution: bundler` and skip the path mapping.
+- Core's `tsconfig.json` checks `src/` and `scripts/`, not `migrations/`
+  (never type-checked before either; several have kysely typing errors).
+  `npm run ts` and the Test API workflow run core's `ts-check` first.
+- CI: `packages/core/**` added to the paths of `deploy-api.yml` and
   `test-api.yml`.
-- **Still to confirm with the user, before P2:** prod migrations run over SSH
-  from the new release directory (recommended) rather than from CI against
-  MySQL, and the server layout lives under `~/pumpking/` (see "Build and
-  release"; that directory doesn't exist yet).
+- Core pins `@types/node` to the API's version (24.10.7), so the API program
+  sees one copy of the Node types.
+- **Schema drift:** the Python side has changed the schema outside pumpking's
+  migrations. The dev DB has `phoenix2_track_names` and
+  `players.arcade_phoenix2_name[_edist]` (piu-top `4da8040`, 2026-09-22), which
+  `arcade_track_names` / `arcade_player_names` replaced a week later
+  (`2f9b96e`). They're in no migration and not in `database.ts`, so codegen
+  against a real DB adds them; `database.ts` is also hand-patched
+  (`PlayerPreferencesJson`), so a regen needs a manual review. `generate-kysely`
+  used to have a password-less URL hardcoded. Before W5 / W7, check which of these
+  exist in prod and either drop them or add them to a migration.
+
+### Checking the P1.2 deploy
+
+- **Before merging**, on the server: create
+  `~/pumpking-deployment/packages/core/.env` with the `DB_*` lines from
+  `packages/api/.env` (`rsync` excludes `.env`, so the deploy never
+  overwrites it). Remove them from the API's `.env` afterwards. The deploy
+  fails before touching anything if the file is missing.
+- The "Deploy API (rsync)" workflow is green. Its migrate step runs
+  `npm run migrate:latest --prefix packages/core` and should print "already
+  up to date".
+- `/healthz` is ok and the web works (leaderboards, profile, login).
+
+If it's broken, revert the PR on `master`.
+
+### Next: P1.3, constants and pure logic into core
+
+- Move `packages/api/src/constants/*`, `utils/scoring/*` and
+  `utils/profile/exp.ts` with `git mv`. Only relative imports inside core;
+  modules the web imports at runtime must stay browser-safe (no `node:`).
+- The web then imports mixes from `@pumpking/core/…` instead of `@/api/…`.
+  Its `moduleResolution: bundler` resolves the package `exports`; check that
+  Vite does too (`npm run build:web`). Add `packages/core/**` to the paths of
+  `test-web.yml` then, since the web starts depending on core at runtime.
+- Agreed for P2 (2026-09-30): prod migrations run over SSH from the new
+  release directory, and the new layout lives under `~/pumpking/` (see
+  "Build and release").
 
 ## Target architecture overview
 
@@ -170,7 +197,13 @@ the largest and riskiest part. Everything else is thin CRUD.
 | Bot ↔ backend | The bot talks to services in-process instead of going through the `/telegram/*` REST endpoints (group C). Group C is replaced, not ported |
 | Hosting | TS and Python run on the **same host**, so the uploads directory is shared as is |
 | piu-spy transport | Either the deployed agents are updated to post to the new port, or a reverse proxy forwards the legacy port/paths to TS. In both cases the ingestion endpoints (group A) keep their **paths, headers, multipart field and response shapes** |
-| piu-spy modes | Which of screen / stream / manual / test stay is decided later. Port all modes until then |
+| piu-spy modes | Only **screen** and **manual** are in use and get ported. Stream and test are deferred |
+| owjibot | Left alone for now; it keeps running on the legacy public endpoint (C6). May become a plugin later |
+| Telegram account link | Keep matching by `telegram_tag`, so linked users don't have to link again |
+| Bot event stats | Dropped, not ported. It was a leaderboard for one official piugame event (6 hard-coded charts, "Nightmare event"); monthly tournaments cover the idea |
+| Web admin scope | Parity with the desktop tool (plus the listed bug fixes); no extra UX work for now |
+| DB config | Lives with the DB in `packages/core/.env` (prod: `shared/core.env`); services' own `.env` files hold only their settings. Migrations are run through core's scripts, over SSH from the new release directory |
+| Server layout | New deploys live under `~/pumpking/` (see "Build and release") |
 | Service boundaries | Result ingestion and the Telegram bot are **separate services** (`packages/ingest`, `packages/bot`) with their own processes and deploys. Web / API changes don't redeploy them, and they keep working when an API deploy fails or the API is down. Ingestion is the most critical service (see "Service boundaries and deployment") |
 | Deploy trigger | Every service deploys **on change** of its own package or `packages/core`, like the other packages. No release tags. Deploys are atomic, and roll back automatically when the health check fails |
 | Migration guard | Before prod migrations run, CI runs the tests of **every currently deployed service** against the new migrations. Prod migrations run only if they pass |
@@ -223,7 +256,7 @@ least:
 | Location monitoring | Job every 60 s | Watches agent sessions: notifies configured watchers when the tracked location starts, stalls (no heartbeat for 5–10 min) or resumes, and when a new player shows up there | C5 |
 | Locations dialog | `/locations` plus inline buttons | Pick a location, see who played there recently and how long ago | C5 / C6 |
 | Heater (Kasa plug) | Job every 60 s, optional | Polls a TP-Link Kasa device through the cloud API and tells the admin when it turns on or off (5 min debounce) | External (`tplinkcloud`) |
-| Event stats | Text `event` | Totals the scores for a hard-coded piugame event chart list | Calls the dead `results/best/trusted/chart/:id` → **broken today**. Rebuild on the tournaments data or drop |
+| Event stats | Text `event` | Totals the scores for a hard-coded piugame event chart list | Calls the dead `results/best/trusted/chart/:id` → **broken today**. Dropped, not ported |
 | Error reporting | Any failure | Replies with the exception and pings the admin; a failing job stops itself and notifies the admin | — |
 | owjibot (separate bot) | Group chat, inline buttons | Per-location "who played recently" message, with RU / UA wording; deletes its previous message to reduce spam | C6 (public) |
 
@@ -477,6 +510,7 @@ references, so the web's `tsc --build` keeps working.
   ~/pumpking/
     releases/<sha>/   full checkout (rsync --link-dest against the previous
                       release) + `npm ci` run inside this new directory
+    shared/core.env   DB config, symlinked into each release as packages/core/.env
     shared/<service>.env
     api    -> releases/<sha>     one symlink per service, so services can
     ingest -> releases/<sha>     run different commits and roll back alone
@@ -547,7 +581,11 @@ service deploys. Web stays on its own GitHub Pages workflow.
    alongside the new code's tests. This covers services that aren't being
    redeployed, and services whose deploy might fail and roll back onto the
    new schema.
-4. **Migrate prod** once, only if steps 2–3 pass.
+4. **Migrate prod** once, only if steps 2–3 pass, and only when
+   `packages/core/migrations/` changed: over SSH, `npm run migrate:latest
+   --prefix packages/core` inside the new release directory (so the new
+   migrations are there before any service switches to it), with
+   `shared/core.env`.
 5. **Deploy** the affected services in parallel. Each has its own rollback;
    a failed ingestion deploy doesn't stop the API deploy and vice versa.
 
@@ -649,14 +687,14 @@ including testing. The Priority column is left for triage.
 | ID | Workstream | Covers | Complexity | Notes / depends on | Priority |
 |---|---|---|---|---|---|
 | **Platform track** | | | | | |
-| P1 | Package split | Steps, one PR each: (1) run the API on tsx in prod + `/healthz` — **done**; (2) `packages/core` with the DB layer (client without dotenv, Kysely types + codegen, migrations + `MigrationProvider` + scripts, test-DB helpers) as a composite TS project; (3) move the existing constants and pure logic (`constants/*`, `utils/scoring/*`, `utils/profile/exp.ts`), with the web importing mixes from core; (4) `packages/ingest` / `packages/bot` skeletons with `/healthz`. Other logic moves to core when a second consumer needs it | M | Needed by W1, W9 | |
+| P1 | Package split | Steps, one PR each: (1) run the API on tsx in prod + `/healthz` — **done**; (2) `packages/core` with the DB layer (client without dotenv, Kysely types + codegen, migrations + `MigrationProvider` + scripts, test-DB helpers) as a composite TS project — **done**; (3) move the existing constants and pure logic (`constants/*`, `utils/scoring/*`, `utils/profile/exp.ts`), with the web importing mixes from core; (4) `packages/ingest` / `packages/bot` skeletons with `/healthz`. Other logic moves to core when a second consumer needs it | M | Needed by W1, W9 | |
 | P2 | Deploy pipeline | Whole-repo release dirs + a symlink per service, one pm2 app per service, health check + ingestion smoke test + auto-rollback, `deployed/<service>` tags, single workflow with change detection, migration guard, one migrate step before deploys (run over SSH from the new release). Move the existing API deploy onto it first | M | P1 | |
 | P3 | Events + effects worker | `events` table and producer helper in `core`; effects worker with a cursor in the API process; `result-added-effect` REST route enqueues instead of running inline; make effects safe to replay | S–M | P1 | |
 | P4 | Drop `results_best_grade` | Remove it from `resultAddedEffect`, `deleteResult`, tests and seeds; drop-table migration; regenerate types | S | Nothing (Python B8 is already broken; the table is never read) | |
 | **Ingestion track** | | | | | |
 | W1 | Ingestion foundations | Legacy REST scaffold in `packages/ingest` (body + query arg merge, Flask-compatible responses and error shapes), agent-header auth, mix / grade / mods constants in `core`, Levenshtein util | S–M | P1, P2; needed by W2, W7 | |
 | W2 | Agent heartbeat and uploads | A6, A7, A8 | S | Keep the `<agent>/<path>` layout under the shared uploads directory | |
-| W7 | Result ingestion pipeline | A1–A5 (all modes until the mode decision) | **L** | Highest risk. Sub-steps: player / track / chart resolvers → combo + million validators, mods, rank mode → XX quirks → dedup / merge → persist the complete result row + `resultAdded` event in one transaction → purgatory write. Shadow-validate before cutover | |
+| W7 | Result ingestion pipeline | A1, A3, A5 for screen and manual (stream A2 and test A4 deferred) | **L** | Highest risk. Sub-steps: player / track / chart resolvers → combo + million validators, mods, rank mode → XX quirks → dedup / merge → persist the complete result row + `resultAdded` event in one transaction → purgatory write. Shadow-validate before cutover | |
 | **Web admin track** | | | | | |
 | W3 | Admin shell | `/admin` section in the web, guarded by `is_admin` (route guard + nav entry for admins only; server-side `adminProcedure`); tab layout; a shared panel for per-action results; admin-only file viewer / download for screenshots and scan JSON (replaces B21) | S–M | Nothing | |
 | W4 | Admin: tracks and charts | B13–B20, tracklist sync (page or script) | M | W3 | |
@@ -665,10 +703,10 @@ including testing. The Priority column is left for triage.
 | W8 | Admin: purgatory | B9–B12, reason-field highlighting, edit + recheck, batch recheck that doesn't block | M | W3, W7 (reuses the pipeline) | |
 | **Telegram track** | | | | | |
 | W9 | Bot platform | `packages/bot`: grammY runner, plugin contract, state and preferences storage, events cursor, jobs, error reporting, health alerts for ingestion / API | M–L | P1, P2; P3 for events | |
-| W10 | Port bot features | Plugins: account link, rivals notifications + settings (best-results logic from C2), location monitoring + dialog, heater (Kasa), owjibot location widget, event stats (rebuild or drop) | M–L | W9; rivals uses `resultAdded` events (produced since P3, even while Python ingests) | |
+| W10 | Port bot features | Plugins: account link, rivals notifications + settings (best-results logic from C2), location monitoring + dialog, heater (Kasa). Event stats is dropped; owjibot stays as is for now | M–L | W9; rivals uses `resultAdded` events (produced since P3, even while Python ingests) | |
 | W11 | New notifications | Tournament start / end first (the removed legacy bot command posted bracket announcements to a tournaments channel, configured as `TOURNAMENTS_CHANNEL_ID`; that channel can be reused), more later | S each | W9; tournaments creation job (tournaments plan M5) | |
 | **Wrap-up** | | | | | |
-| W12 | Cutover and decommission | Proxy flip or agent update for ingestion, retire the desktop tool once the web admin matches it, stop the Python bot and owjibot, clean up dead client calls, drop the REST `result-added-effect` route, stop Flask, archive piu-top, remove the legacy mention from `CLAUDE.md` | S | Last, per track | |
+| W12 | Cutover and decommission | Proxy flip or agent update for ingestion, retire the desktop tool once the web admin matches it, stop the Python bot, serve C6 (`/agent/:id/lastPlayers/`) from TS so owjibot keeps working (or port owjibot), clean up dead client calls, drop the REST `result-added-effect` route, stop Flask, archive piu-top, remove the legacy mention from `CLAUDE.md` | S | Last, per track | |
 
 Suggested order per track (the tracks can run in parallel once P1 and P2 are
 done):
@@ -680,18 +718,11 @@ done):
 
 ## Open questions
 
-1. Which piu-spy modes stay (screen / stream / manual / test)? Deferred; all
-   modes are ported until then.
-2. At cutover, can the deployed agents be updated to the new port, or do we
-   use a proxy? Both are fine for the plan; this only affects W12. nginx
-   already fronts the legacy port (see "Production host"), so the proxy route
-   is just a config change.
-3. Should owjibot become a plugin of the main bot (one token, group-chat
-   support), or stay a second bot? If it stays separate, should the platform
-   support multiple bot tokens?
-4. Account linking: keep matching by `telegram_tag` (breaks when a Telegram
-   username changes), or add a deep-link flow started from the web profile
-   (`t.me/<bot>?start=<one-time token>`)?
-5. Event stats: rebuild on top of tournaments, or drop the command?
-6. Web admin wishlist: any UX improvements beyond parity and the gaps listed
-   in "Admin desktop tool features"?
+Answered 2026-09-30 (see "Agreed decisions"): piu-spy modes, owjibot, account
+linking, web admin scope, where prod migrations run, server layout, event
+stats.
+
+1. At cutover, can the deployed agents be updated to the new port, or do we
+   use a proxy? Decided at W12. nginx already fronts the legacy port (see
+   "Production host"), so the proxy route is just a config change.
+

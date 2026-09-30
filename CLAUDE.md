@@ -4,8 +4,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Pumpking is a Pump It Up (arcade rhythm game) score tracking and leaderboard system. It's a monorepo with two packages:
+Pumpking is a Pump It Up (arcade rhythm game) score tracking and leaderboard system. It's a monorepo with these packages:
 
+- **packages/core**: Code shared by the services (DB client, Kysely types, migrations). Never deployed on its own; services import its TS sources as `@pumpking/core/*`
 - **packages/api**: Node.js backend (Express + tRPC + Kysely + MySQL)
 - **packages/web**: React frontend (Vite + Mantine + tRPC client)
 - **Legacy Python API**: A legacy API exists in a separate repository, not part of this monorepo, but still rarely used in legacy frontend code. Avoid using when possible and gradually phase out.
@@ -25,9 +26,9 @@ npm run test:api          # Run backend tests (Mocha + Chai)
 npm run build:web         # Build frontend
 
 # Database migrations
-npm run migrate:latest --prefix packages/api    # Apply migrations
-npm run migrate:rollback --prefix packages/api  # Revert last migration
-npm run migrate:make --prefix packages/api -- migrationName  # Create migration
+npm run migrate:latest --prefix packages/core    # Apply migrations
+npm run migrate:rollback --prefix packages/core  # Revert last migration
+npm run migrate:make --prefix packages/core -- migrationName  # Create migration
 ```
 
 ## Architecture
@@ -37,7 +38,7 @@ npm run migrate:make --prefix packages/api -- migrationName  # Create migration
 - **Entry**: `src/index.ts` → `src/app.ts` (Express setup)
 - **API Layer**: tRPC router at `src/trpc/router.ts`, routes in `src/trpc/routes/`
 - **Business Logic**: Services in `src/services/{domain}/`
-- **Database**: Kysely with types auto-generated in `src/types/database.ts`
+- **Database**: Kysely client from `@pumpking/core/db`, with types auto-generated in `packages/core/src/database.ts`
 - **Legacy REST** (to be removed): Routes in `src/routes/`, controllers in `src/controllers/` (being phased out)
 
 ### Frontend (packages/web)
@@ -60,14 +61,20 @@ Frontend imports backend types via path alias `@/api/*` → `packages/api/src/*`
 
 ## Environment Setup
 
+**Core** (`packages/core/.env`), the DB config for every service, script and test:
+
+```
+DB_DATABASE=db_name
+DB_DATABASE_TEST=test_db_name
+DB_USERNAME=
+DB_PASSWORD=
+```
+
 **API** (`packages/api/.env`):
 
 ```
 NODE_ENV=development
 APP_PORT=3001
-DB_DATABASE=db_name
-DB_USERNAME=
-DB_PASSWORD=
 SCREENSHOT_BASE_FOLDER=~/screenshots
 ```
 
@@ -88,10 +95,10 @@ VITE_API_BASE_PATH=http://localhost:3001
 
 ### Database Changes
 
-1. Create migration: `npm run migrate:make --prefix packages/api -- name`
-2. Write SQL/TS migration in `packages/api/migrations/`
-3. Run: `npm run migrate:latest --prefix packages/api`
-4. Regenerate types if needed (requires DB running)
+1. Create migration: `npm run migrate:make --prefix packages/core -- name`
+2. Write SQL/TS migration in `packages/core/migrations/`
+3. Run: `npm run migrate:latest --prefix packages/core`
+4. Regenerate types if needed (requires DB running): `npm run generate-kysely --prefix packages/core`, then review the diff (the file is hand-patched in places)
 
 ## Code Patterns
 

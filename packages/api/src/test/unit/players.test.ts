@@ -1,7 +1,7 @@
 // import createDebug from 'debug';
 // const debug = createDebug('backend-ts:test:players');
 import { assert } from 'chai';
-import { db } from 'db';
+import { db } from '@pumpking/core/db';
 import { getPlayersStats } from 'services/players/players';
 import { req } from 'test/helpers';
 import { getResultDefaults } from 'test/seeds/initialSeed';

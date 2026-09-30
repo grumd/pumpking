@@ -10,7 +10,7 @@ import {
   TQ_QUALIFY_SCORE,
   type LadderSlot,
 } from 'constants/tournaments';
-import { db, type Transaction } from 'db';
+import { db, type Transaction } from '@pumpking/core/db';
 import { sql } from 'kysely';
 import _ from 'lodash/fp';
 import { raiseNotices } from 'services/notices/notices';

@@ -1,6 +1,6 @@
 import { assert } from 'chai';
 import fs from 'fs';
-import { db } from 'db';
+import { db } from '@pumpking/core/db';
 import path from 'path';
 import { req } from 'test/helpers';
 import { addResultsSession } from 'test/helpers/sessions';
