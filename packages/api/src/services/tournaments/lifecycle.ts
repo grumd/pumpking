@@ -11,6 +11,7 @@ import {
   type LadderSlot,
 } from '@pumpking/core/constants/tournaments';
 import { db, type Transaction } from '@pumpking/core/db';
+import { addEvent } from '@pumpking/core/events';
 import { sql } from 'kysely';
 import _ from 'lodash/fp';
 import { raiseNotices } from 'services/notices/notices';
@@ -185,6 +186,7 @@ export const createTournament = async ({ year, month }: { year: number; month: n
       tournamentId,
       skills.map((s) => s.playerId)
     );
+    await addEvent(trx, 'tournamentStarted', { tournamentId });
 
     return { id: tournamentId, created: true };
   });
@@ -230,6 +232,7 @@ export const endTournaments = async (now: string = siteNow()) =>
       }
 
       await trx.updateTable('tournaments').set({ state: 'Ended' }).where('id', '=', id).execute();
+      await addEvent(trx, 'tournamentEnded', { tournamentId: id });
     }
 
     return ending.length;
