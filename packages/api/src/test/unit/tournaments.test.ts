@@ -93,6 +93,8 @@ const addResult = (
     .execute();
 };
 
+const getEvents = () => db.selectFrom('events').select(['type', 'payload']).orderBy('id').execute();
+
 const getPool = (tournamentId: number) =>
   db
     .selectFrom('tournament_charts as tc')
@@ -184,6 +186,14 @@ describe('Tournaments', () => {
 
   describe('lifecycle', () => {
     beforeEach(seedPool);
+
+    it('adds a tournamentStarted event when it creates the month, not when it exists', async () => {
+      const { id } = await createTournament({ year: 2026, month: 10 });
+      await createTournament({ year: 2026, month: 10 });
+      assert.deepEqual(await getEvents(), [
+        { type: 'tournamentStarted', payload: { tournamentId: id } },
+      ]);
+    });
 
     it('only draws S/D charts that exist in every supported mix', async () => {
       const ids = (await poolChartIds().execute()).map((r) => r.shared_chart).sort();
@@ -416,6 +426,14 @@ describe('Tournaments', () => {
         await addResult(4, easy[4], 960000, t);
         await addResult(7, easy[5], 950000, t);
         await endTournaments('2026-10-25 00:00:00');
+      });
+
+      it('adds a tournamentEnded event once', async () => {
+        await endTournaments('2026-10-26 00:00:00');
+        assert.deepEqual(await getEvents(), [
+          { type: 'tournamentStarted', payload: { tournamentId } },
+          { type: 'tournamentEnded', payload: { tournamentId } },
+        ]);
       });
 
       it('freezes the final results with medals, ties sharing the cup', async () => {
