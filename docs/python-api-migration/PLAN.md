@@ -1,8 +1,72 @@
 # Legacy Python API (piu-top) — Migration Plan
 
 Status: inventory done 2026-09-30 · direction agreed 2026-09-30 (see "Agreed
-decisions") · nothing ported yet beyond what TS already owns (see "Already in
-TS") · priorities not set yet
+decisions") · deploy approach revised 2026-09-30 (tsx + pm2 release dirs, see
+"Build and release") · P1 step 1 implemented, waiting for merge + deploy check
+(see "Progress") · nothing ported yet beyond what TS already owns (see
+"Already in TS") · priorities not set yet
+
+## Progress
+
+Start a new session here: this section says where the work stands and what
+comes next. The rest of the document is the design it follows.
+
+| Step | State |
+|---|---|
+| Inventory, direction, deploy approach | Done 2026-09-30 |
+| P1.1 API runs on tsx in prod + `/healthz` | Implemented on branch `feature/python-api-migration` (PR to `master`, which also carries this plan). Waiting for merge and a check of the first deploy |
+| P1.2 `packages/core` with the DB layer | **Next** |
+| P1.3 constants + pure logic into core | Not started |
+| P1.4 `ingest` / `bot` skeletons | Not started |
+| P2 onwards | Not started |
+
+### Checking the P1.1 deploy
+
+The first deploy after merging switches the running API from `build/index.js`
+to tsx. Check:
+
+- The "Deploy API (rsync)" workflow is green, including its last step, which
+  curls `/healthz` on the server.
+- `https://api.pumpking.top:3001/healthz` returns `{"status":"ok"}`, and the
+  web works.
+- On the server, `pm2 describe pumpking-api` shows the script
+  `…/packages/api/src/index.ts` with interpreter args `--import tsx`, and
+  `pm2 list` shows all 5 apps online. The deploy ran `pm2 save`, so the saved
+  process list is now current.
+
+If it's broken, revert the PR on `master`; the deploy workflow redeploys the
+previous flow. Manual fallback on the server:
+`cd ~/pumpking-deployment/packages/api && npm run pm2`.
+
+### Next: P1.2, `packages/core` with the DB layer
+
+Findings so far, so the next session doesn't need to repeat them:
+
+- **What moves (`git mv`, to keep history):**
+  - `src/db.ts`, minus its `./envconfig` import (each service loads its own
+    env).
+  - `src/types/database.ts` and the `generate-kysely` script.
+  - `migrations/`. They import only `kysely`, so moving them is a file move.
+  - `src/utils/MigrationProvider.ts`.
+  - `scripts/db.ts` and the migrate / rollback / make scripts.
+  - The test-DB helpers (`src/test/testDatabaseUtils.ts`,
+    `src/test/seeds/migration.ts`). The seeds stay in the API.
+- **Imports:** 38 API files import `db` through the `db` path alias.
+  Rewriting them to `@pumpking/core/…` is mechanical.
+- **Package shape:** `@pumpking/core` is a workspace package whose `exports`
+  point at `.ts` files. It uses only relative imports (see "Services"). It's a
+  composite TS project that the API's `tsconfig.json` / `tsconfig.ref.json`
+  reference. Verify with `npm run ts` and `npm run build:web`, since the web
+  type-checks the API through project references.
+- **Env:** the migrate scripts load `packages/api/.env` today. Keep
+  `npm run migrate:* --prefix packages/api` working (the API scripts call
+  core's, with the API's env), or update CLAUDE.md if the commands change.
+- **CI:** add `packages/core/**` to the paths of `deploy-api.yml` and
+  `test-api.yml`.
+- **Still to confirm with the user, before P2:** prod migrations run over SSH
+  from the new release directory (recommended) rather than from CI against
+  MySQL, and the server layout lives under `~/pumpking/` (see "Build and
+  release"; that directory doesn't exist yet).
 
 ## Target architecture overview
 
@@ -33,13 +97,14 @@ packages/
      currently deployed commit of every service against the new schema.
   4. Migrate prod once.
   5. Deploy the affected services in parallel.
-- **Release:** CI builds a self-contained bundle → uploads it to
-  `releases/<sha>/` → points the `current` symlink at it → `pm2 reload` of
-  that one service.
+- **Release:** the whole repo at one commit goes to `releases/<sha>/` on the
+  server, `npm ci` runs inside that new directory → the service's symlink
+  points at it → `pm2 startOrReload` of that one service. Services run their
+  TS sources with tsx; nothing is built or bundled.
 
 ### Fallbacks
 
-- **Broken build:** it fails in CI and never reaches the server.
+- **Type errors:** `tsc` fails in CI and nothing reaches the server.
 - **Failing tests or migration guard:** no migration runs and nothing deploys.
 - **Failed deploy:** a failed health check (and, for ingestion, a failed
   smoke test against the side-effect-free validate endpoint) points the
@@ -112,6 +177,10 @@ the largest and riskiest part. Everything else is thin CRUD.
 | Database access | One shared MySQL user for all services. No per-service users |
 | Effects | Ingestion only stores the result plus an event. pp / exp / totals are computed asynchronously by a worker that reads events. Results without effects yet show correctly on the leaderboard (see "Events and effects") |
 | `results_best_grade` | Never read anywhere. Remove it (P4) |
+| Runtime | Services run their TS sources with **tsx** in prod, the same runtime as dev, tests and migrations. No bundling, no build output. Type-checking happens only in CI (`tsc`). Node's built-in type stripping is a possible later cleanup (it needs the path aliases replaced and `.ts` extensions on imports) |
+| Process manager | **pm2**, like every other app on the host. No Docker: it would split one small host between two ways of running, logging and restarting things |
+| Releases | A release is the **whole repo** at one commit plus its `node_modules`, never a per-package selection, so adding a package or dependency changes nothing in the deploy. Capistrano-style release dirs with a symlink per service (see "Build and release") |
+| Monorepo tooling | npm workspaces + TS project references only. No Nx / Lerna: nothing is built, and the dependency graph (everything → `core`) is covered by a few path filters |
 
 ## Consumers
 
@@ -380,7 +449,7 @@ diffs a local tracklist JSON against B17 and pushes changes through B18–B20.
 | Result ingestion | `packages/ingest` | pm2 `pumpking-ingest`, own port | `ingest/**`, `core/**` | API / bot outages, failed API / web deploys |
 | Telegram bot | `packages/bot` | pm2 `pumpking-bot` | `bot/**`, `core/**` | API / ingestion outages |
 | Web | `packages/web` | GitHub Pages (unchanged) | `web/**` | — |
-| Shared code | `packages/core` | Not deployed itself; bundled into each service | — | — |
+| Shared code | `packages/core` | Not deployed itself; each service imports its TS sources (workspace package, `exports` point at `.ts`) | — | — |
 
 A `package-lock.json` change counts as a change to every service.
 `packages/core` holds:
@@ -389,31 +458,81 @@ A `package-lock.json` change counts as a change to every service.
 - pure domain logic (validators, scoring, pp / exp calculation);
 - the event table helpers.
 
-The web keeps importing types from `@/api/*`.
+Core uses only relative imports internally: tsx applies the running service's
+tsconfig, so core can't have path aliases of its own. Modules the web imports
+at runtime (e.g. mix constants) must stay browser-safe (no `node:` imports).
+
+The web keeps importing types from `@/api/*`. Once API types import from core,
+core becomes a composite TS project that the API's `tsconfig.ref.json`
+references, so the web's `tsc --build` keeps working.
 
 ### Build and release
 
-- **CI bundles each service** into a self-contained artifact (esbuild /
-  tsup). Nothing is installed on the server, so there's no `npm ci` in prod.
-  A broken build fails in CI and never touches the server.
-- **Releases are atomic**:
-  1. Upload the artifact to `~/services/<service>/releases/<sha>/`.
-  2. Point the `current` symlink at it.
-  3. `pm2 reload` that one service.
+- **Nothing is built.** Services run their TS sources with tsx (see
+  "Agreed decisions"). CI type-checks (`tsc`) and runs the tests; that is the
+  gate a build step used to be.
+- **One release = the whole repo at one commit**, shared by every service:
+
+  ```
+  ~/pumpking/
+    releases/<sha>/   full checkout (rsync --link-dest against the previous
+                      release) + `npm ci` run inside this new directory
+    shared/<service>.env
+    api    -> releases/<sha>     one symlink per service, so services can
+    ingest -> releases/<sha>     run different commits and roll back alone
+    bot    -> releases/<sha>
+  ```
+
+  Nothing selects which files or packages go into a release, so a new
+  package or dependency needs no deploy change. `npm ci` never runs in a live
+  directory: if it fails, the symlinks haven't moved.
+- **Deploying a service**:
+  1. Create `releases/<sha>/` if an earlier service deploy of the same commit
+     hasn't already.
+  2. Point that service's symlink at it.
+  3. `pm2 startOrReload` that one app from the repo's pm2 ecosystem file.
   4. Poll its `/healthz`. For ingestion, also run a smoke test: POST a
      fixture payload to `/results/screen/validate` (side-effect free) and
      check the response.
   5. If the check fails, point the symlink back and reload.
 
-  Keep the last few releases for manual rollback.
+  Keep the last 5 releases for manual rollback. Verify on the first run that
+  pm2 re-resolves a symlinked `cwd` on reload (if not, use delete + start,
+  which costs the same downtime for a single fork-mode process).
 - **Each service is isolated at runtime**: its own pm2 app, port, `.env`,
-  logs, memory limit and auto-restart.
+  logs, memory limit and auto-restart. The deploy runs `pm2 save` so the
+  apps come back after a reboot.
 - After a successful deploy, CI moves the git tag `deployed/<service>` to
   that commit.
 
 This replaces today's deploy, which rsyncs with `--delete` into the live
 directory and then runs `npm ci`, migrations and a pm2 restart in place. That
-leaves broken files under the running process if any step fails.
+leaves broken files under the running process if any step fails. P1 step 1
+already dropped its build step (the API runs on tsx) and added a `/healthz`
+check at the end, without auto-rollback yet.
+
+### Production host
+
+A single Ubuntu VPS (`api.pumpking.top`) runs everything under pm2 as one
+user:
+
+| pm2 app | What it is |
+|---|---|
+| `pumpking-api` | TS API on `:3001`, terminates its own TLS (Let's Encrypt certs) |
+| `pumpking-python-backend` | Legacy Flask API under gunicorn on `127.0.0.1:5001`; nginx terminates TLS on `:5000` and proxies to it |
+| `rivals-bot` | Legacy Telegram bot |
+| `owji-bot` | owjibot |
+| `spy-updates` | Static file server for piu-spy agent updates |
+
+- MySQL listens on localhost only.
+- Uploads: `~/uploads` (agent uploads, `SCREENSHOT_AGENT_BASE_FOLDER` /
+  `PIUTOP_UPLOADS_ROOT`) and `~/uploads_players` (`SCREENSHOT_BASE_FOLDER`).
+- **nginx already fronts the legacy port.** At ingestion cutover (W12),
+  pointing the group A paths on `:5000` at `packages/ingest` is an nginx
+  config change, and the agents need no update.
+- The pm2 boot service is enabled, but the saved process list was stale (it
+  pointed the API at a directory that no longer exists), so the API wouldn't
+  have come back after a reboot. The deploy now runs `pm2 save`.
 
 ### Pipeline
 
@@ -530,8 +649,8 @@ including testing. The Priority column is left for triage.
 | ID | Workstream | Covers | Complexity | Notes / depends on | Priority |
 |---|---|---|---|---|---|
 | **Platform track** | | | | | |
-| P1 | Package split | Create `packages/core` (db, Kysely types, migrations + scripts, constants, shared domain logic) and the `packages/ingest` / `packages/bot` skeletons with `/healthz`; move the API onto `core`; keep the web's `@/api/*` types working | M | Needed by W1, W9 | |
-| P2 | Deploy pipeline | Bundled artifacts, release dirs + `current` symlink, one pm2 app per service, health check + ingestion smoke test + auto-rollback, `deployed/<service>` tags, single workflow with change detection, migration guard, one migrate step before deploys. Move the existing API deploy onto it first | M | P1 | |
+| P1 | Package split | Steps, one PR each: (1) run the API on tsx in prod + `/healthz` — **done**; (2) `packages/core` with the DB layer (client without dotenv, Kysely types + codegen, migrations + `MigrationProvider` + scripts, test-DB helpers) as a composite TS project; (3) move the existing constants and pure logic (`constants/*`, `utils/scoring/*`, `utils/profile/exp.ts`), with the web importing mixes from core; (4) `packages/ingest` / `packages/bot` skeletons with `/healthz`. Other logic moves to core when a second consumer needs it | M | Needed by W1, W9 | |
+| P2 | Deploy pipeline | Whole-repo release dirs + a symlink per service, one pm2 app per service, health check + ingestion smoke test + auto-rollback, `deployed/<service>` tags, single workflow with change detection, migration guard, one migrate step before deploys (run over SSH from the new release). Move the existing API deploy onto it first | M | P1 | |
 | P3 | Events + effects worker | `events` table and producer helper in `core`; effects worker with a cursor in the API process; `result-added-effect` REST route enqueues instead of running inline; make effects safe to replay | S–M | P1 | |
 | P4 | Drop `results_best_grade` | Remove it from `resultAddedEffect`, `deleteResult`, tests and seeds; drop-table migration; regenerate types | S | Nothing (Python B8 is already broken; the table is never read) | |
 | **Ingestion track** | | | | | |
@@ -564,7 +683,9 @@ done):
 1. Which piu-spy modes stay (screen / stream / manual / test)? Deferred; all
    modes are ported until then.
 2. At cutover, can the deployed agents be updated to the new port, or do we
-   use a proxy? Both are fine for the plan; this only affects W12.
+   use a proxy? Both are fine for the plan; this only affects W12. nginx
+   already fronts the legacy port (see "Production host"), so the proxy route
+   is just a config change.
 3. Should owjibot become a plugin of the main bot (one token, group-chat
    support), or stay a second bot? If it stays separate, should the platform
    support multiple bot tokens?
