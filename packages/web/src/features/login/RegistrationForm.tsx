@@ -63,7 +63,7 @@ export function RegistrationForm({ email, registrationToken }: RegistrationFormP
         return null;
       },
       arcadeName: (value) => {
-        if (value.trim().length > 64) return lang.VALIDATION_ARCADE_NAME_MAX;
+        if (value.trim().length > 20) return lang.VALIDATION_ARCADE_NAME_MAX;
         return null;
       },
     },

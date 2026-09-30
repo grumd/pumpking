@@ -55,7 +55,7 @@ export const register = publicProcedure
       registrationToken: z.string(),
       nickname: z.string().min(2).max(32),
       region: z.string().length(2).nullable(),
-      arcadeName: z.string().max(64).nullable(),
+      arcadeName: z.string().trim().max(20).nullable(),
     })
   )
   .mutation(({ input }) => {
