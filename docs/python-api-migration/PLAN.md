@@ -2,8 +2,8 @@
 
 Status: inventory done 2026-09-30 · direction agreed 2026-09-30 (see "Agreed
 decisions") · deploy approach revised 2026-09-30 (tsx + pm2 release dirs, see
-"Build and release") · P1.1 deployed 2026-09-30 · P1.2 implemented, waiting
-for merge + deploy check (see "Progress") · nothing ported yet beyond what TS
+"Build and release") · P1.1 and P1.2 deployed 2026-09-30 · P1.3 next (see
+"Progress") · nothing ported yet beyond what TS
 already owns (see "Already in TS") · priorities not set yet
 
 ## Progress
@@ -14,8 +14,9 @@ comes next. The rest of the document is the design it follows.
 | Step | State |
 |---|---|
 | Inventory, direction, deploy approach | Done 2026-09-30 |
-| P1.1 API runs on tsx in prod + `/healthz` | Done 2026-09-30 (PR #37). Deploy workflow green, `/healthz` ok. Still to confirm on the server: `pm2 describe pumpking-api` shows `src/index.ts` with `--import tsx`, and `pm2 list` shows all 5 apps online |
-| P1.2 `packages/core` with the DB layer | Implemented on branch `feature/core-db-layer`. Waiting for merge and a check of the first deploy |
+| P1.1 API runs on tsx in prod + `/healthz` | Done 2026-09-30 (PR #37). Deploy green, `/healthz` ok; on the server `pm2 describe pumpking-api` shows `packages/api/src/index.ts` with `--import tsx`, and all 5 pm2 apps are online |
+| P1.2 `packages/core` with the DB layer | Done 2026-09-30 (PR #38). Deploy green (env check passed, migrate "already up to date", `/healthz` ok, `tracks.mostPlayed` serves data). The server's DB config now lives only in `packages/core/.env`: the `DB_*` lines were removed from `packages/api/.env` (backup: `~/pumpking-api.env.bak-20260930`, outside the deploy dir) and the API was restarted once to prove it runs without them |
+| Side fix | PR #34 merged 2026-09-30: `chart_instances.interpolated_difficulty` dropped in prod (migration renamed to `20260930040000_…` so it sorts after the tournaments migrations prod had already run — Kysely 0.25 rejects anything that sorts earlier) |
 | P1.3 constants + pure logic into core | **Next** |
 | P1.4 `ingest` / `bot` skeletons | Not started |
 | P2 onwards | Not started |
@@ -68,28 +69,38 @@ comes next. The rest of the document is the design it follows.
   used to have a password-less URL hardcoded. Before W5 / W7, check which of these
   exist in prod and either drop them or add them to a migration.
 
-### Checking the P1.2 deploy
+### Server state after P1.2
 
-- **Before merging**, on the server: create
-  `~/pumpking-deployment/packages/core/.env` with the `DB_*` lines from
-  `packages/api/.env` (`rsync` excludes `.env`, so the deploy never
-  overwrites it). Remove them from the API's `.env` afterwards. The deploy
-  fails before touching anything if the file is missing.
-- The "Deploy API (rsync)" workflow is green. Its migrate step runs
-  `npm run migrate:latest --prefix packages/core` and should print "already
-  up to date".
-- `/healthz` is ok and the web works (leaderboards, profile, login).
-
-If it's broken, revert the PR on `master`.
+- Still the old layout: `~/pumpking-deployment/` (rsync into the live dir).
+  Env files: `packages/core/.env` (DB) and `packages/api/.env` (the rest);
+  both are excluded from rsync, so deploys never touch them.
+- `ssh piutop@api.pumpking.top` works from the dev machine. When touching env
+  files over SSH, print key names only (`sed "s/=.*//"`), never values.
+- The dev machine's `packages/core/.env` holds the local DB config; the local
+  `packages/api/.env` has no `DB_*` lines anymore.
 
 ### Next: P1.3, constants and pure logic into core
 
-- Move `packages/api/src/constants/*`, `utils/scoring/*` and
-  `utils/profile/exp.ts` with `git mv`. Only relative imports inside core;
-  modules the web imports at runtime must stay browser-safe (no `node:`).
-- The web then imports mixes from `@pumpking/core/…` instead of `@/api/…`.
-  Its `moduleResolution: bundler` resolves the package `exports`; check that
-  Vite does too (`npm run build:web`). Add `packages/core/**` to the paths of
+Start from a branch off `master` (`feature/core-constants` exists locally
+with only this progress update on it).
+
+- Move with `git mv`: `packages/api/src/constants/{currentMix,grades,mixes,tournaments}.ts`,
+  `utils/scoring/{grades,phoenixScore}.ts`, `utils/profile/exp.ts`. None of
+  them import anything, so they're browser-safe as is. Core keeps relative
+  imports only.
+- Importers: 17 API files (`constants/mixes` ×7, `constants/tournaments` ×4,
+  `utils/scoring/phoenixScore` ×3, `constants/currentMix` ×2,
+  `constants/grades` ×2, `utils/scoring/grades` ×1, `utils/profile/exp` ×1),
+  plus a comment in migration `20260927032417_add_mix_phoenix2.ts` that
+  points at `src/constants/mixes.ts`.
+- The web imports `MIXES` from `@/api/constants/mixes` in two files
+  (`AddResult.tsx` at runtime, `ScreenshotRecognition.tsx` type-only); they
+  switch to `@pumpking/core/…`, and the web gets `@pumpking/core` as a
+  dependency. The web has its **own** `src/utils/scoring/grades.ts` (118
+  lines, different from the API's 52-line one); leave it unless merging them
+  is trivial, and don't expand the slice for it.
+- The web's `moduleResolution: bundler` resolves the package `exports`;
+  check that Vite does too (`npm run build:web`). Add `packages/core/**` to the paths of
   `test-web.yml` then, since the web starts depending on core at runtime.
 - Agreed for P2 (2026-09-30): prod migrations run over SSH from the new
   release directory, and the new layout lives under `~/pumpking/` (see
