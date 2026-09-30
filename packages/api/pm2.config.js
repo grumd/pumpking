@@ -2,7 +2,11 @@ module.exports = {
   apps: [
     {
       name: 'pumpking-api',
-      script: './build/index.js',
+      cwd: __dirname,
+      script: './src/index.ts',
+      // Run the TS sources directly; tsx also resolves the tsconfig path aliases
+      interpreter: 'node',
+      interpreter_args: '--import tsx',
     },
   ],
 };

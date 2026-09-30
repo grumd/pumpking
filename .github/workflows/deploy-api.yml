@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
   push:
     branches: ['master']
-    paths: ['packages/api/**']
+    paths: ['packages/api/**', 'package-lock.json']
 
 jobs:
   test:
@@ -17,18 +17,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 24
-          cache: 'npm'
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Build API
-        run: npm run build --prefix packages/api
 
       - name: Deploy via rsync
         uses: burnett01/rsync-deployments@7.0.1
@@ -56,4 +44,8 @@ jobs:
             npm run migrate:latest
             echo "-- Restarting PM2"
             npm run pm2
+            echo "-- Health check"
+            curl -fsS --retry 15 --retry-delay 2 --retry-all-errors \
+              --resolve api.pumpking.top:3001:127.0.0.1 https://api.pumpking.top:3001/healthz
+            echo
             echo "-- Deployment complete!"

@@ -2,10 +2,12 @@ import './envconfig';
 import routes from './routes';
 import bodyParser from 'body-parser';
 import cors from 'cors';
+import { db } from 'db';
 import createDebug from 'debug';
 import express from 'express';
 import formData from 'express-form-data';
 import jsdocSwagger from 'express-jsdoc-swagger';
+import { sql } from 'kysely';
 import lusca from 'lusca';
 import { auth } from 'middlewares/auth/auth';
 import logger from 'morgan';
@@ -36,7 +38,8 @@ const options = {
  * Create Express server
  */
 export const app = express();
-jsdocSwagger(app)(options);
+// Scans the TS sources for JSDoc, which only exist next to the code in development
+process.env.NODE_ENV === 'development' && jsdocSwagger(app)(options);
 const isTest = process.env.NODE_ENV === 'test';
 !isTest && app.use(logger('tiny'));
 app.use(bodyParser.json({ limit: '2mb' }));
@@ -53,6 +56,17 @@ app.use(
     optionsSuccessStatus: 200, // some legacy browsers (IE11, various SmartTVs) choke on 204
   })
 );
+
+// Liveness + DB check for deploys; kept before auth so it never touches sessions
+app.get('/healthz', async (_req, res) => {
+  try {
+    await sql`select 1`.execute(db);
+    res.json({ status: 'ok' });
+  } catch (error) {
+    debug(error);
+    res.status(503).json({ status: 'error' });
+  }
+});
 
 app.use(auth);
 app.use((req, _res, next) => {
