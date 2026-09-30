@@ -4,6 +4,7 @@ import { auth } from './routes/auth';
 import { charts } from './routes/charts';
 import { players } from './routes/players';
 import { results } from './routes/results';
+import { tournaments } from './routes/tournaments';
 import { tracks } from './routes/tracks';
 import { user } from './routes/user';
 import { router } from './trpc';
@@ -18,6 +19,7 @@ const appRouter = router({
   charts,
   results,
   tracks,
+  tournaments,
 });
 
 export const expressRouter = createExpressMiddleware({

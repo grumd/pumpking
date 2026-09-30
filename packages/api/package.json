@@ -29,6 +29,7 @@
     "migrate:make-sql": "tsx ./scripts/migrationMakeSql.ts",
     "migrate:latest": "tsx ./scripts/migrateToLatest.ts",
     "migrate:rollback": "tsx ./scripts/migrationRollback.ts",
+    "tournament": "tsx ./scripts/tournament.ts",
     "generate-kysely": "kysely-codegen --url mysql://root:@localhost/piutop --out-file ./src/types/database.ts"
   },
   "keywords": [],

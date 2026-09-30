@@ -35,6 +35,11 @@ export default function TopBar() {
               {lang.SONGS}
             </Anchor>
           </li>
+          <li>
+            <Anchor fw="bold" size="xl" component={NavLink} to={routes.tournaments.path}>
+              {lang.TOURNAMENTS}
+            </Anchor>
+          </li>
         </ul>
       </nav>
       <div className="login-container">

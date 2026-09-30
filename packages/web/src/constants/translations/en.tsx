@@ -131,6 +131,23 @@ export const en = {
   START_DATE: 'Begins:',
   END_DATE: 'Ends:',
   BRACKETS: 'Brackets:',
+  TOURNAMENT_LIVE: 'live',
+  TOURNAMENT_ENDED: 'ended',
+  TOURNAMENT_ENDED_NOTICE: 'Final results. A new tournament starts on the 1st.',
+  TOURNAMENT_NONE: 'No tournaments yet. A new one starts on the 1st of every month.',
+  TOURNAMENT_YOUR_BRACKET: 'Your bracket',
+  TOURNAMENT_PLACEMENT: (level: number) => `you have 5 charts at 950k+ on level ${level} or harder`,
+  TOURNAMENT_NOT_PARTICIPATING:
+    'You are not in this tournament. New players join the next one on the 1st.',
+  TOURNAMENT_BRACKET: (code: 'Easy' | 'Mid' | 'High' | 'Top') =>
+    ({ Easy: 'Easy', Mid: 'Mid', High: 'High', Top: 'Top' }[code]),
+  TOURNAMENT_PLACE: 'place',
+  TOURNAMENT_POOL: 'Charts',
+  TOURNAMENT_LEADERBOARD: 'Leaderboard',
+  TOURNAMENT_PLAYERS: 'players',
+  TOURNAMENT_NO_SCORES: 'No scores yet',
+  SKILL: 'skill',
+  UNRATED: 'unrated',
 
   HIDE_UNSELECTED: 'hide unselected',
   SHOW_ALL: 'show all',

@@ -124,6 +124,23 @@ export const ru = {
   START_DATE: 'Начало:',
   END_DATE: 'Окончание:',
   BRACKETS: 'Группы чартов:',
+  TOURNAMENT_LIVE: 'идёт',
+  TOURNAMENT_ENDED: 'завершён',
+  TOURNAMENT_ENDED_NOTICE: 'Итоговые результаты. Новый турнир начнётся 1-го числа.',
+  TOURNAMENT_NONE: 'Турниров пока нет. Новый начинается 1-го числа каждого месяца.',
+  TOURNAMENT_YOUR_BRACKET: 'Ваша группа',
+  TOURNAMENT_PLACEMENT: (level: number) => `у вас 5 чартов на 950k+ уровня ${level} или сложнее`,
+  TOURNAMENT_NOT_PARTICIPATING:
+    'Вы не участвуете в этом турнире. Новые игроки попадают в следующий 1-го числа.',
+  TOURNAMENT_BRACKET: (code: 'Easy' | 'Mid' | 'High' | 'Top') =>
+    ({ Easy: 'Лёгкая', Mid: 'Средняя', High: 'Высокая', Top: 'Топ' }[code]),
+  TOURNAMENT_PLACE: 'место',
+  TOURNAMENT_POOL: 'Чарты',
+  TOURNAMENT_LEADERBOARD: 'Таблица результатов',
+  TOURNAMENT_PLAYERS: 'игроков',
+  TOURNAMENT_NO_SCORES: 'Результатов пока нет',
+  SKILL: 'уровень',
+  UNRATED: 'без уровня',
 
   HIDE_UNSELECTED: 'скрыть невыбранных',
   SHOW_ALL: 'показать всех',

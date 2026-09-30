@@ -133,6 +133,24 @@ export const pl: BaseTranslation = {
   START_DATE: 'Początek:',
   END_DATE: 'Koniec:',
   BRACKETS: 'Drabinka:',
+  TOURNAMENT_LIVE: 'trwa',
+  TOURNAMENT_ENDED: 'zakończony',
+  TOURNAMENT_ENDED_NOTICE: 'Wyniki końcowe. Nowy turniej zaczyna się 1. dnia miesiąca.',
+  TOURNAMENT_NONE: 'Nie ma jeszcze turniejów. Nowy zaczyna się 1. dnia każdego miesiąca.',
+  TOURNAMENT_YOUR_BRACKET: 'Twoja grupa',
+  TOURNAMENT_PLACEMENT: (level: number) =>
+    `masz 5 chartów z wynikiem 950k+ na poziomie ${level} lub wyższym`,
+  TOURNAMENT_NOT_PARTICIPATING:
+    'Nie bierzesz udziału w tym turnieju. Nowi gracze dołączają do następnego 1. dnia miesiąca.',
+  TOURNAMENT_BRACKET: (code: 'Easy' | 'Mid' | 'High' | 'Top') =>
+    ({ Easy: 'Łatwa', Mid: 'Średnia', High: 'Wysoka', Top: 'Top' }[code]),
+  TOURNAMENT_PLACE: 'miejsce',
+  TOURNAMENT_POOL: 'Charty',
+  TOURNAMENT_LEADERBOARD: 'Tabela wyników',
+  TOURNAMENT_PLAYERS: 'graczy',
+  TOURNAMENT_NO_SCORES: 'Brak wyników',
+  SKILL: 'poziom',
+  UNRATED: 'bez poziomu',
 
   HIDE_UNSELECTED: 'ukryj niezaznaczone',
   SHOW_ALL: 'pokaż wszystko',
