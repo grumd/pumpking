@@ -3,7 +3,10 @@
 Status: design decisions finalized 2026-09-29 · M1 (ID moved to
 `shared_charts`), M2 (legacy tables parked, v2 tables created), M3 (backend),
 M4 (web page), M7 (cups), M8 (leaderboard highlight) and M9 (nav notice) done ·
-creation job not enabled yet (M5)
+M5: the creation job is enabled and created "October 2026" on prod at
+2026-10-01 00:00 · M6 done (prod's piu-top runs `4cd3b3d`, without tournament
+code) · Telegram posts for the start and end: the bot's tournaments plugin
+(W11 of docs/python-api-migration/PLAN.md), not merged yet
 
 ## Summary
 
@@ -397,6 +400,7 @@ The pool is public the moment it is created.
 |---|---|
 | Job on the 1st of month M (00:00 site time) | Create tournament (`name` = "October 2026", `start_date` = 1st 00:00, `end_date` = 25th 00:00); create 4 brackets (player ranges + ladder config); draw pools into `tournament_charts`; assign brackets to all non-hidden players (skill snapshot → `tournament_player_brackets`); write a pending notice per assigned player (M9); state `Live` — results count immediately |
 | Job on the 25th of month M (00:00 site time) | state `Ended` — window closed, winners final; writes `tournament_results` (ranks + medals — M7) |
+| Both jobs | add a `tournamentStarted` / `tournamentEnded` event in the same transaction; the Telegram bot posts the pools and the podiums from them (its `tournaments` plugin, needs `TOURNAMENTS_CHANNEL_ID`) |
 | 25th → 1st of next month (UI only) | Show the final winners with a "new tournament starts on the 1st" notice; no job needed |
 
 ### Participation — no "join"
@@ -824,8 +828,8 @@ process) so the cron removal actually stops tournament creation.
 | M2 | ~~Migrations A + B~~ — **done 2026-09-30** (`20260930000000_park_legacy_tournaments` + `20260930010000_init_tournaments_v2`, verified up/down/up with legacy rows, `database.ts` regenerated). Bracket sizes were measured beforehand with a throwaway query (not committed — see "Indicative bracket sizes") | — |
 | M3 | ~~Backend~~ — **done 2026-09-30**: `services/tournaments/` (`eligibility.ts` shared predicate + pool query, `rules.ts` pure skill/bracket/ranking rules, `lifecycle.ts` create/end, `tournament.ts` read side), `constants/tournaments.ts`, env-gated cron (`jobs/tournamentsJob.ts`), CLI `npm run tournament -- create [YYYY-MM] \| end`, tRPC `tournaments.get({ tournamentId? })` (tournament + brackets + pools + live leaderboards + own bracket) and `tournaments.list`; 17 tests in `src/test/unit/tournaments.test.ts`. Mid's double sits at 14 | — |
 | M4 | ~~Web~~ — **done 2026-09-30**: `features/tournaments/Tournaments.tsx` at `/tournaments` + nav link: tournament picker, state/dates card with the player's bracket and placement reason, bracket tabs (default: own bracket) with the pool (per-mix labels, ID) and the leaderboard (counted scores bold) | — |
-| M5 | Enable creation job; first live month; watch participation per bracket | 0.5 d |
-| M6 | Retire the piu-top **Python** tournament code (separate repo; note `36cdaf0` already commented the tournament logic out) + merge [piu-top#22](https://github.com/Zdreni/piu-top/pull/22) and the held-back drop migration; confirm the prod scheduler no longer creates tournaments — **before 1 Oct** | 0.5 d |
+| M5 | ~~Enable creation job~~ — **done 2026-10-01**: `TOURNAMENT_JOB=enabled` on prod, and the job created tournament #1 "October 2026" (Live) at 00:00. Left: watch participation per bracket through the first month | — |
+| M6 | ~~Retire the piu-top Python tournament code~~ — **done 2026-09-30**: [piu-top#22](https://github.com/Zdreni/piu-top/pull/22) (ID read from `shared_charts`) and [#23](https://github.com/Zdreni/piu-top/pull/23) (tournament code removed) are merged, prod's checkout runs `4cd3b3d`, and the drop migration shipped as `20260930040000_drop_chart_instances_interpolated_difficulty` (PR #34) | — |
 | M7 | ~~Cups~~ — **done 2026-09-30**: `20260930020000_add_tournament_results`; `endTournaments` freezes every bracket's leaderboard into it in the same transaction as the state change; `tournaments.get` serves an Ended tournament from it (medal next to the rank); `tournaments.awards({ playerId })` + a profile "cups" card (per-medal counts + award list); a "cups" column in the ranking. See "M7 as built" | — |
 | M8 | ~~Main leaderboard highlight~~ — **done 2026-09-30**: `searchCharts` tags `inTournament` / `countsForTournament` from one extra query (the shared eligibility predicate, Live tournaments only); "Tournament" badge in `ChartHeader`, trophy mark on counting result rows; the banner was dropped (the nav notice of M9 covers it) | — |
 | M9 | ~~Nav notice badge~~ — **done 2026-09-30**: `20260930030000_add_player_notices`, notices raised in the creation transaction, `notices.unread` / `notices.markRead`, red "!" on the TopBar link, cleared when the tournaments page opens | — |

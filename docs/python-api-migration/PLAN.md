@@ -2,12 +2,10 @@
 
 Status: inventory done 2026-09-30 · direction agreed 2026-09-30 (see "Agreed
 decisions") · deploy approach revised 2026-09-30 (tsx + pm2 release dirs, see
-"Build and release") · P1.1 and P1.2 deployed 2026-09-30 · P1.3 + P1.4
-done 2026-09-30 (PR #39), which completes P1 · P2 deployed 2026-09-30
-(PR #40) · P3 deployed 2026-09-30 (PR #41) · P4 deployed 2026-09-30
-(PRs #42, #43), which completes the platform track · the web admin (W3–W6,
-W8) built 2026-09-30 in PR #44, not merged yet (see "Progress"); its
-purgatory recheck still runs in Python until W7
+"Build and release") · P1–P4 (the platform track) deployed 2026-09-30 · the web
+admin (W3–W6, W8) deployed 2026-09-30 (PR #44) · ingestion (W1, W2, W7) and the
+Telegram bot (W9–W11) built 2026-10-01 in PR #45, not merged yet; the
+cutover and decommission (W12) come after it (see "Next")
 
 ## Progress
 
@@ -26,8 +24,10 @@ comes next. The rest of the document is the design it follows.
 | P3 events + effects worker | **Deployed** 2026-09-30 (PR #41). The first Deploy run with the migration guard was green (all three guards passed); the release step ran both migrations on prod, and all three services moved to release `c2b241b5` (a `packages/core` change counts for every service). Checked on prod afterwards: every pm2 app online, API `/healthz` ok, no errors in the API log, `@@auto_increment_increment` = 1, and the backfill scored the rank mode rows (4,591 with a `score_phoenix`, 773 without full stats still null). **Not exercised on prod yet:** no result had arrived by 19:51 UTC (the newest was from 2026-09-29), so `events` was empty and there was no `effects` cursor row. The tests cover the path end to end; no action planned, but if an effect ever seems missing, look at `events`, `event_cursors` and `event_failures` first |
 | P4a stop using `results_best_grade` | **Deployed** 2026-09-30 (PR #42). Before merging: API tests pass (76), all packages type-check; master's tests pass with the new migration (the guard's check, run locally); on the dev DB (a copy of prod data), deleting a result the table points at fails before the migration and works after it (rolled back), and the migration's `down` works. The Deploy run was green (guards passed, migration ran on prod), all three services run `5a241f21`, and the table has no foreign keys left on prod |
 | P4b drop `results_best_grade` | **Deployed** 2026-09-30 (PR #43). API tests pass (76; the test code is P4a's, so this was also the guard's check), all packages type-check from a clean build, and the migration's up / down / up works on the dev DB. The Deploy run was green (guards passed, migration ran on prod), all three services run `e70880c3`, and the table is gone on prod |
-| Web admin (W3–W6, W8) | **Built, not merged** (PR #44, see "What the web admin did"). API tests pass (114: 38 new), ingest / bot tests pass, all packages type-check, `npm run build:web` works, lint has only master's old errors. Tried in the browser against a fresh copy of prod data (the dev DB was reloaded from `~/dump.sql.gz`), with the legacy Python backend running locally (piu-top `origin/master` from `/tmp`, through `uv`) and a few prod videos copied into the local uploads folder: fixed chart #20968's step range from purgatory #8021's reason link, rechecked the row, and it moved to results (#303187) through Python, whose callback added the event, and got pp and exp from the effects job; edited that result (notes; bad mods got the validation error); players, agents (token shown on demand) and a tracklist sync preview of a file made from the DB (1,108 tracks, no errors) |
-| Other W tracks | Not started |
+| Web admin (W3–W6, W8) | **Deployed** 2026-09-30 (PR #44, see "What the web admin did"). Checked before merging: API tests pass (114: 38 new), ingest / bot tests pass, all packages type-check, `npm run build:web` works, lint has only master's old errors. Tried in the browser against a fresh copy of prod data (the dev DB was reloaded from `~/dump.sql.gz`), with the legacy Python backend running locally (piu-top `origin/master` from `/tmp`, through `uv`) and a few prod videos copied into the local uploads folder: fixed chart #20968's step range from purgatory #8021's reason link, rechecked the row, and it moved to results (#303187) through Python, whose callback added the event, and got pp and exp from the effects job; edited that result (notes; bad mods got the validation error); players, agents (token shown on demand) and a tracklist sync preview of a file made from the DB (1,108 tracks, no errors) |
+| Ingestion (W1, W2, W7) | **Built, not merged** (PR #45, see "What the ingestion did"). `packages/ingest` serves piu-spy's endpoints (screen and manual modes) and the public `/agent/:id/lastPlayers/`, with the pipeline in `packages/core/src/ingestion/`; the admin purgatory recheck uses it instead of Python. Ingest tests pass (21), API tests pass. The shadow validation (below) ran against the dev DB (a fresh copy of prod) with the legacy Python backend running locally: same answers for every screen except the cases listed there, all of them known Python crashes. Nothing points piu-spy at it yet: that's the cutover (W12) |
+| Telegram bot (W9–W11) | **Built, not merged** (PR #45, see "What the bot did"). A grammY bot platform with plugins for every legacy feature but event stats, plus tournament posts and health alerts. Bot tests pass (35). It runs Telegram only with `TELEGRAM_BOT_TOKEN`, which prod's `shared/bot.env` doesn't have, so merging changes nothing until the bot cutover |
+| Cutover, decommission (W12) | Not started (see "Next") |
 
 ### What P1.2 did
 
@@ -442,20 +442,197 @@ desktop tool features" is there, apart from the gaps listed at the end.
     leaderboard and pp don't look at it (unchanged; as before).
   - The dead `players.stat_top_*` counters aren't shown.
 
+### What the ingestion did (W1, W2, W7)
+
+- **Where**: the pipeline is in `packages/core/src/ingestion/`, since the API's purgatory
+  recheck uses it too:
+  - `validateResult.ts`: the legacy `validateResult`, with the checks in the same order, so
+    a result fails with the same reason.
+  - `players.ts`, `tracks.ts`: the resolvers (Levenshtein through `fastest-levenshtein`,
+    the legacy track name normalization, each name's own tolerance).
+  - `millionScoring.ts`, `comboScoring.ts`, `mods.ts`: the validators.
+  - `storeResult.ts`: de-duplication and merge, learning the chart's number of steps, and
+    the `resultAdded` event, in one transaction.
+  - `purgatory.ts`: add and recheck.
+
+  `packages/ingest/src` holds the service: `legacy.ts` (the calling conventions),
+  `results.ts` (splitting a screen, XX glitches, submit / validate), `status.ts` (A6),
+  `uploads.ts` (A7, A8) and `app.ts` (the routes, plus C6).
+- **Wire-compatible**: the same paths (`/status`, `POST` / `GET /upload`,
+  `/results/{screen,manual}/{submit,validate}`, `/agent/:id/lastPlayers/`), headers,
+  multipart `file` field (whose name keeps its folders), answers and messages. Every agent
+  call answers 200, and an error is `{"error": "<message>"}`: the message where Python sent
+  its traceback, but piu-spy only looks for the key. Requests over 512 KB get a 413, like
+  Flask's limit.
+- **Datetimes**: `gained` and `added` stay naive `YYYY-MM-DD HH:MM:SS` strings end to end
+  (`added` is the UTC time, as Python wrote it), never JS Dates: the host runs
+  Europe/Berlin with DST, and mysql2 would shift local-time Dates.
+- **Not ported, as agreed**: the stream (A2) and test (A4) modes. Their paths aren't
+  served by ingest, so they keep working on Python until it stops.
+- **On purpose different from Python** (found reading the code, and in the shadow run):
+  - A result from before Phoenix without all its step stats: Python fails the whole
+    request (it sums `None`s), so the screen's other side is lost too. TS sends it to
+    purgatory as "Result with no stats". Same for a million-scoring result without a max
+    combo (Python fails comparing `None`).
+  - "Ambiguous chart" (two matched tracks both have the label): Python fails on an
+    undefined variable; TS sends it to purgatory with that reason.
+  - Manual merge: the legacy code meant to skip same-score results with different stats,
+    but its check never skipped any (a `continue` of the inner loop), so it always merged
+    into the closest result in time. TS skips them and adds a new result.
+  - A purgatory reason longer than the column (512) is cut instead of failing the insert.
+  - Report lines print changed values as plain strings (Python printed
+    `datetime.datetime(…)`).
+- **Phoenix mods**: `core/scoring/mods.ts` has the million-scoring list too (no VJ or
+  BGAOFF; `PASS`, `PASS_G`, `PASS_M`). The admin result edit now checks Phoenix and later
+  results against it: with the XX list (Python's B7 used it too) it rejected the mods of
+  the 6.6k results that have a `PASS_*` option.
+- **Purgatory recheck**: `services/admin/purgatory.ts` calls core's `recheckPurgatory`
+  instead of Python. A row that's valid now is deleted and stored in one transaction,
+  with its event. An added row's outcome has its status (added, or merged into result
+  #N). `LEGACY_API_URL` is gone.
+- **Shadow validation** (`packages/ingest/scripts/shadowValidate.ts`): sends the same screens
+  to the legacy API's and ingest's `/results/screen/validate` (both side-effect free) and
+  prints the answers that differ; the report lines aren't compared. The screens come
+  from piu-spy's scan JSONs (the uploads) and / or, with `--from-db N [--mix X]`, from
+  result and purgatory rows rebuilt as screens, each also sent with 21 deliberate
+  mistakes (score, stats, grade, plate, pass, mods, player and track typos, labels, UCS,
+  an empty score, a later time). Run on 2026-10-01 against the dev DB (the prod copy of
+  2026-09-30), with Python running locally:
+
+  | Newest results of | Screens | Same answer | Different |
+  |---|---|---|---|
+  | XX (400) | 9,108 | 8,548 | 560: all XX results without full stats ("Result with no stats" vs Python's `TypeError`) |
+  | Phoenix (400) | 9,108 | 9,108 | 0 |
+  | Phoenix 2 (412, all of them) | 9,372 | 9,372 | 0 |
+
+  Each run also included the 14 purgatory rows (with their variants).
+
+  It hasn't run on real uploads yet: the prod files weren't copied to the dev machine.
+  Run it on the server before the cutover (see "Next").
+- **Deploy**: besides `/healthz`, `deploy-service.sh` checks that ingest's validate turns
+  a call without an agent down. Uploads need `UPLOADS_ROOT` in `shared/ingest.env`
+  (`/home/piutop/uploads` on prod); everything else works without it.
+- **Tests** (`packages/ingest/src/test/`): `results.test.ts` (14) and `agents.test.ts` (7).
+  They cover the message of every validation step, de-duplication and merge, manual mode,
+  XX glitches, purgatory, validate writing nothing, the heartbeat, uploads and
+  lastPlayers. The API's purgatory tests recheck for real now, without the fake Python
+  server.
+- **Not ported one to one**: piu-top's integration tests. They're outdated: they expect
+  messages the current Python doesn't produce, and check the dropped best-score tables.
+  Their scenarios are in the ingest tests (adding results, XX / Phoenix validation, VJ
+  rank mode); result and player edits are admin procedures now.
+
+### What the bot did (W9–W11)
+
+- **Platform** (`packages/bot/src/platform/`), grammY with long polling:
+  - **Plugin contract** (`types.ts`): commands (usable as `/cmd` or as the first word
+    of a text, with aliases), buttons with `plugin:action:arg` data, interval jobs, and
+    handlers for events from the `events` table.
+  - **Sending** goes through a `Sender` interface, so tests use a fake one. The
+    Telegram sender is a queue with a 50 ms gap, retries once on 429, splits messages
+    over 4000 characters at line breaks, and logs send errors (a user who blocked the
+    bot) instead of failing.
+  - **Command errors**: the user gets "Exception: … Please report @admin". An unlinked
+    chat gets a "write hi" reply instead.
+  - **A failing job** tells the admin once, then pauses 10 minutes, doubling up to 6
+    hours. When it works again, the admin hears that too.
+  - **Events** come from the `bot` consumer. On its first start the cursor is set to the
+    newest event, so nothing is replayed. Events older than 30 minutes are skipped
+    (after downtime). Each plugin's handler runs on its own: when one fails, the admin
+    is told and the others aren't run again.
+  - **State**: plugin state is in a new `bot_state` table (migration
+    `20261001000000_add_bot_state`: plugin, key, JSON value). It replaces `bot.json` and
+    the pickle file.
+  - **Preferences** stay in the versioned `players.telegram_bot_preferences` JSON, with
+    the legacy updaters, so the stored ones keep working.
+  - **Without `TELEGRAM_BOT_TOKEN`** only `/healthz` runs.
+- **Plugins** (`packages/bot/src/plugins/`):
+  - `account`: `/register`, `hi`, `hello`; C3 in-process.
+  - `rivals`: a `resultAdded` event for a player's new best on a chart (highest phoenix
+    score, the earliest of equal ones, per rank mode, not hidden) runs the legacy
+    notification rules and texts against the other visible players' bests. Charts are
+    shown as on Phoenix 2, and charts without a level are skipped, as in the legacy
+    feed. The settings commands are ported, with the admin-only `rivals test N name`.
+  - `locations`: the 60 s monitor, with its state in `bot_state`, so a restart doesn't
+    lose it. The `/locations` dialog uses C6 in-process (`core/src/agents/activity.ts`,
+    which ingest's public route uses too).
+  - `kasa`: the TP-Link cloud through fetch, with the same 5 minute debounce and
+    messages. On with all three `TRACKED_KASA_*`.
+  - `health` (new): tells the admin when `INGEST_HEALTH_URL` or `API_HEALTH_URL` fails
+    twice in a row, and when it's back.
+  - `tournaments` (W11): the tournaments job adds `tournamentStarted` /
+    `tournamentEnded` events in its transactions (`lifecycle.ts`). The plugin posts
+    each bracket's pool, with every mix's label and the bracket's players as @tag or
+    nickname, when a tournament starts, and the podiums when it ends. On with
+    `TOURNAMENTS_CHANNEL_ID`.
+- **Env** (`packages/bot/.env.example`, prod `shared/bot.env`): `TELEGRAM_BOT_TOKEN`,
+  `TELEGRAM_ADMIN_ID`, `TELEGRAM_ADMIN_NICKNAME`, `TOURNAMENTS_CHANNEL_ID`,
+  `TRACKED_LOCATION_NAME`, `TRACKED_LOCATION_REPORT_TO_USERS`, `TRACKED_KASA_*`,
+  `INGEST_HEALTH_URL` (`http://127.0.0.1:3002/healthz`) and `API_HEALTH_URL`
+  (`https://api.pumpking.top:3001/healthz`). All but the last two take the values of
+  piu-top's `run_rivals_bot_stage.sh`; the token is its `--tg-token`.
+- **Different from the legacy bot**:
+  - Event stats is dropped, as agreed; the unknown-text reply lists the commands.
+  - `rivals add` takes the rest of the text, so nicknames with spaces work.
+  - `/locations` also works for chats that aren't linked (in English).
+  - A null pp counts as 0, and a missing `TRACKED_LOCATION_NAME` no longer stops the
+    locations job.
+  - The buttons of old `/locations` messages (`location_…` data) don't work any more.
+- **Same as the legacy bot, on purpose**: every linked player gets the message about
+  their own new best, even with rivals tracking off.
+- **Retention**: while the bot runs, its cursor holds back the deletion of old events,
+  like every consumer's. If the bot is retired, remove its `event_cursors` row.
+- **Tests** (`packages/bot/src/test/`, 35): preferences migration, account link, the
+  rivals rules on a seeded chart (beating, equal, the closest rival, levels,
+  trackInferior), location state changes, tournament posts from events, the cursor
+  starting at the newest event, stale events. Not tried against real Telegram or
+  TP-Link: no token or credentials were used.
+
 ### Next
 
-1. **Before merging**, add `LEGACY_API_URL=http://127.0.0.1:5001` to
-   `~/pumpking/shared/api.env` on the server (gunicorn listens there;
-   checked 2026-09-30). Without it everything works except rechecks (503).
-2. **Merge PR #44.** No migration. The API deploy and GitHub Pages pick it
-   up; the lockfile changed (new web dependency), so ingest and bot redeploy
-   too. Afterwards on prod, as an admin: open a purgatory row (its video
-   loads through the cross-origin file fetch), recheck it, and check the
-   Activity log.
-3. **Retire the desktop tool** once the admins have used the web admin for a
-   while (W12). It keeps working meanwhile: nothing it uses changed.
-4. The other tracks: W1 → W2 → W7 (ingestion; W7 then replaces the Python
-   recheck call in `services/admin/purgatory.ts`), W9 → W10 (bot).
+1. **Before merging**, add `UPLOADS_ROOT=/home/piutop/uploads` to
+   `~/pumpking/shared/ingest.env`. `LEGACY_API_URL` in `shared/api.env` isn't used any
+   more and can go.
+2. **Merge PR #45.** One additive migration (`bot_state`), so the migration guard runs.
+   Every service redeploys (core and the lockfile changed). Nothing changes for users:
+   piu-spy still posts to Python, and the bot has no token. Afterwards on prod: the
+   ingest deploy's smoke test passed, and an admin purgatory recheck works (now without
+   Python).
+3. **Shadow validation on the server**, against the real uploads (both services use the
+   prod DB, and validate writes nothing):
+
+   ```
+   cd ~/pumpking/ingest/packages/ingest
+   npx tsx scripts/shadowValidate.ts --legacy http://127.0.0.1:5001 --ingest http://127.0.0.1:3002 \
+     $(find ~/uploads -name '*.json' -newermt 2026-09-01)
+   ```
+
+   Only the differences listed in "What the ingestion did" are expected.
+4. **Ingestion cutover** (W12). In nginx's `api.pumpking.top` server (`:5000`), send the
+   ported paths to ingest, next to the existing `location /`:
+
+   ```
+   location ~ ^/(status|upload|results/(screen|manual)/(submit|validate)|agent/[0-9]+/lastPlayers/?)$ {
+       proxy_pass http://127.0.0.1:3002;
+       proxy_set_header Host $host;
+       proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+   }
+   ```
+
+   Then `sudo nginx -t && sudo systemctl reload nginx`. nginx's default body limit (1 MB)
+   is above ingest's 512 KB. Watch `pm2 logs pumpking-ingest`, new results, and
+   purgatory. To roll back, remove the location and reload. owjibot calls
+   `/agent/:id/lastPlayers/` on `:5000`, so it moves along with it.
+5. **Bot cutover**: `pm2 stop rivals-bot && pm2 save` (a token allows one long-polling
+   bot), put the env above into `~/pumpking/shared/bot.env`, `pm2 reload pumpking-bot`,
+   then check with `hi` and `/rivals` in Telegram. To roll back: remove
+   `TELEGRAM_BOT_TOKEN`, reload pumpking-bot, `pm2 start rivals-bot`.
+6. **Decommission** (W12), once both have run on TS for a while:
+   - retire the desktop tool (it still uses Python's admin endpoints);
+   - stop `pumpking-python-backend`, then drop the REST `result-added-effect` route
+     that its callback calls;
+   - remove `rivals-bot` from pm2;
+   - archive piu-top, and remove the legacy mentions from `CLAUDE.md`.
 
 ## Target architecture overview
 
@@ -762,8 +939,10 @@ diffs a local tracklist JSON against B17 and pushes changes through B18–B20.
 | Legacy piece | TS counterpart | Gap |
 |---|---|---|
 | Post-insert effects | `POST /results/result-added-effect/:id` (REST, called by Python) | Since P3 it only enqueues a `resultAdded` event, which the effects job processes (see "What P3 did"). W12 drops the route once Python ingestion is gone |
-| Group B (admin) | `admin.*` tRPC procedures and the web admin (see "What the web admin did") | Purgatory recheck (B10, B11) still calls Python until W7 |
-| A3 manual submit | `results.addResultMutation` + `recognizeScoreMutation` (web manual add) | Different flow: the web user picks the chart; no agent, no fuzzy matching. Decide whether agent-side manual mode is still needed |
+| Group A (piu-spy) | `packages/ingest` (see "What the ingestion did") | Stream (A2) and test (A4) modes not ported; piu-spy still posts to Python until the nginx flip |
+| Group B (admin) | `admin.*` tRPC procedures and the web admin (see "What the web admin did") | None; the desktop tool still uses Python's endpoints until it's retired |
+| Group C (Telegram) | `packages/bot` (see "What the bot did"); C6 also on ingest | The bot runs only once it has the token |
+| A3 manual submit | `results.addResultMutation` + `recognizeScoreMutation` (web manual add), and ingest's `/results/manual/submit` for agents | — |
 | B21 downloads (for the web) | `GET /results/:id/screenshot` (incl. mp4 first frame); for admins, `GET /admin/files/:source/:id/:kind` and the Files tab (W3) | None for results and purgatory rows |
 
 ## Dead or broken on the legacy side (don't port)
@@ -1057,21 +1236,21 @@ including testing. The Priority column is left for triage.
 | P3 | Events + effects worker | **Deployed** (see "What P3 did"). `events` table and producer helper in `core`; effects worker with a cursor in the API process; `result-added-effect` REST route enqueues instead of running inline; make effects safe to replay | S–M | P1 | |
 | P4 | Drop `results_best_grade` | **Deployed** in two steps (see "What P4a did", "What P4b did"): (a) stop using it, drop its foreign keys; (b) drop the table. Remove it from `resultAddedEffect`, `deleteResult`, tests and seeds; drop-table migration; regenerate types | S | Nothing (Python B8 is already broken; the table is never read) | |
 | **Ingestion track** | | | | | |
-| W1 | Ingestion foundations | Legacy REST scaffold in `packages/ingest` (body + query arg merge, Flask-compatible responses and error shapes), agent-header auth, mix / grade / mods constants in `core`, Levenshtein util | S–M | P1, P2; needed by W2, W7 | |
-| W2 | Agent heartbeat and uploads | A6, A7, A8 | S | Keep the `<agent>/<path>` layout under the shared uploads directory | |
-| W7 | Result ingestion pipeline | A1, A3, A5 for screen and manual (stream A2 and test A4 deferred) | **L** | Highest risk. Sub-steps: player / track / chart resolvers → combo + million validators, mods, rank mode → XX quirks → dedup / merge → persist the complete result row + `resultAdded` event in one transaction → purgatory write. Shadow-validate before cutover | |
+| W1 | Ingestion foundations | **Built** (PR #45, see "What the ingestion did"). Legacy REST scaffold in `packages/ingest` (body + query arg merge, Flask-compatible responses and error shapes), agent-header auth, mix / grade / mods constants in `core`, Levenshtein util | S–M | P1, P2; needed by W2, W7 | |
+| W2 | Agent heartbeat and uploads | **Built** (PR #45). A6, A7, A8 | S | Keep the `<agent>/<path>` layout under the shared uploads directory | |
+| W7 | Result ingestion pipeline | **Built** (PR #45), shadow-validated on the dev DB; the purgatory recheck uses it. A1, A3, A5 for screen and manual (stream A2 and test A4 deferred) | **L** | Highest risk. Sub-steps: player / track / chart resolvers → combo + million validators, mods, rank mode → XX quirks → dedup / merge → persist the complete result row + `resultAdded` event in one transaction → purgatory write. Shadow-validate before cutover | |
 | **Web admin track** | | | | | |
-| W3 | Admin shell | **Built** (PR #44, see "What the web admin did"). `/admin` section, `is_admin` guard, tabs, activity log, file viewer (replaces B21) | S–M | Nothing | |
-| W4 | Admin: tracks and charts | **Built** (PR #44). B13–B20, tracklist sync as a dialog | M | W3 | |
-| W5 | Admin: players and agents | **Built** (PR #44). B1–B5, token rotation | M | W3 | |
-| W6 | Admin: results | **Built** (PR #44). B6–B8, player / track search, recalculation through `resultChanged` events | M | W3 | |
-| W8 | Admin: purgatory | **Built** (PR #44), except that the recheck calls Python until W7. B9–B12, reason-field highlighting and links, edit + recheck | M | W3; W7 to drop the Python call | |
+| W3 | Admin shell | **Deployed** (PR #44, see "What the web admin did"). `/admin` section, `is_admin` guard, tabs, activity log, file viewer (replaces B21) | S–M | Nothing | |
+| W4 | Admin: tracks and charts | **Deployed** (PR #44). B13–B20, tracklist sync as a dialog | M | W3 | |
+| W5 | Admin: players and agents | **Deployed** (PR #44). B1–B5, token rotation | M | W3 | |
+| W6 | Admin: results | **Deployed** (PR #44). B6–B8, player / track search, recalculation through `resultChanged` events | M | W3 | |
+| W8 | Admin: purgatory | **Built** (PR #44); the recheck runs in TS since PR #45. B9–B12, reason-field highlighting and links, edit + recheck | M | W3; W7 to drop the Python call | |
 | **Telegram track** | | | | | |
-| W9 | Bot platform | `packages/bot`: grammY runner, plugin contract, state and preferences storage, events cursor, jobs, error reporting, health alerts for ingestion / API | M–L | P1, P2; P3 for events | |
-| W10 | Port bot features | Plugins: account link, rivals notifications + settings (best-results logic from C2), location monitoring + dialog, heater (Kasa). Event stats is dropped; owjibot stays as is for now | M–L | W9; rivals uses `resultAdded` events (produced since P3, even while Python ingests) | |
-| W11 | New notifications | Tournament start / end first (the removed legacy bot command posted bracket announcements to a tournaments channel, configured as `TOURNAMENTS_CHANNEL_ID`; that channel can be reused), more later | S each | W9; tournaments creation job (tournaments plan M5) | |
+| W9 | Bot platform | **Built** (PR #45, see "What the bot did"). `packages/bot`: grammY runner, plugin contract, state and preferences storage, events cursor, jobs, error reporting, health alerts for ingestion / API | M–L | P1, P2; P3 for events | |
+| W10 | Port bot features | **Built** (PR #45). Plugins: account link, rivals notifications + settings (best-results logic from C2), location monitoring + dialog, heater (Kasa). Event stats is dropped; owjibot stays as is for now | M–L | W9; rivals uses `resultAdded` events (produced since P3, even while Python ingests) | |
+| W11 | New notifications | **Built** (PR #45): tournament start / end posts. Tournament start / end first (the removed legacy bot command posted bracket announcements to a tournaments channel, configured as `TOURNAMENTS_CHANNEL_ID`; that channel can be reused), more later | S each | W9; tournaments creation job (tournaments plan M5) | |
 | **Wrap-up** | | | | | |
-| W12 | Cutover and decommission | Proxy flip or agent update for ingestion, retire the desktop tool once the web admin matches it, stop the Python bot, serve C6 (`/agent/:id/lastPlayers/`) from TS so owjibot keeps working (or port owjibot), clean up dead client calls, drop the REST `result-added-effect` route, stop Flask, archive piu-top, remove the legacy mention from `CLAUDE.md` | S | Last, per track | |
+| W12 | Cutover and decommission | Serving C6 from TS is **built** (PR #45); the rest is in "Next". Proxy flip or agent update for ingestion, retire the desktop tool once the web admin matches it, stop the Python bot, serve C6 (`/agent/:id/lastPlayers/`) from TS so owjibot keeps working (or port owjibot), clean up dead client calls, drop the REST `result-added-effect` route, stop Flask, archive piu-top, remove the legacy mention from `CLAUDE.md` | S | Last, per track | |
 
 Suggested order per track (the tracks can run in parallel once P1 and P2 are
 done):
