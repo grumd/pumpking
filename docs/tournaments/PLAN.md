@@ -1,7 +1,8 @@
 # Monthly Tournaments — Relaunch Plan (shared cross-mix pool)
 
 Status: design decisions finalized 2026-09-29 · M1 (ID moved to
-`shared_charts`) done · no tournament code written yet
+`shared_charts`) and M2 (legacy tables parked, v2 tables created) done · no
+tournament code written yet
 
 ## Summary
 
@@ -549,7 +550,8 @@ The legacy tables are shaped for a per-mix system with a voting window and
 mostly-NULL columns. Rather than adding nullable columns to them and teaching
 the new code to tolerate legacy states, we **clear and rebuild**.
 
-**Migration A — clear** (`..._park_legacy_tournaments`): rename the old tables
+**Migration A — clear** (`20260930000000_park_legacy_tournaments`): rename the
+old tables
 aside instead of deleting, so the "clear" is reversible and 6 years of history
 stay queryable:
 
@@ -568,7 +570,24 @@ first new one ends (it never showed the legacy ones anyway), and the retired
 piu-top job, if it still fires, errors on a missing table instead of writing —
 see the cutover order.
 
-**Migration B — create** (`..._init_tournaments_v2`), clean design:
+Verified on a scratch database built from the migration chain (2026-09-30),
+with legacy rows present (2 tournaments + brackets + pool rows, the shape prod
+has):
+
+- The rename is one atomic `RENAME TABLE`, and **InnoDB re-points the FKs
+  between the three tables at the new names** — after the swap,
+  `tournament_brackets_legacy_2026` still references `tournaments_legacy_2026`,
+  an insert against the parked parent is accepted and an orphan is still
+  rejected. Renaming only one of them would be safe for the same reason, but
+  they move together anyway.
+- Rows survive the swap and the whole up/down round trip (`up` → `down` → `up`
+  leaves the history under the original names, with the original constraint
+  names).
+- `up` checks `information_schema` and no-ops when the tables are already
+  parked, but **throws** when neither name exists or when a target is taken — a
+  half-parked database is a state worth failing on, not one to guess about.
+
+**Migration B — create** (`20260930010000_init_tournaments_v2`), clean design:
 
 ```sql
 CREATE TABLE tournaments (
@@ -626,8 +645,25 @@ Notes:
   truth per concept, and it makes the manual pool fix obvious.
 - Migrations follow the house style (kysely schema builder, named PK/FK
   constraints, `onDelete cascade`, see `migrations/20240111021047_init_pp_history.ts`).
-- Regenerate `src/types/database.ts` after both migrations (it is currently
-  hand-patched — a full regen will also pull the tournament table changes).
+- `shared_chart_id` is the one FK **without** cascade (RESTRICT, like the other
+  `shared_charts` references in this schema): deleting a chart that is in a
+  published pool must fail loudly instead of silently shrinking the pool.
+- The plan's `KEY ix_bracket (bracket_id)` is not written explicitly: MySQL
+  creates an index for every FK column, and on `tournament_charts` the
+  `(bracket_id, shared_chart_id)` pool key already covers `bracket_id`.
+- The same scratch database confirms the constraints the services will rely
+  on: one tournament per `start_date`, one bracket per `(tournament, code)`,
+  no repeated chart in a pool, `state` rejects the legacy values (`Draft`,
+  `ChartPoolVoting`) and defaults to `Live`, and deleting a tournament cascades
+  its brackets, pool and assignments while the parked history is untouched.
+- `src/types/database.ts` is regenerated after both migrations. Two blocks are
+  **hand-patched** and marked `HAND-PATCHED` in the file (a VIEW codegen does
+  not introspect, and the JSON column typed with the app's own interface) —
+  re-apply them after any regen. The regen also made two columns truthful, both
+  unused by code: `chart_instances.interpolated_difficulty` is back in the types
+  (the column still exists until the held-back drop migration ships) and
+  `players.openai_cost` is nullable, which is what that stored generated column
+  actually is.
 - M7 adds `tournament_results` and M9 adds `player_notices` as separate
   migrations; the launch is not blocked on either.
 
@@ -717,6 +753,13 @@ live and will fire again on **1 Oct 2026**. Either the legacy tournament code is
 gone before then, or we expect one more legacy Phoenix-only tournament (or, if
 migration A already renamed the tables, one errored job run).
 
+**What M2 merging decides (2026-09-30):** merging M2 runs migration A on prod,
+and from that moment the legacy cron cannot create a tournament any more. If M2
+reaches prod before M6, **October has no tournament at all** — not a legacy one,
+and the new creation job does not exist until M3/M5. Merge M6 first if October
+should still have a legacy tournament; otherwise the errored run above is the
+accepted outcome and M2 can merge now.
+
 Database: no drops of tournament data — migration A parks the old rows in
 `_legacy_2026` tables. The new tables are fresh; nothing is backfilled into them.
 
@@ -747,7 +790,7 @@ process) so the cron removal actually stops tournament creation.
 |---|---|---|
 | M0 | ~~Review this doc, confirm open decisions~~ — **done 2026-09-28/29** (re-reviewed 2026-09-29 against prod data: ladder pools, minimal eligibility, fresh tables, date convention) | — |
 | M1 | ~~ID storage~~ — **done 2026-09-29** (ID moved to `shared_charts`: one value per chart, 5,372 charts backfilled with 0 conflicts, no NULL ID left among the 3,117 pool charts; all readers moved off `chart_instances`, whose copy is dropped by the following migration; 3 tests; also fixes the un-awaited update loops) | — |
-| M2 | Migrations A + B (park legacy tables, create the 4 clean tables); regenerate `database.ts`. Bracket sizes were measured beforehand with a throwaway query (not committed — see "Indicative bracket sizes") | 0.5 d |
+| M2 | ~~Migrations A + B~~ — **done 2026-09-30** (`20260930000000_park_legacy_tournaments` + `20260930010000_init_tournaments_v2`, verified up/down/up with legacy rows, `database.ts` regenerated). Bracket sizes were measured beforehand with a throwaway query (not committed — see "Indicative bracket sizes") | — |
 | M3 | Backend: eligibility predicate as one shared SQL fragment; skill service (5th-highest 950k+ level → bracket range); ladder pool drawer; tournament creation job (1st, env-gated, `timezone: 'Europe/Warsaw'`); state-transition job (Ended on 25th); scoring/leaderboard service (top 3 of 6); tRPC router; Mocha tests on a seeded 3-mix scenario (XX `score_phoenix` normalization, approximate-date exclusion, HJ result included, unrated → Easy, the worked skill-rule examples, ladder composition per bracket, top-3-of-6, tie sharing) | 3 d |
 | M4 | Web: tournament page (pool with per-mix labels, bracket leaderboards, my progress incl. which 3 count, past list) + nav link | 2–3 d |
 | M5 | Enable creation job; first live month; watch participation per bracket | 0.5 d |
