@@ -71,7 +71,6 @@ export interface ChartInstances {
   min_total_steps: number | null;
   max_possible_score_norank: number | null;
   max_possible_score_norank_from_result: number | null;
-  interpolated_difficulty: number | null;
   type: 'D' | 'S' | null;
 }
 
