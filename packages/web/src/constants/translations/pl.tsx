@@ -306,5 +306,5 @@ export const pl: BaseTranslation = {
   VALIDATION_NICKNAME_REQUIRED: 'Tag gracza jest wymagany',
   VALIDATION_NICKNAME_MIN: 'Tag gracza musi mieć co najmniej 2 znaki',
   VALIDATION_NICKNAME_MAX: 'Tag gracza może mieć maksymalnie 32 znaki',
-  VALIDATION_ARCADE_NAME_MAX: 'Nazwa AMPASS może mieć maksymalnie 64 znaki',
+  VALIDATION_ARCADE_NAME_MAX: 'Nazwa AMPASS może mieć maksymalnie 20 znaków',
 };

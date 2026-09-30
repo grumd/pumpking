@@ -298,5 +298,5 @@ export const ua = {
   VALIDATION_NICKNAME_REQUIRED: "Нікнейм обов'язковий",
   VALIDATION_NICKNAME_MIN: 'Нікнейм повинен містити мінімум 2 символи',
   VALIDATION_NICKNAME_MAX: 'Нікнейм повинен містити максимум 32 символи',
-  VALIDATION_ARCADE_NAME_MAX: "Ім'я в аркаді повинно містити максимум 64 символи",
+  VALIDATION_ARCADE_NAME_MAX: "Ім'я в аркаді повинно містити максимум 20 символів",
 } satisfies BaseTranslation;

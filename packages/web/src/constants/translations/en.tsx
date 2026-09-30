@@ -326,7 +326,7 @@ export const en = {
   VALIDATION_NICKNAME_REQUIRED: 'Nickname is required',
   VALIDATION_NICKNAME_MIN: 'Nickname must be at least 2 characters',
   VALIDATION_NICKNAME_MAX: 'Nickname must be at most 32 characters',
-  VALIDATION_ARCADE_NAME_MAX: 'Arcade name must be at most 64 characters',
+  VALIDATION_ARCADE_NAME_MAX: 'Arcade name must be at most 20 characters',
   // Using "any" is totally okay in "satisfies" assertions
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
 } satisfies Record<string, React.ReactNode | ((...args: any[]) => React.ReactNode)>;

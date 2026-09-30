@@ -137,12 +137,6 @@ export interface Operators {
   token: string;
 }
 
-export interface PhoenixTrackNames {
-  track: number;
-  name: string;
-  max_edit_distance: Generated<number>;
-}
-
 export interface PlayerNotices {
   player_id: number;
   scope: string;
@@ -162,10 +156,6 @@ export interface PlayerPreferencesJson {
 export interface Players {
   id: Generated<number>;
   nickname: string;
-  arcade_xx_name: string | null;
-  arcade_xx_name_edist: Generated<number | null>;
-  arcade_phoenix_name: string | null;
-  arcade_phoenix_name_edist: Generated<number | null>;
   email: string | null;
   region: string | null;
   hidden: Generated<number>;
@@ -183,7 +173,6 @@ export interface Players {
   pp: number | null;
   is_admin: Generated<number | null>;
   can_add_results_manually: Generated<number | null>;
-  arcade_name: string | null;
   exp: Decimal | null;
   openai_prompt_tokens: Generated<number>;
   openai_completion_tokens: Generated<number>;
@@ -410,7 +399,6 @@ export interface DB {
   events: Events;
   mixes: Mixes;
   operators: Operators;
-  phoenix_track_names: PhoenixTrackNames;
   player_notices: PlayerNotices;
   players: Players;
   pp_history: PpHistory;

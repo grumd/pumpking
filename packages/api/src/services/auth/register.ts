@@ -1,4 +1,5 @@
 import crypto from 'crypto';
+import { mix as currentMix } from '@pumpking/core/constants/currentMix';
 import { db } from '@pumpking/core/db';
 import createDebug from 'debug';
 import { StatusError } from 'utils/errors';
@@ -47,18 +48,27 @@ export async function registerPlayer(input: RegisterInput): Promise<{ session: s
     throw new StatusError(409, 'This nickname is already taken');
   }
 
-  // Create new player
-  const result = await db
-    .insertInto('players')
-    .values({
-      nickname,
-      email,
-      region,
-      arcade_phoenix_name: arcadeName,
-    })
-    .executeTakeFirst();
+  // Create the player, with their arcade name on the current mix
+  const playerId = await db.transaction().execute(async (trx) => {
+    const result = await trx
+      .insertInto('players')
+      .values({ nickname, email, region })
+      .executeTakeFirstOrThrow();
+    const id = Number(result.insertId);
 
-  const playerId = Number(result.insertId);
+    if (arcadeName) {
+      await trx
+        .insertInto('arcade_player_names')
+        .values({
+          mix_id: currentMix,
+          player_id: id,
+          name: arcadeName.toUpperCase(),
+          name_edist: 1,
+        })
+        .execute();
+    }
+    return id;
+  });
 
   debug(`Created new player: ${nickname} (${playerId})`);
 
