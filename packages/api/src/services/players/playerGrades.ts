@@ -1,4 +1,4 @@
-import { Transaction, db } from 'db';
+import { Transaction, db } from '@pumpking/core/db';
 import { sql } from 'kysely';
 import { GradePhoenix, phoenixGradeOrder } from 'utils/scoring/grades';
 

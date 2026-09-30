@@ -1,4 +1,4 @@
-import { db } from 'db';
+import { db } from '@pumpking/core/db';
 import createDebug from 'debug';
 import type { Response, Request, NextFunction } from 'express';
 import { StatusError } from 'utils/errors';

@@ -1,4 +1,4 @@
-import { db, type Transaction } from 'db';
+import { db, type Transaction } from '@pumpking/core/db';
 import { sql } from 'kysely';
 
 export const NOTICE_SCOPES = ['tournament'] as const;

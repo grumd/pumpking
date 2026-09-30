@@ -17,7 +17,7 @@
     "test:api": "npm run test:trace --prefix packages/api",
     "clean": "rm -rf node_modules && rm -rf packages/*/node_modules",
     "prettier": "prettier --write \"packages/**/*.{js,jsx,ts,tsx}\"",
-    "ts": "npm run ts-check --prefix packages/api && npm run ts --prefix packages/web",
+    "ts": "npm run ts-check --prefix packages/core && npm run ts-check --prefix packages/api && npm run ts --prefix packages/web",
     "prepare": "husky",
     "commit": "cz"
   },

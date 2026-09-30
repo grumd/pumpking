@@ -1,5 +1,5 @@
 import { MIXES, MIX_NAMES } from 'constants/mixes';
-import { db } from 'db';
+import { db } from '@pumpking/core/db';
 import { sql } from 'kysely';
 import { recognizeScore } from 'services/results/recognizeScore';
 import { addResultProcedure } from 'trpc/trpc';

@@ -1,0 +1,16 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "lib": ["ES2022"],
+    "target": "ES2022",
+    "module": "CommonJS",
+    "rootDir": ".",
+    "composite": true,
+    "incremental": true,
+    "emitDeclarationOnly": true,
+    "declarationDir": "./types"
+  },
+  // Core uses relative imports only: tsx runs it with the importing service's tsconfig.
+  // Migrations aren't type-checked (they never were, and they only run once)
+  "include": ["./src/**/*.ts", "./scripts/**/*.ts"]
+}

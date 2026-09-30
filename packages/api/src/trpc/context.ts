@@ -1,5 +1,5 @@
 import { CreateExpressContextOptions } from '@trpc/server/adapters/express';
-import { db } from 'db';
+import { db } from '@pumpking/core/db';
 import createDebug from 'debug';
 
 const debug = createDebug('trpc:context');

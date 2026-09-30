@@ -1,5 +1,5 @@
 import { Grade } from 'constants/grades';
-import { db } from 'db';
+import { db } from '@pumpking/core/db';
 import _ from 'lodash/fp';
 import { addResultsSession, adminSession } from 'test/helpers/sessions';
 

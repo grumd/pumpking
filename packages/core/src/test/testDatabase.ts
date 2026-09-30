@@ -1,12 +1,11 @@
 import { exec, type ExecException } from 'child_process';
-import { config } from 'dotenv';
-
-config({ path: '.env' });
 
 import createDebug from 'debug';
 const debug = createDebug('backend-ts:test:database-setup');
 
-import { migrateToLatest } from './seeds/migration';
+import { db } from '../db';
+import { requireEnv } from '../env';
+import { createMigrator, migrateToLatest } from '../migrator';
 
 const runCommand = (command: string): Promise<string> => {
   return new Promise((res, rej) => {
@@ -25,23 +24,22 @@ const runCommand = (command: string): Promise<string> => {
   });
 };
 
-const { DB_DATABASE_TEST, DB_USERNAME, DB_PASSWORD } = process.env;
+const mysql = (query: string) =>
+  runCommand(
+    `mysql -u ${requireEnv('DB_USERNAME')} --password=${requireEnv('DB_PASSWORD')} -e "${query}"`
+  );
 
 export const createTestDatabase = async () => {
+  const DB_DATABASE_TEST = requireEnv('DB_DATABASE_TEST');
   debug('Creating test database');
-  await runCommand(
-    `mysql -u ${DB_USERNAME} --password=${DB_PASSWORD} -e "DROP DATABASE IF EXISTS ${DB_DATABASE_TEST}"`
-  );
-  await runCommand(
-    `mysql -u ${DB_USERNAME} --password=${DB_PASSWORD} -e "CREATE DATABASE ${DB_DATABASE_TEST}"`
-  );
+  await mysql(`DROP DATABASE IF EXISTS ${DB_DATABASE_TEST}`);
+  await mysql(`CREATE DATABASE ${DB_DATABASE_TEST}`);
   debug('Migrating test database');
-  await migrateToLatest();
+  await migrateToLatest(createMigrator(db));
 };
 
 export const deleteTestDatabase = async () => {
+  const DB_DATABASE_TEST = requireEnv('DB_DATABASE_TEST');
   debug('Deleting test database');
-  await runCommand(
-    `mysql -u ${DB_USERNAME} --password=${DB_PASSWORD} -e "DROP DATABASE IF EXISTS ${DB_DATABASE_TEST}"`
-  );
+  await mysql(`DROP DATABASE IF EXISTS ${DB_DATABASE_TEST}`);
 };

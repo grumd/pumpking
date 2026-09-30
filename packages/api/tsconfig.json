@@ -9,11 +9,9 @@
     ],
     "target": "ES2022",
     "module": "CommonJS",
-    "rootDir": "src",
     "baseUrl": ".",
     "paths": {
       "app": ["./src/app.ts"],
-      "db": ["./src/db.ts"],
       "envconfig": ["./src/envconfig.ts"],
       "constants/*": ["./src/constants/*"],
       "controllers/*": ["./src/controllers/*"],
@@ -25,7 +23,9 @@
       "trpc/*": ["./src/trpc/*"],
       "types/*": ["./src/types/*"],
       "utils": ["./src/utils/index.ts"],
-      "utils/*": ["./src/utils/*"]
+      "utils/*": ["./src/utils/*"],
+      // The API resolves like node10 (no "exports"), so point it at core's sources directly
+      "@pumpking/core/*": ["../core/src/*"]
     }
   },
   "include": [

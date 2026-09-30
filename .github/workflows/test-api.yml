@@ -4,7 +4,7 @@ on:
   workflow_call:
   pull_request:
     branches: ['master']
-    paths: ['packages/api/**']
+    paths: ['packages/api/**', 'packages/core/**']
 
 jobs:
   test_api:
@@ -24,18 +24,28 @@ jobs:
           cache: 'npm'
       - run: npm ci
 
-      - name: 'Create .env file'
+      - name: 'Create core .env file'
+        uses: iamsauravsharma/create-dotenv@v1.2.2
+        with:
+          file-name: '.env'
+          directory: 'packages/core'
+        env:
+          DB_DATABASE_TEST: test
+          DB_USERNAME: root
+          DB_PASSWORD: root
+
+      - name: 'Create API .env file'
         uses: iamsauravsharma/create-dotenv@v1.2.2
         with:
           file-name: '.env'
           directory: 'packages/api'
         env:
-          DB_DATABASE_TEST: test
-          DB_USERNAME: root
-          DB_PASSWORD: root
           SCREENSHOT_BASE_FOLDER: ~/test-screenshots
           SCREENSHOT_AGENT_BASE_FOLDER: ~/test-screenshots
           SCREENSHOT_FILE_PATH_DB: '{nickname}/{dateAdded}/{dateTimeAdded}.jpg'
+
+      - name: Type-check core
+        run: npm run ts-check --prefix packages/core
 
       - name: Type-check API
         run: npm run ts-check --prefix packages/api

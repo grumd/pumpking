@@ -1,6 +1,6 @@
 import { adminProcedure, router } from 'trpc/trpc';
 import { z } from 'zod';
-import { db } from 'db';
+import { db } from '@pumpking/core/db';
 import { deleteResult } from 'services/results/deleteResult';
 import { error } from 'utils';
 

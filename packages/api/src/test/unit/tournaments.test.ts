@@ -1,6 +1,6 @@
 import { assert } from 'chai';
 import { TOURNAMENT_BRACKETS } from 'constants/tournaments';
-import { db } from 'db';
+import { db } from '@pumpking/core/db';
 import { sql } from 'kysely';
 import { searchCharts } from 'services/charts/chartsSearch';
 import { getPlayersStats } from 'services/players/players';

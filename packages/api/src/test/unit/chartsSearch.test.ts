@@ -1,5 +1,5 @@
 import { assert } from 'chai';
-import { db } from 'db';
+import { db } from '@pumpking/core/db';
 import { searchCharts } from 'services/charts/chartsSearch';
 import { getResultDefaults } from 'test/seeds/initialSeed';
 

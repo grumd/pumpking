@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
   push:
     branches: ['master']
-    paths: ['packages/api/**', 'package-lock.json']
+    paths: ['packages/api/**', 'packages/core/**', 'package-lock.json']
 
 jobs:
   test:
@@ -17,6 +17,17 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      # Before touching the live directory: the DB config lives in core's .env
+      - name: Check server env files
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: api.pumpking.top
+          username: piutop
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            test -f ~/pumpking-deployment/packages/core/.env || { echo "packages/core/.env is missing"; exit 1; }
+            test -f ~/pumpking-deployment/packages/api/.env || { echo "packages/api/.env is missing"; exit 1; }
 
       - name: Deploy via rsync
         uses: burnett01/rsync-deployments@7.0.1
@@ -39,9 +50,9 @@ jobs:
             cd ~/pumpking-deployment
             echo "-- Installing dependencies"
             npm ci
-            cd ~/pumpking-deployment/packages/api
             echo "-- Running migrations"
-            npm run migrate:latest
+            npm run migrate:latest --prefix packages/core
+            cd ~/pumpking-deployment/packages/api
             echo "-- Restarting PM2"
             npm run pm2
             echo "-- Health check"

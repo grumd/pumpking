@@ -1,5 +1,5 @@
 import { MIXES } from 'constants/mixes';
-import { db } from 'db';
+import { db } from '@pumpking/core/db';
 import createDebug from 'debug';
 import fs from 'fs';
 import path from 'path';

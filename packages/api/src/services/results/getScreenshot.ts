@@ -1,7 +1,7 @@
 import path from 'path';
 import fs from 'fs';
 
-import { db } from 'db';
+import { db } from '@pumpking/core/db';
 
 import { StatusError } from 'utils/errors';
 
