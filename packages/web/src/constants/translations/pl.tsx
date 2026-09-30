@@ -275,6 +275,14 @@ export const pl: BaseTranslation = {
   TELEGRAM_TAG: 'Tag Telegram',
   TELEGRAM_ID: 'ID Telegram',
   HIDDEN_PLAYER: 'Ukryty gracz',
+  ADMIN: 'admin',
+  ADMIN_FILES: 'Pliki',
+  ADMIN_SCREEN_FILE: 'Zrzut ekranu',
+  ADMIN_SCAN_FILE: 'Skan JSON',
+  ADMIN_RESULT: 'Wynik',
+  ADMIN_PURGATORY: 'Czyściec',
+  ADMIN_OPEN: 'Otwórz',
+  DOWNLOAD: 'Pobierz',
 
   // Login / Registration
   SIGN_IN_WITH_DISCORD: 'Zaloguj się przez Discord',

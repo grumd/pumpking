@@ -22,6 +22,11 @@ export default defineConfig({
         target: 'http://localhost:3001',
         changeOrigin: true,
       },
+      // Admin file downloads (GET /admin/files/:source/:id/:kind)
+      '/admin/files': {
+        target: 'http://localhost:3001',
+        changeOrigin: true,
+      },
     },
   },
   build: {

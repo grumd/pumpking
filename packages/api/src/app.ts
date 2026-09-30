@@ -52,6 +52,8 @@ app.use(
     origin:
       process.env.NODE_ENV === 'development' ? 'http://localhost:3000' : 'https://pumpking.top',
     credentials: true,
+    // Lets the web read the file name of admin file downloads
+    exposedHeaders: ['Content-Disposition'],
     optionsSuccessStatus: 200, // some legacy browsers (IE11, various SmartTVs) choke on 204
   })
 );

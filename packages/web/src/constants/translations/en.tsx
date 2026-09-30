@@ -295,6 +295,14 @@ export const en = {
   TELEGRAM_TAG: 'Telegram tag',
   TELEGRAM_ID: 'Telegram ID',
   HIDDEN_PLAYER: 'Hidden player',
+  ADMIN: 'admin',
+  ADMIN_FILES: 'Files',
+  ADMIN_SCREEN_FILE: 'Screen file',
+  ADMIN_SCAN_FILE: 'Scan JSON',
+  ADMIN_RESULT: 'Result',
+  ADMIN_PURGATORY: 'Purgatory',
+  ADMIN_OPEN: 'Open',
+  DOWNLOAD: 'Download',
 
   // Login / Registration
   SIGN_IN_WITH_DISCORD: 'Sign in with Discord',
