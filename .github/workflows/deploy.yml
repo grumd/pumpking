@@ -1,16 +1,8 @@
 name: Deploy
 
-# Deploys the services that changed since their last deploy (the deployed/<service> tags):
-# tests → migration guard → release dir + prod migrations → one deploy per service, each
-# with its own health check and rollback. The web has its own workflow (GitHub Pages).
-# See "Build and release" and "Pipeline" in docs/python-api-migration/PLAN.md
+# Deploys the services that run on the production host (api, ingest, bot). The web has
+# its own workflow. See "What P2 did" in docs/python-api-migration/PLAN.md
 on:
-  workflow_dispatch:
-    inputs:
-      force:
-        description: Deploy every service, changed or not
-        type: boolean
-        default: false
   push:
     branches: ['master']
     paths:
@@ -23,131 +15,135 @@ on:
       - 'pm2.config.js'
       - 'deploy/**'
 
-# One deploy at a time; a newer push waits, and covers whatever an older one didn't deploy
 concurrency:
   group: deploy
-  cancel-in-progress: false
+
+# To move the deployed/<service> tags
+permissions:
+  contents: write
 
 jobs:
   changes:
     runs-on: ubuntu-latest
     outputs:
-      services: ${{ steps.detect.outputs.services }}
-      guard: ${{ steps.detect.outputs.guard }}
-
+      api: ${{ steps.filter.outputs.api }}
+      ingest: ${{ steps.filter.outputs.ingest }}
+      bot: ${{ steps.filter.outputs.bot }}
+      migrations: ${{ steps.filter.outputs.migrations }}
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
         with:
-          fetch-depth: 0
+          filters: |
+            shared: &shared
+              - 'packages/core/**'
+              - 'package.json'
+              - 'package-lock.json'
+              - 'pm2.config.js'
+              - 'deploy/**'
+            api:
+              - *shared
+              - 'packages/api/**'
+            ingest:
+              - *shared
+              - 'packages/ingest/**'
+            bot:
+              - *shared
+              - 'packages/bot/**'
+            migrations:
+              - 'packages/core/migrations/**'
 
-      - name: Detect changed services
-        id: detect
-        env:
-          FORCE: ${{ inputs.force }}
-        run: |
-          # What every service runs besides its own package
-          shared=(packages/core package.json package-lock.json pm2.config.js deploy)
-          services=()
-          guard=()
-          for service in api ingest bot; do
-            if ! deployed=$(git rev-parse -q --verify "refs/tags/deployed/$service^{commit}"); then
-              echo "$service: never deployed by this workflow"
-              services+=("$service")
-              continue
-            fi
-            if [ "$FORCE" = true ] || ! git diff --quiet "$deployed" HEAD -- "packages/$service" "${shared[@]}"; then
-              echo "$service: changed since ${deployed:0:8}"
-              services+=("$service")
-            fi
-            # The deployed code has to keep working on the new schema, until (and in case
-            # its deploy fails and rolls back) it's replaced
-            if ! git diff --quiet "$deployed" HEAD -- packages/core/migrations; then
-              echo "$service: migrations changed since ${deployed:0:8}"
-              guard+=("$(jq -cn --arg service "$service" --arg ref "$deployed" '$ARGS.named')")
-            fi
-          done
-          echo "services=$(jq -cn '$ARGS.positional' --args "${services[@]}")" >> "$GITHUB_OUTPUT"
-          echo "guard=$(jq -cs . <<<"${guard[*]}")" >> "$GITHUB_OUTPUT"
-
-  test:
-    needs: changes
-    if: needs.changes.outputs.services != '[]'
-    strategy:
-      fail-fast: false
-      matrix:
-        service: ${{ fromJSON(needs.changes.outputs.services) }}
+  test-api:
     uses: ./.github/workflows/test-service.yml
     with:
-      service: ${{ matrix.service }}
+      service: api
 
-  guard:
-    needs: changes
-    if: needs.changes.outputs.guard != '[]'
-    strategy:
-      fail-fast: false
-      matrix:
-        include: ${{ fromJSON(needs.changes.outputs.guard) }}
+  test-ingest:
     uses: ./.github/workflows/test-service.yml
     with:
-      service: ${{ matrix.service }}
-      ref: ${{ matrix.ref }}
-      migrations_ref: ${{ github.sha }}
+      service: ingest
+
+  test-bot:
+    uses: ./.github/workflows/test-service.yml
+    with:
+      service: bot
+
+  # Migration guard: the deployed services must keep working on the new schema, until
+  # they're redeployed (or if their deploy fails and they stay on the old release)
+  guard-api:
+    needs: changes
+    if: needs.changes.outputs.migrations == 'true'
+    uses: ./.github/workflows/test-service.yml
+    with:
+      service: api
+      ref: deployed/api
+      migrations_from: ${{ github.sha }}
+
+  guard-ingest:
+    needs: changes
+    if: needs.changes.outputs.migrations == 'true'
+    uses: ./.github/workflows/test-service.yml
+    with:
+      service: ingest
+      ref: deployed/ingest
+      migrations_from: ${{ github.sha }}
+
+  guard-bot:
+    needs: changes
+    if: needs.changes.outputs.migrations == 'true'
+    uses: ./.github/workflows/test-service.yml
+    with:
+      service: bot
+      ref: deployed/bot
+      migrations_from: ${{ github.sha }}
 
   release:
-    needs: [changes, test, guard]
-    if: >-
-      !cancelled() && needs.test.result == 'success' &&
-      (needs.guard.result == 'success' || needs.guard.result == 'skipped')
+    needs: [test-api, test-ingest, test-bot, guard-api, guard-ingest, guard-bot]
+    # Run when nothing failed: the guard jobs are skipped when no migrations changed
+    if: ${{ !failure() && !cancelled() }}
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - uses: ./.github/actions/ssh
+      - name: Upload the release
+        uses: burnett01/rsync-deployments@7.0.1
         with:
+          switches: -az --exclude='.git' --exclude='node_modules' --exclude='packages/web'
+          path: ./
+          remote_path: ~/pumpking/releases/${{ github.sha }}/
+          remote_host: api.pumpking.top
+          remote_user: piutop
+          remote_key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      - name: Install and migrate
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: api.pumpking.top
+          username: piutop
           key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: bash ~/pumpking/releases/${{ github.sha }}/deploy/release.sh ${{ github.sha }}
 
-      # Once per commit: a re-run, or a later deploy of the same commit, reuses it. The web
-      # isn't served from the host
-      - name: Upload and install releases/${{ github.sha }}
-        run: |
-          release=pumpking/releases/$GITHUB_SHA
-          if ssh pumpking "test -f $release/.release-ready"; then
-            echo "Already prepared"
-            exit 0
-          fi
-          ssh pumpking "mkdir -p pumpking/releases"
-          rsync -az --delete --exclude=.git --exclude=node_modules --exclude=packages/web ./ "pumpking:$release/"
-          ssh pumpking "bash $release/deploy/release.sh"
-
-      # Before any service switches to the release. Up to date is a no-op
-      - name: Migrate prod
-        run: ssh pumpking "cd pumpking/releases/$GITHUB_SHA && npm run migrate:latest --prefix packages/core"
-
-  deploy:
+  deploy-api:
     needs: [changes, release]
-    if: ${{ !cancelled() && needs.release.result == 'success' }}
-    name: deploy ${{ matrix.service }}
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    strategy:
-      fail-fast: false
-      matrix:
-        service: ${{ fromJSON(needs.changes.outputs.services) }}
+    if: ${{ !failure() && !cancelled() && needs.changes.outputs.api == 'true' }}
+    uses: ./.github/workflows/deploy-service.yml
+    with:
+      service: api
+    secrets: inherit
 
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+  deploy-ingest:
+    needs: [changes, release]
+    if: ${{ !failure() && !cancelled() && needs.changes.outputs.ingest == 'true' }}
+    uses: ./.github/workflows/deploy-service.yml
+    with:
+      service: ingest
+    secrets: inherit
 
-      - uses: ./.github/actions/ssh
-        with:
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-
-      - name: Switch ${{ matrix.service }} to the release
-        run: ssh pumpking "bash pumpking/releases/$GITHUB_SHA/deploy/activate.sh ${{ matrix.service }}"
-
-      - name: Tag deployed/${{ matrix.service }}
-        run: git push --force origin "$GITHUB_SHA:refs/tags/deployed/${{ matrix.service }}"
+  deploy-bot:
+    needs: [changes, release]
+    if: ${{ !failure() && !cancelled() && needs.changes.outputs.bot == 'true' }}
+    uses: ./.github/workflows/deploy-service.yml
+    with:
+      service: bot
+    secrets: inherit

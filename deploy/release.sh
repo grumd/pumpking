@@ -1,36 +1,31 @@
 #!/usr/bin/env bash
-# Prepares this release directory (~/pumpking/releases/<sha>) for the services: links the
-# shared env files in and installs the dependencies, then prunes old releases. Run over SSH
-# by the Deploy workflow, once per commit, before any service switches to it.
-# See "Build and release" in docs/python-api-migration/PLAN.md
+# Prepares a release that the Deploy workflow uploaded to ~/pumpking/releases/<sha>:
+# links the env files, installs dependencies and migrates the prod database.
+# Usage: release.sh <sha>
 set -euo pipefail
 
-release=$(cd "$(dirname "$0")/.." && pwd -P)
-root=$(dirname "$(dirname "$release")")
-cd "$release"
+cd ~/pumpking/releases/"$1"
 
-[ -f "$root/shared/core.env" ] || { echo "shared/core.env is missing"; exit 1; }
+# A re-run for the same commit: don't reinstall under a service that already runs it
+if [ -f .ready ]; then
+  echo "Already prepared"
+  exit 0
+fi
 
-# shared/<package>.env becomes packages/<package>/.env
-for env in "$root"/shared/*.env; do
-  package=$(basename "$env" .env)
-  if [ -d "packages/$package" ]; then
-    ln -sfn "$env" "packages/$package/.env"
-  else
-    echo "-- Skipping shared/$package.env: there's no packages/$package"
-  fi
-done
+ln -sfn ~/pumpking/shared/core.env packages/core/.env
+ln -sfn ~/pumpking/shared/api.env packages/api/.env
+ln -sfn ~/pumpking/shared/ingest.env packages/ingest/.env
+ln -sfn ~/pumpking/shared/bot.env packages/bot/.env
 
-echo "-- Installing dependencies"
-HUSKY=0 npm ci
-touch .release-ready
+npm ci
+npm run migrate:latest --prefix packages/core
+touch .ready
 
-# Keep the 5 newest releases, and any release a service still points at
-linked=$(find "$root" -maxdepth 1 -type l -exec readlink -f {} \;)
-ls -1td "$root"/releases/*/ | tail -n +6 | while read -r old; do
-  old=${old%/}
-  if ! grep -qxF "$old" <<<"$linked"; then
-    echo "-- Removing releases/$(basename "$old")"
-    rm -rf "$old"
+# Keep the 5 newest releases, and the ones the services run
+in_use=$(readlink ~/pumpking/api ~/pumpking/ingest ~/pumpking/bot || true)
+for release in $(ls -dt ~/pumpking/releases/* | tail -n +6); do
+  if ! grep -qF "$release" <<< "$in_use"; then
+    echo "Removing $release"
+    rm -rf "$release"
   fi
 done

@@ -1,0 +1,28 @@
+name: Deploy a service
+
+# Switches one service to the release the Deploy workflow prepared, then tags the commit
+# as deployed/<service> (the migration guard tests that commit)
+on:
+  workflow_call:
+    inputs:
+      service:
+        description: api, ingest or bot
+        required: true
+        type: string
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Switch ${{ inputs.service }} to the release
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: api.pumpking.top
+          username: piutop
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: bash ~/pumpking/releases/${{ github.sha }}/deploy/deploy-service.sh ${{ inputs.service }} ${{ github.sha }}
+
+      - name: Tag deployed/${{ inputs.service }}
+        run: git push --force origin HEAD:refs/tags/deployed/${{ inputs.service }}
