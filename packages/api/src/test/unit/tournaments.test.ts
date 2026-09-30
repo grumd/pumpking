@@ -331,7 +331,7 @@ describe('Tournaments', () => {
       await addResult(2, easy[1], 999000, t, { is_hidden: 1 });
       await addResult(2, easy[2], 1000000, '2026-09-30 23:59:59');
       await addResult(2, easy[3], 1000000, '2026-10-25 00:00:00');
-      // not counted: VJ has no Phoenix score
+      // not counted: no Phoenix score
       await db
         .insertInto('results')
         .values({
@@ -340,7 +340,6 @@ describe('Tournaments', () => {
           shared_chart: easy[4],
           chart_instance: instanceId(easy[4], 27),
           gained: sql`${t}`,
-          rank_mode: 1,
           score_phoenix: null,
         })
         .execute();

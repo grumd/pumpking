@@ -1,5 +1,5 @@
-import { assert } from 'chai';
 import { db } from '@pumpking/core/db';
+import { assert } from 'chai';
 import { searchCharts } from 'services/charts/chartsSearch';
 import { getResultDefaults } from 'test/seeds/initialSeed';
 
@@ -36,12 +36,29 @@ describe('Charts search (Phoenix scoring only)', () => {
     assert.equal(results[0].originalScore, 1000000, 'original score matches for equal values');
   });
 
-  it('excludes rank mode (VJ) results which have no phoenix score', async () => {
+  it('ranks rank mode (VJ) results by their phoenix score, like the others', async () => {
     await db
       .insertInto('results')
       .values({
         ...getResultDefaults({ playerId: 4, score: 999900 }),
         rank_mode: 1,
+        score_phoenix: 900000,
+      })
+      .executeTakeFirstOrThrow();
+
+    const items = await searchCharts({ limit: 10, offset: 0 });
+    assert.deepEqual(
+      items[0].results.map((r) => r.playerId),
+      [1, 4, 2, 3],
+      'VJ result is ranked by its phoenix score'
+    );
+  });
+
+  it('excludes results which have no phoenix score', async () => {
+    await db
+      .insertInto('results')
+      .values({
+        ...getResultDefaults({ playerId: 4, score: 999900 }),
         score_phoenix: null,
       })
       .executeTakeFirstOrThrow();
@@ -50,7 +67,7 @@ describe('Charts search (Phoenix scoring only)', () => {
     assert.deepEqual(
       items[0].results.map((r) => r.playerId),
       [1, 2, 3],
-      'VJ result is not in the leaderboard'
+      'the result without a phoenix score is not in the leaderboard'
     );
   });
 

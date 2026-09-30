@@ -2,6 +2,7 @@ import { calculateResultsPp } from './resultsPp';
 import { gradeSortValue, isValidGrade } from '@pumpking/core/constants/grades';
 import { db } from '@pumpking/core/db';
 import { getResultExp } from '@pumpking/core/profile/exp';
+import { getPhoenixScore } from '@pumpking/core/scoring/phoenixScore';
 import createDebug from 'debug';
 import { sql } from 'kysely';
 import _ from 'lodash/fp';
@@ -19,7 +20,6 @@ export const resultAddedEffect = async (resultId: number) => {
       'shared_chart',
       'grade',
       'score_phoenix',
-      'rank_mode',
       'player_id',
       'is_hidden',
       'perfects',
@@ -28,7 +28,6 @@ export const resultAddedEffect = async (resultId: number) => {
       'bads',
       'misses',
       'max_combo',
-      'rank_mode',
       'chart_instance',
       'mix',
     ])
@@ -36,7 +35,9 @@ export const resultAddedEffect = async (resultId: number) => {
     .executeTakeFirst();
 
   if (!result) {
-    throw error(404, `Result not found: id ${resultId}`);
+    // Deleted before the effects job got to it
+    debug(`Result ${resultId} not found, skipping`);
+    return;
   }
 
   const chartInstance = await db
@@ -60,13 +61,12 @@ export const resultAddedEffect = async (resultId: number) => {
 
   await db.transaction().execute(async (trx) => {
     let { score_phoenix } = result;
-    const { perfects, greats, goods, bads, misses, max_combo, rank_mode, mix, grade } = result;
+    const { perfects, greats, goods, bads, misses, max_combo, mix, grade } = result;
     const { level, label } = chartInstance;
 
     // Calculate score_phoenix if needed
     if (
       score_phoenix == null &&
-      !rank_mode &&
       perfects != null &&
       greats != null &&
       goods != null &&
@@ -74,11 +74,14 @@ export const resultAddedEffect = async (resultId: number) => {
       misses != null &&
       max_combo != null
     ) {
-      const scorePhoenix = Math.floor(
-        (1000000 *
-          (0.995 * (perfects + 0.6 * greats + 0.2 * goods + 0.1 * bads) + 0.005 * max_combo)) /
-          (perfects + greats + goods + bads + misses)
-      );
+      const scorePhoenix = getPhoenixScore({
+        perfect: perfects,
+        great: greats,
+        good: goods,
+        bad: bads,
+        miss: misses,
+        combo: max_combo,
+      });
 
       debug(`Updating score phoenix of result ${resultId} to ${scorePhoenix}`);
 

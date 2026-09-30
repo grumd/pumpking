@@ -1,7 +1,9 @@
+import { db } from '@pumpking/core/db';
+import { addEvent } from '@pumpking/core/events';
 import type { Response, Request, NextFunction } from 'express';
 
-import { resultAddedEffect } from 'services/results/resultAddedEffect';
-
+// Called by the Python ingestion after it inserts or updates a result. The effects job
+// applies the effect (services/results/resultAddedEffect.ts)
 export const resultAddedEffectController = async (
   request: Request,
   response: Response,
@@ -9,7 +11,7 @@ export const resultAddedEffectController = async (
 ) => {
   try {
     const resultId = Number(request.params.resultId);
-    await resultAddedEffect(resultId);
+    await addEvent(db, 'resultAdded', { resultId });
     response.sendStatus(200);
   } catch (error) {
     next(error);

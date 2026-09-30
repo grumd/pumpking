@@ -42,6 +42,7 @@ npm run migrate:make --prefix packages/core -- migrationName  # Create migration
 - **API Layer**: tRPC router at `src/trpc/router.ts`, routes in `src/trpc/routes/`
 - **Business Logic**: Services in `src/services/{domain}/`
 - **Database**: Kysely client from `@pumpking/core/db`, with types auto-generated in `packages/core/src/database.ts`
+- **Events**: code that adds a result also adds a `resultAdded` event in the same transaction (`addEvent` from `@pumpking/core/events`). The effects job (`src/jobs/effectsJob.ts`) applies pp / exp / totals from the events about a second later; tests call `applyEffects()`
 - **Legacy REST** (to be removed): Routes in `src/routes/`, controllers in `src/controllers/` (being phased out)
 
 ### Frontend (packages/web)

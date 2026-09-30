@@ -1,10 +1,10 @@
 import { MIXES } from '@pumpking/core/constants/mixes';
 import { db } from '@pumpking/core/db';
+import { addEvent } from '@pumpking/core/events';
 import { getPhoenixScore } from '@pumpking/core/scoring/phoenixScore';
 import createDebug from 'debug';
 import fs from 'fs';
 import path from 'path';
-import { resultAddedEffect } from 'services/results/resultAddedEffect';
 import { error } from 'utils';
 import { prepareForKnexUtc } from 'utils/date';
 import {
@@ -132,54 +132,69 @@ export const addResult = async (userId: number, result: ManualResult) => {
     .where('player_id', '=', result.playerId)
     .executeTakeFirst();
 
-  const insertResult = await db
-    .insertInto('results')
-    .values({
-      token,
-      screen_file: screenshotPath,
-      recognition_notes: 'manual',
-      added: prepareForKnexUtc(new Date()),
-      agent: -1,
-      track_name: sharedChart.short_name || '',
-      mix_name: result.mix,
-      mix: MIXES[result.mix],
-      chart_label: chartInstance.label,
-      shared_chart: result.sharedChartId,
-      chart_instance: chartInstance.id,
-      player_name: player.nickname,
-      recognized_player_id: result.playerId,
-      gained: result.date,
-      exact_gain_date: result.isExactDate ? 1 : 0,
-      rank_mode: result.mod === 'VJ' ? 1 : 0,
-      mods_list: result.mod,
-      score: result.score,
-      score_xx: result.score,
-      misses: result.miss,
-      bads: result.bad,
-      goods: result.good,
-      greats: result.great,
-      perfects: result.perfect,
-      grade:
-        // Add a + to the grade letter for XX and earlier if not already provided (A => A+)
-        MIXES[result.mix] < MIXES.Phoenix &&
-        result.pass &&
-        ['A', 'B', 'C', 'D', 'F'].includes(result.grade)
-          ? result.grade + '+'
-          : result.grade,
-      max_combo: result.combo,
-      is_new_best_score: !maxScoreResult || result.score > (maxScoreResult.maxScore ?? 0) ? 1 : 0,
-      is_manual_input: 1,
-      is_pass: result.pass ? 1 : 0,
-    })
-    .executeTakeFirst();
+  // The result and its event are stored together; the effects job applies the effect
+  const resultId = await db.transaction().execute(async (trx) => {
+    const insertResult = await trx
+      .insertInto('results')
+      .values({
+        token,
+        screen_file: screenshotPath,
+        recognition_notes: 'manual',
+        added: prepareForKnexUtc(new Date()),
+        agent: -1,
+        track_name: sharedChart.short_name || '',
+        mix_name: result.mix,
+        mix: MIXES[result.mix],
+        chart_label: chartInstance.label,
+        shared_chart: result.sharedChartId,
+        chart_instance: chartInstance.id,
+        player_name: player.nickname,
+        recognized_player_id: result.playerId,
+        gained: result.date,
+        exact_gain_date: result.isExactDate ? 1 : 0,
+        rank_mode: result.mod === 'VJ' ? 1 : 0,
+        mods_list: result.mod,
+        score: result.score,
+        score_xx: result.score,
+        // Written here, not left to the effect, so the leaderboard can rank the result
+        // before the effects job gets to it
+        score_phoenix: getPhoenixScore({
+          perfect: result.perfect,
+          great: result.great,
+          good: result.good,
+          bad: result.bad,
+          miss: result.miss,
+          combo: result.combo,
+        }),
+        misses: result.miss,
+        bads: result.bad,
+        goods: result.good,
+        greats: result.great,
+        perfects: result.perfect,
+        grade:
+          // Add a + to the grade letter for XX and earlier if not already provided (A => A+)
+          MIXES[result.mix] < MIXES.Phoenix &&
+          result.pass &&
+          ['A', 'B', 'C', 'D', 'F'].includes(result.grade)
+            ? result.grade + '+'
+            : result.grade,
+        max_combo: result.combo,
+        is_new_best_score: !maxScoreResult || result.score > (maxScoreResult.maxScore ?? 0) ? 1 : 0,
+        is_manual_input: 1,
+        is_pass: result.pass ? 1 : 0,
+      })
+      .executeTakeFirst();
 
-  if (!insertResult) {
-    throw error(500, 'Failed to insert result in the database');
-  }
+    if (!insertResult) {
+      throw error(500, 'Failed to insert result in the database');
+    }
 
-  debug('Manually added a new result id ', insertResult.insertId);
+    const id = Number(insertResult.insertId);
+    await addEvent(trx, 'resultAdded', { resultId: id });
+    return id;
+  });
 
-  await resultAddedEffect(Number(insertResult.insertId));
+  debug('Manually added a new result id ', resultId);
 };
 
 const getScoreError = (

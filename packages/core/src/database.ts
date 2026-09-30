@@ -106,6 +106,27 @@ export interface EloChanges {
   elo_change_total: Decimal | null;
 }
 
+export interface EventCursors {
+  consumer: string;
+  event_id: number;
+  updated_at: Date;
+}
+
+export interface EventFailures {
+  consumer: string;
+  event_id: number;
+  attempts: number;
+  error: string;
+  failed_at: Date;
+}
+
+export interface Events {
+  id: Generated<number>;
+  type: string;
+  payload: Json;
+  created_at: Date;
+}
+
 export interface Mixes {
   id: Generated<number>;
   name: string;
@@ -390,6 +411,9 @@ export interface DB {
   chart_instances: ChartInstances;
   draft_scores: DraftScores;
   elo_changes: EloChanges;
+  event_cursors: EventCursors;
+  event_failures: EventFailures;
+  events: Events;
   mixes: Mixes;
   operators: Operators;
   phoenix_track_names: PhoenixTrackNames;

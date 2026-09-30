@@ -1,5 +1,6 @@
 import { Grade } from '@pumpking/core/constants/grades';
 import { db } from '@pumpking/core/db';
+import { sql } from 'kysely';
 import _ from 'lodash/fp';
 import { addResultsSession, adminSession } from 'test/helpers/sessions';
 
@@ -246,6 +247,10 @@ export const initialSeed = async () => {
   await db.deleteFrom('sessions').execute();
   await db.deleteFrom('players').execute();
   await db.deleteFrom('arcade_player_names').execute();
+  // Truncate, not delete: event ids start at 1 again, matching the reset cursors
+  await sql`truncate table events`.execute(db);
+  await db.deleteFrom('event_cursors').execute();
+  await db.deleteFrom('event_failures').execute();
 
   await db.insertInto('players').values(players).execute();
   await db.insertInto('sessions').values(sessions).execute();

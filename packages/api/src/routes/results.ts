@@ -9,7 +9,7 @@ const router = Router();
 
 /**
  * POST /results/result-added-effect/{resultId}
- * @summary Updates relevant information after a new result is added, e.g. pp, elo values.
+ * @summary Queues the effects of a new or updated result (pp, exp, player totals), which the effects job applies.
  * @tags results
  * @param {string} resultId.path.required - Id of recently added result
  * @return {string} 200 - success response

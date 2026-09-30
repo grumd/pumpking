@@ -3,7 +3,7 @@ import { getPhoenixScore } from '@pumpking/core/scoring/phoenixScore';
 import { assert } from 'chai';
 import fs from 'fs';
 import path from 'path';
-import { req } from 'test/helpers';
+import { applyEffects, req } from 'test/helpers';
 import { addResultsSession } from 'test/helpers/sessions';
 
 describe('Add new result manually', () => {
@@ -136,6 +136,7 @@ describe('Add new result manually', () => {
       .field('pass', true)
       .attach('screenshot', path.join(__dirname, '../files/test.jpg'))
       .expect(200);
+    await applyEffects();
 
     assert.isNotEmpty(res.body, 'has a response');
   });
@@ -161,6 +162,7 @@ describe('Add new result manually', () => {
       .field('pass', true)
       .attach('screenshot', path.join(__dirname, '../files/test.jpg'))
       .expect(200);
+    await applyEffects();
 
     const getLatestResult = async () =>
       await db
@@ -192,6 +194,7 @@ describe('Add new result manually', () => {
       .field('pass', true)
       .attach('screenshot', path.join(__dirname, '../files/test.jpg'))
       .expect(200);
+    await applyEffects();
 
     assert.isNull((await getLatestResult())?.pp, `new results's pp is null`);
 
@@ -215,6 +218,7 @@ describe('Add new result manually', () => {
       .field('pass', true)
       .attach('screenshot', path.join(__dirname, '../files/test.jpg'))
       .expect(200);
+    await applyEffects();
 
     assert.isNull((await getLatestResult())?.pp, `new results's pp is null`);
   });
@@ -244,6 +248,7 @@ describe('Add new result manually', () => {
       .field('pass', true)
       .attach('screenshot', path.join(__dirname, '../files/test.jpg'))
       .expect(200);
+    await applyEffects();
 
     const result = await db
       .selectFrom('results')
@@ -281,6 +286,7 @@ describe('Add new result manually', () => {
       .field('pass', true)
       .attach('screenshot', path.join(__dirname, '../files/test.jpg'))
       .expect(200);
+    await applyEffects();
     await req()
       .post('/results/add-result')
       .set('session', addResultsSession)
@@ -301,6 +307,7 @@ describe('Add new result manually', () => {
       .field('pass', true)
       .attach('screenshot', path.join(__dirname, '../files/test.jpg'))
       .expect(200);
+    await applyEffects();
 
     const results = await db.selectFrom('results').selectAll().where('player_id', '=', 7).execute();
     player = await db.selectFrom('players').selectAll().where('id', '=', 7).executeTakeFirst();
@@ -346,6 +353,7 @@ describe('Add new result manually', () => {
       .field('pass', true)
       .attach('screenshot', path.join(__dirname, '../files/test.jpg'))
       .expect(200);
+    await applyEffects();
 
     assert.strictEqual(
       (
@@ -395,6 +403,7 @@ describe('Add new result manually', () => {
       .field('pass', true)
       .attach('screenshot', path.join(__dirname, '../files/test.jpg'))
       .expect(200);
+    await applyEffects();
 
     const secondResult = await db
       .selectFrom('results')
@@ -458,6 +467,7 @@ describe('Add new result manually', () => {
       .field('pass', true)
       .attach('screenshot', path.join(__dirname, '../files/test.jpg'))
       .expect(200);
+    await applyEffects();
 
     const thirdResult = await db
       .selectFrom('results')
@@ -542,6 +552,7 @@ describe('Add new result manually', () => {
       .field('pass', false)
       .attach('screenshot', path.join(__dirname, '../files/test.jpg'))
       .expect(200);
+    await applyEffects();
     await req()
       .post('/results/add-result')
       .set('session', addResultsSession)
@@ -562,6 +573,7 @@ describe('Add new result manually', () => {
       .field('pass', true)
       .attach('screenshot', path.join(__dirname, '../files/test.jpg'))
       .expect(200);
+    await applyEffects();
 
     const results = await db.selectFrom('results').selectAll().where('player_id', '=', 7).execute();
 
@@ -590,6 +602,7 @@ describe('Add new result manually', () => {
       .field('pass', true)
       .attach('screenshot', path.join(__dirname, '../files/test.jpg'))
       .expect(200);
+    await applyEffects();
 
     const results = await db.selectFrom('results').selectAll().where('player_id', '=', 7).execute();
 
