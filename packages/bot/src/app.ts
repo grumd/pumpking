@@ -4,7 +4,7 @@ import express from 'express';
 
 const debug = createDebug('bot:app');
 
-// Skeleton for now: only /healthz. The grammY runner and plugins come in W9 / W10
+// The HTTP side of the service is only /healthz; the Telegram bot starts in index.ts
 export const app = express();
 
 // Liveness + DB check for deploys

@@ -1,3 +1,4 @@
+import { clearTables } from './helpers';
 import { createTestDatabase, deleteTestDatabase } from '@pumpking/core/test/testDatabase';
 import type { AsyncFunc, Context, RootHookObject } from 'mocha';
 
@@ -14,4 +15,5 @@ const afterAll: AsyncFunc = async function (this: Context) {
 export const mochaHooks: RootHookObject = {
   beforeAll,
   afterAll,
+  beforeEach: clearTables,
 };
