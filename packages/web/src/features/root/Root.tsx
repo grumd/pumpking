@@ -23,7 +23,7 @@ const LazyNewLeaderboards = React.lazy(() => import('../leaderboards/Leaderboard
 const LazyProfileNew = React.lazy(() => import('../profile/Profile'));
 const LazyRanking = React.lazy(() => import('../ranking/Ranking'));
 const LazySongsTop = React.lazy(() => import('../songs/SongsTop'));
-// const LazyTournaments = React.lazy(() => import('./Tournaments/Tournaments'));
+const LazyTournaments = React.lazy(() => import('../tournaments/Tournaments'));
 
 function Root() {
   const userQuery = useUser();
@@ -62,7 +62,7 @@ function Root() {
           <Route path={routes.ranking.path + '/*'} element={<LazyRanking />} />
           <Route path={routes.profile.path} element={<LazyProfileNew />} />
           <Route path={routes.songs.path} element={<LazySongsTop />} />
-          {/* <Route path={routes.tournaments.path} element={<LazyTournaments />} /> */}
+          <Route path={routes.tournaments.path} element={<LazyTournaments />} />
           <Route path="*" element={<Navigate to={routes.leaderboard.path} />} />
         </Routes>
       </Suspense>

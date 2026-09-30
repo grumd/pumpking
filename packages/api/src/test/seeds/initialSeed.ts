@@ -237,6 +237,7 @@ export const results = [
 ];
 
 export const initialSeed = async () => {
+  await db.deleteFrom('tournaments').execute();
   await db.deleteFrom('results_best_grade').execute();
   await db.deleteFrom('results').execute();
   await db.deleteFrom('chart_instances').execute();
