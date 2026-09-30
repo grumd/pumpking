@@ -9,6 +9,7 @@ Pumpking is a Pump It Up (arcade rhythm game) score tracking and leaderboard sys
 - **packages/core**: Code shared by the services (DB client, Kysely types, migrations, constants, pure domain logic like scoring and exp). Never deployed on its own; services import its TS sources as `@pumpking/core/*`
 - **packages/api**: Node.js backend (Express + tRPC + Kysely + MySQL)
 - **packages/web**: React frontend (Vite + Mantine + tRPC client)
+- **packages/ingest**, **packages/bot**: future result-ingestion and Telegram bot services (see `docs/python-api-migration/PLAN.md`). Skeletons with only `/healthz` for now (dev ports 3002 / 3003, `APP_PORT` in their optional `.env`), not deployed yet
 - **Legacy Python API**: A legacy API exists in a separate repository, not part of this monorepo, but still rarely used in legacy frontend code. Avoid using when possible and gradually phase out.
 
 ## Common Commands
@@ -21,6 +22,8 @@ npm run start:web         # Start web only
 
 # Testing
 npm run test:api          # Run backend tests (Mocha + Chai)
+npm run test:ingest       # Run ingest / bot tests (each creates and drops the same test DB,
+npm run test:bot          # so don't run them at the same time as test:api)
 
 # Building
 npm run build:web         # Build frontend

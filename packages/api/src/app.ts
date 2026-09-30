@@ -1,13 +1,12 @@
 import './envconfig';
 import routes from './routes';
+import { pingDb } from '@pumpking/core/health';
 import bodyParser from 'body-parser';
 import cors from 'cors';
-import { db } from '@pumpking/core/db';
 import createDebug from 'debug';
 import express from 'express';
 import formData from 'express-form-data';
 import jsdocSwagger from 'express-jsdoc-swagger';
-import { sql } from 'kysely';
 import lusca from 'lusca';
 import { auth } from 'middlewares/auth/auth';
 import logger from 'morgan';
@@ -60,7 +59,7 @@ app.use(
 // Liveness + DB check for deploys; kept before auth so it never touches sessions
 app.get('/healthz', async (_req, res) => {
   try {
-    await sql`select 1`.execute(db);
+    await pingDb();
     res.json({ status: 'ok' });
   } catch (error) {
     debug(error);
