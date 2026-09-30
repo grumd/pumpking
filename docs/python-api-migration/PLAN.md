@@ -3,10 +3,10 @@
 Status: inventory done 2026-09-30 · direction agreed 2026-09-30 (see "Agreed
 decisions") · deploy approach revised 2026-09-30 (tsx + pm2 release dirs, see
 "Build and release") · P1.1 and P1.2 deployed 2026-09-30 · P1.3 + P1.4
-done 2026-09-30 (PR #39), which completes P1 · P2 built 2026-09-30, not
-merged yet: its first run needs the server's `shared/` env files (see
-"Progress") · nothing ported yet beyond what TS
-already owns (see "Already in TS") · priorities not set yet
+done 2026-09-30 (PR #39), which completes P1 · P2 deployed 2026-09-30
+(PR #40) · P3
+built 2026-09-30, not merged yet (see "Progress") · nothing ported yet beyond
+what TS already owns (see "Already in TS") · priorities not set yet
 
 ## Progress
 
@@ -21,8 +21,9 @@ comes next. The rest of the document is the design it follows.
 | Side fix | PR #34 merged 2026-09-30: `chart_instances.interpolated_difficulty` dropped in prod (migration renamed to `20260930040000_…` so it sorts after the tournaments migrations prod had already run — Kysely 0.25 rejects anything that sorts earlier) |
 | P1.3 constants + pure logic into core | Done 2026-09-30 (PR #39, together with P1.4). Core / API / web type-check, API tests pass, `npm run build:web` bundles `MIXES` from core. Nothing server-side changes: the API deploy runs it as before |
 | P1.4 `ingest` / `bot` skeletons | Done 2026-09-30 (PR #39). Both type-check, their `/healthz` tests pass, and a local start serves `/healthz` (200, and 503 with a bad `DB_DATABASE`). Not deployed: the API deploy rsyncs them to the server, but nothing starts them |
-| P2 deploy pipeline | **Built, not merged** (PR #40, rewritten once for readability). `deploy.yml` replaces `deploy-api.yml`. Scripts tested locally against a fake `~/pumpking` (first deploy, redeploy, rollback of a broken release, re-run, pruning); actionlint clean. Before merging: create `~/pumpking/shared/*.env` on the server; after it, move `pumpking-api` once by hand (see "Next: merge P2") |
-| P3 onwards | Not started |
+| P2 deploy pipeline | **Deployed** 2026-09-30 (PR #40). The first Deploy run was green and created the `deployed/{api,ingest,bot}` tags. On the server, `~/pumpking/{api,ingest,bot}` point at release `db8c1d29`, whose `packages/*/.env` link to `shared/`; `pumpking-ingest` / `pumpking-bot` run from their symlinks and answer `/healthz` (200). `pumpking-api` was moved onto its symlink by hand afterwards (pm2 keeps an app's `cwd` on reload, see "What P2 did") |
+| P3 events + effects worker | **Built, not merged.** API tests pass (76, incl. the new `events.test.ts` and `rankModeScores.test.ts`), all packages type-check, and a local API applies an event about 1 s after the Python callback. `pumpking-api` has moved, so it can be merged (see "Next") |
+| P4 onwards | Not started |
 
 ### What P1.2 did
 
@@ -98,12 +99,13 @@ comes next. The rest of the document is the design it follows.
   locally; delete `packages/{api,core}/types` and the `*.tsbuildinfo` files
   for a clean `tsc --build` (CI always builds clean).
 
-### Server state after P1.2
+### Server state after P2
 
-- Still the old layout: `~/pumpking-deployment/` (rsync into the live dir).
-  Env files: `packages/core/.env` (DB) and `packages/api/.env` (the rest);
-  both are excluded from rsync, so deploys never touch them. P2 moves this to
-  `~/pumpking/` (see "Next: merge P2").
+- The P2 layout: `~/pumpking/releases/<sha>/`, `~/pumpking/shared/{core,api,ingest,bot}.env`
+  (`chmod 600`, in a `700` directory), and one symlink per service. The keys
+  in `shared/api.env` match the old `packages/api/.env`.
+- `~/pumpking-deployment/` (the pre-P2 live dir) still exists, unused
+  since `pumpking-api` moved; remove it after the next deploy (see "Next").
 - `ssh piutop@api.pumpking.top` works from the dev machine. When touching env
   files over SSH, print key names only (`sed "s/=.*//"`), never values.
 - The dev machine's `packages/core/.env` holds the local DB config; the local
@@ -174,7 +176,7 @@ comes next. The rest of the document is the design it follows.
   `restart-server.sh` are gone.
 - **pm2 keeps an existing app's `cwd` on reload** even when the ecosystem
   file changes it. So `pumpking-api`, which runs from `~/pumpking-deployment`,
-  has to be moved once by hand (see "Next: merge P2").
+  has to be moved once by hand (see "Next").
 - **Ingest and bot listen on 127.0.0.1**, ports 3002 / 3003: the host has no
   firewall (ufw inactive). The ingestion smoke test against
   `/results/screen/validate` goes into `deploy-service.sh` with W1 / W7, once
@@ -183,39 +185,121 @@ comes next. The rest of the document is the design it follows.
   release, is installed fresh either way, and the host has 132 GB free), pm2
   memory limits (the API uses ~210 MB of 8 GB).
 
-### Next: merge P2
+### What P3 did
 
-1. **On the server, create the layout and env files** (not done yet: the
-   session's permission rules block remote writes):
+- **Tables** (migration `20260930050000_add_events`): `events` (`id` int
+  auto-increment, `type`, `payload` JSON, `created_at` `datetime(3)` in
+  UTC), `event_cursors` (`consumer` primary key, `event_id`, `updated_at`)
+  and `event_failures` (`consumer` + `event_id`, `attempts`, `error`,
+  `failed_at`: the events a consumer skipped). Added to `database.ts` by
+  hand, like codegen would (not regenerated, see "Schema drift").
+- **`packages/core/src/events.ts`**:
+  - `EventPayloads` lists every event type and its payload. So far only
+    `resultAdded: { resultId }`.
+  - `addEvent(trx, type, payload)` is the producer helper: pass the
+    transaction of the change, so the event is stored only if the change is.
+  - `createEventConsumer(name, handle)` returns `processBatch()`, which reads
+    up to 100 events after the consumer's cursor, in id order, and saves the
+    cursor after each one. The bot will use the same helper with its own name.
+  - **Gaps:** AUTO_INCREMENT hands out ids on insert, not on commit, so an
+    event can become visible after one with a higher id. When ids are missing,
+    the consumer stops there until the next event is 10 s old; by then the
+    missing ids are rolled-back inserts. This holds as long as no producer
+    transaction stays open longer than 10 s after inserting its event. It also
+    assumes `auto_increment_increment = 1` (the default; checked on the dev DB
+    only, MySQL 9.7). With another step, every event would wait the 10 s.
+  - **Failures:** a failing event is retried with the next batches and skipped
+    after 5 attempts (`console.error` for each attempt). A skipped event gets
+    an `event_failures` row with the error, and is never deleted, so it can
+    be looked at or replayed by hand. The attempt count lives in memory, so a
+    restart starts it again.
+  - `deleteOldEvents(days)` deletes events older than `days` only if every
+    consumer's cursor is past them and no consumer skipped them. With no
+    cursors at all it deletes nothing. A consumer that is retired has to have
+    its `event_cursors` row removed, or it holds every later event.
+- **API**: `services/effects/effectsConsumer.ts` is the `effects` consumer
+  (`resultAdded` → `resultAddedEffect`). `jobs/effectsJob.ts` polls it every
+  second (the next poll is scheduled when the current one ends) and runs
+  `deleteOldEvents(30)` every day at 5 AM. `startEffectsJob()` returns a
+  `stop()`; `jobs/index.ts` (loaded only by `src/index.ts`) starts it.
+- **Tests** (`events.test.ts`, plus the add-result tests, which call
+  `applyEffects()` from `test/helpers` after each add):
+  - End to end, with the real job loop: a tRPC manual add gets pp / exp and
+    the player totals; a Python callback gets its effect; a backlog of events
+    that were queued while the job was stopped is worked through in order, and
+    only the better of two results gets pp.
+  - Producers: a manual add stores the result with `score_phoenix` plus one
+    event and no effects; a rejected add stores neither; when the event
+    can't be stored (table renamed), the result insert is rolled back; the
+    callback stores an event and applies nothing inline.
+  - Consumer: id order, cursor, waiting at a gap and moving past it once it
+    times out, retries then skip + `event_failures` row, unknown event
+    types, a result deleted before its event.
+  - Retention and replay (see above).
+  - Not covered: `addResult` passing its own transaction to `addEvent`
+    (rather than `db`). With `db`, the event could be seen before the result
+    commits and the effect would skip it as deleted; a test can't reliably
+    hit that window.
+- **Producers:**
+  - `POST /results/result-added-effect/:id` (Python calls it after it inserts
+    *or updates* a result) now only adds a `resultAdded` event and returns 200.
+  - The web manual add (`addResult`, REST and tRPC) inserts the result and its
+    event in one transaction. It now also writes `score_phoenix` (from the
+    stats), which used to be left to the inline effect. After adding, the web navigates to the chart leaderboard,
+    which may show the new result without pp for about a second.
+  - Admin delete (`admin.deleteResult`) still recalculates inline; W6 turns
+    admin edits and deletes into `resultChanged` events.
+- **Replay safety:** `resultAddedEffect` already recomputed everything (score
+  phoenix only when null, is-pass, exp and the player's exp total, pp only for
+  the player's current best on the chart, player pp from their best pp per
+  chart). A test runs it twice and compares results, players and pp history. A
+  result deleted before its event is processed is now skipped instead of
+  failing with a 404. A replay bumps `shared_charts.last_updated_at` again;
+  the Python bot then gets that chart in its C2 feed again, but it only
+  notifies about results `added` after the newest one it has seen, so nothing
+  is sent twice.
+- **Rank mode (VJ) results count like the others** (decided 2026-09-30).
+  They used to get no `score_phoenix` (the effect's fallback and the 2024
+  backfills skipped them), and that null alone kept them off the chart
+  leaderboard, pp, exp and tournaments. Python ingestion always stored one,
+  so ~20 of them counted already. Now the manual add and the effect compute
+  it for rank mode too, and migration
+  `20260930060000_backfill_rank_mode_score_phoenix` fills in the old ones:
+  `score_phoenix` and `exp` for rank mode rows with full stats, then every
+  player's total exp. It computes in DOUBLE, because MySQL's exact DECIMAL
+  math comes out 1 higher than `getPhoenixScore` for some stats. On a copy of
+  prod data (dev DB) it scored 4,571 rows, all equal to the JS functions; 773
+  have missing stats and stay null. Their **pp arrives with the next nightly
+  chart difficulty job** (4 AM), which recalculates all pp and player totals.
+  Its `down` does nothing. Difficulty interpolation still ignores rank mode
+  (`rank_mode = 0`, unchanged). Tested in `rankModeScores.test.ts`
+  (manual add, effect, the migration's `up` on an old-style row), and
+  `chartsSearch` / `tournaments` tests now exclude "no phoenix score" rather
+  than "rank mode".
+- **Deleted:** `controllers/results/index.ts` (an unused copy of the
+  callback controller).
+- **Not done:** only one API process may run the job. pm2 runs one
+  fork-mode process, and a restart stops the old one before starting the new
+  one. If two ever ran, both would process the same events (safe to replay,
+  just wasted work).
 
-   ```bash
-   mkdir -p ~/pumpking/releases ~/pumpking/shared && chmod 700 ~/pumpking/shared
-   cd ~/pumpking/shared
-   cp -p ~/pumpking-deployment/packages/core/.env core.env
-   cp -p ~/pumpking-deployment/packages/api/.env api.env
-   printf 'NODE_ENV=production\nAPP_PORT=3002\n' > ingest.env
-   printf 'NODE_ENV=production\nAPP_PORT=3003\n' > bot.env
-   chmod 600 *.env
-   ```
+### Next
 
-2. Merge the PR. The first Deploy run deploys all three services (the PR
-   touches `pm2.config.js`). The guard is skipped (no migrations changed),
-   which matters because no `deployed/*` tags exist yet; this run creates
-   them. From then on, every service has a tag for the guard.
-3. **Move `pumpking-api` onto its symlink**, once, after that run. Until then
-   it keeps running from `~/pumpking-deployment` (see "What P2 did"):
-
-   ```bash
-   pm2 delete pumpking-api && pm2 start ~/pumpking/api/pm2.config.js --only pumpking-api && pm2 save
-   ```
-
-   Check `pm2 describe pumpking-api` (cwd `~/pumpking/api/packages/api`),
-   `pm2 ls` (`pumpking-ingest` and `pumpking-bot` online) and the health
-   URLs.
-4. After a second deploy through the new layout, remove
-   `~/pumpking-deployment/` and update "Server state after P1.2".
-5. Then P3 (events + effects worker), P4 any time, or start a track
-   (W1, W3, W9): P1 and P2 unblock all of them.
+1. ~~Move `pumpking-api` onto its symlink~~: done by hand 2026-09-30
+   (`pm2 delete` + `pm2 start ~/pumpking/api/pm2.config.js --only
+   pumpking-api` + `pm2 save`). It now runs from
+   `/home/piutop/pumpking/api/packages/api`, `/healthz` ok.
+2. **Merge P3.** It changes migrations, so the Deploy run is the first one
+   with the migration guard (the `deployed/*` tags exist now). The release
+   step migrates prod (events tables, then the rank mode backfill), then
+   only the API deploys (ingest and bot didn't change). After it, check that a Python-ingested result gets pp / exp
+   within seconds, and look at `select * from event_cursors` (the `effects`
+   cursor follows the newest event id). It's also worth checking
+   `select @@auto_increment_increment` on prod (see "Gaps").
+3. After that second deploy through the new layout, remove
+   `~/pumpking-deployment/` and update "Server state after P2".
+4. Then P4 any time, or start a track (W1, W3, W9): P1–P3 unblock all of
+   them. W10's rivals plugin can consume `resultAdded` from now on.
 
 ## Target architecture overview
 
@@ -521,7 +605,7 @@ diffs a local tracklist JSON against B17 and pushes changes through B18–B20.
 
 | Legacy piece | TS counterpart | Gap |
 |---|---|---|
-| Post-insert effects | `POST /results/result-added-effect/:id` (REST, called by Python) | P3 turns it into "enqueue an event", processed by the effects worker. W12 drops the route once Python ingestion is gone |
+| Post-insert effects | `POST /results/result-added-effect/:id` (REST, called by Python) | Since P3 it only enqueues a `resultAdded` event, which the effects job processes (see "What P3 did"). W12 drops the route once Python ingestion is gone |
 | B8 result delete | `admin.deleteResult` → `services/results/deleteResult.ts` | None known; the web admin uses it |
 | B5 player edit | `admin.updatePlayer` (can-add-manually, region, telegram tag/id, hidden) | No nickname / arcade names / `discard_results` / `is_admin` / `actual_player_id` / create. `hidden` doesn't set `hidden_since` or bump `shared_charts.last_updated_at` |
 | A3 manual submit | `results.addResultMutation` + `recognizeScoreMutation` (web manual add) | Different flow: the web user picks the chart; no agent, no fuzzy matching. Decide whether agent-side manual mode is still needed |
@@ -811,8 +895,8 @@ including testing. The Priority column is left for triage.
 |---|---|---|---|---|---|
 | **Platform track** | | | | | |
 | P1 | Package split | Steps, one PR each: (1) run the API on tsx in prod + `/healthz` — **done**; (2) `packages/core` with the DB layer (client without dotenv, Kysely types + codegen, migrations + `MigrationProvider` + scripts, test-DB helpers) as a composite TS project — **done**; (3) move the existing constants and pure logic (`constants/*`, `utils/scoring/*`, `utils/profile/exp.ts`), with the web importing mixes from core — **done**; (4) `packages/ingest` / `packages/bot` skeletons with `/healthz` — **done** (3 and 4 in one PR). Other logic moves to core when a second consumer needs it | M | Needed by W1, W9 | |
-| P2 | Deploy pipeline | **Built** (see "What P2 did"). Whole-repo release dirs + a symlink per service, one pm2 app per service, health check + ingestion smoke test + auto-rollback, `deployed/<service>` tags, single workflow with change detection, migration guard, one migrate step before deploys (run over SSH from the new release). Move the existing API deploy onto it first | M | P1 | |
-| P3 | Events + effects worker | `events` table and producer helper in `core`; effects worker with a cursor in the API process; `result-added-effect` REST route enqueues instead of running inline; make effects safe to replay | S–M | P1 | |
+| P2 | Deploy pipeline | **Deployed** (see "What P2 did"). Whole-repo release dirs + a symlink per service, one pm2 app per service, health check + ingestion smoke test + auto-rollback, `deployed/<service>` tags, single workflow with change detection, migration guard, one migrate step before deploys (run over SSH from the new release). Move the existing API deploy onto it first | M | P1 | |
+| P3 | Events + effects worker | **Built** (see "What P3 did"). `events` table and producer helper in `core`; effects worker with a cursor in the API process; `result-added-effect` REST route enqueues instead of running inline; make effects safe to replay | S–M | P1 | |
 | P4 | Drop `results_best_grade` | Remove it from `resultAddedEffect`, `deleteResult`, tests and seeds; drop-table migration; regenerate types | S | Nothing (Python B8 is already broken; the table is never read) | |
 | **Ingestion track** | | | | | |
 | W1 | Ingestion foundations | Legacy REST scaffold in `packages/ingest` (body + query arg merge, Flask-compatible responses and error shapes), agent-header auth, mix / grade / mods constants in `core`, Levenshtein util | S–M | P1, P2; needed by W2, W7 | |
