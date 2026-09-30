@@ -1,8 +1,5 @@
 import { db } from '@pumpking/core/db';
 import { assert } from 'chai';
-import express from 'express';
-import type { Server } from 'http';
-import type { AddressInfo } from 'net';
 import { errorMessage, output, trpcMutation, trpcQuery } from 'test/helpers/trpc';
 
 describe('Admin agents', () => {
@@ -77,29 +74,50 @@ describe('Admin agents', () => {
 });
 
 describe('Admin purgatory', () => {
-  const insertRow = async (reason: string) => {
+  // A Phoenix 2 row on the seeded Track 1 S20 (100 steps): valid once its player is known
+  const insertRow = async (fields: { reason: string; player_name?: string; score?: number }) => {
     const { insertId } = await db
       .insertInto('purgatory')
       .values({
         screen_file: 'test-arcade/2026-09-30/screen.mp4',
-        recognition_notes: '',
-        reason,
-        added: new Date(),
+        recognition_notes: 'result',
+        added: new Date('2026-09-30T10:00:00'),
         agent: 2,
         track_name: 'TRACK 1',
         mix_name: 'Phoenix2',
         chart_label: 'S20',
         player_name: 'ANON',
-        gained: new Date(),
+        gained: new Date('2026-09-30T09:59:00'),
         exact_gain_date: 1,
-        score: 900000,
+        rank_mode: 0,
+        mods_list: '',
+        score: 1_000_000,
+        perfects: 100,
+        greats: 0,
+        goods: 0,
+        bads: 0,
+        misses: 0,
+        max_combo: 100,
+        grade: 'SSS+',
+        is_pass: 1,
+        plate: 'PG',
+        ...fields,
       })
       .executeTakeFirstOrThrow();
     return Number(insertId);
   };
 
+  beforeEach(async () => {
+    await db
+      .insertInto('arcade_track_names')
+      .values({ mix_id: 28, track_id: 1, name: 'Track 1', name_edist: 0 })
+      .execute();
+  });
+
+  const unknownAnon = /^Unknown player ANON for mix Phoenix2, closest is \S+ with \d+ edits$/;
+
   it('lists, shows and deletes rows', async () => {
-    const id = await insertRow('Unknown player ANON for mix Phoenix2, no similar name');
+    const id = await insertRow({ reason: 'Unknown player ANON for mix Phoenix2, no similar name' });
 
     const rows = output(await trpcQuery('admin.purgatory.list').expect(200));
     assert.deepEqual(
@@ -113,111 +131,69 @@ describe('Admin purgatory', () => {
     assert.lengthOf(await db.selectFrom('purgatory').select('id').execute(), 0);
   });
 
-  describe('recheck', () => {
-    // Stands in for the Python backend's /admin/purgatory/recheck
-    let server: Server;
-    let respond: (body: { ids?: number[] }) => Promise<object>;
-    let requests: { headers: Record<string, unknown>; body: { ids?: number[] } }[];
+  it('saves the fixes, then rechecks the row: valid now, it moves to results', async () => {
+    const id = await insertRow({ reason: 'Unknown player ANON for mix Phoenix2, no similar name' });
 
-    before((done) => {
-      const legacy = express();
-      legacy.use(express.json());
-      legacy.post('/admin/purgatory/recheck', async (req, res) => {
-        requests.push({ headers: req.headers, body: req.body });
-        res.json(await respond(req.body));
-      });
-      server = legacy.listen(0, () => {
-        process.env.LEGACY_API_URL = `http://127.0.0.1:${(server.address() as AddressInfo).port}`;
-        done();
-      });
+    const res = await trpcMutation('admin.purgatory.updateAndRecheck', {
+      id,
+      edit: { player_name: 'DUMMY2P2' },
+    }).expect(200);
+
+    const { outcomes, report } = output(res);
+    assert.deepEqual(outcomes, [{ id, outcome: 'added', status: 'result added' }]);
+    assert.deepEqual(report, [
+      `Purgatory #${id}: player_name 'ANON' → 'DUMMY2P2'`,
+      `Purgatory #${id}: valid, moved to results (result added)`,
+      "Result operation: 'result added'",
+      'Rechecked 1 items in purgatory',
+    ]);
+
+    assert.lengthOf(await db.selectFrom('purgatory').select('id').execute(), 0);
+    const result = await db
+      .selectFrom('results')
+      .selectAll()
+      .where('screen_file', '=', 'test-arcade/2026-09-30/screen.mp4')
+      .executeTakeFirstOrThrow();
+    assert.include(result, {
+      player_id: 2,
+      player_name: 'DUMMY2P2',
+      chart_instance: 3,
+      score_phoenix: 1_000_000,
     });
+    // Keeps when it was added: the rivals notifications tell how long ago it was
+    assert.equal(result.added.getTime(), new Date('2026-09-30T10:00:00').getTime());
+    const event = await db.selectFrom('events').selectAll().executeTakeFirstOrThrow();
+    assert.deepEqual([event.type, event.payload], ['resultAdded', { resultId: result.id }]);
+  });
 
-    after((done) => {
-      delete process.env.LEGACY_API_URL;
-      server.close(done);
-    });
+  it('rechecks everything: rows stay with their new reason, are discarded or move', async () => {
+    const stays = await insertRow({ reason: 'Old reason' });
+    const discarded = await insertRow({ reason: 'Old reason', player_name: 'DUMMY2P2', score: 0 });
+    const valid = await insertRow({ reason: 'Old reason', player_name: 'DUMMY2P2' });
 
-    beforeEach(() => {
-      requests = [];
-    });
+    const { outcomes } = output(await trpcMutation('admin.purgatory.recheck', {}).expect(200));
+    assert.lengthOf(outcomes, 3);
+    assert.deepInclude(outcomes[0], { id: stays, outcome: 'stays', reasonChanged: true });
+    assert.match(outcomes[0].reason, unknownAnon);
+    assert.deepEqual(outcomes.slice(1), [
+      { id: discarded, outcome: 'discarded', reason: 'Empty score, not needed' },
+      { id: valid, outcome: 'added', status: 'result added' },
+    ]);
 
-    it('saves the fixes, then rechecks the row as the super agent', async () => {
-      const id = await insertRow('Unknown player ANON for mix Phoenix2, no similar name');
-      respond = async () => {
-        // Python moves the now valid row to results
-        await db.deleteFrom('purgatory').where('id', '=', id).execute();
-        return {
-          updates: [{ status: 'result added' }],
-          report: ["Result operation: 'result added'"],
-        };
-      };
+    const rows = await db.selectFrom('purgatory').select(['id', 'reason']).execute();
+    assert.deepEqual(rows, [{ id: stays, reason: outcomes[0].reason }]);
 
-      const res = await trpcMutation('admin.purgatory.updateAndRecheck', {
-        id,
-        edit: { player_name: 'DUMMY2P2' },
-      }).expect(200);
+    const again = output(await trpcMutation('admin.purgatory.recheck', { id: stays }).expect(200));
+    assert.deepInclude(again.outcomes[0], { id: stays, outcome: 'stays', reasonChanged: false });
+  });
 
-      assert.deepEqual(requests[0].body, { ids: [id, id] });
-      assert.equal(requests[0].headers['agent-name'], 'root');
-      assert.equal(requests[0].headers['agent-token'], 'root-token');
-      const { outcomes, report } = output(res);
-      assert.deepEqual(outcomes, [{ id, outcome: 'added' }]);
-      assert.deepEqual(report, [
-        `Purgatory #${id}: player_name 'ANON' → 'DUMMY2P2'`,
-        `Purgatory #${id}: valid, moved to results`,
-        "Result operation: 'result added'",
-      ]);
-    });
+  it("answers 404 for a row that doesn't exist, or an empty purgatory", async () => {
+    const missing = await trpcMutation('admin.purgatory.recheck', { id: 12345 });
+    assert.equal(missing.status, 404);
+    assert.equal(errorMessage(missing), 'Purgatory row not found: id 12345');
 
-    it('rechecks everything: rows stay, get a new reason or are discarded', async () => {
-      const stays = await insertRow('Invalid grade');
-      const changes = await insertRow('Invalid plate');
-      const discarded = await insertRow('Invalid score');
-      respond = async (body) => {
-        assert.isUndefined(body.ids, 'no ids means every row');
-        await db
-          .updateTable('purgatory')
-          .set({ reason: 'Invalid grade now' })
-          .where('id', '=', changes)
-          .execute();
-        await db.deleteFrom('purgatory').where('id', '=', discarded).execute();
-        return {
-          updates: [
-            { id: changes, from: 'Invalid plate', to: 'Invalid grade now' },
-            { id: discarded, from: 'Invalid score', discarded: 'Empty score, not needed' },
-          ],
-        };
-      };
-
-      const { outcomes } = output(await trpcMutation('admin.purgatory.recheck', {}).expect(200));
-      assert.deepEqual(outcomes, [
-        { id: stays, outcome: 'stays', reason: 'Invalid grade', reasonChanged: false },
-        { id: changes, outcome: 'stays', reason: 'Invalid grade now', reasonChanged: true },
-        { id: discarded, outcome: 'discarded', reason: 'Empty score, not needed' },
-      ]);
-    });
-
-    it("reports Python's error from its traceback", async () => {
-      const id = await insertRow('Invalid grade');
-      respond = async () => ({
-        error: 'Traceback (most recent call last):\n  File "x.py"\nException: permission denied\n',
-      });
-
-      const res = await trpcMutation('admin.purgatory.recheck', { id });
-      assert.equal(res.status, 502);
-      assert.equal(errorMessage(res), 'The legacy Python API failed: Exception: permission denied');
-    });
-
-    it('needs LEGACY_API_URL', async () => {
-      const id = await insertRow('Invalid grade');
-      const url = process.env.LEGACY_API_URL;
-      delete process.env.LEGACY_API_URL;
-      try {
-        const res = await trpcMutation('admin.purgatory.recheck', { id });
-        assert.equal(res.status, 503);
-      } finally {
-        process.env.LEGACY_API_URL = url;
-      }
-    });
+    const empty = await trpcMutation('admin.purgatory.recheck', {});
+    assert.equal(empty.status, 404);
+    assert.equal(errorMessage(empty), 'Purgatory is empty');
   });
 });
