@@ -4,8 +4,9 @@ Status: inventory done 2026-09-30 · direction agreed 2026-09-30 (see "Agreed
 decisions") · deploy approach revised 2026-09-30 (tsx + pm2 release dirs, see
 "Build and release") · P1.1 and P1.2 deployed 2026-09-30 · P1.3 + P1.4
 done 2026-09-30 (PR #39), which completes P1 · P2 deployed 2026-09-30
-(PR #40) · P3 deployed 2026-09-30 (PR #41) · P4a built 2026-09-30, not
-merged yet (see "Progress") · nothing ported yet beyond
+(PR #40) · P3 deployed 2026-09-30 (PR #41) · P4a deployed 2026-09-30
+(PR #42) · P4b built 2026-09-30, not merged yet (see "Progress") · nothing
+ported yet beyond
 what TS already owns (see "Already in TS") · priorities not set yet
 
 ## Progress
@@ -23,8 +24,9 @@ comes next. The rest of the document is the design it follows.
 | P1.4 `ingest` / `bot` skeletons | Done 2026-09-30 (PR #39). Both type-check, their `/healthz` tests pass, and a local start serves `/healthz` (200, and 503 with a bad `DB_DATABASE`). Not deployed: the API deploy rsyncs them to the server, but nothing starts them |
 | P2 deploy pipeline | **Deployed** 2026-09-30 (PR #40). The first Deploy run was green and created the `deployed/{api,ingest,bot}` tags. On the server, `~/pumpking/{api,ingest,bot}` point at release `db8c1d29`, whose `packages/*/.env` link to `shared/`; `pumpking-ingest` / `pumpking-bot` run from their symlinks and answer `/healthz` (200). `pumpking-api` was moved onto its symlink by hand afterwards (pm2 keeps an app's `cwd` on reload, see "What P2 did") |
 | P3 events + effects worker | **Deployed** 2026-09-30 (PR #41). The first Deploy run with the migration guard was green (all three guards passed); the release step ran both migrations on prod, and all three services moved to release `c2b241b5` (a `packages/core` change counts for every service). Checked on prod afterwards: every pm2 app online, API `/healthz` ok, no errors in the API log, `@@auto_increment_increment` = 1, and the backfill scored the rank mode rows (4,591 with a `score_phoenix`, 773 without full stats still null). No result had arrived yet, so `events` was empty and there was no `effects` cursor row (see "Next") |
-| P4a stop using `results_best_grade` | **Built, not merged.** API tests pass (76), all packages type-check; master's tests pass with the new migration (the guard's check, run locally); on the dev DB (a copy of prod data), deleting a result the table points at fails before the migration and works after it (rolled back), and the migration's `down` works |
-| P4b onwards | Not started |
+| P4a stop using `results_best_grade` | **Deployed** 2026-09-30 (PR #42). Before merging: API tests pass (76), all packages type-check; master's tests pass with the new migration (the guard's check, run locally); on the dev DB (a copy of prod data), deleting a result the table points at fails before the migration and works after it (rolled back), and the migration's `down` works. The Deploy run was green (guards passed, migration ran on prod), all three services run `5a241f21`, and the table has no foreign keys left on prod |
+| P4b drop `results_best_grade` | **Built, not merged.** API tests pass (76; the test code is P4a's, so this is also the guard's check), all packages type-check from a clean build, and the migration's up / down / up works on the dev DB |
+| W tracks | Not started |
 
 ### What P1.2 did
 
@@ -317,18 +319,22 @@ table, so the table can only be dropped once P4a runs everywhere.
     was dropped in 2023, so these checks have failed since then. When W7 ports
     those scenarios, leave the best-table checks out.
 
+### What P4b did
+
+- Migration `20260930080000_drop_results_best_grade` drops the table (82,707
+  rows in prod, all derivable from `results`, and never read). Its `down`
+  brings it back empty, in its P4a shape.
+- `ResultsBestGrade` removed from `database.ts` by hand, the way codegen would.
+
 ### Next
 
 1. When a result comes in through Python, check that it gets pp / exp within
    seconds (`events` gets a row, `select * from event_cursors` shows the
    `effects` cursor at the newest event id, `event_failures` is empty).
    Nothing had arrived by 19:25 UTC on 2026-09-30.
-2. **Merge P4a.** It changes migrations, so the guard runs (the deployed
-   commit's tests with the FK drop, checked locally already).
-3. **P4b** after P4a is deployed: a migration that drops `results_best_grade`,
-   and the table removed from `database.ts` by hand (see "Schema drift").
-   Its guard runs P4a's tests, which don't name the table.
-4. Start a track (W1, W3, W9): P1–P3 unblock all of them, and P4 blocks none.
+2. **Merge P4b.** Its guard runs P4a's tests, which don't name the table.
+   After the deploy, check that `results_best_grade` is gone on prod.
+3. Start a track (W1, W3, W9): P1–P3 unblock all of them, and P4 blocks none.
    W10's rivals plugin can consume `resultAdded` from now on.
 
 ## Target architecture overview
@@ -652,7 +658,8 @@ diffs a local tracklist JSON against B17 and pushes changes through B18–B20.
   HTTP 200. Deleting from the web admin (TS `admin.deleteResult`) works.
 - **`results_best_grade` is write-only**: the TS effect and delete code, the
   tests and seeds, and Python B8 write it. Nothing reads it, and Python's own
-  best-grade logic (C2) computes the value itself. Removed by P4.
+  best-grade logic (C2) computes the value itself. Removed by P4 (see "What
+  P4a did").
 - **Called by clients but no longer served**: `/top` (`admin/get_top.py`), and
   `/admin/resetResults`, `/purgatory`, `/results/search`,
   `/result/assignToPlayer`, `/results/reestimateRank` (`admin/admin.py`
@@ -927,7 +934,7 @@ including testing. The Priority column is left for triage.
 | P1 | Package split | Steps, one PR each: (1) run the API on tsx in prod + `/healthz` — **done**; (2) `packages/core` with the DB layer (client without dotenv, Kysely types + codegen, migrations + `MigrationProvider` + scripts, test-DB helpers) as a composite TS project — **done**; (3) move the existing constants and pure logic (`constants/*`, `utils/scoring/*`, `utils/profile/exp.ts`), with the web importing mixes from core — **done**; (4) `packages/ingest` / `packages/bot` skeletons with `/healthz` — **done** (3 and 4 in one PR). Other logic moves to core when a second consumer needs it | M | Needed by W1, W9 | |
 | P2 | Deploy pipeline | **Deployed** (see "What P2 did"). Whole-repo release dirs + a symlink per service, one pm2 app per service, health check + ingestion smoke test + auto-rollback, `deployed/<service>` tags, single workflow with change detection, migration guard, one migrate step before deploys (run over SSH from the new release). Move the existing API deploy onto it first | M | P1 | |
 | P3 | Events + effects worker | **Deployed** (see "What P3 did"). `events` table and producer helper in `core`; effects worker with a cursor in the API process; `result-added-effect` REST route enqueues instead of running inline; make effects safe to replay | S–M | P1 | |
-| P4 | Drop `results_best_grade` | Two steps (see "What P4a did"): (a) **built**: stop using it, drop its foreign keys; (b) drop the table. Remove it from `resultAddedEffect`, `deleteResult`, tests and seeds; drop-table migration; regenerate types | S | Nothing (Python B8 is already broken; the table is never read) | |
+| P4 | Drop `results_best_grade` | Two steps (see "What P4a did"): (a) **deployed**: stop using it, drop its foreign keys; (b) **built**: drop the table. Remove it from `resultAddedEffect`, `deleteResult`, tests and seeds; drop-table migration; regenerate types | S | Nothing (Python B8 is already broken; the table is never read) | |
 | **Ingestion track** | | | | | |
 | W1 | Ingestion foundations | Legacy REST scaffold in `packages/ingest` (body + query arg merge, Flask-compatible responses and error shapes), agent-header auth, mix / grade / mods constants in `core`, Levenshtein util | S–M | P1, P2; needed by W2, W7 | |
 | W2 | Agent heartbeat and uploads | A6, A7, A8 | S | Keep the `<agent>/<path>` layout under the shared uploads directory | |
