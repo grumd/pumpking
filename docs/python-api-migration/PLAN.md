@@ -1,0 +1,576 @@
+# Legacy Python API (piu-top) — Migration Plan
+
+Status: inventory done 2026-09-30 · direction agreed 2026-09-30 (see "Agreed
+decisions") · nothing ported yet beyond what TS already owns (see "Already in
+TS") · priorities not set yet
+
+## Target architecture overview
+
+A short overview of where the migration ends up. Details are in "Service
+boundaries and deployment", "Events and effects" and "Telegram bot platform".
+
+### Packages
+
+```
+packages/
+  core/     shared code, never deployed on its own: DB client + Kysely types, migrations,
+            constants, domain logic (validators, scoring, pp/exp), event helpers
+  api/      web API: tRPC + admin procedures, effects worker, cron jobs
+  ingest/   result ingestion for piu-spy (legacy-compatible REST)
+  bot/      Telegram bot platform + feature plugins
+  web/      React frontend (imports API types via @/api/*)
+```
+
+### Deployment
+
+- **Deploys on change.** A service redeploys when its own package or `core`
+  changes; a `package-lock.json` change redeploys all of them. The web stays
+  on GitHub Pages.
+- **Pipeline** (one workflow):
+  1. Detect which packages changed.
+  2. Run the tests of each affected service.
+  3. Migration guard (when migrations changed): run the tests of the
+     currently deployed commit of every service against the new schema.
+  4. Migrate prod once.
+  5. Deploy the affected services in parallel.
+- **Release:** CI builds a self-contained bundle → uploads it to
+  `releases/<sha>/` → points the `current` symlink at it → `pm2 reload` of
+  that one service.
+
+### Fallbacks
+
+- **Broken build:** it fails in CI and never reaches the server.
+- **Failing tests or migration guard:** no migration runs and nothing deploys.
+- **Failed deploy:** a failed health check (and, for ingestion, a failed
+  smoke test against the side-effect-free validate endpoint) points the
+  symlink back to the previous release and reloads it. Only that service
+  rolls back; the others deploy normally.
+- **API or worker down:** ingestion keeps accepting results. Effects (pp,
+  exp, totals) catch up from the event backlog once it's back. The
+  leaderboard still shows new results, with pp and exp missing until then.
+- **Bot down:** events pile up and get processed on restart; notifications
+  that are too old are skipped.
+- **Schema changes:** expand/contract (additive first, drops later) plus the
+  migration guard, so older running code keeps working on the new schema.
+
+### Data flow
+
+```
+piu-spy ──REST──▶ ingest ──┐  one transaction: result row (all leaderboard fields) + resultAdded event
+                           ▼
+                    ┌────────────┐
+web ──tRPC──▶ api ─▶│   MySQL    │◀── bot (reads data via core)
+   admin edits ────▶│  + events  │
+ tournaments job ──▶└────────────┘
+                     │        │
+        effects worker        bot plugins
+        (in api: pp, exp,     (rivals, locations, tournament
+         totals, history)      notifications, …) ──▶ Telegram
+```
+
+- Each consumer of the `events` table keeps its own cursor and can safely
+  re-run events.
+- Ingestion depends only on MySQL and the uploads directory; nothing calls it
+  synchronously.
+- Screenshots are written by ingestion to the shared uploads directory and
+  served to the web by the API.
+
+## Summary
+
+`piu-top` (`/home/grumd/coding/piu-top`, Flask, entry `backend/main.py`) is the
+legacy results server. This inventory describes `master` at `4cd3b3d`
+(2026-09-30).
+
+It runs raw SQL over `mysql-connector` against the **same MySQL database**
+pumpking uses, so the migration needs no data migration: endpoints can be
+ported and cut over one by one, as long as the TS side writes the same rows.
+
+The web frontend no longer calls it (the web only talks to
+`VITE_API_BASE_PATH` → TS). Its remaining consumers are all non-browser
+clients: the **piu-spy** recognition agents at arcades, the **PyQt admin
+desktop tool** and the **Telegram bot**. It also calls back into the TS API
+after every result change.
+
+It has about 2k lines of live backend code. The **result ingestion pipeline**
+(validation, fuzzy player/track matching, purgatory, de-duplication) is by far
+the largest and riskiest part. Everything else is thin CRUD.
+
+## Agreed decisions
+
+| Decision | Value |
+|---|---|
+| Admin desktop tool | Still in use. It gets replaced by a **web admin page** in pumpking that mirrors all its features, with UX improvements and fixes for its bugs and gaps. Only players with `players.is_admin = 1` can open it (tRPC `adminProcedure` plus a route guard in the web). The desktop tool is retired once the web admin matches it |
+| Admin API shape | Admin endpoints (group B) are **not** ported as wire-compatible REST. They become tRPC `admin.*` procedures designed for the new UI. The super-agent concept (`agents.id = 1`) goes away; agent tokens remain only for piu-spy ingestion |
+| Telegram bot | **All** current features stay (see "Telegram bot features"). The bot is rewritten in TS as an **extensible bot platform** with a plugin system: each feature is a plugin that registers commands, buttons, scheduled jobs and event handlers. New features are expected, e.g. tournament start/end notifications |
+| Bot ↔ backend | The bot talks to services in-process instead of going through the `/telegram/*` REST endpoints (group C). Group C is replaced, not ported |
+| Hosting | TS and Python run on the **same host**, so the uploads directory is shared as is |
+| piu-spy transport | Either the deployed agents are updated to post to the new port, or a reverse proxy forwards the legacy port/paths to TS. In both cases the ingestion endpoints (group A) keep their **paths, headers, multipart field and response shapes** |
+| piu-spy modes | Which of screen / stream / manual / test stay is decided later. Port all modes until then |
+| Service boundaries | Result ingestion and the Telegram bot are **separate services** (`packages/ingest`, `packages/bot`) with their own processes and deploys. Web / API changes don't redeploy them, and they keep working when an API deploy fails or the API is down. Ingestion is the most critical service (see "Service boundaries and deployment") |
+| Deploy trigger | Every service deploys **on change** of its own package or `packages/core`, like the other packages. No release tags. Deploys are atomic, and roll back automatically when the health check fails |
+| Migration guard | Before prod migrations run, CI runs the tests of **every currently deployed service** against the new migrations. Prod migrations run only if they pass |
+| Database access | One shared MySQL user for all services. No per-service users |
+| Effects | Ingestion only stores the result plus an event. pp / exp / totals are computed asynchronously by a worker that reads events. Results without effects yet show correctly on the leaderboard (see "Events and effects") |
+| `results_best_grade` | Never read anywhere. Remove it (P4) |
+
+## Consumers
+
+| Client | Source | Auth | Uses |
+|---|---|---|---|
+| piu-spy agents (arcade capture / stream recognition) | `~/coding/piu-spy` (local copy last committed 2023-10) | headers `agent-name` + `agent-token` | `/status`, `/upload`, `/results/{mode}/validate`, `/results/{mode}/submit` |
+| Admin desktop tool (PyQt) + CLI | `piu-top/admin/` | agent headers; **super agent = `agents.id = 1`** | `/admin/*`, `/agent`, `/tracklist`, `/track`, `/sharedChart`, `/chartInstance`, `/downloads/*` |
+| Telegram bot (rivals, location activity, heater) | `piu-top/bot/` | header `telegram-bot-token` | `/telegram/*` |
+| owjibot (location activity bot) | `piu-top/owjibot/` | none | `/agent/:id/lastPlayers/` (public) |
+| Integration tests | `piu-top/tests/` | root agent | `/test/*` (dev only) and the submit endpoints |
+| TS API (callback target) | pumpking | none | Python calls `POST results/result-added-effect/:id` and `POST shared-charts/:id/refresh` |
+
+`backend/redirect.py` is a separate tiny Flask app that 307-redirects every
+request to `REDIRECT_TO_HOST`. It was used for host moves and could be reused
+at cutover.
+
+## Admin desktop tool features (to mirror in the web admin)
+
+The PyQt tool (`admin/ui_*.py`) has one tab per area. The web admin needs at
+least:
+
+| Area | Features | Known gaps / bugs to fix |
+|---|---|---|
+| Purgatory | List all rows; the field named in the rejection reason is highlighted; edit fields and resend (edit + recheck); recheck one row or all; delete (with confirmation); download the screenshot and scan JSON | Recheck-all runs synchronously over the whole table |
+| Results | Search by score; edit (scores, stats, grade, mods, actual player picker, hidden, notes); delete (with confirmation); download files; copy the screenshot to the clipboard | The UI has **Track** and **Player** search fields that the backend ignores; edits and deletes skip recalculation (broken refresh callback, see below) |
+| Players | List all players; create / edit nickname, email, telegram tag, region, hidden, discard results, is admin, can add manually, actual (alias) player, and per-mix arcade names + edit-distance tolerance | |
+| Tracks | Search by name; edit per-mix arcade names + tolerance | |
+| Charts | Look up a chart instance by id; edit learned min/max total steps and hidden | Lookup by id only |
+| Agents | Search by name; edit name / title; create an agent (CLI) | Tokens are shown in plain text; no rotate / revoke |
+| Tracklist sync (CLI) | Diff a local tracklist JSON against the server and push new or changed tracks, shared charts and chart instances | Not part of the UI today |
+| Log panel | Shows the `report` lines the backend returns | Useful to keep as a per-action result panel |
+
+## Telegram bot features (`piu-top/bot/`, python-telegram-bot)
+
+| Feature | Trigger | What it does | Backend data |
+|---|---|---|---|
+| Account link | `/register`, or the text `hi` / `hello` | Links a Telegram chat to a player by `telegram_tag` = Telegram username | C3 |
+| Rivals notifications | Job every 15 s | Polls the best-results feed since the last check. For each new result, notifies the player (you improved / you beat N rivals / you're on par / your next rival is…) and notifies rivals who were beaten. Filters by the player's rival list, level range and "smart" (inferior-rival) tracking | C1, C2 |
+| Rivals settings | `/rivals`, and text `rivals add / remove / on / off / smart on / off / levels / test` | Manages the rival list, level range and tracking switches, stored in the versioned `players.telegram_bot_preferences` JSON | C4 |
+| Location monitoring | Job every 60 s | Watches agent sessions: notifies configured watchers when the tracked location starts, stalls (no heartbeat for 5–10 min) or resumes, and when a new player shows up there | C5 |
+| Locations dialog | `/locations` plus inline buttons | Pick a location, see who played there recently and how long ago | C5 / C6 |
+| Heater (Kasa plug) | Job every 60 s, optional | Polls a TP-Link Kasa device through the cloud API and tells the admin when it turns on or off (5 min debounce) | External (`tplinkcloud`) |
+| Event stats | Text `event` | Totals the scores for a hard-coded piugame event chart list | Calls the dead `results/best/trusted/chart/:id` → **broken today**. Rebuild on the tournaments data or drop |
+| Error reporting | Any failure | Replies with the exception and pings the admin; a failing job stops itself and notifies the admin | — |
+| owjibot (separate bot) | Group chat, inline buttons | Per-location "who played recently" message, with RU / UA wording; deletes its previous message to reduce spam | C6 (public) |
+
+State today: `bot.json` (last poll time), a pickle persistence file,
+in-memory location state, and config from environment variables (admin id,
+tracked location, watchers, Kasa credentials).
+
+## Endpoint inventory
+
+Auth: **agent** = any registered agent, **super** = agent #1, **bot** = Telegram
+bot token, **none** = public. Request args are the JSON body merged with the
+query string (GET requests also send a JSON body).
+
+### A. Result ingestion and agents (piu-spy)
+
+| # | Endpoint | Auth | What it does |
+|---|---|---|---|
+| A1 | `POST /results/screen/submit` | agent | Capture mode: split the screen into left/right results, validate, add or merge into `results`; unrecognized results go to `purgatory` |
+| A2 | `POST /results/stream/submit` | agent | Same as A1, plus a fallback for bad track-name OCR: guess the track from chart label + step-count range |
+| A3 | `POST /results/manual/submit` | agent | Manual mode: unrecognized results are rejected instead of going to purgatory; merges with an existing same-score result (Step It Up profile import) |
+| A4 | `POST /results/test/submit` | agent | Like A1, but rejects instead of using purgatory (used by tests) |
+| A5 | `POST /results/{screen,stream,manual}/validate` | agent | Dry run of A1–A3 (`checkOnly`): per side, whether it's valid, the discard reason, or what would be updated |
+| A6 | `POST /status` | agent | Heartbeat: upsert `agent_sessions` by `(agent, client_session_mark)` with a JSON status; on a new session, prune the agent's sessions older than 7 days |
+| A7 | `POST /upload` | agent | Multipart `file` (jpeg / json / mp4, ≤ 512 KB) saved to `UPLOADS_ROOT/<agent name>/<path>` (path traversal guarded) |
+| A8 | `GET /upload?path=` | agent | Stat an uploaded file (dir / file / size / mtime) so the agent can skip re-uploading it |
+
+### B. Admin tool
+
+| # | Endpoint | Auth | What it does |
+|---|---|---|---|
+| B1 | `POST /agent` | super | Create an agent (name `[-._a-zA-Z0-9]`, random 30-char token); returns the existing agent if the name is taken |
+| B2 | `GET /admin/agents?name=` | super | Search agents (response includes tokens) |
+| B3 | `POST /admin/agent/edit/:id` | super | Edit an agent's name / title |
+| B4 | `GET /admin/players` | super | All players with admin fields and per-mix arcade names + edit-distance tolerance (flattened `arcade_<mix>_name[_edist]` from `arcade_player_names`) |
+| B5 | `POST /admin/player/create`, `POST /admin/player/edit/:id` | super | Create or edit a player. Checks nickname and per-mix arcade-name uniqueness. Toggling `hidden` sets `hidden_since` and bumps `shared_charts.last_updated_at` for every chart the player has results on. Upserts an `arcade_player_names` row per mix |
+| B6 | `GET /admin/results?score=&result=` | super | Search results by score (`score` or `score_phoenix`) or by id, up to 1000 |
+| B7 | `POST /admin/result/edit/:id` | super | Edit scores, step stats, grade, `actual_player_id`, mods (re-validated, recomputes `rank_mode`), `is_hidden`, notes; then calls TS `shared-charts/:id/refresh` |
+| B8 | `POST /admin/result/delete/:id` | super | Delete a result and clear `results_best_grade` / `results_highest_score_*` for its shared chart; then calls TS refresh |
+| B9 | `GET /admin/purgatory` | super | List all purgatory rows |
+| B10 | `POST /admin/purgatory/recheck` `{ids?: [from, to]}` | super | Re-run validation over purgatory (all rows or an id range): valid rows move to `results`, discarded rows are deleted, changed reasons are updated |
+| B11 | `POST /admin/purgatory/editAndRecheck` | super | Patch a purgatory row (track, chart, player name, stats, mods…), then recheck it |
+| B12 | `POST /admin/purgatory/delete` | super | Delete a purgatory row |
+| B13 | `GET /admin/chart_instances/?id=` | super | A chart instance with its learned `min/max_total_steps` |
+| B14 | `POST /admin/chart_instance/edit/:id` | super | Edit `min/max_total_steps`, `is_hidden` |
+| B15 | `GET /admin/tracks/?name=` | super | Track search with per-mix arcade names + tolerance (`arcade_track_names`) |
+| B16 | `POST /admin/track/edit/:id` | super | Upsert / delete a track's arcade names per mix |
+| B17 | `GET /tracklist` | **none** | Dump tracks, shared charts, chart instances and per-mix arcade track names (input to the tracklist sync script) |
+| B18 | `POST /track` | super | Upsert a track |
+| B19 | `POST /sharedChart` | super | Upsert a shared chart (`track`, `index_in_track`, `type`) |
+| B20 | `POST /chartInstance` | super | Upsert a chart instance; on insert, seed the track's arcade name for that mix (copied from the previous mix, else `full_name`) |
+| B21 | `GET /downloads/:agentID?path=` | **none** | Send an uploaded file as an attachment (agentID is only checked for existence; the path is relative to `UPLOADS_ROOT`) |
+
+The tracklist sync itself is client-side (`admin/admin_tracklist.py`). It
+diffs a local tracklist JSON against B17 and pushes changes through B18–B20.
+
+### C. Telegram bot and activity
+
+| # | Endpoint | Auth | What it does |
+|---|---|---|---|
+| C1 | `GET /telegram/players` | bot | Visible players with `telegram_tag`, `telegram_id`, bot preferences |
+| C2 | `GET /telegram/best_results` `{since}` | bot | "Best results" feed for charts updated since `since`: per chart, each player's best score per rank mode, plus the best-grade result where it differs. Drives the rivals notifications |
+| C3 | `POST /telegram/link_user` | bot | Link a Telegram id to a player by `telegram_tag` |
+| C4 | `GET` / `POST /telegram/preferences/:telegramID` | bot | Read / write the bot preferences JSON |
+| C5 | `GET /telegram/agents/info` | bot | All agents' last session times, and the players who scored on each agent in the last 6 h (hidden players shown as `PUMP IT UP`) |
+| C6 | `GET /agent/:id/lastPlayers/` | **none** | C5 for one agent, plus its uptime / last-update minutes |
+
+### D. Dev / test only (registered only with `main.py dev`)
+
+| # | Endpoint | What it does |
+|---|---|---|
+| D1 | `GET /test/record/:table` | Fetch a row by arbitrary `where` |
+| D2 | `POST /test/clear/:table` | Truncate a table |
+| D3 | `POST /test/clear_all_results` | Truncate results / purgatory / best tables and reset chart stats |
+
+## Functionality behind the endpoints
+
+1. **Result ingestion** (A1–A5, B10, B11), in `results.py`,
+   `result_validation*.py`, `results_update.py`, `scoring_*.py`,
+   `tracklist.py`, `players.py`:
+   - **Payload**: a header (`screen_file`, `mix_name`, `track_name`,
+     `gained`) plus `left` / `right` sides, each with `result`,
+     `personal_best` and `machine_best`. Only `result` is stored. PB/MB are
+     used only for XX glitch cleanup.
+   - **XX quirks**: the PB grade glitch, the machine best of the other side
+     showing up, duplicate PB/MB. `is_pass` is derived from the grade on XX.
+   - **Player resolution**: Levenshtein distance against per-mix arcade names
+     (`arcade_player_names`), with a per-player tolerance (`name_edist`).
+     Ambiguous near-ties are rejected. Spaces are stripped except on Phoenix 2
+     (`NICK #1234`). Alias accounts redirect via `actual_player_id`.
+     `discard_results` players are discarded.
+   - **Track resolution**: normalized-character Levenshtein against
+     `arcade_track_names` per mix, with "best guess" hints in the rejection
+     reason. Stream mode falls back to label + step-sum matching.
+   - **Chart resolution**: by label within the mix. UCS labels and RANDOM
+     TRAIN are discarded. The step sum must fall within the chart's learned
+     `min/max_total_steps` ± 1.
+   - **Scoring validation**:
+     - Combo scoring (pre-Phoenix): multiple of 100, grade enum, minimum score
+       for the stats, `max_combo` rules, `score_increase` rules.
+     - Million scoring (Phoenix, Phoenix 2): recompute the score from stats
+       (±1), the grade from the per-mix grade table, and the plate from
+       misses/bads/goods. Pass status is required.
+     - Mods whitelist (it differs per scoring system). Rank mode (`VJ`) is
+       allowed only on Standard, non-performance charts of level ≥ 13, and
+       not together with `HJ` / `BGADARK` / `BGAOFF`.
+   - **Outcomes**: *Unrecognized* goes to purgatory (or is rejected in
+     manual / test mode). *Discarded* is dropped silently.
+   - **Normalization**: `score_phoenix` is computed from stats for
+     pre-Phoenix mixes, so every result has a comparable million score.
+   - **De-duplication and merge** (same chart instance + recognized player +
+     score):
+     - Manual mode merges into the closest-in-time result with matching
+       stats, filling in missing perfects and grade.
+     - An exact-date result overwrites an inexact ("brief") one, or a
+       re-recognition within 10 s.
+     - A brief result is skipped if a detailed one already exists.
+   - **Side effects**: learns `chart_instances.min/max_total_steps` from
+     complete stats, stores a random result `token`, inserts with
+     `is_new_best_score = false`, commits, then calls TS
+     `result-added-effect` over HTTP (pp, ELO, exp and best flags live in TS).
+2. **Purgatory**: parks unrecognized results with a reason, so they can be
+   rechecked after admins fix arcade names, the tracklist or the row itself.
+3. **Agents and sessions**: the agent registry and tokens, heartbeat
+   sessions, and "who played where recently" activity queries.
+4. **File storage**: a per-agent upload tree. `results.screen_file` is stored
+   as `<agent name>/<path>`, and the TS screenshot endpoint reads the same
+   tree (`SCREENSHOT_BASE_FOLDER` = `PIUTOP_UPLOADS_ROOT`). This path layout is
+   a shared contract.
+5. **Tracklist management**: track, shared chart and chart instance upserts,
+   plus per-mix arcade track names and their seeding.
+6. **Player management**: admin fields, per-mix arcade names, and hidden-flag
+   propagation to `shared_charts.last_updated_at`.
+7. **Telegram integration**: user linking, preferences, the best-results feed
+   and the activity feed.
+8. **Constants**: the mix list and ids, `MAIN_MIX` (Phoenix 2), the million
+   scoring start (Phoenix), mixes with arcade-name lookup (XX and later), and
+   the grade tables. Part of this exists in TS (`constants/mixes.ts`).
+
+## Already in TS
+
+| Legacy piece | TS counterpart | Gap |
+|---|---|---|
+| Post-insert effects | `POST /results/result-added-effect/:id` (REST, called by Python) | P3 turns it into "enqueue an event", processed by the effects worker. W12 drops the route once Python ingestion is gone |
+| B8 result delete | `admin.deleteResult` → `services/results/deleteResult.ts` | None known; the web admin uses it |
+| B5 player edit | `admin.updatePlayer` (can-add-manually, region, telegram tag/id, hidden) | No nickname / arcade names / `discard_results` / `is_admin` / `actual_player_id` / create. `hidden` doesn't set `hidden_since` or bump `shared_charts.last_updated_at` |
+| A3 manual submit | `results.addResultMutation` + `recognizeScoreMutation` (web manual add) | Different flow: the web user picks the chart; no agent, no fuzzy matching. Decide whether agent-side manual mode is still needed |
+| B21 downloads (for the web) | `GET /results/:id/screenshot` (incl. mp4 first frame) | The admin tool's raw file download isn't covered |
+
+## Dead or broken on the legacy side (don't port)
+
+- **Broken callback**: Python calls `POST shared-charts/:id/refresh` after an
+  admin result edit or delete (B7, B8), but TS has no such route, so those
+  edits silently skip recalculation today.
+- **Python admin delete is broken**: B8 deletes from
+  `results_highest_score_no_rank` / `_rank`, but a 2023 migration dropped those
+  tables. The transaction rolls back and the endpoint returns a traceback with
+  HTTP 200. Deleting from the web admin (TS `admin.deleteResult`) works.
+- **`results_best_grade` is write-only**: the TS effect and delete code, the
+  tests and seeds, and Python B8 write it. Nothing reads it, and Python's own
+  best-grade logic (C2) computes the value itself. Removed by P4.
+- **Called by clients but no longer served**: `/top` (`admin/get_top.py`), and
+  `/admin/resetResults`, `/purgatory`, `/results/search`,
+  `/result/assignToPlayer`, `/results/reestimateRank` (`admin/admin.py`
+  CLI). Also `results/best/trusted/chart/:id` (bot `piugame_event.py`) and
+  `/lastResults` (piu-spy `scan_and_upload_images.py`).
+- **Unused code**: `backend/alchemy/` (SQLAlchemy models, unused),
+  `scoring_test.py`, `_tests.py` (scratch), and `backend-ts/` (only
+  `node_modules` + `.env`).
+- **Branches that can't be reached**: `context.login` / `profileID` are never
+  set anymore, so the region / hidden-profile branches in C2 and the
+  `players.stat_top_*` counters are dead.
+
+## Legacy issues to fix, not copy
+
+- SQL is built by string interpolation. Most values are escaped, but some
+  aren't (the `id` in B13, `sharedChartId` in C2). Kysely removes this class
+  of bug.
+- Agent- and bot-guarded endpoints return **HTTP 200 with a traceback string**
+  on errors (`jsonSecureCall` never sets a status code). A compatibility layer
+  must decide whether clients rely on that.
+- B17 and B21 are unauthenticated, B2 returns agent tokens, and tokens are
+  stored in plain text.
+- Production runs the Flask dev server, single process, with `debug=True`.
+
+## Migration approach
+
+- **Incremental, per group.** The database is shared, so each group can be
+  ported and cut over on its own, with no dual-write period. There are three
+  mostly independent tracks: **ingestion** (piu-spy), **web admin** and
+  **Telegram**.
+- **Ingestion stays wire-compatible.** Serve group A from the `packages/ingest`
+  service with the same paths, `agent-name` / `agent-token` headers, multipart `file` field
+  and response shapes. Then either point updated agents at the TS port, or
+  have the reverse proxy forward the legacy port / paths to TS.
+- **Admin becomes tRPC + web.** Group B is redesigned as `admin.*` procedures
+  behind `adminProcedure` (already checks `players.is_admin`) and a guarded
+  `/admin` section in the web. Feature parity with the desktop tool (see
+  "Admin desktop tool features") is the bar for retiring it. Improvements are
+  welcome on top of that. File downloads (B21) become an admin-only
+  procedure / route instead of an open endpoint. The tracklist sync becomes an
+  admin page or a TS script.
+- **Telegram becomes a TS bot platform** (see "Telegram bot platform") in
+  `packages/bot`. Group C is replaced by calls to `packages/core` services. It can be built before the rest,
+  because the bot only reads data that Python already writes to the shared
+  database.
+- **Characterization before replacing ingestion.** Port the `piu-top/tests`
+  scenarios (`adding_results`, `validation_xx`, `validation_phoenix`,
+  `rank_detection`, `result_edit`, `player_edit`) to Mocha. Then shadow-run
+  real traffic: the `/validate` endpoints are side-effect free, and the
+  uploaded scan JSONs under `UPLOADS_ROOT` are a replay corpus. Diff the
+  Python and TS outcomes before flipping `/submit`.
+- **Libraries**: plain Levenshtein (Python `editdistance`), e.g.
+  `fastest-levenshtein`; `multer` (or similar) for uploads; `grammY` for the
+  bot.
+
+## Service boundaries and deployment
+
+### Services
+
+| Service | Package | Runs as | Deploys when changed | Must keep working through |
+|---|---|---|---|---|
+| Web API (+ effects worker, cron jobs) | `packages/api` | pm2 `pumpking-api` | `api/**`, `core/**` | — |
+| Result ingestion | `packages/ingest` | pm2 `pumpking-ingest`, own port | `ingest/**`, `core/**` | API / bot outages, failed API / web deploys |
+| Telegram bot | `packages/bot` | pm2 `pumpking-bot` | `bot/**`, `core/**` | API / ingestion outages |
+| Web | `packages/web` | GitHub Pages (unchanged) | `web/**` | — |
+| Shared code | `packages/core` | Not deployed itself; bundled into each service | — | — |
+
+A `package-lock.json` change counts as a change to every service.
+`packages/core` holds:
+- the database client, Kysely types, migrations and migration scripts;
+- constants;
+- pure domain logic (validators, scoring, pp / exp calculation);
+- the event table helpers.
+
+The web keeps importing types from `@/api/*`.
+
+### Build and release
+
+- **CI bundles each service** into a self-contained artifact (esbuild /
+  tsup). Nothing is installed on the server, so there's no `npm ci` in prod.
+  A broken build fails in CI and never touches the server.
+- **Releases are atomic**:
+  1. Upload the artifact to `~/services/<service>/releases/<sha>/`.
+  2. Point the `current` symlink at it.
+  3. `pm2 reload` that one service.
+  4. Poll its `/healthz`. For ingestion, also run a smoke test: POST a
+     fixture payload to `/results/screen/validate` (side-effect free) and
+     check the response.
+  5. If the check fails, point the symlink back and reload.
+
+  Keep the last few releases for manual rollback.
+- **Each service is isolated at runtime**: its own pm2 app, port, `.env`,
+  logs, memory limit and auto-restart.
+- After a successful deploy, CI moves the git tag `deployed/<service>` to
+  that commit.
+
+This replaces today's deploy, which rsyncs with `--delete` into the live
+directory and then runs `npm ci`, migrations and a pm2 restart in place. That
+leaves broken files under the running process if any step fails.
+
+### Pipeline
+
+One "Deploy" workflow, so migrations run exactly once and always before
+service deploys. Web stays on its own GitHub Pages workflow.
+
+1. **Detect** changed packages (e.g. `dorny/paths-filter`) and map them to
+   affected services.
+2. **Test** each affected service.
+3. **Migration guard** (only when `migrations/` changed): check out each
+   `deployed/<service>` commit and run its tests against the new migrations,
+   alongside the new code's tests. This covers services that aren't being
+   redeployed, and services whose deploy might fail and roll back onto the
+   new schema.
+4. **Migrate prod** once, only if steps 2–3 pass.
+5. **Deploy** the affected services in parallel. Each has its own rollback;
+   a failed ingestion deploy doesn't stop the API deploy and vice versa.
+
+### Database rules
+
+- One shared MySQL user; all services read and write the same tables.
+- Migrations run only in the pipeline, never on service start.
+- **Expand / contract**: ship additive changes first. Drop or rename only
+  after every service has been released on the new shape. The migration
+  guard enforces this in practice.
+
+### Events and effects
+
+- An **`events` table** (id, type, JSON payload, created at) works as an
+  outbox. Producers insert events in the same transaction as the change:
+  - ingestion: `resultAdded`;
+  - admin edits / deletes: `resultChanged`;
+  - the tournaments job: `tournamentStarted` / `tournamentEnded`.
+- **Consumers keep their own persisted cursors**: the effects worker (pp,
+  exp, player totals, pp history; runs inside the API process like the
+  existing `jobs/`) and the bot. Old events are cleaned up after a retention
+  period. After downtime, the bot skips notifications that are too old
+  instead of sending stale ones.
+- **Ingestion's critical path is validate → store the result row + event in
+  one transaction.** It depends only on MySQL and the uploads directory. It
+  makes no HTTP calls, and nothing calls it synchronously.
+- **Rule: ingestion writes every field the leaderboard reads from the row**:
+  `score_phoenix`, `is_pass`, grade, plate, stats (Python already does). The
+  effect's `score_phoenix` / `is_pass` fallback stays only as a safety net.
+  Effects compute only derived or aggregate values.
+- **Rule: effects are safe to replay.** They recompute values, never
+  increment them. When several results for the same player and chart are
+  processed late, only the current best gets pp. Nothing reads pp from
+  non-best results.
+- **Results without effects yet** already appear on the chart leaderboard,
+  which is computed live from `results` (`services/charts/chartsSearch.ts`):
+  score, rank, grade, plate, stats and chart order by latest `added`. Until
+  the worker catches up (normally about a second), the gaps are:
+
+  | Field | Visible as |
+  |---|---|
+  | `results.pp` | No pp on that result; missing from "sort by pp" and from the profile's highest-pp charts |
+  | `players.pp`, pp history | Stale ranking position and profile pp chart |
+  | `results.exp`, `players.exp` | No result exp; stale profile level |
+  | `shared_charts.last_updated_at` | Not bumped. Only the Python bot's C2 feed reads it, and the new bot uses events |
+
+  Today an effect whose HTTP callback fails is lost for good. The nightly job
+  (`jobs/chartDifficulty`) recomputes all pp, but exp is never fixed. With
+  events, the backlog is processed after an outage.
+- **Before W7**: P3 turns the existing `result-added-effect` REST route that
+  Python calls into "insert a `resultAdded` event". Effects become durable,
+  and the bot gets events while Python still does ingestion.
+
+### Monitoring
+
+- `/healthz` on every service.
+- An external uptime check on ingestion.
+- A bot plugin that alerts the admin when ingestion or the API is unhealthy.
+  Ingestion never depends on the bot.
+
+## Telegram bot platform
+
+A high-level design; details get settled in its own plan when the work
+starts.
+
+- **Library**: grammY. It's TS-native and middleware-based, and has plugins
+  for inline menus, conversations and a long-polling runner.
+- **Process**: the `packages/bot` service (see "Service boundaries and
+  deployment"), using `packages/core` for data access. It runs as a single
+  instance, because a Telegram token supports only one long-polling consumer.
+  Jobs use `node-cron` like the API's `src/jobs/`.
+- **Plugin contract**: each feature is a module that declares its
+  - text commands (with help text, registered with `setMyCommands`),
+  - callback-button handlers (namespaced `plugin:action` data),
+  - scheduled jobs (cron or interval),
+  - domain event handlers (e.g. `resultAdded`, `tournamentStarted`,
+    `tournamentEnded`, `agentSessionChanged`),
+  - its preferences schema (Zod), with defaults and migrations.
+
+  Plugins are enabled / disabled through config.
+- **Shared services for plugins**: find the player linked to a chat; send to
+  a player or chat (HTML, with rate limiting); per-plugin persistent state in
+  a key-value table (replaces `bot.json` and the pickle file); per-plugin
+  preferences namespaced inside `players.telegram_bot_preferences` (migrate
+  the existing versioned `rivals` block); error handling that reports to the
+  admin chat and pauses a failing job instead of killing the bot.
+- **Event delivery**: the bot reads the shared `events` table (see "Events and
+  effects") with its own persisted cursor. This survives restarts without
+  missing or repeating notifications, and replaces the 15 s best-results
+  polling for rivals.
+- **First plugins**: port every feature in "Telegram bot features". The first
+  new plugin is tournament start/end notifications.
+
+## Workstreams
+
+Complexity: **S** = hours to a day, **M** = a few days, **L** = a week or more
+including testing. The Priority column is left for triage.
+
+| ID | Workstream | Covers | Complexity | Notes / depends on | Priority |
+|---|---|---|---|---|---|
+| **Platform track** | | | | | |
+| P1 | Package split | Create `packages/core` (db, Kysely types, migrations + scripts, constants, shared domain logic) and the `packages/ingest` / `packages/bot` skeletons with `/healthz`; move the API onto `core`; keep the web's `@/api/*` types working | M | Needed by W1, W9 | |
+| P2 | Deploy pipeline | Bundled artifacts, release dirs + `current` symlink, one pm2 app per service, health check + ingestion smoke test + auto-rollback, `deployed/<service>` tags, single workflow with change detection, migration guard, one migrate step before deploys. Move the existing API deploy onto it first | M | P1 | |
+| P3 | Events + effects worker | `events` table and producer helper in `core`; effects worker with a cursor in the API process; `result-added-effect` REST route enqueues instead of running inline; make effects safe to replay | S–M | P1 | |
+| P4 | Drop `results_best_grade` | Remove it from `resultAddedEffect`, `deleteResult`, tests and seeds; drop-table migration; regenerate types | S | Nothing (Python B8 is already broken; the table is never read) | |
+| **Ingestion track** | | | | | |
+| W1 | Ingestion foundations | Legacy REST scaffold in `packages/ingest` (body + query arg merge, Flask-compatible responses and error shapes), agent-header auth, mix / grade / mods constants in `core`, Levenshtein util | S–M | P1, P2; needed by W2, W7 | |
+| W2 | Agent heartbeat and uploads | A6, A7, A8 | S | Keep the `<agent>/<path>` layout under the shared uploads directory | |
+| W7 | Result ingestion pipeline | A1–A5 (all modes until the mode decision) | **L** | Highest risk. Sub-steps: player / track / chart resolvers → combo + million validators, mods, rank mode → XX quirks → dedup / merge → persist the complete result row + `resultAdded` event in one transaction → purgatory write. Shadow-validate before cutover | |
+| **Web admin track** | | | | | |
+| W3 | Admin shell | `/admin` section in the web, guarded by `is_admin` (route guard + nav entry for admins only; server-side `adminProcedure`); tab layout; a shared panel for per-action results; admin-only file viewer / download for screenshots and scan JSON (replaces B21) | S–M | Nothing | |
+| W4 | Admin: tracks and charts | B13–B20, tracklist sync (page or script) | M | W3 | |
+| W5 | Admin: players and agents | B1–B5: extend `admin.updatePlayer` (nickname, email, discard, is admin, alias, create, per-mix arcade names), hidden → `hidden_since` + chart bump; agent create and token rotation | M | W3 | |
+| W6 | Admin: results | B6–B8, plus the missing track / player search and recalculation after edits (fixes the broken refresh callback) | M | W3; B7 reuses the W7 mods / rank validators (port those first if W6 goes before W7) | |
+| W8 | Admin: purgatory | B9–B12, reason-field highlighting, edit + recheck, batch recheck that doesn't block | M | W3, W7 (reuses the pipeline) | |
+| **Telegram track** | | | | | |
+| W9 | Bot platform | `packages/bot`: grammY runner, plugin contract, state and preferences storage, events cursor, jobs, error reporting, health alerts for ingestion / API | M–L | P1, P2; P3 for events | |
+| W10 | Port bot features | Plugins: account link, rivals notifications + settings (best-results logic from C2), location monitoring + dialog, heater (Kasa), owjibot location widget, event stats (rebuild or drop) | M–L | W9; rivals uses `resultAdded` events (produced since P3, even while Python ingests) | |
+| W11 | New notifications | Tournament start / end first (the removed legacy bot command posted bracket announcements to a tournaments channel, configured as `TOURNAMENTS_CHANNEL_ID`; that channel can be reused), more later | S each | W9; tournaments creation job (tournaments plan M5) | |
+| **Wrap-up** | | | | | |
+| W12 | Cutover and decommission | Proxy flip or agent update for ingestion, retire the desktop tool once the web admin matches it, stop the Python bot and owjibot, clean up dead client calls, drop the REST `result-added-effect` route, stop Flask, archive piu-top, remove the legacy mention from `CLAUDE.md` | S | Last, per track | |
+
+Suggested order per track (the tracks can run in parallel once P1 and P2 are
+done):
+- Platform: P1 → P2 → P3; P4 any time.
+- Ingestion: W1 → W2 → W7.
+- Admin: W3 → W4, W5 → W6 → W8 (after W7).
+- Telegram: W9 → W10 → W11.
+- W12 closes each track.
+
+## Open questions
+
+1. Which piu-spy modes stay (screen / stream / manual / test)? Deferred; all
+   modes are ported until then.
+2. At cutover, can the deployed agents be updated to the new port, or do we
+   use a proxy? Both are fine for the plan; this only affects W12.
+3. Should owjibot become a plugin of the main bot (one token, group-chat
+   support), or stay a second bot? If it stays separate, should the platform
+   support multiple bot tokens?
+4. Account linking: keep matching by `telegram_tag` (breaks when a Telegram
+   username changes), or add a deep-link flow started from the web profile
+   (`t.me/<bot>?start=<one-time token>`)?
+5. Event stats: rebuild on top of tournaments, or drop the command?
+6. Web admin wishlist: any UX improvements beyond parity and the gaps listed
+   in "Admin desktop tool features"?
