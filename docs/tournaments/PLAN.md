@@ -656,14 +656,19 @@ Notes:
   no repeated chart in a pool, `state` rejects the legacy values (`Draft`,
   `ChartPoolVoting`) and defaults to `Live`, and deleting a tournament cascades
   its brackets, pool and assignments while the parked history is untouched.
-- `src/types/database.ts` is regenerated after both migrations. Two blocks are
-  **hand-patched** and marked `HAND-PATCHED` in the file (a VIEW codegen does
-  not introspect, and the JSON column typed with the app's own interface) —
-  re-apply them after any regen. The regen also made two columns truthful, both
-  unused by code: `chart_instances.interpolated_difficulty` is back in the types
-  (the column still exists until the held-back drop migration ships) and
-  `players.openai_cost` is nullable, which is what that stored generated column
-  actually is.
+- `src/types/database.ts` is regenerated after both migrations. One block is
+  **hand-patched** and marked `HAND-PATCHED` in the file: the JSON column typed
+  with the app's own interface (`PlayerPreferencesJson`) — codegen types JSON as
+  plain `Json` and has no way to know better. Re-apply it after any regen. The
+  regen also corrected three places where the hand-edited file had drifted from
+  the database, none of them used by code:
+  `chart_instances.interpolated_difficulty` is back in the types (the column
+  still exists until the held-back drop migration ships), `players.openai_cost`
+  is nullable (which is what that stored generated column actually is), and the
+  `best_results` interface is **gone** — no migration creates it and it exists in
+  no database (dev, test, or a chain-built one); it was a leftover of the
+  hand-written era (the `results_highest_score_*` tables dropped in
+  `20231129184107`), not a view codegen refused to emit.
 - M7 adds `tournament_results` and M9 adds `player_notices` as separate
   migrations; the launch is not blocked on either.
 
