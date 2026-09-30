@@ -37,5 +37,8 @@ jobs:
           SCREENSHOT_AGENT_BASE_FOLDER: ~/test-screenshots
           SCREENSHOT_FILE_PATH_DB: '{nickname}/{dateAdded}/{dateTimeAdded}.jpg'
 
+      - name: Type-check API
+        run: npm run ts-check --prefix packages/api
+
       - name: Test API
         run: npm run test:api

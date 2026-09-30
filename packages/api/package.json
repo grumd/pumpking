@@ -18,8 +18,7 @@
     "start": "nodemon",
     "start:tsx": "tsx ./src/index.ts",
     "debug": "cross-env NODE_ENV=development DEBUG=backend-ts:* tsx --inspect ./src/index.ts",
-    "pm2": "cross-env NODE_PATH=./build pm2 startOrRestart ./pm2.config.js",
-    "build": "rimraf ./build && tsc --project ./tsconfig.build.json && tsc-alias --project ./tsconfig.build.json",
+    "pm2": "(pm2 delete pumpking-api --silent || true) && pm2 start ./pm2.config.js && pm2 save",
     "ts-check": "tsc --noEmit --pretty",
     "test:run": "cross-env NODE_ENV=test mocha --import=tsx -r ./src/test/helpers/rootHooks.ts ./src/test/**/*.test.ts",
     "test": "cross-env DEBUG=backend-ts:test:* npm run test:run -- --exit",
@@ -58,10 +57,9 @@
     "openai": "^6.15.0",
     "pm2": "^5.3.0",
     "regression": "^2.0.1",
-    "rimraf": "^5.0.1",
     "sanitize-filename": "^1.6.3",
     "superjson": "^2.2.6",
-    "tsconfig-paths": "^3.14.2",
+    "tsx": "^4.21.0",
     "validatorjs": "^3.22.1",
     "zod": "^3.22.4"
   },
@@ -87,8 +85,6 @@
     "kysely-codegen": "^0.10.0",
     "minimist": "^1.2.8",
     "mocha": "^8.4.0",
-    "supertest": "^6.1.3",
-    "tsc-alias": "^1.8.16",
-    "tsx": "^4.21.0"
+    "supertest": "^6.1.3"
   }
 }
