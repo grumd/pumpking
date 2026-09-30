@@ -275,12 +275,6 @@ export interface Results {
   exp: Decimal | null;
 }
 
-export interface ResultsBestGrade {
-  player_id: number;
-  shared_chart_id: number;
-  result_id: number;
-}
-
 export interface Sessions {
   id: string;
   player: number;
@@ -423,7 +417,6 @@ export interface DB {
   pp_rank_history: PpRankHistory;
   purgatory: Purgatory;
   results: Results;
-  results_best_grade: ResultsBestGrade;
   sessions: Sessions;
   shared_charts: SharedCharts;
   tournament_brackets: TournamentBrackets;
