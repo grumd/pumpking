@@ -23,7 +23,14 @@ switch_to() {
 }
 
 is_healthy() {
-  curl -fsS --retry 15 --retry-delay 2 --retry-all-errors "$health_url"
+  curl -fsS --retry 15 --retry-delay 2 --retry-all-errors "$health_url" || return 1
+
+  # Ingestion must also answer piu-spy's calls: validate has no side effects, and turns a
+  # call without an agent down with the legacy error
+  if [ "$service" = ingest ]; then
+    curl -fsS -X POST -H 'content-type: application/json' -d '{}' \
+      http://127.0.0.1:3002/results/screen/validate | grep -q 'permission denied' || return 1
+  fi
 }
 
 switch_to "$new_release"
