@@ -1,7 +1,7 @@
 import { Alert, Anchor, Badge, Box, Button, Group, Popover, Text, Tooltip } from '@mantine/core';
 import classNames from 'classnames';
 import { useAtomValue } from 'jotai';
-import { FaAngleDoubleUp, FaExclamationTriangle, FaTrash } from 'react-icons/fa';
+import { FaAngleDoubleUp, FaExclamationTriangle, FaTrash, FaTrophy } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
 
 import { Flag } from 'components/Flag/Flag';
@@ -137,6 +137,13 @@ const Result = ({ result, chart }: { result: ResultExtended; chart: ChartApiOutp
             <span className="debug-elo-info"> {result.pp && `${result.pp}pp`}</span>
           )}
           <Group gap="0.25em" ml="auto" wrap="nowrap">
+            {result.countsForTournament && (
+              <Tooltip label={lang.TOURNAMENT_RESULT}>
+                <Badge color="gold" c="black" size="xs">
+                  <FaTrophy style={{ verticalAlign: 'middle' }} />
+                </Badge>
+              </Tooltip>
+            )}
             {result.mods?.includes('HJ') && (
               <Badge color="orange" size="xs">
                 HJ

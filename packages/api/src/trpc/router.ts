@@ -2,6 +2,7 @@ import { createContext } from './context';
 import { admin } from './routes/admin';
 import { auth } from './routes/auth';
 import { charts } from './routes/charts';
+import { notices } from './routes/notices';
 import { players } from './routes/players';
 import { results } from './routes/results';
 import { tournaments } from './routes/tournaments';
@@ -20,6 +21,7 @@ const appRouter = router({
   results,
   tracks,
   tournaments,
+  notices,
 });
 
 export const expressRouter = createExpressMiddleware({

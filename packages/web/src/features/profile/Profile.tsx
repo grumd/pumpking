@@ -19,6 +19,7 @@ import { MostPlayedCharts } from './components/MostPlayedCharts/MostPlayedCharts
 import { PpHistoryGraph } from './components/PpHistoryGraph';
 import { PpRankHistoryGraph } from './components/PpRankHistoryGraph';
 import { ProfileHeader } from './components/ProfileHeader';
+import { TournamentCups } from './components/TournamentCups';
 
 const Profile = () => {
   const lang = useLanguage();
@@ -45,6 +46,7 @@ const Profile = () => {
         >
           <ExpProgress />
         </Card>
+        <TournamentCups />
         <Group grow gap="xs" align="stretch">
           <GradeGraphsCard />
           <Stack gap="xs" justify="stretch">

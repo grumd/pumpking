@@ -135,7 +135,6 @@ export const pl: BaseTranslation = {
   BRACKETS: 'Drabinka:',
   TOURNAMENT_LIVE: 'trwa',
   TOURNAMENT_ENDED: 'zakończony',
-  TOURNAMENT_ENDED_NOTICE: 'Wyniki końcowe. Nowy turniej zaczyna się 1. dnia miesiąca.',
   TOURNAMENT_NONE: 'Nie ma jeszcze turniejów. Nowy zaczyna się 1. dnia każdego miesiąca.',
   TOURNAMENT_YOUR_BRACKET: 'Twoja grupa',
   TOURNAMENT_PLACEMENT: (level: number) =>
@@ -149,6 +148,9 @@ export const pl: BaseTranslation = {
   TOURNAMENT_LEADERBOARD: 'Tabela wyników',
   TOURNAMENT_PLAYERS: 'graczy',
   TOURNAMENT_NO_SCORES: 'Brak wyników',
+  TOURNAMENT_CUPS: 'puchary',
+  TOURNAMENT_CHART: 'Turniej',
+  TOURNAMENT_RESULT: 'Liczy się do turnieju',
   SKILL: 'poziom',
   UNRATED: 'bez poziomu',
 

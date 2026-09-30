@@ -1,6 +1,7 @@
 import { MIXES } from 'constants/mixes';
 import { db } from 'db';
 import { sql } from 'kysely';
+import { getLiveTournamentMarks } from 'services/tournaments/tournament';
 import type { Tracks } from 'types/database';
 
 // import { replaceSqlParams } from 'utils/sql';
@@ -69,6 +70,7 @@ export interface ResultViewModel {
   exp: number | null;
   isHidden: boolean;
   recognitionType: null | 'manual' | 'result' | 'personal_best' | 'machine_best';
+  countsForTournament: boolean;
 }
 
 export interface ChartViewModel {
@@ -81,6 +83,7 @@ export interface ChartViewModel {
   level: number | null;
   difficulty: number | null;
   interpolatedDifficulty: number | null;
+  inTournament: boolean;
   otherChartInstances: Array<{
     mix: number;
     label: string;
@@ -419,6 +422,9 @@ export const searchCharts = async (params: ChartsSearchParams) => {
   // console.log('searchCharts query time:', timeEnd - timeStart, 'ms');
 
   const chartsArray: ChartViewModel[] = [];
+  const { poolChartIds, countingResultIds } = await getLiveTournamentMarks(
+    results.map((r) => r.result_id)
+  );
 
   results.reduce((acc: Record<number, ChartViewModel>, r) => {
     if (r.score !== null) {
@@ -432,6 +438,7 @@ export const searchCharts = async (params: ChartsSearchParams) => {
           level: r.latest_chart_level,
           difficulty: r.difficulty || r.latest_chart_level,
           interpolatedDifficulty: r.difficulty,
+          inTournament: poolChartIds.has(r.shared_chart),
           otherChartInstances: [],
           results: [],
         };
@@ -486,6 +493,7 @@ export const searchCharts = async (params: ChartsSearchParams) => {
             : r.recognition_notes === 'result'
             ? 'result'
             : null,
+        countsForTournament: countingResultIds.has(r.result_id),
       };
 
       acc[r.shared_chart].results.push(result);

@@ -126,7 +126,6 @@ export const ru = {
   BRACKETS: 'Группы чартов:',
   TOURNAMENT_LIVE: 'идёт',
   TOURNAMENT_ENDED: 'завершён',
-  TOURNAMENT_ENDED_NOTICE: 'Итоговые результаты. Новый турнир начнётся 1-го числа.',
   TOURNAMENT_NONE: 'Турниров пока нет. Новый начинается 1-го числа каждого месяца.',
   TOURNAMENT_YOUR_BRACKET: 'Ваша группа',
   TOURNAMENT_PLACEMENT: (level: number) => `у вас 5 чартов на 950k+ уровня ${level} или сложнее`,
@@ -139,6 +138,9 @@ export const ru = {
   TOURNAMENT_LEADERBOARD: 'Таблица результатов',
   TOURNAMENT_PLAYERS: 'игроков',
   TOURNAMENT_NO_SCORES: 'Результатов пока нет',
+  TOURNAMENT_CUPS: 'кубки',
+  TOURNAMENT_CHART: 'Турнир',
+  TOURNAMENT_RESULT: 'Засчитывается в турнир',
   SKILL: 'уровень',
   UNRATED: 'без уровня',
 

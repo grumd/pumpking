@@ -11,34 +11,30 @@ import {
   Text,
   Title,
 } from '@mantine/core';
-import { useQuery } from '@tanstack/react-query';
-import { useState } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useEffect, useState } from 'react';
 import { NavLink } from 'react-router-dom';
 
 import { Card } from 'components/Card/Card';
 import { ChartLabel } from 'components/ChartLabel/ChartLabel';
+import { Flag } from 'components/Flag/Flag';
 import Loader from 'components/Loader/Loader';
+import { Medal } from 'components/Medal/Medal';
 
 import { routes } from 'constants/routes';
 
 import { useUser } from 'hooks/useUser';
 
-import { language, useLanguage } from 'utils/context/translation';
+import { useLanguage } from 'utils/context/translation';
 import { Mixes, isMixNumber } from 'utils/scoring/grades';
 import { api } from 'utils/trpc';
+
+import { tournamentName } from './tournamentName';
 
 type Tournament = NonNullable<ApiOutputs['tournaments']['get']>;
 type Bracket = Tournament['brackets'][number];
 
 const formatScore = (score: number) => score.toLocaleString('en-US');
-
-const tournamentName = (startDate: Date) => {
-  const name = startDate.toLocaleDateString(language === 'ua' ? 'uk' : language, {
-    month: 'long',
-    year: 'numeric',
-  });
-  return name.charAt(0).toUpperCase() + name.slice(1);
-};
 
 const skillRange = (bracket: Bracket, unrated: string) => {
   if (bracket.minSkill === null) return `${unrated}, < ${bracket.maxSkill}`;
@@ -123,14 +119,22 @@ const BracketView = ({ bracket, playerId }: { bracket: Bracket; playerId?: numbe
                     key={entry.playerId}
                     bg={entry.playerId === playerId ? 'dark.5' : undefined}
                   >
-                    <Table.Td fw="bold">{entry.rank}</Table.Td>
+                    <Table.Td fw="bold">
+                      <Group gap={6} wrap="nowrap">
+                        {entry.rank}
+                        {entry.medal && <Medal medal={entry.medal} />}
+                      </Group>
+                    </Table.Td>
                     <Table.Td>
-                      <Anchor
-                        component={NavLink}
-                        to={routes.profile.getPath({ id: entry.playerId })}
-                      >
-                        {entry.nickname}
-                      </Anchor>
+                      <Group gap="xxs" wrap="nowrap">
+                        {entry.region && <Flag region={entry.region} />}
+                        <Anchor
+                          component={NavLink}
+                          to={routes.profile.getPath({ id: entry.playerId })}
+                        >
+                          {entry.nickname}
+                        </Anchor>
+                      </Group>
                     </Table.Td>
                     {bracket.charts.map((chart) => {
                       const result = entry.charts.find(
@@ -180,7 +184,8 @@ const PlayerSummary = ({ tournament, playerId }: { tournament: Tournament; playe
       {entry && (
         <>
           {' · '}
-          {lang.TOURNAMENT_PLACE}: <b>{entry.rank}</b> · {lang.TOTAL}: <b>{formatScore(entry.total)}</b>
+          {lang.TOURNAMENT_PLACE}: <b>{entry.rank}</b> · {lang.TOTAL}:{' '}
+          <b>{formatScore(entry.total)}</b>
         </>
       )}
     </Text>
@@ -208,11 +213,6 @@ const TournamentView = ({ tournament }: { tournament: Tournament }) => {
             {tournament.startDate.toLocaleDateString(undefined, { dateStyle: 'medium' })} –{' '}
             {lastMinute.toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' })}
           </Text>
-          {!isLive && (
-            <Text size="sm" c="dimmed">
-              {lang.TOURNAMENT_ENDED_NOTICE}
-            </Text>
-          )}
           <PlayerSummary tournament={tournament} playerId={user?.id} />
         </Stack>
       </Card>
@@ -235,8 +235,26 @@ const TournamentView = ({ tournament }: { tournament: Tournament }) => {
   );
 };
 
+const useClearTournamentNotice = () => {
+  const queryClient = useQueryClient();
+  const { data: user } = useUser();
+  const unread = useQuery(api.notices.unread.queryOptions(undefined, { enabled: !!user }));
+  const { mutate } = useMutation(
+    api.notices.markRead.mutationOptions({
+      onSuccess: (data) => queryClient.setQueryData(api.notices.unread.queryKey(), data),
+    })
+  );
+
+  useEffect(() => {
+    if (unread.data?.tournament) {
+      mutate('tournament');
+    }
+  }, [unread.data?.tournament, mutate]);
+};
+
 export default function Tournaments(): JSX.Element {
   const lang = useLanguage();
+  useClearTournamentNotice();
   const [tournamentId, setTournamentId] = useState<number | undefined>();
   const list = useQuery(api.tournaments.list.queryOptions());
   const tournament = useQuery(api.tournaments.get.queryOptions({ tournamentId }));

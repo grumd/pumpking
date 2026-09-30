@@ -4,6 +4,8 @@ import { NavLink } from 'react-router-dom';
 
 import './top-bar.scss';
 
+import { NoticeIndicator } from 'components/NoticeIndicator/NoticeIndicator';
+
 import { routes } from 'constants/routes';
 
 import { useLogout } from 'hooks/useLogout';
@@ -15,6 +17,9 @@ export default function TopBar() {
   const lang = useLanguage();
   const { data: user, isLoading: isLoadingUser } = useQuery(api.user.current.queryOptions());
   const { logout, isLoading: isLoadingLogout } = useLogout();
+  const { data: notices } = useQuery(
+    api.notices.unread.queryOptions(undefined, { enabled: !!user })
+  );
 
   return (
     <header className="top-bar">
@@ -36,9 +41,11 @@ export default function TopBar() {
             </Anchor>
           </li>
           <li>
-            <Anchor fw="bold" size="xl" component={NavLink} to={routes.tournaments.path}>
-              {lang.TOURNAMENTS}
-            </Anchor>
+            <NoticeIndicator unread={!!notices?.tournament}>
+              <Anchor fw="bold" size="xl" component={NavLink} to={routes.tournaments.path}>
+                {lang.TOURNAMENTS}
+              </Anchor>
+            </NoticeIndicator>
           </li>
         </ul>
       </nav>
