@@ -1,10 +1,11 @@
 /**
  * Mods (modifiers) of a result, stored as a space-separated `mods_list`. Ported from the
- * legacy piu-top validation (`scoring_combo.py`), which ingestion also uses: the same
- * mods are valid and the messages match.
+ * legacy piu-top validation (`scoring_combo.py` and `scoring_mln.py`): the same mods are
+ * valid and the messages match.
  */
 
-const MOD_NAMES = [
+// Mixes before Phoenix (combo scoring)
+const COMBO_MOD_NAMES = [
   'VJ',
   'EW',
   'RV',
@@ -30,14 +31,43 @@ const MOD_NAMES = [
   'JR',
 ];
 
+// Phoenix and later (million scoring): no VJ or BGAOFF, but the PASS options, which the
+// arcade shows among the mods
+const MILLION_MOD_NAMES = [
+  'EW',
+  'RV',
+  'AC',
+  'DC',
+  'V',
+  'AP',
+  'NS',
+  'FD',
+  'FL',
+  'BGADARK',
+  'X',
+  'NX',
+  'UA',
+  'DR',
+  'SI',
+  'RI',
+  'SN',
+  'M',
+  'RS',
+  'HJ',
+  'JR',
+  'PASS',
+  'PASS_G',
+  'PASS_M',
+];
+
 // Rank mode (VJ) can't be combined with these
 const RANK_MODE_EXCLUDED_MODS = ['HJ', 'BGADARK', 'BGAOFF'];
 
 export class InvalidModsError extends Error {}
 
 // Returns the mod as it's stored (speed mods like `2X` become `2x`)
-const validMod = (mod: string): string => {
-  if (MOD_NAMES.includes(mod)) {
+const validMod = (mod: string, modNames: string[]): string => {
+  if (modNames.includes(mod)) {
     return mod;
   }
   const autoVelocity = mod.match(/^AV(\d+)$/);
@@ -50,10 +80,17 @@ const validMod = (mod: string): string => {
   throw new InvalidModsError(`Mod '${mod}' is invalid`);
 };
 
-/** The mods of a `mods_list`; throws an InvalidModsError for an unknown mod. */
-export const parseModsList = (modsList: string): string[] => {
+/**
+ * The mods of a `mods_list`; throws an InvalidModsError for an unknown mod. Million
+ * scoring mixes (Phoenix and later) have their own list of mods.
+ */
+export const parseModsList = (
+  modsList: string,
+  { millionScoring = false }: { millionScoring?: boolean } = {}
+): string[] => {
+  const modNames = millionScoring ? MILLION_MOD_NAMES : COMBO_MOD_NAMES;
   const trimmed = modsList.trim();
-  return trimmed === '' ? [] : trimmed.split(/\s+/).map(validMod);
+  return trimmed === '' ? [] : trimmed.split(/\s+/).map((mod) => validMod(mod, modNames));
 };
 
 export interface RankModeChart {
