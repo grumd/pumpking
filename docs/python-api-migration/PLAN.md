@@ -2,8 +2,8 @@
 
 Status: inventory done 2026-09-30 · direction agreed 2026-09-30 (see "Agreed
 decisions") · deploy approach revised 2026-09-30 (tsx + pm2 release dirs, see
-"Build and release") · P1.1 and P1.2 deployed 2026-09-30 · P1.3 next (see
-"Progress") · nothing ported yet beyond what TS
+"Build and release") · P1.1 and P1.2 deployed 2026-09-30 · P1.3 done
+2026-09-30, PR open · P1.4 next (see "Progress") · nothing ported yet beyond what TS
 already owns (see "Already in TS") · priorities not set yet
 
 ## Progress
@@ -17,8 +17,8 @@ comes next. The rest of the document is the design it follows.
 | P1.1 API runs on tsx in prod + `/healthz` | Done 2026-09-30 (PR #37). Deploy green, `/healthz` ok; on the server `pm2 describe pumpking-api` shows `packages/api/src/index.ts` with `--import tsx`, and all 5 pm2 apps are online |
 | P1.2 `packages/core` with the DB layer | Done 2026-09-30 (PR #38). Deploy green (env check passed, migrate "already up to date", `/healthz` ok, `tracks.mostPlayed` serves data). The server's DB config now lives only in `packages/core/.env`: the `DB_*` lines were removed from `packages/api/.env` (backup: `~/pumpking-api.env.bak-20260930`, outside the deploy dir) and the API was restarted once to prove it runs without them |
 | Side fix | PR #34 merged 2026-09-30: `chart_instances.interpolated_difficulty` dropped in prod (migration renamed to `20260930040000_…` so it sorts after the tournaments migrations prod had already run — Kysely 0.25 rejects anything that sorts earlier) |
-| P1.3 constants + pure logic into core | **Next** |
-| P1.4 `ingest` / `bot` skeletons | Not started |
+| P1.3 constants + pure logic into core | Done 2026-09-30 on `feature/core-constants`, PR open. Core / API / web type-check, API tests pass, `npm run build:web` bundles `MIXES` from core. Nothing server-side changes: the API deploy runs it as before |
+| P1.4 `ingest` / `bot` skeletons | **Next** |
 | P2 onwards | Not started |
 
 ### What P1.2 did
@@ -69,6 +69,32 @@ comes next. The rest of the document is the design it follows.
   used to have a password-less URL hardcoded. Before W5 / W7, check which of these
   exist in prod and either drop them or add them to a migration.
 
+### What P1.3 did
+
+- Moved with `git mv` into core: `src/constants/{currentMix,grades,mixes,tournaments}.ts`,
+  `src/scoring/{grades,phoenixScore}.ts` and `src/profile/exp.ts` (the API's
+  `utils/` level dropped: in core they're domain logic, not utils). They import
+  nothing, so they're browser-safe.
+- The 17 API importers use `@pumpking/core/constants/…`,
+  `@pumpking/core/scoring/…` and `@pumpking/core/profile/exp`. The API's
+  `constants/*` path alias is gone; `src/constants/`, `utils/scoring/` and
+  `utils/profile/` no longer exist in the API.
+- **The web depends on core at runtime.** `@pumpking/core` is a web
+  dependency (`"*"`, like the API). `AddResult.tsx` and
+  `ScreenshotRecognition.tsx` import `MIXES` from
+  `@pumpking/core/constants/mixes`. The web's `tsconfig.json` references
+  `../core` directly (web → core and web → API → core): without it, `tsc
+  --build` rejects core files that aren't in a referenced project. Vite
+  resolves the package `exports` through the workspace symlink with no config.
+- The web's own `utils/scoring/grades.ts` stays (it has `Mixes`,
+  `getPhoenixGrade`, `getPhoenixPlate`), but its `GradePhoenix` /
+  `PlatePhoenix`, which were identical copies, are now re-exported from core.
+- CI: `packages/core/**` added to the paths of `test-web.yml` and
+  `deploy-web.yml` (a core-only change now changes the web bundle).
+- Stale `packages/*/types` declarations for moved files can hide errors
+  locally; delete `packages/{api,core}/types` and the `*.tsbuildinfo` files
+  for a clean `tsc --build` (CI always builds clean).
+
 ### Server state after P1.2
 
 - Still the old layout: `~/pumpking-deployment/` (rsync into the live dir).
@@ -79,32 +105,28 @@ comes next. The rest of the document is the design it follows.
 - The dev machine's `packages/core/.env` holds the local DB config; the local
   `packages/api/.env` has no `DB_*` lines anymore.
 
-### Next: P1.3, constants and pure logic into core
+### Next: P1.4, `ingest` / `bot` skeletons
 
-Start from a branch off `master` (`feature/core-constants` exists locally
-with only this progress update on it).
+Start from a branch off `master` once the P1.3 PR is merged.
 
-- Move with `git mv`: `packages/api/src/constants/{currentMix,grades,mixes,tournaments}.ts`,
-  `utils/scoring/{grades,phoenixScore}.ts`, `utils/profile/exp.ts`. None of
-  them import anything, so they're browser-safe as is. Core keeps relative
-  imports only.
-- Importers: 17 API files (`constants/mixes` ×7, `constants/tournaments` ×4,
-  `utils/scoring/phoenixScore` ×3, `constants/currentMix` ×2,
-  `constants/grades` ×2, `utils/scoring/grades` ×1, `utils/profile/exp` ×1),
-  plus a comment in migration `20260927032417_add_mix_phoenix2.ts` that
-  points at `src/constants/mixes.ts`.
-- The web imports `MIXES` from `@/api/constants/mixes` in two files
-  (`AddResult.tsx` at runtime, `ScreenshotRecognition.tsx` type-only); they
-  switch to `@pumpking/core/…`, and the web gets `@pumpking/core` as a
-  dependency. The web has its **own** `src/utils/scoring/grades.ts` (118
-  lines, different from the API's 52-line one); leave it unless merging them
-  is trivial, and don't expand the slice for it.
-- The web's `moduleResolution: bundler` resolves the package `exports`;
-  check that Vite does too (`npm run build:web`). Add `packages/core/**` to the paths of
-  `test-web.yml` then, since the web starts depending on core at runtime.
-- Agreed for P2 (2026-09-30): prod migrations run over SSH from the new
-  release directory, and the new layout lives under `~/pumpking/` (see
-  "Build and release").
+- `packages/ingest` and `packages/bot`: workspace packages depending on
+  `@pumpking/core` (`"*"`), each with a small Express server exposing only
+  `/healthz`, modelled on the API's
+  (`packages/api/src/app.ts`: `select 1` through core's `db`, 503 on failure).
+  Their own ports and `.env` files (just the port for now; DB config comes
+  from core's `.env`).
+- They start fresh, so use `moduleResolution: bundler` and no path aliases
+  (see "What P1.2 did"). Each is a TS project that references `../core`; add
+  their `ts-check` to the root `npm run ts`.
+- A `/healthz` test per package with Mocha + Chai, like
+  `packages/api/src/test/unit/health.test.ts`, and a CI workflow (or a job
+  in `test-api.yml`) that runs them, with `packages/{ingest,bot}/**` +
+  `packages/core/**` paths.
+- A `pm2.config.js` per package like `packages/api/pm2.config.js`
+  (`--import tsx`), app names `pumpking-ingest` / `pumpking-bot`. **Not
+  deployed in P1.4**: deploying them is P2's job (release dirs, one symlink
+  per service). Don't add them to `deploy-api.yml`.
+- Nothing grammY / ingestion-specific yet; that's W1 and W9.
 
 ## Target architecture overview
 
@@ -698,7 +720,7 @@ including testing. The Priority column is left for triage.
 | ID | Workstream | Covers | Complexity | Notes / depends on | Priority |
 |---|---|---|---|---|---|
 | **Platform track** | | | | | |
-| P1 | Package split | Steps, one PR each: (1) run the API on tsx in prod + `/healthz` — **done**; (2) `packages/core` with the DB layer (client without dotenv, Kysely types + codegen, migrations + `MigrationProvider` + scripts, test-DB helpers) as a composite TS project — **done**; (3) move the existing constants and pure logic (`constants/*`, `utils/scoring/*`, `utils/profile/exp.ts`), with the web importing mixes from core; (4) `packages/ingest` / `packages/bot` skeletons with `/healthz`. Other logic moves to core when a second consumer needs it | M | Needed by W1, W9 | |
+| P1 | Package split | Steps, one PR each: (1) run the API on tsx in prod + `/healthz` — **done**; (2) `packages/core` with the DB layer (client without dotenv, Kysely types + codegen, migrations + `MigrationProvider` + scripts, test-DB helpers) as a composite TS project — **done**; (3) move the existing constants and pure logic (`constants/*`, `utils/scoring/*`, `utils/profile/exp.ts`), with the web importing mixes from core — **done**; (4) `packages/ingest` / `packages/bot` skeletons with `/healthz`. Other logic moves to core when a second consumer needs it | M | Needed by W1, W9 | |
 | P2 | Deploy pipeline | Whole-repo release dirs + a symlink per service, one pm2 app per service, health check + ingestion smoke test + auto-rollback, `deployed/<service>` tags, single workflow with change detection, migration guard, one migrate step before deploys (run over SSH from the new release). Move the existing API deploy onto it first | M | P1 | |
 | P3 | Events + effects worker | `events` table and producer helper in `core`; effects worker with a cursor in the API process; `result-added-effect` REST route enqueues instead of running inline; make effects safe to replay | S–M | P1 | |
 | P4 | Drop `results_best_grade` | Remove it from `resultAddedEffect`, `deleteResult`, tests and seeds; drop-table migration; regenerate types | S | Nothing (Python B8 is already broken; the table is never read) | |
