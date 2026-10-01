@@ -1,0 +1,78 @@
+{
+  "about": "A player nobody knows (ANON), with HJ",
+  "answersFrom": "legacy",
+  "steps": [
+    {
+      "path": "/results/screen/submit",
+      "agent": "kyiv_garage",
+      "request": {
+        "screen_file": "2026-08-22/2026-08-22--18-19-02.mp4",
+        "mix_name": "Phoenix",
+        "track_name": "Keep On!",
+        "gained": "2026-08-22 15:19:02",
+        "left": {
+          "chart_label": "S15",
+          "result": {
+            "player_name": "ANON",
+            "score": 964628,
+            "recognition_notes": "result",
+            "grade": "AAA+",
+            "plate": "MG",
+            "mods_list": "AV677 BGADARK HJ",
+            "misses": 5,
+            "bads": 7,
+            "goods": 10,
+            "greats": 33,
+            "perfects": 895,
+            "max_combo": 697,
+            "calories": 45603,
+            "score_increase": 964628,
+            "is_pass": true
+          }
+        }
+      },
+      "answer": {
+        "updates": [
+          {
+            "status": "added to purgatory",
+            "id": 1,
+            "reason": "Unknown player ANON for mix Phoenix, closest is NONO with 2 edits"
+          }
+        ]
+      }
+    }
+  ],
+  "stored": {
+    "results": [],
+    "purgatory": [
+      {
+        "id": 1,
+        "reason": "Unknown player ANON for mix Phoenix, closest is NONO with 2 edits",
+        "screen_file": "kyiv_garage/2026-08-22/2026-08-22--18-19-02.mp4",
+        "recognition_notes": "result",
+        "agent": 2,
+        "track_name": "Keep On!",
+        "mix_name": "Phoenix",
+        "chart_label": "S15",
+        "player_name": "ANON",
+        "gained": "2026-08-22 15:19:02",
+        "exact_gain_date": 1,
+        "rank_mode": 0,
+        "mods_list": "AV677 BGADARK HJ",
+        "score": 964628,
+        "score_increase": 964628,
+        "misses": 5,
+        "bads": 7,
+        "goods": 10,
+        "greats": 33,
+        "perfects": 895,
+        "grade": "AAA+",
+        "is_pass": 1,
+        "plate": "MG",
+        "max_combo": 697,
+        "calories": 45603
+      }
+    ],
+    "charts": []
+  }
+}

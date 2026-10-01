@@ -1,0 +1,23 @@
+{
+  "all": true,
+  "src": [
+    "src"
+  ],
+  "include": [
+    "src/**"
+  ],
+  "exclude": [
+    "src/test/**",
+    "src/index.ts",
+    "src/ingestion/types.ts"
+  ],
+  "reporter": [
+    "text"
+  ],
+  "report-dir": "coverage",
+  "check-coverage": true,
+  "lines": 100,
+  "statements": 100,
+  "functions": 100,
+  "branches": 0
+}

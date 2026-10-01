@@ -1,0 +1,80 @@
+{
+  "about": "Phoenix RG plate on an S23",
+  "answersFrom": "legacy",
+  "steps": [
+    {
+      "path": "/results/screen/submit",
+      "agent": "paris-Le-Donjon",
+      "request": {
+        "screen_file": "2025-09-28/2025-09-28--23-19-16.mp4",
+        "mix_name": "Phoenix",
+        "track_name": "Nade Nade",
+        "gained": "2025-09-28 21:19:16",
+        "left": {
+          "chart_label": "S23",
+          "result": {
+            "player_name": "GALLARD",
+            "score": 935189,
+            "recognition_notes": "result",
+            "grade": "AA+",
+            "plate": "RG",
+            "mods_list": "AV700 BGADARK",
+            "misses": 27,
+            "bads": 15,
+            "goods": 21,
+            "greats": 63,
+            "perfects": 1232,
+            "max_combo": 173,
+            "calories": 62813,
+            "is_pass": true
+          }
+        }
+      },
+      "answer": {
+        "updates": [
+          {
+            "status": "result added"
+          }
+        ]
+      }
+    }
+  ],
+  "stored": {
+    "results": [
+      {
+        "id": 1,
+        "screen_file": "paris-Le-Donjon/2025-09-28/2025-09-28--23-19-16.mp4",
+        "recognition_notes": "result",
+        "agent": 19,
+        "track_name": "Nade Nade",
+        "mix_name": "Phoenix",
+        "chart_label": "S23",
+        "player_name": "GALLARD",
+        "gained": "2025-09-28 21:19:16",
+        "exact_gain_date": 1,
+        "rank_mode": 0,
+        "mods_list": "AV700 BGADARK",
+        "score": 935189,
+        "misses": 27,
+        "bads": 15,
+        "goods": 21,
+        "greats": 63,
+        "perfects": 1232,
+        "max_combo": 173,
+        "calories": 62813,
+        "grade": "AA+",
+        "is_pass": 1,
+        "plate": "RG",
+        "recognized_player_id": 313,
+        "player_id": 313,
+        "mix": 27,
+        "chart_instance": 23253,
+        "shared_chart": 7124,
+        "score_phoenix": 935189,
+        "is_new_best_score": 0
+      }
+    ],
+    "purgatory": [],
+    "charts": []
+  }
+}

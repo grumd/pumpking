@@ -1,0 +1,132 @@
+{
+  "about": "XX, two players on both sides",
+  "answersFrom": "legacy",
+  "steps": [
+    {
+      "path": "/results/screen/submit",
+      "agent": "Yuzhka",
+      "request": {
+        "screen_file": "2023-09-10/2023-09-10--16-12-14.mp4",
+        "mix_name": "XX",
+        "track_name": "Fly high",
+        "gained": "2023-09-10 16:12:14",
+        "left": {
+          "chart_label": "S9",
+          "result": {
+            "player_name": "INSEP",
+            "score": 477100,
+            "recognition_notes": "result",
+            "grade": "B",
+            "mods_list": "BGADARK",
+            "misses": 28,
+            "bads": 8,
+            "goods": 37,
+            "greats": 90,
+            "perfects": 322,
+            "max_combo": 132,
+            "calories": 25806,
+            "score_increase": 477100,
+            "is_pass": false
+          }
+        },
+        "right": {
+          "chart_label": "S20",
+          "result": {
+            "player_name": "JACKAZZM",
+            "score": 3869600,
+            "recognition_notes": "result",
+            "grade": "A+",
+            "mods_list": "AV686 BGADARK JR",
+            "misses": 11,
+            "bads": 4,
+            "goods": 6,
+            "greats": 16,
+            "perfects": 1145,
+            "max_combo": 416,
+            "calories": 46908,
+            "is_pass": true
+          }
+        }
+      },
+      "answer": {
+        "updates": [
+          {
+            "status": "result added"
+          },
+          {
+            "status": "result added"
+          }
+        ]
+      }
+    }
+  ],
+  "stored": {
+    "results": [
+      {
+        "id": 1,
+        "screen_file": "Yuzhka/2023-09-10/2023-09-10--16-12-14.mp4",
+        "recognition_notes": "result",
+        "agent": 7,
+        "track_name": "Fly high",
+        "mix_name": "XX",
+        "chart_label": "S9",
+        "player_name": "INSEP",
+        "gained": "2023-09-10 16:12:14",
+        "exact_gain_date": 1,
+        "rank_mode": 0,
+        "mods_list": "BGADARK",
+        "score": 477100,
+        "score_increase": 477100,
+        "misses": 28,
+        "bads": 8,
+        "goods": 37,
+        "greats": 90,
+        "perfects": 322,
+        "max_combo": 132,
+        "calories": 25806,
+        "grade": "B",
+        "is_pass": 0,
+        "recognized_player_id": 212,
+        "player_id": 212,
+        "mix": 26,
+        "chart_instance": 10966,
+        "shared_chart": 3261,
+        "score_phoenix": 789565,
+        "is_new_best_score": 0
+      },
+      {
+        "id": 2,
+        "screen_file": "Yuzhka/2023-09-10/2023-09-10--16-12-14.mp4",
+        "recognition_notes": "result",
+        "agent": 7,
+        "track_name": "Fly high",
+        "mix_name": "XX",
+        "chart_label": "S20",
+        "player_name": "JACKAZZM",
+        "gained": "2023-09-10 16:12:14",
+        "exact_gain_date": 1,
+        "rank_mode": 0,
+        "mods_list": "AV686 BGADARK JR",
+        "score": 3869600,
+        "misses": 11,
+        "bads": 4,
+        "goods": 6,
+        "greats": 16,
+        "perfects": 1145,
+        "max_combo": 416,
+        "calories": 46908,
+        "grade": "A+",
+        "is_pass": 1,
+        "recognized_player_id": 33,
+        "player_id": 33,
+        "mix": 26,
+        "chart_instance": 18244,
+        "shared_chart": 5346,
+        "score_phoenix": 975042,
+        "is_new_best_score": 0
+      }
+    ],
+    "purgatory": [],
+    "charts": []
+  }
+}

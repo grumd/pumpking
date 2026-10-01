@@ -1,0 +1,74 @@
+{
+  "about": "A COOP chart whose stats don't give the score",
+  "answersFrom": "legacy",
+  "steps": [
+    {
+      "path": "/results/screen/submit",
+      "agent": "msk-Zavod",
+      "request": {
+        "screen_file": "2025-04-06/2025-04-06--15-29-58.mp4",
+        "mix_name": "Phoenix",
+        "track_name": "BATTLE NO.1",
+        "gained": "2025-04-06 15:29:58",
+        "left": {
+          "chart_label": "COOP2",
+          "result": {
+            "player_name": "XENOBEAT",
+            "score": 865775,
+            "recognition_notes": "result",
+            "grade": "A+",
+            "mods_list": "AV712 BGADARK",
+            "misses": 203,
+            "bads": 28,
+            "goods": 33,
+            "greats": 75,
+            "perfects": 1878,
+            "max_combo": 203,
+            "calories": 0,
+            "is_pass": false
+          }
+        }
+      },
+      "answer": {
+        "updates": [
+          {
+            "status": "added to purgatory",
+            "id": 1,
+            "reason": "Invalid score 865,775 for specified stats, should be ~ 867,728"
+          }
+        ]
+      }
+    }
+  ],
+  "stored": {
+    "results": [],
+    "purgatory": [
+      {
+        "id": 1,
+        "reason": "Invalid score 865,775 for specified stats, should be ~ 867,728",
+        "screen_file": "msk-Zavod/2025-04-06/2025-04-06--15-29-58.mp4",
+        "recognition_notes": "result",
+        "agent": 17,
+        "track_name": "BATTLE NO.1",
+        "mix_name": "Phoenix",
+        "chart_label": "COOP2",
+        "player_name": "XENOBEAT",
+        "gained": "2025-04-06 15:29:58",
+        "exact_gain_date": 1,
+        "rank_mode": 0,
+        "mods_list": "AV712 BGADARK",
+        "score": 865775,
+        "misses": 203,
+        "bads": 28,
+        "goods": 33,
+        "greats": 75,
+        "perfects": 1878,
+        "grade": "A+",
+        "is_pass": 0,
+        "max_combo": 203,
+        "calories": 0
+      }
+    ],
+    "charts": []
+  }
+}

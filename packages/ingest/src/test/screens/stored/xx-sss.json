@@ -1,0 +1,78 @@
+{
+  "about": "XX SSS: max combo is all the steps",
+  "answersFrom": "legacy",
+  "steps": [
+    {
+      "path": "/results/screen/submit",
+      "agent": "Mimi",
+      "request": {
+        "screen_file": "20230812_115846_l5UW_b7zna4.mp4/2023-08-12--12-28-12-052998.mp4",
+        "mix_name": "XX",
+        "track_name": "GLORIA",
+        "gained": "2023-08-12 12:28:12",
+        "left": {
+          "chart_label": "D16",
+          "result": {
+            "player_name": "SOVUSHKA",
+            "score": 2934200,
+            "recognition_notes": "result",
+            "grade": "SSS",
+            "mods_list": "AV656 BGADARK",
+            "misses": 0,
+            "bads": 0,
+            "goods": 0,
+            "greats": 0,
+            "perfects": 711,
+            "max_combo": 711,
+            "calories": 31872,
+            "is_pass": true
+          }
+        }
+      },
+      "answer": {
+        "updates": [
+          {
+            "status": "result added"
+          }
+        ]
+      }
+    }
+  ],
+  "stored": {
+    "results": [
+      {
+        "id": 1,
+        "screen_file": "Mimi/20230812_115846_l5UW_b7zna4.mp4/2023-08-12--12-28-12-052998.mp4",
+        "recognition_notes": "result",
+        "agent": 3,
+        "track_name": "GLORIA",
+        "mix_name": "XX",
+        "chart_label": "D16",
+        "player_name": "SOVUSHKA",
+        "gained": "2023-08-12 12:28:12",
+        "exact_gain_date": 1,
+        "rank_mode": 0,
+        "mods_list": "AV656 BGADARK",
+        "score": 2934200,
+        "misses": 0,
+        "bads": 0,
+        "goods": 0,
+        "greats": 0,
+        "perfects": 711,
+        "max_combo": 711,
+        "calories": 31872,
+        "grade": "SSS",
+        "is_pass": 1,
+        "recognized_player_id": 25,
+        "player_id": 25,
+        "mix": 26,
+        "chart_instance": 18880,
+        "shared_chart": 5982,
+        "score_phoenix": 1000000,
+        "is_new_best_score": 0
+      }
+    ],
+    "purgatory": [],
+    "charts": []
+  }
+}

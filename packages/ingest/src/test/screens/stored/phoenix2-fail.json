@@ -1,0 +1,78 @@
+{
+  "about": "Phoenix 2 fail",
+  "answersFrom": "legacy",
+  "steps": [
+    {
+      "path": "/results/screen/submit",
+      "agent": "kyiv_garage",
+      "request": {
+        "screen_file": "2026-09-25/2026-09-25--23-51-00.mp4",
+        "mix_name": "Phoenix2",
+        "track_name": "BANG BANG",
+        "gained": "2026-09-25 20:51:00",
+        "left": {
+          "chart_label": "S21",
+          "result": {
+            "player_name": "DINO #3869",
+            "score": 945836,
+            "recognition_notes": "result",
+            "grade": "AA+",
+            "mods_list": "AV660 BGADARK",
+            "misses": 24,
+            "bads": 7,
+            "goods": 17,
+            "greats": 41,
+            "perfects": 1079,
+            "max_combo": 515,
+            "calories": 45913,
+            "is_pass": false
+          }
+        }
+      },
+      "answer": {
+        "updates": [
+          {
+            "status": "result added"
+          }
+        ]
+      }
+    }
+  ],
+  "stored": {
+    "results": [
+      {
+        "id": 1,
+        "screen_file": "kyiv_garage/2026-09-25/2026-09-25--23-51-00.mp4",
+        "recognition_notes": "result",
+        "agent": 2,
+        "track_name": "BANG BANG",
+        "mix_name": "Phoenix2",
+        "chart_label": "S21",
+        "player_name": "DINO #3869",
+        "gained": "2026-09-25 20:51:00",
+        "exact_gain_date": 1,
+        "rank_mode": 0,
+        "mods_list": "AV660 BGADARK",
+        "score": 945836,
+        "misses": 24,
+        "bads": 7,
+        "goods": 17,
+        "greats": 41,
+        "perfects": 1079,
+        "max_combo": 515,
+        "calories": 45913,
+        "grade": "AA+",
+        "is_pass": 0,
+        "recognized_player_id": 2,
+        "player_id": 2,
+        "mix": 28,
+        "chart_instance": 23617,
+        "shared_chart": 7488,
+        "score_phoenix": 945836,
+        "is_new_best_score": 0
+      }
+    ],
+    "purgatory": [],
+    "charts": []
+  }
+}

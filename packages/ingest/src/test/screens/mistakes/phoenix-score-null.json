@@ -1,0 +1,44 @@
+{
+  "about": "Phoenix: from a real Phoenix MG result (#303128), with no score: the side is skipped",
+  "answersFrom": "legacy",
+  "steps": [
+    {
+      "path": "/results/screen/submit",
+      "agent": "moscow-Joki-Joya",
+      "request": {
+        "screen_file": "2026-09-21/2026-09-21--22-28-20.mp4",
+        "mix_name": "Phoenix",
+        "track_name": "Vacuum Cleaner",
+        "gained": "2026-09-21 19:28:20",
+        "left": {
+          "chart_label": "S16",
+          "result": {
+            "player_name": "GHOST",
+            "score": null,
+            "recognition_notes": "result",
+            "grade": "S+",
+            "plate": "MG",
+            "mods_list": "BGADARK",
+            "misses": 4,
+            "bads": 4,
+            "goods": 5,
+            "greats": 26,
+            "perfects": 1022,
+            "max_combo": 312,
+            "calories": 57283,
+            "score_increase": 975838,
+            "is_pass": true
+          }
+        }
+      },
+      "answer": {
+        "updates": []
+      }
+    }
+  ],
+  "stored": {
+    "results": [],
+    "purgatory": [],
+    "charts": []
+  }
+}

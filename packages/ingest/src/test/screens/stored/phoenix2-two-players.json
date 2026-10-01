@@ -1,0 +1,138 @@
+{
+  "about": "Phoenix 2, two players on both sides",
+  "answersFrom": "legacy",
+  "steps": [
+    {
+      "path": "/results/screen/submit",
+      "agent": "kyiv_garage",
+      "request": {
+        "screen_file": "2026-09-20/2026-09-20--18-31-35.mp4",
+        "mix_name": "Phoenix2",
+        "track_name": "Pull me up (Feat. Monya)",
+        "gained": "2026-09-20 15:31:35",
+        "left": {
+          "chart_label": "S16",
+          "result": {
+            "player_name": "OVER #5704",
+            "score": 999005,
+            "recognition_notes": "result",
+            "grade": "SSS+",
+            "plate": "UG",
+            "mods_list": "AV640 BGADARK",
+            "misses": 0,
+            "bads": 0,
+            "goods": 0,
+            "greats": 2,
+            "perfects": 798,
+            "max_combo": 800,
+            "calories": 31686,
+            "score_increase": 999005,
+            "is_pass": true
+          }
+        },
+        "right": {
+          "chart_label": "S16",
+          "result": {
+            "player_name": "DINO #3869",
+            "score": 999005,
+            "recognition_notes": "result",
+            "grade": "SSS+",
+            "plate": "UG",
+            "mods_list": "AV656 BGADARK",
+            "misses": 0,
+            "bads": 0,
+            "goods": 0,
+            "greats": 2,
+            "perfects": 798,
+            "max_combo": 800,
+            "calories": 32928,
+            "score_increase": 999005,
+            "is_pass": true
+          }
+        }
+      },
+      "answer": {
+        "updates": [
+          {
+            "status": "result added"
+          },
+          {
+            "status": "result added"
+          }
+        ]
+      }
+    }
+  ],
+  "stored": {
+    "results": [
+      {
+        "id": 1,
+        "screen_file": "kyiv_garage/2026-09-20/2026-09-20--18-31-35.mp4",
+        "recognition_notes": "result",
+        "agent": 2,
+        "track_name": "Pull me up (Feat. Monya)",
+        "mix_name": "Phoenix2",
+        "chart_label": "S16",
+        "player_name": "OVER #5704",
+        "gained": "2026-09-20 15:31:35",
+        "exact_gain_date": 1,
+        "rank_mode": 0,
+        "mods_list": "AV640 BGADARK",
+        "score": 999005,
+        "score_increase": 999005,
+        "misses": 0,
+        "bads": 0,
+        "goods": 0,
+        "greats": 2,
+        "perfects": 798,
+        "max_combo": 800,
+        "calories": 31686,
+        "grade": "SSS+",
+        "is_pass": 1,
+        "plate": "UG",
+        "recognized_player_id": 12,
+        "player_id": 12,
+        "mix": 28,
+        "chart_instance": 23877,
+        "shared_chart": 7748,
+        "score_phoenix": 999005,
+        "is_new_best_score": 0
+      },
+      {
+        "id": 2,
+        "screen_file": "kyiv_garage/2026-09-20/2026-09-20--18-31-35.mp4",
+        "recognition_notes": "result",
+        "agent": 2,
+        "track_name": "Pull me up (Feat. Monya)",
+        "mix_name": "Phoenix2",
+        "chart_label": "S16",
+        "player_name": "DINO #3869",
+        "gained": "2026-09-20 15:31:35",
+        "exact_gain_date": 1,
+        "rank_mode": 0,
+        "mods_list": "AV656 BGADARK",
+        "score": 999005,
+        "score_increase": 999005,
+        "misses": 0,
+        "bads": 0,
+        "goods": 0,
+        "greats": 2,
+        "perfects": 798,
+        "max_combo": 800,
+        "calories": 32928,
+        "grade": "SSS+",
+        "is_pass": 1,
+        "plate": "UG",
+        "recognized_player_id": 2,
+        "player_id": 2,
+        "mix": 28,
+        "chart_instance": 23877,
+        "shared_chart": 7748,
+        "score_phoenix": 999005,
+        "is_new_best_score": 0
+      }
+    ],
+    "purgatory": [],
+    "charts": []
+  }
+}

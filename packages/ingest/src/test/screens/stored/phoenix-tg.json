@@ -1,0 +1,80 @@
+{
+  "about": "Phoenix TG plate on a SHORT CUT",
+  "answersFrom": "legacy",
+  "steps": [
+    {
+      "path": "/results/screen/submit",
+      "agent": "moscow-Joki-Joya",
+      "request": {
+        "screen_file": "2026-09-21/2026-09-21--22-30-44.mp4",
+        "mix_name": "Phoenix",
+        "track_name": "PRIME Opening - SHORT CUT",
+        "gained": "2026-09-21 19:30:44",
+        "left": {
+          "chart_label": "S15",
+          "result": {
+            "player_name": "GHOST",
+            "score": 948900,
+            "recognition_notes": "result",
+            "grade": "AA+",
+            "plate": "TG",
+            "mods_list": "BGADARK",
+            "misses": 7,
+            "bads": 5,
+            "goods": 8,
+            "greats": 66,
+            "perfects": 799,
+            "max_combo": 656,
+            "calories": 22677,
+            "is_pass": true
+          }
+        }
+      },
+      "answer": {
+        "updates": [
+          {
+            "status": "result added"
+          }
+        ]
+      }
+    }
+  ],
+  "stored": {
+    "results": [
+      {
+        "id": 1,
+        "screen_file": "moscow-Joki-Joya/2026-09-21/2026-09-21--22-30-44.mp4",
+        "recognition_notes": "result",
+        "agent": 16,
+        "track_name": "PRIME Opening - SHORT CUT",
+        "mix_name": "Phoenix",
+        "chart_label": "S15",
+        "player_name": "GHOST",
+        "gained": "2026-09-21 19:30:44",
+        "exact_gain_date": 1,
+        "rank_mode": 0,
+        "mods_list": "BGADARK",
+        "score": 948900,
+        "misses": 7,
+        "bads": 5,
+        "goods": 8,
+        "greats": 66,
+        "perfects": 799,
+        "max_combo": 656,
+        "calories": 22677,
+        "grade": "AA+",
+        "is_pass": 1,
+        "plate": "TG",
+        "recognized_player_id": 280,
+        "player_id": 280,
+        "mix": 27,
+        "chart_instance": 21132,
+        "shared_chart": 3902,
+        "score_phoenix": 948900,
+        "is_new_best_score": 0
+      }
+    ],
+    "purgatory": [],
+    "charts": []
+  }
+}

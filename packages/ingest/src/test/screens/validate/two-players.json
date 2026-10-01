@@ -1,0 +1,77 @@
+{
+  "about": "Validating a real Phoenix 2 screen with two players (#302622, #302623)",
+  "answersFrom": "legacy",
+  "steps": [
+    {
+      "path": "/results/screen/validate",
+      "agent": "kyiv_garage",
+      "request": {
+        "screen_file": "2026-09-20/2026-09-20--18-31-35.mp4",
+        "mix_name": "Phoenix2",
+        "track_name": "Pull me up (Feat. Monya)",
+        "gained": "2026-09-20 15:31:35",
+        "left": {
+          "chart_label": "S16",
+          "result": {
+            "player_name": "OVER #5704",
+            "score": 999005,
+            "recognition_notes": "result",
+            "grade": "SSS+",
+            "plate": "UG",
+            "mods_list": "AV640 BGADARK",
+            "misses": 0,
+            "bads": 0,
+            "goods": 0,
+            "greats": 2,
+            "perfects": 798,
+            "max_combo": 800,
+            "calories": 31686,
+            "score_increase": 999005,
+            "is_pass": true
+          }
+        },
+        "right": {
+          "chart_label": "S16",
+          "result": {
+            "player_name": "DINO #3869",
+            "score": 999005,
+            "recognition_notes": "result",
+            "grade": "SSS+",
+            "plate": "UG",
+            "mods_list": "AV656 BGADARK",
+            "misses": 0,
+            "bads": 0,
+            "goods": 0,
+            "greats": 2,
+            "perfects": 798,
+            "max_combo": 800,
+            "calories": 32928,
+            "score_increase": 999005,
+            "is_pass": true
+          }
+        }
+      },
+      "answer": {
+        "validation": [
+          {
+            "valid": true,
+            "update": {
+              "status": "result added"
+            }
+          },
+          {
+            "valid": true,
+            "update": {
+              "status": "result added"
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "stored": {
+    "results": [],
+    "purgatory": [],
+    "charts": []
+  }
+}

@@ -1,0 +1,49 @@
+{
+  "about": "Validating a real Phoenix result (#303128) with a name nobody has",
+  "answersFrom": "legacy",
+  "steps": [
+    {
+      "path": "/results/screen/validate",
+      "agent": "moscow-Joki-Joya",
+      "request": {
+        "screen_file": "2026-09-21/2026-09-21--22-28-20.mp4",
+        "mix_name": "Phoenix",
+        "track_name": "Vacuum Cleaner",
+        "gained": "2026-09-21 19:28:20",
+        "left": {
+          "chart_label": "S16",
+          "result": {
+            "player_name": "GHOSTXQ",
+            "score": 975838,
+            "recognition_notes": "result",
+            "grade": "S+",
+            "plate": "MG",
+            "mods_list": "BGADARK",
+            "misses": 4,
+            "bads": 4,
+            "goods": 5,
+            "greats": 26,
+            "perfects": 1022,
+            "max_combo": 312,
+            "calories": 57283,
+            "score_increase": 975838,
+            "is_pass": true
+          }
+        }
+      },
+      "answer": {
+        "validation": [
+          {
+            "valid": false,
+            "reason": "Unknown player GHOSTXQ for mix Phoenix, closest is GHOST with 2 edits"
+          }
+        ]
+      }
+    }
+  ],
+  "stored": {
+    "results": [],
+    "purgatory": [],
+    "charts": []
+  }
+}

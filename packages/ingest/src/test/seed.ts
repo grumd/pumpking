@@ -1,5 +1,6 @@
+import type { DB } from '@pumpking/database/database';
 import { db } from '@pumpking/database/db';
-import { sql } from 'kysely';
+import { type Kysely, sql } from 'kysely';
 
 export const ARCADE = { name: 'test-arcade', token: 'arcade-token' };
 
@@ -82,18 +83,25 @@ const chartInstances = Object.values(CHARTS).map((chart) => ({
   track: chart.shared_chart === 3 ? 2 : 1,
 }));
 
+// Empties the tables ingestion uses
+export const clearTables = async (database: Kysely<DB> = db) => {
+  await database.deleteFrom('results').execute();
+  await database.deleteFrom('purgatory').execute();
+  await database.deleteFrom('chart_instances').execute();
+  await database.deleteFrom('shared_charts').execute();
+  await database.deleteFrom('arcade_player_names').execute();
+  await database.deleteFrom('arcade_track_names').execute();
+  await database.deleteFrom('tracks').execute();
+  // Aliases first: they point to other players
+  await database.deleteFrom('players').where('actual_player_id', 'is not', null).execute();
+  await database.deleteFrom('players').execute();
+  await database.deleteFrom('agent_sessions').execute();
+  await database.deleteFrom('agents').execute();
+  await sql`truncate table events`.execute(database);
+};
+
 export const seed = async () => {
-  await db.deleteFrom('results').execute();
-  await db.deleteFrom('purgatory').execute();
-  await db.deleteFrom('chart_instances').execute();
-  await db.deleteFrom('shared_charts').execute();
-  await db.deleteFrom('tracks').execute();
-  await db.deleteFrom('arcade_player_names').execute();
-  await db.deleteFrom('arcade_track_names').execute();
-  await db.deleteFrom('players').execute();
-  await db.deleteFrom('agent_sessions').execute();
-  await db.deleteFrom('agents').execute();
-  await sql`truncate table events`.execute(db);
+  await clearTables();
 
   await db.insertInto('agents').values(agents).execute();
   await db.insertInto('players').values(players).execute();

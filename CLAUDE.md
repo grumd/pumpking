@@ -139,6 +139,8 @@ npm run test --prefix packages/api        # Run all tests
 npm run test:watch --prefix packages/api  # Watch mode
 ```
 
+Ingest tests are in `packages/ingest/src/test/`: unit tests, and real result screens with the answers the legacy Python API gave (`screens/`, see its README). `npm run test:ingest` runs them under c8 and fails below 100% of lines, statements and functions. Branches are printed but not enforced: tsx compiles with esbuild, whose helpers show up as uncovered branches at line 1 and at a module's last export
+
 ## Trello
 
 A Trello workspace and board are available for tracking tasks:

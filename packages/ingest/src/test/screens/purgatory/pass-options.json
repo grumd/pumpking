@@ -1,0 +1,78 @@
+{
+  "about": "PASS_G among the mods",
+  "answersFrom": "legacy",
+  "steps": [
+    {
+      "path": "/results/screen/submit",
+      "agent": "spb-Krang",
+      "request": {
+        "screen_file": "2025-11-28/2025-11-28--19-30-17.mp4",
+        "mix_name": "Phoenix",
+        "track_name": "BATTLE NO.1",
+        "gained": "2025-11-28 19:30:17",
+        "left": {
+          "chart_label": "COOP2",
+          "result": {
+            "player_name": "L768",
+            "score": 942671,
+            "recognition_notes": "result",
+            "grade": "AA+",
+            "plate": "RG",
+            "mods_list": "AV670 BGADARK PASS_G",
+            "misses": 42,
+            "bads": 11,
+            "goods": 26,
+            "greats": 96,
+            "perfects": 2039,
+            "max_combo": 446,
+            "calories": 0,
+            "score_increase": 362957,
+            "is_pass": true
+          }
+        }
+      },
+      "answer": {
+        "updates": [
+          {
+            "status": "added to purgatory",
+            "id": 1,
+            "reason": "Invalid score 942,671 for specified stats, should be ~ 946,077"
+          }
+        ]
+      }
+    }
+  ],
+  "stored": {
+    "results": [],
+    "purgatory": [
+      {
+        "id": 1,
+        "reason": "Invalid score 942,671 for specified stats, should be ~ 946,077",
+        "screen_file": "spb-Krang/2025-11-28/2025-11-28--19-30-17.mp4",
+        "recognition_notes": "result",
+        "agent": 15,
+        "track_name": "BATTLE NO.1",
+        "mix_name": "Phoenix",
+        "chart_label": "COOP2",
+        "player_name": "L768",
+        "gained": "2025-11-28 19:30:17",
+        "exact_gain_date": 1,
+        "rank_mode": 0,
+        "mods_list": "AV670 BGADARK PASS_G",
+        "score": 942671,
+        "score_increase": 362957,
+        "misses": 42,
+        "bads": 11,
+        "goods": 26,
+        "greats": 96,
+        "perfects": 2039,
+        "grade": "AA+",
+        "is_pass": 1,
+        "plate": "RG",
+        "max_combo": 446,
+        "calories": 0
+      }
+    ],
+    "charts": []
+  }
+}

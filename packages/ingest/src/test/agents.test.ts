@@ -1,6 +1,7 @@
+import { errorMessage } from '../agentApi';
 import { app } from '../app';
 import { post } from './helpers';
-import { ARCADE } from './seed';
+import { ARCADE, seed } from './seed';
 import { db } from '@pumpking/database/db';
 import { assert } from 'chai';
 import fs from 'fs';
@@ -9,6 +10,8 @@ import path from 'path';
 import request from 'supertest';
 
 describe('Agents', () => {
+  beforeEach(seed);
+
   it('answer the health check', async () => {
     const res = await request(app).get('/healthz').expect(200);
     assert.deepEqual(res.body, { status: 'ok' });
@@ -29,6 +32,13 @@ describe('Agents', () => {
 
       assert.deepEqual(await sessions(), [
         { agent_id: 2, client_session_mark: '2026-09-30 10:00:00', status: { fps: 30 } },
+      ]);
+    });
+
+    it('keeps a session without a status, as piu-spy never sends', async () => {
+      assert.deepEqual((await post('/status', {})).body, {});
+      assert.deepEqual(await sessions(), [
+        { agent_id: 2, client_session_mark: 'undefined', status: {} },
       ]);
     });
 
@@ -119,6 +129,41 @@ describe('Agents', () => {
       assert.deepEqual(fs.readdirSync(uploadsRoot), []);
     });
 
+    it("turns down requests that aren't a file upload", async () => {
+      const notMultipart = await request(app)
+        .post('/upload')
+        .set('agent-name', ARCADE.name)
+        .set('agent-token', ARCADE.token)
+        .send({ file: '{}' })
+        .expect(400);
+      assert.deepEqual(notMultipart.body, { error: 'Unsupported content type: application/json' });
+
+      const cutShort = await request(app)
+        .post('/upload')
+        .set('content-type', 'multipart/form-data; boundary=x')
+        .send('--x\r\ncontent-disposition: form-data; name="file"; filename="a.json"\r\n')
+        .expect(400);
+      assert.deepEqual(cutShort.body, { error: 'Unexpected end of form' });
+
+      const otherField = await request(app)
+        .post('/upload')
+        .attach('screen', Buffer.from('{}'), {
+          filename: 'a.json',
+          contentType: 'application/json',
+        })
+        .expect(500);
+      assert.deepEqual(otherField.body, { error: "No 'file' provided in upload request" });
+    });
+
+    it('fails without UPLOADS_ROOT', async () => {
+      delete process.env.UPLOADS_ROOT;
+      const res = await upload('scan.json').expect(200);
+      assert.deepEqual(res.body, {
+        error: 'UPLOADS_ROOT is not set: add it to packages/ingest/.env',
+      });
+      process.env.UPLOADS_ROOT = uploadsRoot;
+    });
+
     it('needs an agent', async () => {
       const res = await request(app)
         .post('/upload')
@@ -126,5 +171,9 @@ describe('Agents', () => {
         .expect(200);
       assert.deepEqual(res.body, { error: 'permission denied' });
     });
+  });
+
+  it('answer errors that are not Error objects with their text', () => {
+    assert.equal(errorMessage('permission denied'), 'permission denied');
   });
 });

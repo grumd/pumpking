@@ -25,7 +25,7 @@ comes next. The rest of the document is the design it follows.
 | P4a stop using `results_best_grade` | **Deployed** 2026-09-30 (PR #42). Before merging: API tests pass (76), all packages type-check; master's tests pass with the new migration (the guard's check, run locally); on the dev DB (a copy of prod data), deleting a result the table points at fails before the migration and works after it (rolled back), and the migration's `down` works. The Deploy run was green (guards passed, migration ran on prod), all three services run `5a241f21`, and the table has no foreign keys left on prod |
 | P4b drop `results_best_grade` | **Deployed** 2026-09-30 (PR #43). API tests pass (76; the test code is P4a's, so this was also the guard's check), all packages type-check from a clean build, and the migration's up / down / up works on the dev DB. The Deploy run was green (guards passed, migration ran on prod), all three services run `e70880c3`, and the table is gone on prod |
 | Web admin (W3–W6, W8) | **Deployed** 2026-09-30 (PR #44, see "What the web admin did"). Checked before merging: API tests pass (114: 38 new), ingest / bot tests pass, all packages type-check, `npm run build:web` works, lint has only master's old errors. Tried in the browser against a fresh copy of prod data (the dev DB was reloaded from `~/dump.sql.gz`), with the legacy Python backend running locally (piu-top `origin/master` from `/tmp`, through `uv`) and a few prod videos copied into the local uploads folder: fixed chart #20968's step range from purgatory #8021's reason link, rechecked the row, and it moved to results (#303187) through Python, whose callback added the event, and got pp and exp from the effects job; edited that result (notes; bad mods got the validation error); players, agents (token shown on demand) and a tracklist sync preview of a file made from the DB (1,108 tracks, no errors) |
-| Ingestion (W1, W2, W7) | **Built, not merged** (PR #45, see "What the ingestion did"). `packages/ingest` serves piu-spy's endpoints (screen and manual modes), with the pipeline in its `src/ingestion/`; the admin purgatory recheck calls ingest instead of Python. Ingest tests pass (23), API tests pass. The same PR split `packages/core` into `packages/database` and `packages/utils` (see "What the package split did"). The shadow validation (below) ran against the dev DB (a fresh copy of prod) with the legacy Python backend running locally: same answers for every screen except the cases listed there, all of them known Python crashes. Nothing points piu-spy at it yet: that's the cutover (W12) |
+| Ingestion (W1, W2, W7) | **Built, not merged** (PR #45, see "What the ingestion did"). `packages/ingest` serves piu-spy's endpoints (screen and manual modes), with the pipeline in its `src/ingestion/`; the admin purgatory recheck calls ingest instead of Python. Ingest tests pass (35 unit tests and 130 real screens recorded from Python, 100% of the lines covered), API tests pass. The same PR split `packages/core` into `packages/database` and `packages/utils` (see "What the package split did"). The shadow validation (below) ran against the dev DB (a fresh copy of prod) with the legacy Python backend running locally: same answers for every screen except the cases listed there, all of them known Python crashes. Nothing points piu-spy at it yet: that's the cutover (W12) |
 | Telegram bot (W9–W11) | **Built, not merged** (PR #45, see "What the bot did"). A grammY bot platform with plugins for every legacy feature but event stats, plus tournament posts and health alerts. Bot tests pass (35). It runs Telegram only with `TELEGRAM_BOT_TOKEN`, which prod's `shared/bot.env` doesn't have, so merging changes nothing until the bot cutover |
 | Cutover, decommission (W12) | Not started (see "Next") |
 
@@ -482,6 +482,13 @@ desktop tool features" is there, apart from the gaps listed at the end.
     but its check never skipped any (a `continue` of the inner loop), so it always merged
     into the closest result in time. TS skips them and adds a new result.
   - A purgatory reason longer than the column (512) is cut instead of failing the insert.
+    So is a screen file name: `purgatory.screen_file` is 150 wide (`results.screen_file`
+    300), and a name over 150 is itself a reason for purgatory, so Python failed the
+    request inserting that row. The reason keeps the whole name.
+  - A fractional score is "Invalid score '975838.5'": Python stored it, rounded by
+    MySQL's INT column.
+  - A stat that isn't a whole number names its JS type (`'goods' is of type 'string'`),
+    where Python named its class (`<class 'str'>`).
   - Report lines print changed values as plain strings (Python printed
     `datetime.datetime(…)`).
   - No report lines about XX's glitched personal / machine bests: the bests are never
@@ -514,19 +521,38 @@ desktop tool features" is there, apart from the gaps listed at the end.
   | Phoenix 2 (412, all of them) | 9,372 | 9,372 | 0 |
 
   Each run also included the 14 purgatory rows (with their variants). Run again the same
-  day after the package split and the ingestion cleanups: the same numbers, and the same
-  560 differences.
+  day after the package split and the ingestion cleanups, and again after the fixes that
+  the real screen tests found (see "Tests"): the same numbers, and the same 560
+  differences.
 
   It hasn't run on real uploads yet: the prod files weren't copied to the dev machine.
   Run it on the server before the cutover (see "Next").
 - **Deploy**: besides `/healthz`, `deploy-service.sh` checks that ingest's validate turns
   a call without an agent down. Uploads need `UPLOADS_ROOT` in `shared/ingest.env`
   (`/home/piutop/uploads` on prod); everything else works without it.
-- **Tests** (`packages/ingest/src/test/`): `results.test.ts` (14), `purgatory.test.ts`
-  (3) and `agents.test.ts` (6). They cover the message of every validation step,
-  de-duplication and merge, manual mode, purgatory and its recheck, validate writing
-  nothing, the heartbeat and uploads. The API's purgatory tests use a stub of ingest's
-  recheck route.
+- **Tests** (`packages/ingest/src/test/`):
+  - Real screens (`screens/`, see its README): 130 cases, each the screens piu-spy sent
+    for rows of the dev DB, with the answers and stored rows the legacy Python API gave
+    for them on the same catalog (the tables ingestion reads, from the dev DB, without
+    hidden players). 34 screens that were stored (every plate and pass of Phoenix and
+    Phoenix 2, XX grades, rank mode, both sides, guests, an alias, name and track typos),
+    7 real purgatory rows and an XX result without stats, 68 real screens with one mistake each (every validation step), and
+    sequences: the same play seen again, after an import with only its date, manual
+    imports and merges, the validate routes. 9 cases have ingest's answers, where Python
+    failed or differs on purpose (above); every other answer and stored row is Python's.
+    `scripts/screenCases.ts` makes, catalogs and records them.
+  - Unit tests: `results.test.ts` (19), `purgatory.test.ts` (6), `agents.test.ts` (10),
+    for what real screens can't show: malformed requests, database failures, a discarded
+    player, charts that can't be told apart, rows with only their date in the recheck,
+    the heartbeat and uploads.
+  - `npm run test:ingest` runs them under c8: 100% of the lines, statements and
+    functions, enforced. Branches aren't enforced, as tsx's esbuild helpers count as
+    uncovered branches; every branch of the code itself is covered.
+  - Code that couldn't run went: the million-scoring check that a plate goes with a
+    pass (the plate check before it already guarantees it), and the manual merge of a
+    result without perfects (such results don't pass validation).
+
+  The API's purgatory tests use a stub of ingest's recheck route.
 - **Not ported one to one**: piu-top's integration tests. They're outdated: they expect
   messages the current Python doesn't produce, and check the dropped best-score tables.
   Their scenarios are in the ingest tests (adding results, XX / Phoenix validation, VJ

@@ -1,0 +1,78 @@
+{
+  "about": "A score that the stats don't give",
+  "answersFrom": "legacy",
+  "steps": [
+    {
+      "path": "/results/screen/submit",
+      "agent": "spb-Krang",
+      "request": {
+        "screen_file": "2024-03-17/2024-03-17--19-02-46.mp4",
+        "mix_name": "Phoenix",
+        "track_name": "GOODBOUNCE",
+        "gained": "2024-03-17 19:02:46",
+        "left": {
+          "chart_label": "S16",
+          "result": {
+            "player_name": "MIVA",
+            "score": 993858,
+            "recognition_notes": "result",
+            "grade": "SSS",
+            "plate": "MG",
+            "mods_list": "AV660 BGADARK",
+            "misses": 2,
+            "bads": 4,
+            "goods": 1,
+            "greats": 4,
+            "perfects": 1012,
+            "max_combo": 643,
+            "calories": 44795,
+            "score_increase": 993858,
+            "is_pass": true
+          }
+        }
+      },
+      "answer": {
+        "updates": [
+          {
+            "status": "added to purgatory",
+            "id": 1,
+            "reason": "Invalid score 993,858 for specified stats, should be ~ 990,361"
+          }
+        ]
+      }
+    }
+  ],
+  "stored": {
+    "results": [],
+    "purgatory": [
+      {
+        "id": 1,
+        "reason": "Invalid score 993,858 for specified stats, should be ~ 990,361",
+        "screen_file": "spb-Krang/2024-03-17/2024-03-17--19-02-46.mp4",
+        "recognition_notes": "result",
+        "agent": 15,
+        "track_name": "GOODBOUNCE",
+        "mix_name": "Phoenix",
+        "chart_label": "S16",
+        "player_name": "MIVA",
+        "gained": "2024-03-17 19:02:46",
+        "exact_gain_date": 1,
+        "rank_mode": 0,
+        "mods_list": "AV660 BGADARK",
+        "score": 993858,
+        "score_increase": 993858,
+        "misses": 2,
+        "bads": 4,
+        "goods": 1,
+        "greats": 4,
+        "perfects": 1012,
+        "grade": "SSS",
+        "is_pass": 1,
+        "plate": "MG",
+        "max_combo": 643,
+        "calories": 44795
+      }
+    ],
+    "charts": []
+  }
+}

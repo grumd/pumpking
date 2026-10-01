@@ -1,0 +1,80 @@
+{
+  "about": "XX S on an S5",
+  "answersFrom": "legacy",
+  "steps": [
+    {
+      "path": "/results/screen/submit",
+      "agent": "Yuzhka",
+      "request": {
+        "screen_file": "2023-09-10/2023-09-10--15-48-28.mp4",
+        "mix_name": "XX",
+        "track_name": "Yeo rae a",
+        "gained": "2023-09-10 15:48:28",
+        "left": {
+          "chart_label": "S5",
+          "result": {
+            "player_name": "INSEP",
+            "score": 439800,
+            "recognition_notes": "result",
+            "grade": "S",
+            "mods_list": "AV530 BGADARK",
+            "misses": 0,
+            "bads": 1,
+            "goods": 5,
+            "greats": 21,
+            "perfects": 204,
+            "max_combo": 171,
+            "calories": 10620,
+            "score_increase": 439800,
+            "is_pass": true
+          }
+        }
+      },
+      "answer": {
+        "updates": [
+          {
+            "status": "result added"
+          }
+        ]
+      }
+    }
+  ],
+  "stored": {
+    "results": [
+      {
+        "id": 1,
+        "screen_file": "Yuzhka/2023-09-10/2023-09-10--15-48-28.mp4",
+        "recognition_notes": "result",
+        "agent": 7,
+        "track_name": "Yeo rae a",
+        "mix_name": "XX",
+        "chart_label": "S5",
+        "player_name": "INSEP",
+        "gained": "2023-09-10 15:48:28",
+        "exact_gain_date": 1,
+        "rank_mode": 0,
+        "mods_list": "AV530 BGADARK",
+        "score": 439800,
+        "score_increase": 439800,
+        "misses": 0,
+        "bads": 1,
+        "goods": 5,
+        "greats": 21,
+        "perfects": 204,
+        "max_combo": 171,
+        "calories": 10620,
+        "grade": "S",
+        "is_pass": 1,
+        "recognized_player_id": 212,
+        "player_id": 212,
+        "mix": 26,
+        "chart_instance": 7701,
+        "shared_chart": 1753,
+        "score_phoenix": 941414,
+        "is_new_best_score": 0
+      }
+    ],
+    "purgatory": [],
+    "charts": []
+  }
+}

@@ -1,0 +1,76 @@
+{
+  "about": "XX without a recognized grade (?)",
+  "answersFrom": "legacy",
+  "steps": [
+    {
+      "path": "/results/screen/submit",
+      "agent": "Yuzhka",
+      "request": {
+        "screen_file": "2023-09-10/2023-09-10--15-37-00.mp4",
+        "mix_name": "XX",
+        "track_name": "Sarabande",
+        "gained": "2023-09-10 15:37:00",
+        "left": {
+          "chart_label": "S19",
+          "result": {
+            "player_name": "JACKAZZM",
+            "score": 3189000,
+            "recognition_notes": "result",
+            "grade": "?",
+            "mods_list": "AV676 BGADARK JR",
+            "misses": 9,
+            "bads": 4,
+            "goods": 0,
+            "greats": 15,
+            "perfects": 981,
+            "max_combo": 369,
+            "calories": 44236
+          }
+        }
+      },
+      "answer": {
+        "updates": [
+          {
+            "status": "result added"
+          }
+        ]
+      }
+    }
+  ],
+  "stored": {
+    "results": [
+      {
+        "id": 1,
+        "screen_file": "Yuzhka/2023-09-10/2023-09-10--15-37-00.mp4",
+        "recognition_notes": "result",
+        "agent": 7,
+        "track_name": "Sarabande",
+        "mix_name": "XX",
+        "chart_label": "S19",
+        "player_name": "JACKAZZM",
+        "gained": "2023-09-10 15:37:00",
+        "exact_gain_date": 1,
+        "rank_mode": 0,
+        "mods_list": "AV676 BGADARK JR",
+        "score": 3189000,
+        "misses": 9,
+        "bads": 4,
+        "goods": 0,
+        "greats": 15,
+        "perfects": 981,
+        "max_combo": 369,
+        "calories": 44236,
+        "grade": "?",
+        "recognized_player_id": 33,
+        "player_id": 33,
+        "mix": 26,
+        "chart_instance": 10127,
+        "shared_chart": 2692,
+        "score_phoenix": 978487,
+        "is_new_best_score": 0
+      }
+    ],
+    "purgatory": [],
+    "charts": []
+  }
+}

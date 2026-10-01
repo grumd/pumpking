@@ -1,0 +1,82 @@
+{
+  "about": "Phoenix SG plate, with a max combo below the perfects and greats",
+  "answersFrom": "legacy",
+  "steps": [
+    {
+      "path": "/results/screen/submit",
+      "agent": "moscow-Joki-Joya",
+      "request": {
+        "screen_file": "2024-08-13/2024-08-13--15-59-09.mp4",
+        "mix_name": "Phoenix",
+        "track_name": "Simon Says, EURODANCE!! (feat. SaraxM)",
+        "gained": "2024-08-13 12:59:09",
+        "left": {
+          "chart_label": "S18",
+          "result": {
+            "player_name": "VANILKA",
+            "score": 995392,
+            "recognition_notes": "result",
+            "grade": "SSS+",
+            "plate": "SG",
+            "mods_list": "AV670 BGADARK",
+            "misses": 0,
+            "bads": 1,
+            "goods": 0,
+            "greats": 7,
+            "perfects": 930,
+            "max_combo": 810,
+            "calories": 36470,
+            "score_increase": 995392,
+            "is_pass": true
+          }
+        }
+      },
+      "answer": {
+        "updates": [
+          {
+            "status": "result added"
+          }
+        ]
+      }
+    }
+  ],
+  "stored": {
+    "results": [
+      {
+        "id": 1,
+        "screen_file": "moscow-Joki-Joya/2024-08-13/2024-08-13--15-59-09.mp4",
+        "recognition_notes": "result",
+        "agent": 16,
+        "track_name": "Simon Says, EURODANCE!! (feat. SaraxM)",
+        "mix_name": "Phoenix",
+        "chart_label": "S18",
+        "player_name": "VANILKA",
+        "gained": "2024-08-13 12:59:09",
+        "exact_gain_date": 1,
+        "rank_mode": 0,
+        "mods_list": "AV670 BGADARK",
+        "score": 995392,
+        "score_increase": 995392,
+        "misses": 0,
+        "bads": 1,
+        "goods": 0,
+        "greats": 7,
+        "perfects": 930,
+        "max_combo": 810,
+        "calories": 36470,
+        "grade": "SSS+",
+        "is_pass": 1,
+        "plate": "SG",
+        "recognized_player_id": 79,
+        "player_id": 79,
+        "mix": 27,
+        "chart_instance": 22709,
+        "shared_chart": 6590,
+        "score_phoenix": 995392,
+        "is_new_best_score": 0
+      }
+    ],
+    "purgatory": [],
+    "charts": []
+  }
+}
