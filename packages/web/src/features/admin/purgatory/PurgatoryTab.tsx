@@ -38,16 +38,7 @@ export const PurgatoryTab = (): JSX.Element => {
       )
   );
 
-  // After a row leaves purgatory, the next one opens, to work through the list
-  const openNext = () => {
-    const index = rows.findIndex((row) => row.id === openId);
-    const next = rows[index + 1] ?? rows[index - 1];
-    navigate(
-      next && next.id !== openId
-        ? routes.admin.purgatory.getPath({ id: next.id })
-        : routes.admin.purgatory.path
-    );
-  };
+  const close = () => navigate(routes.admin.purgatory.path);
 
   return (
     <Stack gap="sm">
@@ -124,13 +115,9 @@ export const PurgatoryTab = (): JSX.Element => {
         </Table>
       )}
 
-      <DetailDrawer
-        opened={openId != null}
-        onClose={() => navigate(routes.admin.purgatory.path)}
-        title={`Purgatory #${openId}`}
-        wide
-      >
-        {openId != null && <PurgatoryDetail key={openId} id={openId} onResolved={openNext} />}
+      <DetailDrawer opened={openId != null} onClose={close} title={`Purgatory #${openId}`} wide>
+        {/* A row that left purgatory closes; one that stays shows its new reason */}
+        {openId != null && <PurgatoryDetail key={openId} id={openId} onResolved={close} />}
       </DetailDrawer>
     </Stack>
   );

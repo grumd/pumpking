@@ -1,5 +1,5 @@
 import type { ApiInputs, ApiOutputs } from '@/api/trpc/router';
-import { Anchor, Button, Group, SimpleGrid, Stack, Switch, Text } from '@mantine/core';
+import { Anchor, Button, Group, SimpleGrid, Stack, Switch, Text, Tooltip } from '@mantine/core';
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 
@@ -175,15 +175,18 @@ const PlayerForm = ({ player, initial, onCreated }: PlayerFormProps) => {
 
       <Section title="Access">
         <Switch
-          label="Hidden: not shown on leaderboards and in the ranking"
+          label={<Hint label="Not shown on leaderboards and in the ranking">Hidden</Hint>}
           {...switchProps('hidden')}
         />
         <Switch
-          label="Discard results: ingestion drops their results"
+          label={<Hint label="Ingestion drops their results">Discard results</Hint>}
           {...switchProps('discardResults')}
         />
         <Switch label="Can add results on the web" {...switchProps('canAddResultsManually')} />
-        <Switch label="Admin: can open this admin page" {...switchProps('isAdmin')} />
+        <Switch
+          label={<Hint label="Can open this admin page">Is admin</Hint>}
+          {...switchProps('isAdmin')}
+        />
       </Section>
 
       <Group justify="flex-end" gap="xs">
@@ -203,3 +206,10 @@ const PlayerForm = ({ player, initial, onCreated }: PlayerFormProps) => {
     </Stack>
   );
 };
+
+// A switch's short label, with what it does on hover
+const Hint = ({ label, children }: { label: string; children: React.ReactNode }) => (
+  <Tooltip label={label} position="top-start">
+    <span>{children}</span>
+  </Tooltip>
+);

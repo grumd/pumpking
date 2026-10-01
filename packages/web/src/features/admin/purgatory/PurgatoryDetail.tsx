@@ -1,5 +1,5 @@
 import type { ApiOutputs } from '@/api/trpc/router';
-import { Alert, Button, Group, SimpleGrid, Stack, Text } from '@mantine/core';
+import { Alert, Box, Button, Group, SimpleGrid, Stack, Text } from '@mantine/core';
 import { useQuery } from '@tanstack/react-query';
 import { FaExclamationTriangle } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
@@ -116,7 +116,7 @@ const PurgatoryForm = ({ row, onResolved }: { row: Row; onResolved: () => void }
       </Stack>
 
       <Stack gap="md">
-        <Alert color="red" variant="light" icon={<FaExclamationTriangle />} title="Why it's here">
+        <Alert color="red" variant="light" icon={<FaExclamationTriangle />}>
           <Text size="sm">{row.reason}</Text>
           <Group gap="xs" mt="xs">
             {reason.chartInstanceId && <ChartLink chartInstanceId={reason.chartInstanceId} />}
@@ -134,7 +134,14 @@ const PurgatoryForm = ({ row, onResolved }: { row: Row; onResolved: () => void }
         </Alert>
 
         <Section title="Player and chart">
-          <SimpleGrid cols={3} spacing="sm">
+          {/* Track names can be long, chart labels never are */}
+          <Box
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 4fr) 4.5rem',
+              gap: 'var(--mantine-spacing-sm)',
+            }}
+          >
             <TextField
               label="Player name"
               {...field('player_name')}
@@ -150,7 +157,7 @@ const PurgatoryForm = ({ row, onResolved }: { row: Row; onResolved: () => void }
               {...field('chart_label')}
               onChange={(v) => form.set('chart_label', v ?? '')}
             />
-          </SimpleGrid>
+          </Box>
           <TextField label="Mods" {...field('mods_list')} placeholder="e.g. 2x VJ" />
         </Section>
 
