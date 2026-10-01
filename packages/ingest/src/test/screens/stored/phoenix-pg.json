@@ -1,0 +1,82 @@
+{
+  "about": "Phoenix PG (perfect game) plate, SSS+",
+  "answersFrom": "legacy",
+  "steps": [
+    {
+      "path": "/results/screen/submit",
+      "agent": "kyiv_garage",
+      "request": {
+        "screen_file": "2026-09-09/2026-09-09--22-45-19.mp4",
+        "mix_name": "Phoenix",
+        "track_name": "DO or DIE",
+        "gained": "2026-09-09 19:45:19",
+        "left": {
+          "chart_label": "S17",
+          "result": {
+            "player_name": "DINO",
+            "score": 1000000,
+            "recognition_notes": "result",
+            "grade": "SSS+",
+            "plate": "PG",
+            "mods_list": "AV656 BGADARK",
+            "misses": 0,
+            "bads": 0,
+            "goods": 0,
+            "greats": 0,
+            "perfects": 852,
+            "max_combo": 852,
+            "calories": 37899,
+            "score_increase": 1624,
+            "is_pass": true
+          }
+        }
+      },
+      "answer": {
+        "updates": [
+          {
+            "status": "result added"
+          }
+        ]
+      }
+    }
+  ],
+  "stored": {
+    "results": [
+      {
+        "id": 1,
+        "screen_file": "kyiv_garage/2026-09-09/2026-09-09--22-45-19.mp4",
+        "recognition_notes": "result",
+        "agent": 2,
+        "track_name": "DO or DIE",
+        "mix_name": "Phoenix",
+        "chart_label": "S17",
+        "player_name": "DINO",
+        "gained": "2026-09-09 19:45:19",
+        "exact_gain_date": 1,
+        "rank_mode": 0,
+        "mods_list": "AV656 BGADARK",
+        "score": 1000000,
+        "score_increase": 1624,
+        "misses": 0,
+        "bads": 0,
+        "goods": 0,
+        "greats": 0,
+        "perfects": 852,
+        "max_combo": 852,
+        "calories": 37899,
+        "grade": "SSS+",
+        "is_pass": 1,
+        "plate": "PG",
+        "recognized_player_id": 2,
+        "player_id": 2,
+        "mix": 27,
+        "chart_instance": 22974,
+        "shared_chart": 6845,
+        "score_phoenix": 1000000,
+        "is_new_best_score": 0
+      }
+    ],
+    "purgatory": [],
+    "charts": []
+  }
+}

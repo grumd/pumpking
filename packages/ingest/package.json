@@ -9,7 +9,7 @@
     "start:tsx": "tsx ./src/index.ts",
     "ts-check": "tsc --noEmit --pretty",
     "test:run": "cross-env NODE_ENV=test mocha --import=tsx -r ./src/test/rootHooks.ts ./src/**/*.test.ts",
-    "test": "cross-env DEBUG=ingest:*,backend-ts:test:* npm run test:run -- --exit"
+    "test": "cross-env DEBUG=ingest:*,backend-ts:test:* c8 npm run test:run -- --exit"
   },
   "author": "grumd",
   "license": "MIT",
@@ -34,6 +34,7 @@
     "@types/mocha": "^8.2.2",
     "@types/node": "^24.10.7",
     "@types/supertest": "^2.0.11",
+    "c8": "^12.0.0",
     "chai": "^4.3.4",
     "cross-env": "^7.0.3",
     "mocha": "^8.4.0",

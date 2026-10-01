@@ -1,0 +1,80 @@
+{
+  "about": "XX SS with a score increase",
+  "answersFrom": "legacy",
+  "steps": [
+    {
+      "path": "/results/screen/submit",
+      "agent": "Yuzhka",
+      "request": {
+        "screen_file": "2023-09-10/2023-09-10--16-08-28.mp4",
+        "mix_name": "XX",
+        "track_name": "Dignity",
+        "gained": "2023-09-10 16:08:28",
+        "left": {
+          "chart_label": "S17",
+          "result": {
+            "player_name": "JACKAZZM",
+            "score": 2615000,
+            "recognition_notes": "result",
+            "grade": "SS",
+            "mods_list": "AV676 BGADARK JR",
+            "misses": 0,
+            "bads": 0,
+            "goods": 0,
+            "greats": 11,
+            "perfects": 713,
+            "max_combo": 724,
+            "calories": 44671,
+            "score_increase": 264700,
+            "is_pass": true
+          }
+        }
+      },
+      "answer": {
+        "updates": [
+          {
+            "status": "result added"
+          }
+        ]
+      }
+    }
+  ],
+  "stored": {
+    "results": [
+      {
+        "id": 1,
+        "screen_file": "Yuzhka/2023-09-10/2023-09-10--16-08-28.mp4",
+        "recognition_notes": "result",
+        "agent": 7,
+        "track_name": "Dignity",
+        "mix_name": "XX",
+        "chart_label": "S17",
+        "player_name": "JACKAZZM",
+        "gained": "2023-09-10 16:08:28",
+        "exact_gain_date": 1,
+        "rank_mode": 0,
+        "mods_list": "AV676 BGADARK JR",
+        "score": 2615000,
+        "score_increase": 264700,
+        "misses": 0,
+        "bads": 0,
+        "goods": 0,
+        "greats": 11,
+        "perfects": 713,
+        "max_combo": 724,
+        "calories": 44671,
+        "grade": "SS",
+        "is_pass": 1,
+        "recognized_player_id": 33,
+        "player_id": 33,
+        "mix": 26,
+        "chart_instance": 17791,
+        "shared_chart": 5182,
+        "score_phoenix": 993954,
+        "is_new_best_score": 0
+      }
+    ],
+    "purgatory": [],
+    "charts": []
+  }
+}

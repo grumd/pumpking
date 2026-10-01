@@ -1,0 +1,79 @@
+{
+  "about": "XX S- (the only one): no pass status sent",
+  "answersFrom": "legacy",
+  "steps": [
+    {
+      "path": "/results/screen/submit",
+      "agent": "Yuzhka",
+      "request": {
+        "screen_file": "2023-03-19/2023-03-19--10-16-33.mp4",
+        "mix_name": "XX",
+        "track_name": "Till the end of time",
+        "gained": "2023-03-19 10:16:33",
+        "left": {
+          "chart_label": "D16",
+          "result": {
+            "player_name": "SUPURAIT",
+            "score": 2563100,
+            "recognition_notes": "result",
+            "grade": "S-",
+            "mods_list": "AV629 BGADARK",
+            "misses": 0,
+            "bads": 14,
+            "goods": 32,
+            "greats": 23,
+            "perfects": 662,
+            "max_combo": 659,
+            "calories": 33736,
+            "score_increase": 2563100
+          }
+        }
+      },
+      "answer": {
+        "updates": [
+          {
+            "status": "result added"
+          }
+        ]
+      }
+    }
+  ],
+  "stored": {
+    "results": [
+      {
+        "id": 1,
+        "screen_file": "Yuzhka/2023-03-19/2023-03-19--10-16-33.mp4",
+        "recognition_notes": "result",
+        "agent": 7,
+        "track_name": "Till the end of time",
+        "mix_name": "XX",
+        "chart_label": "D16",
+        "player_name": "SUPURAIT",
+        "gained": "2023-03-19 10:16:33",
+        "exact_gain_date": 1,
+        "rank_mode": 0,
+        "mods_list": "AV629 BGADARK",
+        "score": 2563100,
+        "score_increase": 2563100,
+        "misses": 0,
+        "bads": 14,
+        "goods": 32,
+        "greats": 23,
+        "perfects": 662,
+        "max_combo": 659,
+        "calories": 33736,
+        "grade": "S-",
+        "is_pass": 0,
+        "recognized_player_id": 28,
+        "player_id": 28,
+        "mix": 26,
+        "chart_instance": 2399,
+        "shared_chart": 403,
+        "score_phoenix": 934990,
+        "is_new_best_score": 0
+      }
+    ],
+    "purgatory": [],
+    "charts": []
+  }
+}

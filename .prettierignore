@@ -1,0 +1,2 @@
+# One row per line, so that a change to it is a readable diff (scripts/screenCases.ts writes it)
+packages/ingest/src/test/screens/catalog.json

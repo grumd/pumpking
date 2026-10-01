@@ -1,6 +1,15 @@
 import { app } from '../app';
-import { getEvents, getResults, phoenixResult, post, screen, xxResult, xxScreen } from './helpers';
-import { CHARTS } from './seed';
+import {
+  getEvents,
+  getResults,
+  phoenixResult,
+  post,
+  screen,
+  withoutTable,
+  xxResult,
+  xxScreen,
+} from './helpers';
+import { CHARTS, seed } from './seed';
 import { db } from '@pumpking/database/db';
 import { assert } from 'chai';
 import request from 'supertest';
@@ -19,6 +28,8 @@ const rejection = async (change: (result: Record<string, unknown>) => void) => {
 };
 
 describe('Result submissions', () => {
+  beforeEach(seed);
+
   it('turn down calls without a known agent', async () => {
     const res = await request(app).post('/results/screen/submit').send(screen()).expect(200);
     assert.deepEqual(res.body, { error: 'permission denied' });
@@ -381,5 +392,108 @@ describe('Result submissions', () => {
     assert.deepEqual((await submit(screen({ gained: '30.09.2026 20:12' }))).body, {
       error: "time data '30.09.2026 20:12' does not match format '%Y-%m-%d %H:%M:%S'",
     });
+    assert.deepEqual((await submit(screen({ left: 'S16' }))).body, { error: "Invalid 'left'" });
+    assert.deepEqual((await submit(screen({ left: { result: phoenixResult() } }))).body, {
+      error: "Expected field 'chart_label' not found",
+    });
+    // A JSON body that isn't an object has no arguments
+    assert.deepEqual((await submit([screen()])).body, {
+      error: "Expected field 'screen_file' not found",
+    });
+    const notJson = await request(app)
+      .post('/results/screen/submit')
+      .set('content-type', 'application/json')
+      .send('{"screen_file":')
+      .expect(400);
+    assert.match(notJson.body.error, /JSON/);
+    const tooLarge = await request(app)
+      .post('/results/screen/submit')
+      .send({ ...screen(), padding: 'x'.repeat(600 * 1024) })
+      .expect(413);
+    assert.deepEqual(tooLarge.body, { error: 'request entity too large' });
+  });
+
+  it('take arguments from the query string too', async () => {
+    const { mix_name: _mixName, ...withoutMix } = screen();
+    const res = await post('/results/screen/validate?mix_name=Phoenix', withoutMix);
+    assert.deepEqual(res.body.validation, [{ valid: true, update: { status: 'result added' } }]);
+  });
+
+  it("turn down charts that can't be told apart, and mixes without track names", async () => {
+    // Another track with the same arcade name and a chart with the same label
+    await db
+      .insertInto('shared_charts')
+      .values({ id: 4, track: 3, index_in_track: 1, type: 'S' })
+      .execute();
+    await db
+      .insertInto('chart_instances')
+      .values({ id: 16, track: 3, shared_chart: 4, mix: 27, label: 'S12', level: 12 })
+      .execute();
+    await db
+      .updateTable('arcade_track_names')
+      .set({ name: 'Final Audition Ep. 2-X' })
+      .where('track_id', '=', 3)
+      .execute();
+    const ambiguous = await validate(
+      screen({
+        track_name: 'Final Audition Ep. 2-X',
+        left: { chart_label: 'S12', result: phoenixResult() },
+      })
+    );
+    assert.deepEqual(ambiguous.body.validation, [
+      {
+        valid: false,
+        reason:
+          "Ambiguous chart 'S12' in mix Phoenix on track(s) #2 (0F__Final_Audition_ep_2_X) / #3 (0D__Final_Audition_ep_2_1)",
+      },
+    ]);
+
+    // Alice has a name on Prime 2, whose tracks nobody added
+    await db
+      .insertInto('arcade_player_names')
+      .values({ mix_id: 25, player_id: 1, name: 'ALICE', name_edist: 0 })
+      .execute();
+    const prime2 = await validate(xxScreen(xxResult(), { mix_name: 'Prime2' }));
+    assert.deepEqual(prime2.body.validation, [
+      {
+        valid: false,
+        reason: "Invalid track name 'Love Is A Danger Zone (Cranky Mix)', no best guess",
+      },
+    ]);
+  });
+
+  it('take XX charts without a level as level 10 or below', async () => {
+    // The minimum score for the stats is 1.5 times higher on the seeded S15
+    const result = { ...xxResult(), score: 400_000 };
+    const tooLow = await validate(xxScreen(result));
+    assert.deepEqual(tooLow.body.validation, [
+      { valid: false, reason: 'Invalid score: 400,000 is too low for stats specified' },
+    ]);
+    await db
+      .updateTable('chart_instances')
+      .set({ level: null })
+      .where('id', '=', CHARTS.xx.id)
+      .execute();
+    const res = await validate(xxScreen(result));
+    assert.deepEqual(res.body.validation, [{ valid: true, update: { status: 'result added' } }]);
+  });
+
+  it("turn down an alias whose actual player isn't there any more", async () => {
+    await db.insertInto('players').values({ id: 7, nickname: 'Gone' }).execute();
+    await db.updateTable('players').set({ actual_player_id: 7 }).where('id', '=', 3).execute();
+    await db.deleteFrom('players').where('id', '=', 7).execute();
+
+    const res = await validate(screen({ result: { ...phoenixResult(), player_name: 'ALICEALT' } }));
+    assert.deepEqual(res.body.validation, [
+      { valid: false, reason: 'Invalid actual_player_id 7 specified for player 3' },
+    ]);
+  });
+
+  it('answer with an error when the database fails', async () => {
+    await withoutTable('arcade_player_names', async () => {
+      const res = await submit(screen());
+      assert.match(res.body.error, /arcade_player_names.* doesn't exist/);
+    });
+    assert.lengthOf(await getResults(), 0);
   });
 });

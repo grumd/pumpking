@@ -1,0 +1,78 @@
+{
+  "about": "Phoenix, the player name recognized one edit off (ATLANT for ATLANT0)",
+  "answersFrom": "legacy",
+  "steps": [
+    {
+      "path": "/results/screen/submit",
+      "agent": "kyiv_garage",
+      "request": {
+        "screen_file": "2024-09-15/2024-09-15--14-44-37.mp4",
+        "mix_name": "Phoenix",
+        "track_name": "Pirate",
+        "gained": "2024-09-15 11:44:37",
+        "left": {
+          "chart_label": "D21",
+          "result": {
+            "player_name": "ATLANT",
+            "score": 960122,
+            "recognition_notes": "result",
+            "grade": "AAA+",
+            "mods_list": "AV645 BGADARK",
+            "misses": 28,
+            "bads": 4,
+            "goods": 4,
+            "greats": 6,
+            "perfects": 988,
+            "max_combo": 218,
+            "calories": 49641,
+            "is_pass": false
+          }
+        }
+      },
+      "answer": {
+        "updates": [
+          {
+            "status": "result added"
+          }
+        ]
+      }
+    }
+  ],
+  "stored": {
+    "results": [
+      {
+        "id": 1,
+        "screen_file": "kyiv_garage/2024-09-15/2024-09-15--14-44-37.mp4",
+        "recognition_notes": "result",
+        "agent": 2,
+        "track_name": "Pirate",
+        "mix_name": "Phoenix",
+        "chart_label": "D21",
+        "player_name": "ATLANT",
+        "gained": "2024-09-15 11:44:37",
+        "exact_gain_date": 1,
+        "rank_mode": 0,
+        "mods_list": "AV645 BGADARK",
+        "score": 960122,
+        "misses": 28,
+        "bads": 4,
+        "goods": 4,
+        "greats": 6,
+        "perfects": 988,
+        "max_combo": 218,
+        "calories": 49641,
+        "grade": "AAA+",
+        "is_pass": 0,
+        "recognized_player_id": 8,
+        "player_id": 8,
+        "mix": 27,
+        "chart_instance": 22857,
+        "shared_chart": 6738,
+        "score_phoenix": 960122,
+        "is_new_best_score": 0
+      }
+    ],
+    "purgatory": [],
+    "charts": []
+  }
+}

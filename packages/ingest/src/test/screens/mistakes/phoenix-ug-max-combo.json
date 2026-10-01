@@ -1,0 +1,76 @@
+{
+  "about": "Phoenix: from a real Phoenix UG result (#302333), with a max combo below the perfects and greats",
+  "answersFrom": "legacy",
+  "steps": [
+    {
+      "path": "/results/screen/submit",
+      "agent": "msk-Zavod",
+      "request": {
+        "screen_file": "2025-07-21/2025-07-21--10-32-15.mp4",
+        "mix_name": "Phoenix",
+        "track_name": "Reminiscence",
+        "gained": "2025-07-21 10:32:15",
+        "left": {
+          "chart_label": "D20",
+          "result": {
+            "player_name": "SUPURAITO",
+            "score": 997614,
+            "recognition_notes": "result",
+            "grade": "SSS+",
+            "plate": "UG",
+            "mods_list": "AV661 BGADARK",
+            "misses": 0,
+            "bads": 0,
+            "goods": 0,
+            "greats": 7,
+            "perfects": 1161,
+            "max_combo": 1167,
+            "calories": 40073,
+            "is_pass": true
+          }
+        }
+      },
+      "answer": {
+        "updates": [
+          {
+            "status": "added to purgatory",
+            "id": 1,
+            "reason": "Invalid max_combo 1167 for plate UG with 1161 perfects and 7 greats"
+          }
+        ]
+      }
+    }
+  ],
+  "stored": {
+    "results": [],
+    "purgatory": [
+      {
+        "id": 1,
+        "reason": "Invalid max_combo 1167 for plate UG with 1161 perfects and 7 greats",
+        "screen_file": "msk-Zavod/2025-07-21/2025-07-21--10-32-15.mp4",
+        "recognition_notes": "result",
+        "agent": 17,
+        "track_name": "Reminiscence",
+        "mix_name": "Phoenix",
+        "chart_label": "D20",
+        "player_name": "SUPURAITO",
+        "gained": "2025-07-21 10:32:15",
+        "exact_gain_date": 1,
+        "rank_mode": 0,
+        "mods_list": "AV661 BGADARK",
+        "score": 997614,
+        "misses": 0,
+        "bads": 0,
+        "goods": 0,
+        "greats": 7,
+        "perfects": 1161,
+        "grade": "SSS+",
+        "is_pass": 1,
+        "plate": "UG",
+        "max_combo": 1167,
+        "calories": 40073
+      }
+    ],
+    "charts": []
+  }
+}

@@ -1,0 +1,80 @@
+{
+  "about": "XX D, not passed",
+  "answersFrom": "legacy",
+  "steps": [
+    {
+      "path": "/results/screen/submit",
+      "agent": "Yuzhka",
+      "request": {
+        "screen_file": "2023-09-10/2023-09-10--15-24-06.mp4",
+        "mix_name": "XX",
+        "track_name": "Mitotsudaira",
+        "gained": "2023-09-10 15:24:06",
+        "left": {
+          "chart_label": "D10",
+          "result": {
+            "player_name": "INSEP",
+            "score": 638600,
+            "recognition_notes": "result",
+            "grade": "D",
+            "mods_list": "AV530 BGADARK",
+            "misses": 62,
+            "bads": 15,
+            "goods": 19,
+            "greats": 39,
+            "perfects": 422,
+            "max_combo": 157,
+            "calories": 23973,
+            "score_increase": 638600,
+            "is_pass": false
+          }
+        }
+      },
+      "answer": {
+        "updates": [
+          {
+            "status": "result added"
+          }
+        ]
+      }
+    }
+  ],
+  "stored": {
+    "results": [
+      {
+        "id": 1,
+        "screen_file": "Yuzhka/2023-09-10/2023-09-10--15-24-06.mp4",
+        "recognition_notes": "result",
+        "agent": 7,
+        "track_name": "Mitotsudaira",
+        "mix_name": "XX",
+        "chart_label": "D10",
+        "player_name": "INSEP",
+        "gained": "2023-09-10 15:24:06",
+        "exact_gain_date": 1,
+        "rank_mode": 0,
+        "mods_list": "AV530 BGADARK",
+        "score": 638600,
+        "score_increase": 638600,
+        "misses": 62,
+        "bads": 15,
+        "goods": 19,
+        "greats": 39,
+        "perfects": 422,
+        "max_combo": 157,
+        "calories": 23973,
+        "grade": "D",
+        "is_pass": 0,
+        "recognized_player_id": 212,
+        "player_id": 212,
+        "mix": 26,
+        "chart_instance": 9372,
+        "shared_chart": 2386,
+        "score_phoenix": 806520,
+        "is_new_best_score": 0
+      }
+    ],
+    "purgatory": [],
+    "charts": []
+  }
+}

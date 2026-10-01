@@ -1,0 +1,76 @@
+{
+  "about": "XX: from a real XX A+ result (#199361), with a score too low for the stats",
+  "answersFrom": "legacy",
+  "steps": [
+    {
+      "path": "/results/screen/submit",
+      "agent": "Yuzhka",
+      "request": {
+        "screen_file": "2023-09-14/2023-09-14--10-33-55.mp4",
+        "mix_name": "XX",
+        "track_name": "Come to Me",
+        "gained": "2023-09-14 10:33:55",
+        "left": {
+          "chart_label": "D14",
+          "result": {
+            "player_name": "STIKAM",
+            "score": 100000,
+            "recognition_notes": "result",
+            "grade": "A+",
+            "mods_list": "AV600 BGADARK",
+            "misses": 15,
+            "bads": 8,
+            "goods": 25,
+            "greats": 45,
+            "perfects": 482,
+            "max_combo": 110,
+            "calories": 30443,
+            "score_increase": 21600,
+            "is_pass": true
+          }
+        }
+      },
+      "answer": {
+        "updates": [
+          {
+            "status": "added to purgatory",
+            "id": 1,
+            "reason": "Invalid score: 100,000 is too low for stats specified"
+          }
+        ]
+      }
+    }
+  ],
+  "stored": {
+    "results": [],
+    "purgatory": [
+      {
+        "id": 1,
+        "reason": "Invalid score: 100,000 is too low for stats specified",
+        "screen_file": "Yuzhka/2023-09-14/2023-09-14--10-33-55.mp4",
+        "recognition_notes": "result",
+        "agent": 7,
+        "track_name": "Come to Me",
+        "mix_name": "XX",
+        "chart_label": "D14",
+        "player_name": "STIKAM",
+        "gained": "2023-09-14 10:33:55",
+        "exact_gain_date": 1,
+        "rank_mode": 0,
+        "mods_list": "AV600 BGADARK",
+        "score": 100000,
+        "score_increase": 21600,
+        "misses": 15,
+        "bads": 8,
+        "goods": 25,
+        "greats": 45,
+        "perfects": 482,
+        "grade": "A+",
+        "is_pass": 1,
+        "max_combo": 110,
+        "calories": 30443
+      }
+    ],
+    "charts": []
+  }
+}

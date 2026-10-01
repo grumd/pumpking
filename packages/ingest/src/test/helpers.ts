@@ -81,3 +81,13 @@ export const xxScreen = (result: object = xxResult(), header: object = {}) =>
   screen({ mix_name: 'XX', left: { chart_label: 'S15', result }, ...header });
 
 export const getEvents = () => db.selectFrom('events').selectAll().orderBy('id').execute();
+
+// Runs `run` while the table is renamed away, so that the queries on it fail
+export const withoutTable = async (table: string, run: () => Promise<void>) => {
+  await sql`RENAME TABLE ${sql.table(table)} TO ${sql.table(`${table}_away`)}`.execute(db);
+  try {
+    await run();
+  } finally {
+    await sql`RENAME TABLE ${sql.table(`${table}_away`)} TO ${sql.table(table)}`.execute(db);
+  }
+};

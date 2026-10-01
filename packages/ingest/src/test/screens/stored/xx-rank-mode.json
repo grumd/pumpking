@@ -1,0 +1,81 @@
+{
+  "about": "XX rank mode: VJ among the mods",
+  "answersFrom": "legacy",
+  "steps": [
+    {
+      "path": "/results/screen/submit",
+      "agent": "Mimi",
+      "request": {
+        "screen_file": "20230820_001034_I4drFl7S-aM.mp4/2023-08-20--00-25-42-027241.mp4",
+        "mix_name": "XX",
+        "track_name": "BBoom BBoom",
+        "gained": "2023-08-20 00:25:42",
+        "left": {
+          "chart_label": "D15",
+          "result": {
+            "player_name": "SOVUSHKA",
+            "score": 2758700,
+            "recognition_notes": "result",
+            "grade": "A+",
+            "mods_list": "AV655 VJ",
+            "misses": 2,
+            "bads": 3,
+            "goods": 3,
+            "greats": 29,
+            "perfects": 737,
+            "max_combo": 249,
+            "calories": 38582,
+            "score_increase": 2758700,
+            "is_pass": true,
+            "rank_mode": true
+          }
+        }
+      },
+      "answer": {
+        "updates": [
+          {
+            "status": "result added"
+          }
+        ]
+      }
+    }
+  ],
+  "stored": {
+    "results": [
+      {
+        "id": 1,
+        "screen_file": "Mimi/20230820_001034_I4drFl7S-aM.mp4/2023-08-20--00-25-42-027241.mp4",
+        "recognition_notes": "result",
+        "agent": 3,
+        "track_name": "BBoom BBoom",
+        "mix_name": "XX",
+        "chart_label": "D15",
+        "player_name": "SOVUSHKA",
+        "gained": "2023-08-20 00:25:42",
+        "exact_gain_date": 1,
+        "rank_mode": 1,
+        "mods_list": "AV655 VJ",
+        "score": 2758700,
+        "score_increase": 2758700,
+        "misses": 2,
+        "bads": 3,
+        "goods": 3,
+        "greats": 29,
+        "perfects": 737,
+        "max_combo": 249,
+        "calories": 38582,
+        "grade": "A+",
+        "is_pass": 1,
+        "recognized_player_id": 25,
+        "player_id": 25,
+        "mix": 26,
+        "chart_instance": 11039,
+        "shared_chart": 3334,
+        "score_phoenix": 972570,
+        "is_new_best_score": 0
+      }
+    ],
+    "purgatory": [],
+    "charts": []
+  }
+}

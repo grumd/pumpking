@@ -1,0 +1,48 @@
+{
+  "about": "A real XX result (#199361) imported with a name nobody has: rejected, not sent to purgatory",
+  "answersFrom": "legacy",
+  "steps": [
+    {
+      "path": "/results/manual/submit",
+      "agent": "Yuzhka",
+      "request": {
+        "screen_file": "2023-09-14/2023-09-14--10-33-55.mp4",
+        "mix_name": "XX",
+        "track_name": "Come to Me",
+        "gained": "2023-09-14 10:33:55",
+        "left": {
+          "chart_label": "D14",
+          "result": {
+            "player_name": "STIKAMQQ",
+            "score": 993400,
+            "recognition_notes": "result",
+            "grade": "A+",
+            "mods_list": "AV600 BGADARK",
+            "misses": 15,
+            "bads": 8,
+            "goods": 25,
+            "greats": 45,
+            "perfects": 482,
+            "max_combo": 110,
+            "calories": 30443,
+            "score_increase": 21600,
+            "is_pass": true
+          }
+        }
+      },
+      "answer": {
+        "updates": [
+          {
+            "status": "discarded",
+            "reason": "Unknown player STIKAMQQ for mix XX, closest is STIKAM with 2 edits"
+          }
+        ]
+      }
+    }
+  ],
+  "stored": {
+    "results": [],
+    "purgatory": [],
+    "charts": []
+  }
+}

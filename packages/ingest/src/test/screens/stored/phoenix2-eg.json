@@ -1,0 +1,82 @@
+{
+  "about": "Phoenix 2 EG plate, a track name with tildes",
+  "answersFrom": "legacy",
+  "steps": [
+    {
+      "path": "/results/screen/submit",
+      "agent": "kyiv_garage",
+      "request": {
+        "screen_file": "2026-09-27/2026-09-27--14-52-51.mp4",
+        "mix_name": "Phoenix2",
+        "track_name": "Le Nozze di Figaro ~Celebrazione Remix~",
+        "gained": "2026-09-27 11:52:51",
+        "left": {
+          "chart_label": "D14",
+          "result": {
+            "player_name": "DINO #3869",
+            "score": 996887,
+            "recognition_notes": "result",
+            "grade": "SSS+",
+            "plate": "EG",
+            "mods_list": "AV633 BGADARK",
+            "misses": 0,
+            "bads": 0,
+            "goods": 1,
+            "greats": 3,
+            "perfects": 637,
+            "max_combo": 640,
+            "calories": 25286,
+            "score_increase": 996887,
+            "is_pass": true
+          }
+        }
+      },
+      "answer": {
+        "updates": [
+          {
+            "status": "result added"
+          }
+        ]
+      }
+    }
+  ],
+  "stored": {
+    "results": [
+      {
+        "id": 1,
+        "screen_file": "kyiv_garage/2026-09-27/2026-09-27--14-52-51.mp4",
+        "recognition_notes": "result",
+        "agent": 2,
+        "track_name": "Le Nozze di Figaro ~Celebrazione Remix~",
+        "mix_name": "Phoenix2",
+        "chart_label": "D14",
+        "player_name": "DINO #3869",
+        "gained": "2026-09-27 11:52:51",
+        "exact_gain_date": 1,
+        "rank_mode": 0,
+        "mods_list": "AV633 BGADARK",
+        "score": 996887,
+        "score_increase": 996887,
+        "misses": 0,
+        "bads": 0,
+        "goods": 1,
+        "greats": 3,
+        "perfects": 637,
+        "max_combo": 640,
+        "calories": 25286,
+        "grade": "SSS+",
+        "is_pass": 1,
+        "plate": "EG",
+        "recognized_player_id": 2,
+        "player_id": 2,
+        "mix": 28,
+        "chart_instance": 24302,
+        "shared_chart": 6626,
+        "score_phoenix": 996887,
+        "is_new_best_score": 0
+      }
+    ],
+    "purgatory": [],
+    "charts": []
+  }
+}

@@ -1,0 +1,119 @@
+{
+  "about": "A real Phoenix 2 result (#303186), then the same play from a frame 5 seconds later: the result gets the new screen and time",
+  "answersFrom": "legacy",
+  "steps": [
+    {
+      "path": "/results/screen/submit",
+      "agent": "kyiv_garage",
+      "request": {
+        "screen_file": "2026-09-30/2026-09-30--23-12-25.mp4",
+        "mix_name": "Phoenix2",
+        "track_name": "86",
+        "gained": "2026-09-30 20:12:25",
+        "left": {
+          "chart_label": "S16",
+          "result": {
+            "player_name": "DINO #3869",
+            "score": 997303,
+            "recognition_notes": "result",
+            "grade": "SSS+",
+            "plate": "SG",
+            "mods_list": "AV656 BGADARK",
+            "misses": 0,
+            "bads": 1,
+            "goods": 0,
+            "greats": 5,
+            "perfects": 1494,
+            "max_combo": 1268,
+            "calories": 29076,
+            "score_increase": 1858,
+            "is_pass": true
+          }
+        }
+      },
+      "answer": {
+        "updates": [
+          {
+            "status": "result added"
+          }
+        ]
+      }
+    },
+    {
+      "path": "/results/screen/submit",
+      "agent": "kyiv_garage",
+      "request": {
+        "screen_file": "2026-09-30/2026-09-30--23-12-30.mp4",
+        "mix_name": "Phoenix2",
+        "track_name": "86",
+        "gained": "2026-09-30 20:12:30",
+        "left": {
+          "chart_label": "S16",
+          "result": {
+            "player_name": "DINO #3869",
+            "score": 997303,
+            "recognition_notes": "result",
+            "grade": "SSS+",
+            "plate": "SG",
+            "mods_list": "AV656 BGADARK",
+            "misses": 0,
+            "bads": 1,
+            "goods": 0,
+            "greats": 5,
+            "perfects": 1494,
+            "max_combo": 1268,
+            "calories": 29076,
+            "score_increase": 1858,
+            "is_pass": true
+          }
+        }
+      },
+      "answer": {
+        "updates": [
+          {
+            "status": "result #1 updated"
+          }
+        ]
+      }
+    }
+  ],
+  "stored": {
+    "results": [
+      {
+        "id": 1,
+        "screen_file": "kyiv_garage/2026-09-30/2026-09-30--23-12-30.mp4",
+        "recognition_notes": "result",
+        "agent": 2,
+        "track_name": "86",
+        "mix_name": "Phoenix2",
+        "chart_label": "S16",
+        "player_name": "DINO #3869",
+        "gained": "2026-09-30 20:12:30",
+        "exact_gain_date": 1,
+        "rank_mode": 0,
+        "mods_list": "AV656 BGADARK",
+        "score": 997303,
+        "score_increase": 1858,
+        "misses": 0,
+        "bads": 1,
+        "goods": 0,
+        "greats": 5,
+        "perfects": 1494,
+        "max_combo": 1268,
+        "calories": 29076,
+        "grade": "SSS+",
+        "is_pass": 1,
+        "plate": "SG",
+        "recognized_player_id": 2,
+        "player_id": 2,
+        "mix": 28,
+        "chart_instance": 25614,
+        "shared_chart": 3430,
+        "score_phoenix": 997303,
+        "is_new_best_score": 0
+      }
+    ],
+    "purgatory": [],
+    "charts": []
+  }
+}

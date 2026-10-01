@@ -1,0 +1,59 @@
+{
+  "about": "XX without the step stats (the legacy API failed on it, TypeError)",
+  "answersFrom": "ingest",
+  "steps": [
+    {
+      "path": "/results/screen/submit",
+      "agent": "kyiv_garage",
+      "request": {
+        "screen_file": "",
+        "mix_name": "XX",
+        "track_name": "HTTP",
+        "gained": "2019-03-31 19:05:00",
+        "left": {
+          "chart_label": "D23",
+          "result": {
+            "player_name": "DINO",
+            "score": 4166000,
+            "recognition_notes": "result",
+            "grade": "A",
+            "mods_list": "BGADARK AV660"
+          }
+        }
+      },
+      "answer": {
+        "updates": [
+          {
+            "status": "added to purgatory",
+            "id": 1,
+            "reason": "Result with no stats"
+          }
+        ]
+      }
+    }
+  ],
+  "stored": {
+    "results": [],
+    "purgatory": [
+      {
+        "id": 1,
+        "reason": "Result with no stats",
+        "screen_file": "kyiv_garage/",
+        "recognition_notes": "result",
+        "agent": 2,
+        "track_name": "HTTP",
+        "mix_name": "XX",
+        "chart_label": "D23",
+        "player_name": "DINO",
+        "gained": "2019-03-31 19:05:00",
+        "exact_gain_date": 1,
+        "rank_mode": 0,
+        "mods_list": "BGADARK AV660",
+        "score": 4166000,
+        "grade": "A",
+        "is_pass": 0
+      }
+    ],
+    "charts": []
+  }
+}

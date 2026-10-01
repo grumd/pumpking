@@ -23,6 +23,7 @@ app.get('/healthz', async (_req, res) => {
   try {
     await pingDb();
     res.json({ status: 'ok' });
+    /* c8 ignore next 4: the tests can't take the database down under the app */
   } catch (error) {
     debug(error);
     res.status(503).json({ status: 'error' });
@@ -62,8 +63,9 @@ app.post('/internal/purgatory/recheck', async (req, res) => {
   }
 });
 
-// A body that isn't JSON, or is too large
+// express.json's errors: a body that isn't JSON (400) or is too large (413). The routes
+// answer their own errors
 const bodyError: ErrorRequestHandler = (error, _req, res, _next) => {
-  res.status(error.status ?? 500).json({ error: error.message });
+  res.status(error.status).json({ error: error.message });
 };
 app.use(bodyError);

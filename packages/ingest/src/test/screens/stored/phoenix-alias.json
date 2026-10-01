@@ -1,0 +1,82 @@
+{
+  "about": "Phoenix, an alias account's name: stored for the actual player",
+  "answersFrom": "legacy",
+  "steps": [
+    {
+      "path": "/results/screen/submit",
+      "agent": "paris-Le-Donjon",
+      "request": {
+        "screen_file": "2025-11-08/2025-11-08--17-03-24.mp4",
+        "mix_name": "Phoenix",
+        "track_name": "CROSS RAY",
+        "gained": "2025-11-08 16:03:24",
+        "left": {
+          "chart_label": "D20",
+          "result": {
+            "player_name": "ERRLENANOHJ",
+            "score": 970584,
+            "recognition_notes": "result",
+            "grade": "S",
+            "plate": "FG",
+            "mods_list": "AV535 BGADARK PASS_G",
+            "misses": 13,
+            "bads": 6,
+            "goods": 3,
+            "greats": 26,
+            "perfects": 1075,
+            "max_combo": 725,
+            "calories": 46224,
+            "score_increase": 970584,
+            "is_pass": true
+          }
+        }
+      },
+      "answer": {
+        "updates": [
+          {
+            "status": "result added"
+          }
+        ]
+      }
+    }
+  ],
+  "stored": {
+    "results": [
+      {
+        "id": 1,
+        "screen_file": "paris-Le-Donjon/2025-11-08/2025-11-08--17-03-24.mp4",
+        "recognition_notes": "result",
+        "agent": 19,
+        "track_name": "CROSS RAY",
+        "mix_name": "Phoenix",
+        "chart_label": "D20",
+        "player_name": "ERRLENANOHJ",
+        "gained": "2025-11-08 16:03:24",
+        "exact_gain_date": 1,
+        "rank_mode": 0,
+        "mods_list": "AV535 BGADARK PASS_G",
+        "score": 970584,
+        "score_increase": 970584,
+        "misses": 13,
+        "bads": 6,
+        "goods": 3,
+        "greats": 26,
+        "perfects": 1075,
+        "max_combo": 725,
+        "calories": 46224,
+        "grade": "S",
+        "is_pass": 1,
+        "plate": "FG",
+        "recognized_player_id": 243,
+        "player_id": 243,
+        "mix": 27,
+        "chart_instance": 19961,
+        "shared_chart": 6063,
+        "score_phoenix": 970584,
+        "is_new_best_score": 0
+      }
+    ],
+    "purgatory": [],
+    "charts": []
+  }
+}

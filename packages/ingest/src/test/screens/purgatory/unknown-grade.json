@@ -1,0 +1,74 @@
+{
+  "about": "No grade and no pass status recognized",
+  "answersFrom": "legacy",
+  "steps": [
+    {
+      "path": "/results/screen/submit",
+      "agent": "kyiv_garage",
+      "request": {
+        "screen_file": "2024-12-26/2024-12-26--20-19-37.mp4",
+        "mix_name": "Phoenix",
+        "track_name": "Jupin - SHORT CUT -",
+        "gained": "2024-12-26 18:19:37",
+        "left": {
+          "chart_label": "S13",
+          "result": {
+            "player_name": "PEARLY",
+            "score": 997602,
+            "recognition_notes": "result",
+            "grade": "?",
+            "mods_list": "AV550 BGADARK",
+            "misses": 0,
+            "bads": 0,
+            "goods": 1,
+            "greats": 36,
+            "perfects": 663,
+            "max_combo": 665,
+            "calories": 15035,
+            "score_increase": 997602
+          }
+        }
+      },
+      "answer": {
+        "updates": [
+          {
+            "status": "added to purgatory",
+            "id": 1,
+            "reason": "Invalid score 997,602 for specified stats, should be ~ 978,144"
+          }
+        ]
+      }
+    }
+  ],
+  "stored": {
+    "results": [],
+    "purgatory": [
+      {
+        "id": 1,
+        "reason": "Invalid score 997,602 for specified stats, should be ~ 978,144",
+        "screen_file": "kyiv_garage/2024-12-26/2024-12-26--20-19-37.mp4",
+        "recognition_notes": "result",
+        "agent": 2,
+        "track_name": "Jupin - SHORT CUT -",
+        "mix_name": "Phoenix",
+        "chart_label": "S13",
+        "player_name": "PEARLY",
+        "gained": "2024-12-26 18:19:37",
+        "exact_gain_date": 1,
+        "rank_mode": 0,
+        "mods_list": "AV550 BGADARK",
+        "score": 997602,
+        "score_increase": 997602,
+        "misses": 0,
+        "bads": 0,
+        "goods": 1,
+        "greats": 36,
+        "perfects": 663,
+        "grade": "?",
+        "max_combo": 665,
+        "calories": 15035
+      }
+    ],
+    "charts": []
+  }
+}

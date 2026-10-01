@@ -1,0 +1,82 @@
+{
+  "about": "Phoenix 2 FG plate",
+  "answersFrom": "legacy",
+  "steps": [
+    {
+      "path": "/results/screen/submit",
+      "agent": "kyiv_garage",
+      "request": {
+        "screen_file": "2026-09-25/2026-09-25--23-46-25.mp4",
+        "mix_name": "Phoenix2",
+        "track_name": "SUPER*HARAGURO* POP",
+        "gained": "2026-09-25 20:46:25",
+        "left": {
+          "chart_label": "D22",
+          "result": {
+            "player_name": "DINO #3869",
+            "score": 947813,
+            "recognition_notes": "result",
+            "grade": "AA+",
+            "plate": "FG",
+            "mods_list": "AV641 BGADARK",
+            "misses": 13,
+            "bads": 10,
+            "goods": 8,
+            "greats": 64,
+            "perfects": 1005,
+            "max_combo": 365,
+            "calories": 55916,
+            "score_increase": 947813,
+            "is_pass": true
+          }
+        }
+      },
+      "answer": {
+        "updates": [
+          {
+            "status": "result added"
+          }
+        ]
+      }
+    }
+  ],
+  "stored": {
+    "results": [
+      {
+        "id": 1,
+        "screen_file": "kyiv_garage/2026-09-25/2026-09-25--23-46-25.mp4",
+        "recognition_notes": "result",
+        "agent": 2,
+        "track_name": "SUPER*HARAGURO* POP",
+        "mix_name": "Phoenix2",
+        "chart_label": "D22",
+        "player_name": "DINO #3869",
+        "gained": "2026-09-25 20:46:25",
+        "exact_gain_date": 1,
+        "rank_mode": 0,
+        "mods_list": "AV641 BGADARK",
+        "score": 947813,
+        "score_increase": 947813,
+        "misses": 13,
+        "bads": 10,
+        "goods": 8,
+        "greats": 64,
+        "perfects": 1005,
+        "max_combo": 365,
+        "calories": 55916,
+        "grade": "AA+",
+        "is_pass": 1,
+        "plate": "FG",
+        "recognized_player_id": 2,
+        "player_id": 2,
+        "mix": 28,
+        "chart_instance": 23797,
+        "shared_chart": 7668,
+        "score_phoenix": 947813,
+        "is_new_best_score": 0
+      }
+    ],
+    "purgatory": [],
+    "charts": []
+  }
+}

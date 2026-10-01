@@ -1,0 +1,78 @@
+{
+  "about": "Phoenix: from a real Phoenix MG result (#303128), with a track name far from any",
+  "answersFrom": "legacy",
+  "steps": [
+    {
+      "path": "/results/screen/submit",
+      "agent": "moscow-Joki-Joya",
+      "request": {
+        "screen_file": "2026-09-21/2026-09-21--22-28-20.mp4",
+        "mix_name": "Phoenix",
+        "track_name": "Vacuum Clnr Mix",
+        "gained": "2026-09-21 19:28:20",
+        "left": {
+          "chart_label": "S16",
+          "result": {
+            "player_name": "GHOST",
+            "score": 975838,
+            "recognition_notes": "result",
+            "grade": "S+",
+            "plate": "MG",
+            "mods_list": "BGADARK",
+            "misses": 4,
+            "bads": 4,
+            "goods": 5,
+            "greats": 26,
+            "perfects": 1022,
+            "max_combo": 312,
+            "calories": 57283,
+            "score_increase": 975838,
+            "is_pass": true
+          }
+        }
+      },
+      "answer": {
+        "updates": [
+          {
+            "status": "added to purgatory",
+            "id": 1,
+            "reason": "Invalid track name 'Vacuum Clnr Mix', no best guess"
+          }
+        ]
+      }
+    }
+  ],
+  "stored": {
+    "results": [],
+    "purgatory": [
+      {
+        "id": 1,
+        "reason": "Invalid track name 'Vacuum Clnr Mix', no best guess",
+        "screen_file": "moscow-Joki-Joya/2026-09-21/2026-09-21--22-28-20.mp4",
+        "recognition_notes": "result",
+        "agent": 16,
+        "track_name": "Vacuum Clnr Mix",
+        "mix_name": "Phoenix",
+        "chart_label": "S16",
+        "player_name": "GHOST",
+        "gained": "2026-09-21 19:28:20",
+        "exact_gain_date": 1,
+        "rank_mode": 0,
+        "mods_list": "BGADARK",
+        "score": 975838,
+        "score_increase": 975838,
+        "misses": 4,
+        "bads": 4,
+        "goods": 5,
+        "greats": 26,
+        "perfects": 1022,
+        "grade": "S+",
+        "is_pass": 1,
+        "plate": "MG",
+        "max_combo": 312,
+        "calories": 57283
+      }
+    ],
+    "charts": []
+  }
+}

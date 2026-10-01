@@ -1,0 +1,82 @@
+{
+  "about": "Phoenix 2 PG plate, a name with the arcade id",
+  "answersFrom": "legacy",
+  "steps": [
+    {
+      "path": "/results/screen/submit",
+      "agent": "kyiv_garage",
+      "request": {
+        "screen_file": "2026-09-26/2026-09-26--13-34-56.mp4",
+        "mix_name": "Phoenix2",
+        "track_name": "Beat of The War 2",
+        "gained": "2026-09-26 10:34:56",
+        "left": {
+          "chart_label": "D15",
+          "result": {
+            "player_name": "DINO #3869",
+            "score": 1000000,
+            "recognition_notes": "result",
+            "grade": "SSS+",
+            "plate": "PG",
+            "mods_list": "AV635 BGADARK",
+            "misses": 0,
+            "bads": 0,
+            "goods": 0,
+            "greats": 0,
+            "perfects": 593,
+            "max_combo": 593,
+            "calories": 32059,
+            "score_increase": 1000000,
+            "is_pass": true
+          }
+        }
+      },
+      "answer": {
+        "updates": [
+          {
+            "status": "result added"
+          }
+        ]
+      }
+    }
+  ],
+  "stored": {
+    "results": [
+      {
+        "id": 1,
+        "screen_file": "kyiv_garage/2026-09-26/2026-09-26--13-34-56.mp4",
+        "recognition_notes": "result",
+        "agent": 2,
+        "track_name": "Beat of The War 2",
+        "mix_name": "Phoenix2",
+        "chart_label": "D15",
+        "player_name": "DINO #3869",
+        "gained": "2026-09-26 10:34:56",
+        "exact_gain_date": 1,
+        "rank_mode": 0,
+        "mods_list": "AV635 BGADARK",
+        "score": 1000000,
+        "score_increase": 1000000,
+        "misses": 0,
+        "bads": 0,
+        "goods": 0,
+        "greats": 0,
+        "perfects": 593,
+        "max_combo": 593,
+        "calories": 32059,
+        "grade": "SSS+",
+        "is_pass": 1,
+        "plate": "PG",
+        "recognized_player_id": 2,
+        "player_id": 2,
+        "mix": 28,
+        "chart_instance": 28422,
+        "shared_chart": 4796,
+        "score_phoenix": 1000000,
+        "is_new_best_score": 0
+      }
+    ],
+    "purgatory": [],
+    "charts": []
+  }
+}

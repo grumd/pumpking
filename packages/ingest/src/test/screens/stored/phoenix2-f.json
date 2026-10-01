@@ -1,0 +1,78 @@
+{
+  "about": "Phoenix 2 F grade on an S1, a track name typo (Yeo raea)",
+  "answersFrom": "legacy",
+  "steps": [
+    {
+      "path": "/results/screen/submit",
+      "agent": "kyiv_garage",
+      "request": {
+        "screen_file": "2026-09-24/2026-09-24--23-30-45.mp4",
+        "mix_name": "Phoenix2",
+        "track_name": "Yeo raea",
+        "gained": "2026-09-24 20:30:45",
+        "left": {
+          "chart_label": "S1",
+          "result": {
+            "player_name": "GREMMIE #1904",
+            "score": 400330,
+            "recognition_notes": "result",
+            "grade": "F",
+            "mods_list": "AV450 BGADARK",
+            "misses": 0,
+            "bads": 11,
+            "goods": 24,
+            "greats": 20,
+            "perfects": 7,
+            "max_combo": 9,
+            "calories": 3513,
+            "is_pass": false
+          }
+        }
+      },
+      "answer": {
+        "updates": [
+          {
+            "status": "result added"
+          }
+        ]
+      }
+    }
+  ],
+  "stored": {
+    "results": [
+      {
+        "id": 1,
+        "screen_file": "kyiv_garage/2026-09-24/2026-09-24--23-30-45.mp4",
+        "recognition_notes": "result",
+        "agent": 2,
+        "track_name": "Yeo raea",
+        "mix_name": "Phoenix2",
+        "chart_label": "S1",
+        "player_name": "GREMMIE #1904",
+        "gained": "2026-09-24 20:30:45",
+        "exact_gain_date": 1,
+        "rank_mode": 0,
+        "mods_list": "AV450 BGADARK",
+        "score": 400330,
+        "misses": 0,
+        "bads": 11,
+        "goods": 24,
+        "greats": 20,
+        "perfects": 7,
+        "max_combo": 9,
+        "calories": 3513,
+        "grade": "F",
+        "is_pass": 0,
+        "recognized_player_id": 16,
+        "player_id": 16,
+        "mix": 28,
+        "chart_instance": 27580,
+        "shared_chart": 1751,
+        "score_phoenix": 400330,
+        "is_new_best_score": 0
+      }
+    ],
+    "purgatory": [],
+    "charts": []
+  }
+}

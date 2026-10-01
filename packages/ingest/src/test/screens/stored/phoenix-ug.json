@@ -1,0 +1,80 @@
+{
+  "about": "Phoenix UG plate, no score increase shown, a double chart",
+  "answersFrom": "legacy",
+  "steps": [
+    {
+      "path": "/results/screen/submit",
+      "agent": "msk-Zavod",
+      "request": {
+        "screen_file": "2025-07-21/2025-07-21--10-32-15.mp4",
+        "mix_name": "Phoenix",
+        "track_name": "Reminiscence",
+        "gained": "2025-07-21 10:32:15",
+        "left": {
+          "chart_label": "D20",
+          "result": {
+            "player_name": "SUPURAITO",
+            "score": 997614,
+            "recognition_notes": "result",
+            "grade": "SSS+",
+            "plate": "UG",
+            "mods_list": "AV661 BGADARK",
+            "misses": 0,
+            "bads": 0,
+            "goods": 0,
+            "greats": 7,
+            "perfects": 1161,
+            "max_combo": 1168,
+            "calories": 40073,
+            "is_pass": true
+          }
+        }
+      },
+      "answer": {
+        "updates": [
+          {
+            "status": "result added"
+          }
+        ]
+      }
+    }
+  ],
+  "stored": {
+    "results": [
+      {
+        "id": 1,
+        "screen_file": "msk-Zavod/2025-07-21/2025-07-21--10-32-15.mp4",
+        "recognition_notes": "result",
+        "agent": 17,
+        "track_name": "Reminiscence",
+        "mix_name": "Phoenix",
+        "chart_label": "D20",
+        "player_name": "SUPURAITO",
+        "gained": "2025-07-21 10:32:15",
+        "exact_gain_date": 1,
+        "rank_mode": 0,
+        "mods_list": "AV661 BGADARK",
+        "score": 997614,
+        "misses": 0,
+        "bads": 0,
+        "goods": 0,
+        "greats": 7,
+        "perfects": 1161,
+        "max_combo": 1168,
+        "calories": 40073,
+        "grade": "SSS+",
+        "is_pass": 1,
+        "plate": "UG",
+        "recognized_player_id": 28,
+        "player_id": 28,
+        "mix": 27,
+        "chart_instance": 20967,
+        "shared_chart": 2329,
+        "score_phoenix": 997614,
+        "is_new_best_score": 0
+      }
+    ],
+    "purgatory": [],
+    "charts": []
+  }
+}

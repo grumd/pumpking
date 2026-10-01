@@ -1,0 +1,82 @@
+{
+  "about": "Phoenix 2 half-double (HD) chart",
+  "answersFrom": "legacy",
+  "steps": [
+    {
+      "path": "/results/screen/submit",
+      "agent": "kyiv_garage",
+      "request": {
+        "screen_file": "2026-09-24/2026-09-24--20-33-52.mp4",
+        "mix_name": "Phoenix2",
+        "track_name": "Nakakapagpabagabag",
+        "gained": "2026-09-24 17:33:52",
+        "left": {
+          "chart_label": "HD14",
+          "result": {
+            "player_name": "GREMMIE #1904",
+            "score": 978368,
+            "recognition_notes": "result",
+            "grade": "S+",
+            "plate": "FG",
+            "mods_list": "AV550 BGADARK",
+            "misses": 11,
+            "bads": 1,
+            "goods": 2,
+            "greats": 1,
+            "perfects": 736,
+            "max_combo": 268,
+            "calories": 29325,
+            "score_increase": 978368,
+            "is_pass": true
+          }
+        }
+      },
+      "answer": {
+        "updates": [
+          {
+            "status": "result added"
+          }
+        ]
+      }
+    }
+  ],
+  "stored": {
+    "results": [
+      {
+        "id": 1,
+        "screen_file": "kyiv_garage/2026-09-24/2026-09-24--20-33-52.mp4",
+        "recognition_notes": "result",
+        "agent": 2,
+        "track_name": "Nakakapagpabagabag",
+        "mix_name": "Phoenix2",
+        "chart_label": "HD14",
+        "player_name": "GREMMIE #1904",
+        "gained": "2026-09-24 17:33:52",
+        "exact_gain_date": 1,
+        "rank_mode": 0,
+        "mods_list": "AV550 BGADARK",
+        "score": 978368,
+        "score_increase": 978368,
+        "misses": 11,
+        "bads": 1,
+        "goods": 2,
+        "greats": 1,
+        "perfects": 736,
+        "max_combo": 268,
+        "calories": 29325,
+        "grade": "S+",
+        "is_pass": 1,
+        "plate": "FG",
+        "recognized_player_id": 16,
+        "player_id": 16,
+        "mix": 28,
+        "chart_instance": 26485,
+        "shared_chart": 8107,
+        "score_phoenix": 978368,
+        "is_new_best_score": 0
+      }
+    ],
+    "purgatory": [],
+    "charts": []
+  }
+}

@@ -13,3 +13,4 @@ node_modules
 
 packages/*/build
 packages/*/types
+packages/*/coverage

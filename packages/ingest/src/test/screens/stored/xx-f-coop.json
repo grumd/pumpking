@@ -1,0 +1,80 @@
+{
+  "about": "XX F on a COOP chart",
+  "answersFrom": "legacy",
+  "steps": [
+    {
+      "path": "/results/screen/submit",
+      "agent": "Yuzhka",
+      "request": {
+        "screen_file": "2023-09-09/2023-09-09--18-22-15.mp4",
+        "mix_name": "XX",
+        "track_name": "Papasito (feat. KuTiNA)",
+        "gained": "2023-09-09 18:22:15",
+        "left": {
+          "chart_label": "COOP2",
+          "result": {
+            "player_name": "INSEP",
+            "score": 6998400,
+            "recognition_notes": "result",
+            "grade": "F",
+            "mods_list": "AV470 BGADARK",
+            "misses": 383,
+            "bads": 12,
+            "goods": 13,
+            "greats": 48,
+            "perfects": 1182,
+            "max_combo": 110,
+            "calories": 0,
+            "score_increase": 6998400,
+            "is_pass": false
+          }
+        }
+      },
+      "answer": {
+        "updates": [
+          {
+            "status": "result added"
+          }
+        ]
+      }
+    }
+  ],
+  "stored": {
+    "results": [
+      {
+        "id": 1,
+        "screen_file": "Yuzhka/2023-09-09/2023-09-09--18-22-15.mp4",
+        "recognition_notes": "result",
+        "agent": 7,
+        "track_name": "Papasito (feat. KuTiNA)",
+        "mix_name": "XX",
+        "chart_label": "COOP2",
+        "player_name": "INSEP",
+        "gained": "2023-09-09 18:22:15",
+        "exact_gain_date": 1,
+        "rank_mode": 0,
+        "mods_list": "AV470 BGADARK",
+        "score": 6998400,
+        "score_increase": 6998400,
+        "misses": 383,
+        "bads": 12,
+        "goods": 13,
+        "greats": 48,
+        "perfects": 1182,
+        "max_combo": 110,
+        "calories": 0,
+        "grade": "F",
+        "is_pass": 0,
+        "recognized_player_id": 212,
+        "player_id": 212,
+        "mix": 26,
+        "chart_instance": 11242,
+        "shared_chart": 3537,
+        "score_phoenix": 738143,
+        "is_new_best_score": 0
+      }
+    ],
+    "purgatory": [],
+    "charts": []
+  }
+}
