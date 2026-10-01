@@ -1,6 +1,11 @@
-import { db } from '@pumpking/core/db';
-import { addEvent, createEventConsumer, deleteOldEvents, type Event } from '@pumpking/core/events';
-import { getPhoenixScore } from '@pumpking/core/scoring/phoenixScore';
+import { db } from '@pumpking/database/db';
+import {
+  addEvent,
+  createEventConsumer,
+  deleteOldEvents,
+  type Event,
+} from '@pumpking/database/events';
+import { getPhoenixScore } from '@pumpking/utils/phoenixScore';
 import { assert } from 'chai';
 import fs from 'fs';
 import { startEffectsJob } from 'jobs/effectsJob';

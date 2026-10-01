@@ -1,5 +1,5 @@
 import crypto from 'crypto';
-import { db } from '@pumpking/core/db';
+import { db } from '@pumpking/database/db';
 import createDebug from 'debug';
 
 const debug = createDebug('backend-ts:auth');

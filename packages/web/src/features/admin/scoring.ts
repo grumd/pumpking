@@ -1,4 +1,4 @@
-import { MIXES } from '@pumpking/core/constants/mixes';
+import { MIXES } from '@pumpking/utils/mixes';
 
 // Grades and plates for the admin forms, as the results store them. Mixes before Phoenix
 // have combo scoring and their own grades; Phoenix on has plates

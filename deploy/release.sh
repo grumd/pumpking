@@ -12,13 +12,13 @@ if [ -f .ready ]; then
   exit 0
 fi
 
-ln -sfn ~/pumpking/shared/core.env packages/core/.env
+ln -sfn ~/pumpking/shared/database.env packages/database/.env
 ln -sfn ~/pumpking/shared/api.env packages/api/.env
 ln -sfn ~/pumpking/shared/ingest.env packages/ingest/.env
 ln -sfn ~/pumpking/shared/bot.env packages/bot/.env
 
 npm ci
-npm run migrate:latest --prefix packages/core
+npm run migrate:latest --prefix packages/database
 touch .ready
 
 # Keep the 5 newest releases, and the ones the services run

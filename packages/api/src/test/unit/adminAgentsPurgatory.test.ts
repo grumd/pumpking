@@ -1,5 +1,8 @@
-import { db } from '@pumpking/core/db';
+import { db } from '@pumpking/database/db';
 import { assert } from 'chai';
+import express from 'express';
+import type { Server } from 'http';
+import type { AddressInfo } from 'net';
 import { errorMessage, output, trpcMutation, trpcQuery } from 'test/helpers/trpc';
 
 describe('Admin agents', () => {
@@ -107,15 +110,6 @@ describe('Admin purgatory', () => {
     return Number(insertId);
   };
 
-  beforeEach(async () => {
-    await db
-      .insertInto('arcade_track_names')
-      .values({ mix_id: 28, track_id: 1, name: 'Track 1', name_edist: 0 })
-      .execute();
-  });
-
-  const unknownAnon = /^Unknown player ANON for mix Phoenix2, closest is \S+ with \d+ edits$/;
-
   it('lists, shows and deletes rows', async () => {
     const id = await insertRow({ reason: 'Unknown player ANON for mix Phoenix2, no similar name' });
 
@@ -131,69 +125,110 @@ describe('Admin purgatory', () => {
     assert.lengthOf(await db.selectFrom('purgatory').select('id').execute(), 0);
   });
 
-  it('saves the fixes, then rechecks the row: valid now, it moves to results', async () => {
-    const id = await insertRow({ reason: 'Unknown player ANON for mix Phoenix2, no similar name' });
+  // Ingest does the recheck itself (its tests cover it); this stands in for its endpoint
+  describe('recheck', () => {
+    let server: Server;
+    let respond: (body: { id?: number }) => object;
+    let requests: { id?: number }[];
 
-    const res = await trpcMutation('admin.purgatory.updateAndRecheck', {
-      id,
-      edit: { player_name: 'DUMMY2P2' },
-    }).expect(200);
-
-    const { outcomes, report } = output(res);
-    assert.deepEqual(outcomes, [{ id, outcome: 'added', status: 'result added' }]);
-    assert.deepEqual(report, [
-      `Purgatory #${id}: player_name 'ANON' → 'DUMMY2P2'`,
-      `Purgatory #${id}: valid, moved to results (result added)`,
-      "Result operation: 'result added'",
-      'Rechecked 1 items in purgatory',
-    ]);
-
-    assert.lengthOf(await db.selectFrom('purgatory').select('id').execute(), 0);
-    const result = await db
-      .selectFrom('results')
-      .selectAll()
-      .where('screen_file', '=', 'test-arcade/2026-09-30/screen.mp4')
-      .executeTakeFirstOrThrow();
-    assert.include(result, {
-      player_id: 2,
-      player_name: 'DUMMY2P2',
-      chart_instance: 3,
-      score_phoenix: 1_000_000,
+    before((done) => {
+      const ingest = express();
+      ingest.use(express.json());
+      ingest.post('/internal/purgatory/recheck', (req, res) => {
+        requests.push(req.body);
+        res.json(respond(req.body));
+      });
+      server = ingest.listen(0, () => {
+        process.env.INGEST_URL = `http://127.0.0.1:${(server.address() as AddressInfo).port}`;
+        done();
+      });
     });
-    // Keeps when it was added: the rivals notifications tell how long ago it was
-    assert.equal(result.added.getTime(), new Date('2026-09-30T10:00:00').getTime());
-    const event = await db.selectFrom('events').selectAll().executeTakeFirstOrThrow();
-    assert.deepEqual([event.type, event.payload], ['resultAdded', { resultId: result.id }]);
-  });
 
-  it('rechecks everything: rows stay with their new reason, are discarded or move', async () => {
-    const stays = await insertRow({ reason: 'Old reason' });
-    const discarded = await insertRow({ reason: 'Old reason', player_name: 'DUMMY2P2', score: 0 });
-    const valid = await insertRow({ reason: 'Old reason', player_name: 'DUMMY2P2' });
+    after((done) => {
+      delete process.env.INGEST_URL;
+      server.close(done);
+    });
 
-    const { outcomes } = output(await trpcMutation('admin.purgatory.recheck', {}).expect(200));
-    assert.lengthOf(outcomes, 3);
-    assert.deepInclude(outcomes[0], { id: stays, outcome: 'stays', reasonChanged: true });
-    assert.match(outcomes[0].reason, unknownAnon);
-    assert.deepEqual(outcomes.slice(1), [
-      { id: discarded, outcome: 'discarded', reason: 'Empty score, not needed' },
-      { id: valid, outcome: 'added', status: 'result added' },
-    ]);
+    beforeEach(() => {
+      requests = [];
+    });
 
-    const rows = await db.selectFrom('purgatory').select(['id', 'reason']).execute();
-    assert.deepEqual(rows, [{ id: stays, reason: outcomes[0].reason }]);
+    it('saves the fixes, then has ingest recheck the row', async () => {
+      const id = await insertRow({
+        reason: 'Unknown player ANON for mix Phoenix2, no similar name',
+      });
+      respond = () => ({
+        outcomes: [{ id, outcome: 'added', status: 'result added' }],
+        report: ["Result operation: 'result added'", 'Rechecked 1 items in purgatory'],
+      });
 
-    const again = output(await trpcMutation('admin.purgatory.recheck', { id: stays }).expect(200));
-    assert.deepInclude(again.outcomes[0], { id: stays, outcome: 'stays', reasonChanged: false });
-  });
+      const res = await trpcMutation('admin.purgatory.updateAndRecheck', {
+        id,
+        edit: { player_name: 'DUMMY2P2' },
+      }).expect(200);
 
-  it("answers 404 for a row that doesn't exist, or an empty purgatory", async () => {
-    const missing = await trpcMutation('admin.purgatory.recheck', { id: 12345 });
-    assert.equal(missing.status, 404);
-    assert.equal(errorMessage(missing), 'Purgatory row not found: id 12345');
+      assert.deepEqual(requests, [{ id }]);
+      const { outcomes, report } = output(res);
+      assert.deepEqual(outcomes, [{ id, outcome: 'added', status: 'result added' }]);
+      assert.deepEqual(report, [
+        `Purgatory #${id}: player_name 'ANON' → 'DUMMY2P2'`,
+        `Purgatory #${id}: valid, moved to results (result added)`,
+        "Result operation: 'result added'",
+        'Rechecked 1 items in purgatory',
+      ]);
+      const row = await db.selectFrom('purgatory').select('player_name').executeTakeFirstOrThrow();
+      assert.equal(row.player_name, 'DUMMY2P2');
+    });
 
-    const empty = await trpcMutation('admin.purgatory.recheck', {});
-    assert.equal(empty.status, 404);
-    assert.equal(errorMessage(empty), 'Purgatory is empty');
+    it('rechecks everything, and tells what happened to each row', async () => {
+      respond = () => ({
+        outcomes: [
+          { id: 1, outcome: 'stays', reason: 'New reason', reasonChanged: true },
+          { id: 2, outcome: 'stays', reason: 'Same reason', reasonChanged: false },
+          { id: 3, outcome: 'discarded', reason: 'Empty score, not needed' },
+        ],
+        report: ['Rechecking items IDs [1..3]', 'Rechecked 3 items in purgatory'],
+      });
+
+      const { report } = output(await trpcMutation('admin.purgatory.recheck', {}).expect(200));
+      assert.deepEqual(requests, [{}]);
+      assert.deepEqual(report, [
+        'Purgatory #1: still invalid, new reason: New reason',
+        'Purgatory #2: still invalid: Same reason',
+        'Purgatory #3: discarded (Empty score, not needed)',
+        'Rechecking items IDs [1..3]',
+        'Rechecked 3 items in purgatory',
+      ]);
+    });
+
+    it("answers 404 for a row that doesn't exist, or an empty purgatory", async () => {
+      respond = () => ({ outcomes: [], report: ['Rechecked 0 items in purgatory'] });
+
+      const missing = await trpcMutation('admin.purgatory.recheck', { id: 12345 });
+      assert.equal(missing.status, 404);
+      assert.equal(errorMessage(missing), 'Purgatory row not found: id 12345');
+      assert.deepEqual(requests, []);
+
+      const empty = await trpcMutation('admin.purgatory.recheck', {});
+      assert.equal(empty.status, 404);
+      assert.equal(errorMessage(empty), 'Purgatory is empty');
+    });
+
+    it('answers 502 when ingest fails or is down', async () => {
+      respond = () => ({ error: 'Database is gone' });
+      const failed = await trpcMutation('admin.purgatory.recheck', {});
+      assert.equal(failed.status, 502);
+      assert.equal(errorMessage(failed), 'Ingest failed to recheck: Database is gone');
+
+      const url = process.env.INGEST_URL;
+      process.env.INGEST_URL = 'http://127.0.0.1:1';
+      try {
+        const down = await trpcMutation('admin.purgatory.recheck', {});
+        assert.equal(down.status, 502);
+        assert.match(errorMessage(down), /^Ingest didn't answer/);
+      } finally {
+        process.env.INGEST_URL = url;
+      }
+    });
   });
 });

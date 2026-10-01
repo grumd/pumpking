@@ -1,9 +1,11 @@
 import { describeChanges } from './report';
-import type { Purgatory } from '@pumpking/core/database';
-import { db } from '@pumpking/core/db';
-import { recheckPurgatory as recheckRows } from '@pumpking/core/ingestion/purgatory';
+import type { Purgatory } from '@pumpking/database/database';
+import { db } from '@pumpking/database/db';
+import createDebug from 'debug';
 import type { Updateable } from 'kysely';
 import { error } from 'utils';
+
+const debug = createDebug('backend-ts:services:purgatory');
 
 // Purgatory holds the results that ingestion couldn't match to a player, track or chart,
 // or whose stats failed validation, with the reason. An admin fixes the row (or the
@@ -86,20 +88,54 @@ export const deletePurgatoryRow = async (id: number) => {
   return { report: [`Purgatory #${id} deleted`] };
 };
 
+// What the recheck did with a row, as ingest answers (packages/ingest, ingestion/purgatory.ts)
+export type RecheckOutcome =
+  // Valid now: moved to results (the status says whether it was added or merged)
+  | { id: number; outcome: 'added'; status: string }
+  | { id: number; outcome: 'discarded'; reason: string }
+  | { id: number; outcome: 'stays'; reason: string; reasonChanged: boolean };
+
+interface RecheckResponse {
+  outcomes?: RecheckOutcome[];
+  // The lines of the stored results
+  report?: string[];
+  error?: string;
+}
+
+// Ingest runs on the same host
+const ingestUrl = () => process.env.INGEST_URL || 'http://127.0.0.1:3002';
+
 /**
  * Rechecks purgatory rows, all of them or one: rows that are valid now move to results,
- * discarded ones are deleted, the others get their new reason. Uses the ingestion's own
- * validation (core), so a row is judged exactly as a new result would be
+ * discarded ones are deleted, the others get their new reason. Ingest does it, so a row
+ * is judged exactly as a new result would be
  */
 export const recheckPurgatory = async (id?: number) => {
   if (id != null) {
     await getPurgatoryRow(id);
   }
-  const { outcomes, report } = await recheckRows(id);
+
+  let body: RecheckResponse;
+  try {
+    const response = await fetch(`${ingestUrl()}/internal/purgatory/recheck`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ id }),
+      signal: AbortSignal.timeout(120_000),
+    });
+    body = (await response.json()) as RecheckResponse;
+  } catch (e) {
+    debug(e);
+    throw error(502, `Ingest didn't answer: ${(e as Error).message}`);
+  }
+  if (body.error || !body.outcomes || !body.report) {
+    throw error(502, `Ingest failed to recheck: ${body.error ?? 'no outcomes in its answer'}`);
+  }
+
+  const { outcomes, report } = body;
   if (outcomes.length === 0) {
     throw error(404, 'Purgatory is empty');
   }
-
   return {
     outcomes,
     report: [

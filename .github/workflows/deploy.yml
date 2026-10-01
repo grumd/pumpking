@@ -9,7 +9,8 @@ on:
       - 'packages/api/**'
       - 'packages/ingest/**'
       - 'packages/bot/**'
-      - 'packages/core/**'
+      - 'packages/database/**'
+      - 'packages/utils/**'
       - 'package.json'
       - 'package-lock.json'
       - 'pm2.config.js'
@@ -35,9 +36,14 @@ jobs:
       - uses: dorny/paths-filter@v3
         id: filter
         with:
+          # A service deploys when its own package changes, or what every service runs
+          # with. A migration alone only migrates (in the release job); one that also
+          # regenerates the types in packages/database/src deploys every service
           filters: |
             shared: &shared
-              - 'packages/core/**'
+              - 'packages/database/src/**'
+              - 'packages/database/package.json'
+              - 'packages/utils/**'
               - 'package.json'
               - 'package-lock.json'
               - 'pm2.config.js'
@@ -52,7 +58,7 @@ jobs:
               - *shared
               - 'packages/bot/**'
             migrations:
-              - 'packages/core/migrations/**'
+              - 'packages/database/migrations/**'
 
   test-api:
     uses: ./.github/workflows/test-service.yml

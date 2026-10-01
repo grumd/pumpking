@@ -1,5 +1,5 @@
 import { assert } from 'chai';
-import { db } from '@pumpking/core/db';
+import { db } from '@pumpking/database/db';
 import { updateChartsInterpolatedDifficulty } from 'services/charts/chartDifficultyInterpolation';
 import { getResultDefaults } from 'test/seeds/initialSeed';
 

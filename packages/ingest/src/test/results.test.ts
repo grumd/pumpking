@@ -1,7 +1,7 @@
 import { app } from '../app';
 import { getEvents, getResults, phoenixResult, post, screen, xxResult, xxScreen } from './helpers';
 import { CHARTS } from './seed';
-import { db } from '@pumpking/core/db';
+import { db } from '@pumpking/database/db';
 import { assert } from 'chai';
 import request from 'supertest';
 
@@ -353,7 +353,7 @@ describe('Result submissions', () => {
     assert.isNull(chart.max_total_steps);
   });
 
-  it('store both sides of a screen, and report XX bests that repeat the result', async () => {
+  it('store the results of both sides of a screen, not the bests shown next to them', async () => {
     const bobResult = { ...xxResult(), player_name: 'BOB' };
     const res = await submit(
       screen({
@@ -367,10 +367,6 @@ describe('Result submissions', () => {
       })
     );
     assert.deepEqual(res.body.updates, [{ status: 'result added' }, { status: 'result added' }]);
-    assert.include(
-      res.body.report,
-      'left_personal_best has grade and score equal to left_result, discarded'
-    );
     assert.deepEqual(
       (await getResults()).map((r) => r.player_id),
       [1, 2]

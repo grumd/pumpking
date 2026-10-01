@@ -1,4 +1,4 @@
-import { deleteOldEvents } from '@pumpking/core/events';
+import { deleteOldEvents } from '@pumpking/database/events';
 import createDebug from 'debug';
 import cron from 'node-cron';
 import { effectsConsumer } from 'services/effects/effectsConsumer';

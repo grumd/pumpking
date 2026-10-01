@@ -1,5 +1,5 @@
 import { describeChanges } from './report';
-import { db } from '@pumpking/core/db';
+import { db } from '@pumpking/database/db';
 import crypto from 'crypto';
 import { error } from 'utils';
 

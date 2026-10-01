@@ -1,6 +1,6 @@
 import './envconfig';
 import routes from './routes';
-import { pingDb } from '@pumpking/core/health';
+import { pingDb } from '@pumpking/database/health';
 import bodyParser from 'body-parser';
 import cors from 'cors';
 import createDebug from 'debug';

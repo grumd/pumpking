@@ -6,11 +6,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Pumpking is a Pump It Up (arcade rhythm game) score tracking and leaderboard system. It's a monorepo with these packages:
 
-- **packages/core**: Code shared by the services (DB client, Kysely types, migrations, constants, pure domain logic like scoring and exp). Never deployed on its own; services import its TS sources as `@pumpking/core/*`
+- **packages/database**: the database itself: Kysely client and types, migrations and their scripts, the `events` table helpers, `pingDb`. Never deployed on its own; services import its TS sources as `@pumpking/database/*`
+- **packages/utils**: Pump It Up rules that several services and the web need (mixes, grades, phoenix score, mods), no DB. Imported as `@pumpking/utils/*`. Keep code that only one service uses in that service
 - **packages/api**: Node.js backend (Express + tRPC + Kysely + MySQL)
 - **packages/web**: React frontend (Vite + Mantine + tRPC client)
-- **packages/ingest**: result ingestion for piu-spy, compatible with the legacy Python API's endpoints (port 3002). The pipeline itself (validation, player / track matching, de-duplication, purgatory) is in `packages/core/src/ingestion/`, which the admin purgatory recheck also uses
+- **packages/ingest**: result ingestion for piu-spy, compatible with the legacy Python API's endpoints (port 3002). The pipeline (validation, player / track matching, de-duplication, purgatory) is in `src/ingestion/`. The API's admin purgatory recheck calls ingest's `POST /internal/purgatory/recheck` (`INGEST_URL`, default `http://127.0.0.1:3002`)
 - **packages/bot**: the Telegram bot, a grammY bot with plugins in `src/plugins/` (port 3003 for `/healthz`). Ingest and bot listen on 127.0.0.1 (see `docs/python-api-migration/PLAN.md`)
+- api, ingest and bot are separate services: each deploys only when its own package changes, or `database/src`, `utils`, the lockfile or the deploy setup. They don't import each other's code; they share the database, and talk over HTTP on the host when they must
 - **Legacy Python API**: A legacy API exists in a separate repository, not part of this monorepo, but still rarely used in legacy frontend code. Avoid using when possible and gradually phase out.
 
 ## Common Commands
@@ -30,9 +32,9 @@ npm run test:bot          # so don't run them at the same time as test:api)
 npm run build:web         # Build frontend
 
 # Database migrations
-npm run migrate:latest --prefix packages/core    # Apply migrations
-npm run migrate:rollback --prefix packages/core  # Revert last migration
-npm run migrate:make --prefix packages/core -- migrationName  # Create migration
+npm run migrate:latest --prefix packages/database    # Apply migrations
+npm run migrate:rollback --prefix packages/database  # Revert last migration
+npm run migrate:make --prefix packages/database -- migrationName  # Create migration
 ```
 
 ## Architecture
@@ -42,8 +44,8 @@ npm run migrate:make --prefix packages/core -- migrationName  # Create migration
 - **Entry**: `src/index.ts` → `src/app.ts` (Express setup)
 - **API Layer**: tRPC router at `src/trpc/router.ts`, routes in `src/trpc/routes/`
 - **Business Logic**: Services in `src/services/{domain}/`
-- **Database**: Kysely client from `@pumpking/core/db`, with types auto-generated in `packages/core/src/database.ts`
-- **Events**: code that adds a result also adds a `resultAdded` event in the same transaction (`addEvent` from `@pumpking/core/events`); admin edits and deletes add `resultChanged`. The effects job (`src/jobs/effectsJob.ts`) applies pp / exp / totals from the events about a second later; tests call `applyEffects()`
+- **Database**: Kysely client from `@pumpking/database/db`, with types auto-generated in `packages/database/src/database.ts`
+- **Events**: code that adds a result also adds a `resultAdded` event in the same transaction (`addEvent` from `@pumpking/database/events`); admin edits and deletes add `resultChanged`. The effects job (`src/jobs/effectsJob.ts`) applies pp / exp / totals from the events about a second later; tests call `applyEffects()`
 - **Legacy REST** (to be removed): Routes in `src/routes/`, controllers in `src/controllers/` (being phased out)
 
 ### Frontend (packages/web)
@@ -66,7 +68,7 @@ Frontend imports backend types via path alias `@/api/*` → `packages/api/src/*`
 
 ## Environment Setup
 
-**Core** (`packages/core/.env`), the DB config for every service, script and test:
+**Database** (`packages/database/.env`), the DB config for every service, script and test:
 
 ```
 DB_DATABASE=db_name
@@ -81,6 +83,8 @@ DB_PASSWORD=
 NODE_ENV=development
 APP_PORT=3001
 SCREENSHOT_BASE_FOLDER=~/screenshots
+# Optional, where ingest runs (this is the default)
+INGEST_URL=http://127.0.0.1:3002
 ```
 
 **Ingest** (`packages/ingest/.env`, optional `APP_PORT`):
@@ -115,10 +119,10 @@ VITE_API_BASE_PATH=http://localhost:3001
 
 ### Database Changes
 
-1. Create migration: `npm run migrate:make --prefix packages/core -- name`
-2. Write SQL/TS migration in `packages/core/migrations/`
-3. Run: `npm run migrate:latest --prefix packages/core`
-4. Regenerate types if needed (requires DB running): `npm run generate-kysely --prefix packages/core`, then review the diff (the file is hand-patched in places)
+1. Create migration: `npm run migrate:make --prefix packages/database -- name`
+2. Write SQL/TS migration in `packages/database/migrations/`
+3. Run: `npm run migrate:latest --prefix packages/database`
+4. Regenerate types if needed (requires DB running): `npm run generate-kysely --prefix packages/database`, then review the diff (the file is hand-patched in places)
 
 ## Code Patterns
 

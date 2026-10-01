@@ -1,5 +1,5 @@
-import { db } from '@pumpking/core/db';
-import { getPhoenixScore } from '@pumpking/core/scoring/phoenixScore';
+import { db } from '@pumpking/database/db';
+import { getPhoenixScore } from '@pumpking/utils/phoenixScore';
 import { assert } from 'chai';
 import { resultAddedEffect } from 'services/results/resultAddedEffect';
 import { applyEffects } from 'test/helpers';

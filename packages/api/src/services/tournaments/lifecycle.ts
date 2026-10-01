@@ -1,6 +1,8 @@
 import { eligibleResults, poolChartIds } from './eligibility';
 import { bracketForSkill, medalForRank, skillLevel } from './rules';
 import { getBracketLeaderboard } from './tournament';
+import { db, type Transaction } from '@pumpking/database/db';
+import { addEvent } from '@pumpking/database/events';
 import {
   FRESH_POOL_MONTHS,
   SITE_TIMEZONE,
@@ -9,9 +11,7 @@ import {
   TOURNAMENT_END_DAY,
   TQ_QUALIFY_SCORE,
   type LadderSlot,
-} from '@pumpking/core/constants/tournaments';
-import { db, type Transaction } from '@pumpking/core/db';
-import { addEvent } from '@pumpking/core/events';
+} from 'constants/tournaments';
 import { sql } from 'kysely';
 import _ from 'lodash/fp';
 import { raiseNotices } from 'services/notices/notices';

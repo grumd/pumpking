@@ -1,4 +1,4 @@
-import { MIXES } from '@pumpking/core/constants/mixes';
+import { MIXES } from '@pumpking/utils/mixes';
 import createDebug from 'debug';
 import fs from 'fs';
 import OpenAI from 'openai';

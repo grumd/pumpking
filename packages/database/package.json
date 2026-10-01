@@ -1,0 +1,32 @@
+{
+  "name": "@pumpking/database",
+  "version": "1.0.0",
+  "private": true,
+  "description": "The pumpking database: Kysely client and types, migrations, the events table",
+  "exports": {
+    "./*": "./src/*.ts"
+  },
+  "scripts": {
+    "ts-check": "tsc --noEmit --pretty",
+    "migrate:make": "tsx ./scripts/migrationMake.ts",
+    "migrate:make-sql": "tsx ./scripts/migrationMakeSql.ts",
+    "migrate:latest": "tsx ./scripts/migrateToLatest.ts",
+    "migrate:rollback": "tsx ./scripts/migrationRollback.ts",
+    "generate-kysely": "tsx ./scripts/generateTypes.ts"
+  },
+  "author": "grumd",
+  "license": "MIT",
+  "dependencies": {
+    "debug": "^4.3.1",
+    "dotenv": "^16.3.1",
+    "kysely": "^0.25.0",
+    "minimist": "^1.2.8",
+    "mysql2": "^2.3.3"
+  },
+  "devDependencies": {
+    "@types/debug": "^4.1.8",
+    "@types/minimist": "^1.2.2",
+    "@types/node": "^24.10.7",
+    "kysely-codegen": "^0.10.0"
+  }
+}

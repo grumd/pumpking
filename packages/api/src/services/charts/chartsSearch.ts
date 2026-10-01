@@ -1,6 +1,6 @@
-import { MIXES } from '@pumpking/core/constants/mixes';
-import type { Tracks } from '@pumpking/core/database';
-import { db } from '@pumpking/core/db';
+import type { Tracks } from '@pumpking/database/database';
+import { db } from '@pumpking/database/db';
+import { MIXES } from '@pumpking/utils/mixes';
 import { sql } from 'kysely';
 import { getLiveTournamentMarks } from 'services/tournaments/tournament';
 

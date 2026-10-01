@@ -1,6 +1,6 @@
 import crypto from 'crypto';
-import { mix as currentMix } from '@pumpking/core/constants/currentMix';
-import { db } from '@pumpking/core/db';
+import { mix as currentMix } from '@pumpking/utils/currentMix';
+import { db } from '@pumpking/database/db';
 import createDebug from 'debug';
 import { StatusError } from 'utils/errors';
 import { verifyRegistrationToken } from './googleLogin';

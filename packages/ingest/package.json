@@ -14,11 +14,13 @@
   "author": "grumd",
   "license": "MIT",
   "dependencies": {
-    "@pumpking/core": "*",
+    "@pumpking/database": "*",
+    "@pumpking/utils": "*",
     "busboy": "^1.6.0",
     "debug": "^4.3.1",
     "dotenv": "^16.3.1",
     "express": "^4.18.2",
+    "fastest-levenshtein": "^1.0.16",
     "kysely": "^0.25.0",
     "minimist": "^1.2.8",
     "tsx": "^4.21.0"

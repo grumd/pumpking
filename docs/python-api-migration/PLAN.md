@@ -25,7 +25,7 @@ comes next. The rest of the document is the design it follows.
 | P4a stop using `results_best_grade` | **Deployed** 2026-09-30 (PR #42). Before merging: API tests pass (76), all packages type-check; master's tests pass with the new migration (the guard's check, run locally); on the dev DB (a copy of prod data), deleting a result the table points at fails before the migration and works after it (rolled back), and the migration's `down` works. The Deploy run was green (guards passed, migration ran on prod), all three services run `5a241f21`, and the table has no foreign keys left on prod |
 | P4b drop `results_best_grade` | **Deployed** 2026-09-30 (PR #43). API tests pass (76; the test code is P4a's, so this was also the guard's check), all packages type-check from a clean build, and the migration's up / down / up works on the dev DB. The Deploy run was green (guards passed, migration ran on prod), all three services run `e70880c3`, and the table is gone on prod |
 | Web admin (W3–W6, W8) | **Deployed** 2026-09-30 (PR #44, see "What the web admin did"). Checked before merging: API tests pass (114: 38 new), ingest / bot tests pass, all packages type-check, `npm run build:web` works, lint has only master's old errors. Tried in the browser against a fresh copy of prod data (the dev DB was reloaded from `~/dump.sql.gz`), with the legacy Python backend running locally (piu-top `origin/master` from `/tmp`, through `uv`) and a few prod videos copied into the local uploads folder: fixed chart #20968's step range from purgatory #8021's reason link, rechecked the row, and it moved to results (#303187) through Python, whose callback added the event, and got pp and exp from the effects job; edited that result (notes; bad mods got the validation error); players, agents (token shown on demand) and a tracklist sync preview of a file made from the DB (1,108 tracks, no errors) |
-| Ingestion (W1, W2, W7) | **Built, not merged** (PR #45, see "What the ingestion did"). `packages/ingest` serves piu-spy's endpoints (screen and manual modes) and the public `/agent/:id/lastPlayers/`, with the pipeline in `packages/core/src/ingestion/`; the admin purgatory recheck uses it instead of Python. Ingest tests pass (21), API tests pass. The shadow validation (below) ran against the dev DB (a fresh copy of prod) with the legacy Python backend running locally: same answers for every screen except the cases listed there, all of them known Python crashes. Nothing points piu-spy at it yet: that's the cutover (W12) |
+| Ingestion (W1, W2, W7) | **Built, not merged** (PR #45, see "What the ingestion did"). `packages/ingest` serves piu-spy's endpoints (screen and manual modes), with the pipeline in its `src/ingestion/`; the admin purgatory recheck calls ingest instead of Python. Ingest tests pass (23), API tests pass. The same PR split `packages/core` into `packages/database` and `packages/utils` (see "What the package split did"). The shadow validation (below) ran against the dev DB (a fresh copy of prod) with the legacy Python backend running locally: same answers for every screen except the cases listed there, all of them known Python crashes. Nothing points piu-spy at it yet: that's the cutover (W12) |
 | Telegram bot (W9–W11) | **Built, not merged** (PR #45, see "What the bot did"). A grammY bot platform with plugins for every legacy feature but event stats, plus tournament posts and health alerts. Bot tests pass (35). It runs Telegram only with `TELEGRAM_BOT_TOKEN`, which prod's `shared/bot.env` doesn't have, so merging changes nothing until the bot cutover |
 | Cutover, decommission (W12) | Not started (see "Next") |
 
@@ -444,22 +444,24 @@ desktop tool features" is there, apart from the gaps listed at the end.
 
 ### What the ingestion did (W1, W2, W7)
 
-- **Where**: the pipeline is in `packages/core/src/ingestion/`, since the API's purgatory
-  recheck uses it too:
-  - `validateResult.ts`: the legacy `validateResult`, with the checks in the same order, so
-    a result fails with the same reason.
+- **Where**: the pipeline is in `packages/ingest/src/ingestion/`:
+  - `checkResult.ts`: the legacy `validateResult`, with the checks in the same order, so
+    a result fails with the same reason. It answers a `CheckedResult` (valid with the row
+    to store, unrecognized or discarded with the reason); nothing changes its input.
   - `players.ts`, `tracks.ts`: the resolvers (Levenshtein through `fastest-levenshtein`,
     the legacy track name normalization, each name's own tolerance).
-  - `millionScoring.ts`, `comboScoring.ts`, `mods.ts`: the validators.
+  - `millionScoring.ts`, `comboScoring.ts`, `stats.ts`, `mods.ts`: the validators. The
+    score formula, grade thresholds, mix list and mods lists are in `packages/utils`.
   - `storeResult.ts`: de-duplication and merge, learning the chart's number of steps, and
     the `resultAdded` event, in one transaction.
   - `purgatory.ts`: add and recheck.
 
-  `packages/ingest/src` holds the service: `legacy.ts` (the calling conventions),
-  `results.ts` (splitting a screen, XX glitches, submit / validate), `status.ts` (A6),
-  `uploads.ts` (A7, A8) and `app.ts` (the routes, plus C6).
+  The rest of `packages/ingest/src` is the service: `agentApi.ts` (piu-spy's calling
+  conventions), `screen.ts` (a screen's results as rows), `results.ts` (submit /
+  validate), `status.ts` (A6), `uploads.ts` (A7, A8) and `app.ts` (the routes, plus the
+  internal purgatory recheck).
 - **Wire-compatible**: the same paths (`/status`, `POST` / `GET /upload`,
-  `/results/{screen,manual}/{submit,validate}`, `/agent/:id/lastPlayers/`), headers,
+  `/results/{screen,manual}/{submit,validate}`), headers,
   multipart `file` field (whose name keeps its folders), answers and messages. Every agent
   call answers 200, and an error is `{"error": "<message>"}`: the message where Python sent
   its traceback, but piu-spy only looks for the key. Requests over 512 KB get a 413, like
@@ -482,14 +484,20 @@ desktop tool features" is there, apart from the gaps listed at the end.
   - A purgatory reason longer than the column (512) is cut instead of failing the insert.
   - Report lines print changed values as plain strings (Python printed
     `datetime.datetime(…)`).
-- **Phoenix mods**: `core/scoring/mods.ts` has the million-scoring list too (no VJ or
+  - No report lines about XX's glitched personal / machine bests: the bests are never
+    stored, so the legacy `HandleXXGlitches` only produced those lines.
+  - C6 (`/agent/:id/lastPlayers/`) isn't served: only owjibot called it, and nobody
+    uses owjibot any more. It stops answering when Python does.
+- **Phoenix mods**: `utils/src/mods.ts` has the million-scoring list too (no VJ or
   BGAOFF; `PASS`, `PASS_G`, `PASS_M`). The admin result edit now checks Phoenix and later
   results against it: with the XX list (Python's B7 used it too) it rejected the mods of
   the 6.6k results that have a `PASS_*` option.
-- **Purgatory recheck**: `services/admin/purgatory.ts` calls core's `recheckPurgatory`
-  instead of Python. A row that's valid now is deleted and stored in one transaction,
-  with its event. An added row's outcome has its status (added, or merged into result
-  #N). `LEGACY_API_URL` is gone.
+- **Purgatory recheck**: `services/admin/purgatory.ts` calls ingest's
+  `POST /internal/purgatory/recheck` (`INGEST_URL`, default `http://127.0.0.1:3002`)
+  instead of Python. Ingest listens on 127.0.0.1, and nginx forwards only piu-spy's
+  paths, so the route isn't public. A row that's valid now is deleted and stored in one
+  transaction, with its event. An added row's outcome has its status (added, or merged
+  into result #N). `LEGACY_API_URL` is gone.
 - **Shadow validation** (`packages/ingest/scripts/shadowValidate.ts`): sends the same screens
   to the legacy API's and ingest's `/results/screen/validate` (both side-effect free) and
   prints the answers that differ; the report lines aren't compared. The screens come
@@ -505,22 +513,63 @@ desktop tool features" is there, apart from the gaps listed at the end.
   | Phoenix (400) | 9,108 | 9,108 | 0 |
   | Phoenix 2 (412, all of them) | 9,372 | 9,372 | 0 |
 
-  Each run also included the 14 purgatory rows (with their variants).
+  Each run also included the 14 purgatory rows (with their variants). Run again the same
+  day after the package split and the ingestion cleanups: the same numbers, and the same
+  560 differences.
 
   It hasn't run on real uploads yet: the prod files weren't copied to the dev machine.
   Run it on the server before the cutover (see "Next").
 - **Deploy**: besides `/healthz`, `deploy-service.sh` checks that ingest's validate turns
   a call without an agent down. Uploads need `UPLOADS_ROOT` in `shared/ingest.env`
   (`/home/piutop/uploads` on prod); everything else works without it.
-- **Tests** (`packages/ingest/src/test/`): `results.test.ts` (14) and `agents.test.ts` (7).
-  They cover the message of every validation step, de-duplication and merge, manual mode,
-  XX glitches, purgatory, validate writing nothing, the heartbeat, uploads and
-  lastPlayers. The API's purgatory tests recheck for real now, without the fake Python
-  server.
+- **Tests** (`packages/ingest/src/test/`): `results.test.ts` (14), `purgatory.test.ts`
+  (3) and `agents.test.ts` (6). They cover the message of every validation step,
+  de-duplication and merge, manual mode, purgatory and its recheck, validate writing
+  nothing, the heartbeat and uploads. The API's purgatory tests use a stub of ingest's
+  recheck route.
 - **Not ported one to one**: piu-top's integration tests. They're outdated: they expect
   messages the current Python doesn't produce, and check the dropped best-score tables.
   Their scenarios are in the ingest tests (adding results, XX / Phoenix validation, VJ
   rank mode); result and player edits are admin procedures now.
+
+### What the package split did (PR #45)
+
+`packages/core` held the DB layer, the shared rules and code that only one service
+used (ingestion, agent activity, tournament constants, exp), and any change to it
+redeployed every service and the web. The goal: services that deploy alone.
+Earlier sections say "core" for what is now `database` + `utils`.
+
+- **`packages/core` → `packages/database`** (`git mv`): the client, Kysely types,
+  migrations and their scripts, `events.ts`, `health.ts`, the test DB helpers.
+  `@pumpking/core/*` imports became `@pumpking/database/*`.
+- **New `packages/utils`**: `mixes.ts` (now with the full mix list, which ingestion had
+  its own copy of), `currentMix.ts`, `grades.ts` (with the Phoenix / Phoenix 2 grade
+  thresholds, also used by the web's `getPhoenixGrade` instead of its own copy),
+  `phoenixScore.ts`, `mods.ts`. No dependencies.
+- **Moved to their one user**: the ingestion pipeline to `packages/ingest/src/ingestion/`;
+  agent activity to the bot (`plugins/locations/activity.ts`); `constants/tournaments`,
+  `constants/grades` and `profile/exp` to the API (`src/constants/`,
+  `services/results/exp.ts`).
+- **Purgatory recheck over HTTP**: the API calls ingest's internal route (see "What the
+  ingestion did"), so an ingest change doesn't redeploy the API.
+- **One phoenix score formula**: `getPhoenixScore` used floating point, ingestion whole
+  numbers up to the division. The float version can land one below a whole score
+  (937,064 for 937,065): on the dev DB, 29 of the 10,121 pre-Phoenix results whose
+  score comes out whole are stored one below. `utils/phoenixScore.ts` now computes it
+  exactly for everyone, so the web's manual add no longer rejects such a score. Stored
+  scores aren't changed. Pre-Phoenix results from ingestion still get the score rounded
+  up (as Python did), while the 2024 migrations rounded down: 20 of the dev DB's XX
+  rank mode results are rounded up.
+- **Ingestion cleanups**: `checkResult` returns an outcome instead of the callers
+  catching exceptions, and validation returns the row to store instead of writing onto
+  its input; `legacy.ts` → `agentApi.ts`; a screen's parsing is in `screen.ts`; the
+  XX glitch code is gone (see "What the ingestion did"); step sums are computed in one
+  place; the bot's rivals use `currentMix` instead of a hard-coded Phoenix 2.
+- **Deploys**: see "Services" under "Service boundaries and deployment". The migration
+  guard finds the database package in `packages/core` for deployed commits from before
+  the rename. Prod needs `shared/database.env` (see "Next").
+- **Checks**: API 117, ingest 23, bot 35 tests pass; everything type-checks, the web
+  builds. The shadow validation ran again after the split (see "What the ingestion did").
 
 ### What the bot did (W9–W11)
 
@@ -554,8 +603,8 @@ desktop tool features" is there, apart from the gaps listed at the end.
     shown as on Phoenix 2, and charts without a level are skipped, as in the legacy
     feed. The settings commands are ported, with the admin-only `rivals test N name`.
   - `locations`: the 60 s monitor, with its state in `bot_state`, so a restart doesn't
-    lose it. The `/locations` dialog uses C6 in-process (`core/src/agents/activity.ts`,
-    which ingest's public route uses too).
+    lose it. The `/locations` dialog uses C6 in-process
+    (`plugins/locations/activity.ts`).
   - `kasa`: the TP-Link cloud through fetch, with the same 5 minute debounce and
     messages. On with all three `TRACKED_KASA_*`.
   - `health` (new): tells the admin when `INGEST_HEALTH_URL` or `API_HEALTH_URL` fails
@@ -590,11 +639,15 @@ desktop tool features" is there, apart from the gaps listed at the end.
 
 ### Next
 
-1. **Before merging**, add `UPLOADS_ROOT=/home/piutop/uploads` to
-   `~/pumpking/shared/ingest.env`. `LEGACY_API_URL` in `shared/api.env` isn't used any
-   more and can go.
-2. **Merge PR #45.** One additive migration (`bot_state`), so the migration guard runs.
-   Every service redeploys (core and the lockfile changed). Nothing changes for users:
+1. **Before merging**, on prod:
+   - `cp ~/pumpking/shared/core.env ~/pumpking/shared/database.env`: the releases link
+     `packages/database/.env` to it now. Keep `core.env` until the releases from
+     before the rename are cleaned up (a rollback to one of them needs it);
+   - add `UPLOADS_ROOT=/home/piutop/uploads` to `~/pumpking/shared/ingest.env`;
+   - `LEGACY_API_URL` in `shared/api.env` isn't used any more and can go.
+2. **Merge PR #45.** One additive migration (`bot_state`), so the migration guard runs
+   (it handles deployed commits that still have `packages/core`). Every service
+   redeploys (the shared packages and the lockfile changed). Nothing changes for users:
    piu-spy still posts to Python, and the bot has no token. Afterwards on prod: the
    ingest deploy's smoke test passed, and an admin purgatory recheck works (now without
    Python).
@@ -612,7 +665,7 @@ desktop tool features" is there, apart from the gaps listed at the end.
    ported paths to ingest, next to the existing `location /`:
 
    ```
-   location ~ ^/(status|upload|results/(screen|manual)/(submit|validate)|agent/[0-9]+/lastPlayers/?)$ {
+   location ~ ^/(status|upload|results/(screen|manual)/(submit|validate))$ {
        proxy_pass http://127.0.0.1:3002;
        proxy_set_header Host $host;
        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
@@ -621,8 +674,9 @@ desktop tool features" is there, apart from the gaps listed at the end.
 
    Then `sudo nginx -t && sudo systemctl reload nginx`. nginx's default body limit (1 MB)
    is above ingest's 512 KB. Watch `pm2 logs pumpking-ingest`, new results, and
-   purgatory. To roll back, remove the location and reload. owjibot calls
-   `/agent/:id/lastPlayers/` on `:5000`, so it moves along with it.
+   purgatory. To roll back, remove the location and reload. Only these paths go to
+   ingest: its `/internal/` routes stay private. owjibot's `/agent/:id/lastPlayers/`
+   stays on Python and stops with it.
 5. **Bot cutover**: `pm2 stop rivals-bot && pm2 save` (a token allows one long-polling
    bot), put the env above into `~/pumpking/shared/bot.env`, `pm2 reload pumpking-bot`,
    then check with `hi` and `/rivals` in Telegram. To roll back: remove
@@ -643,19 +697,24 @@ boundaries and deployment", "Events and effects" and "Telegram bot platform".
 
 ```
 packages/
-  core/     shared code, never deployed on its own: DB client + Kysely types, migrations,
-            constants, domain logic (validators, scoring, pp/exp), event helpers
+  database/ the database, never deployed on its own: DB client + Kysely types,
+            migrations and their scripts, event helpers, pingDb
+  utils/    Pump It Up rules several packages need (mixes, grades, phoenix score, mods)
   api/      web API: tRPC + admin procedures, effects worker, cron jobs
-  ingest/   result ingestion for piu-spy (legacy-compatible REST)
+  ingest/   result ingestion for piu-spy (legacy-compatible REST) + its pipeline
   bot/      Telegram bot platform + feature plugins
   web/      React frontend (imports API types via @/api/*)
 ```
 
+The services don't import each other's code. Code moves to `utils` only when more than
+one package needs it; otherwise it stays in its service.
+
 ### Deployment
 
-- **Deploys on change.** A service redeploys when its own package or `core`
-  changes; a `package-lock.json` change redeploys all of them. The web stays
-  on GitHub Pages.
+- **Deploys on change.** A service redeploys when its own package,
+  `database/src` or `utils` changes; a `package-lock.json` change redeploys all of
+  them. A migration alone only migrates. The web (GitHub Pages) deploys when it or
+  `utils` changes.
 - **Pipeline** (one workflow):
   1. Detect which packages changed.
   2. Run the tests of each affected service.
@@ -690,7 +749,7 @@ packages/
 piu-spy ──REST──▶ ingest ──┐  one transaction: result row (all leaderboard fields) + resultAdded event
                            ▼
                     ┌────────────┐
-web ──tRPC──▶ api ─▶│   MySQL    │◀── bot (reads data via core)
+web ──tRPC──▶ api ─▶│   MySQL    │◀── bot (reads data via packages/database)
    admin edits ────▶│  + events  │
  tournaments job ──▶└────────────┘
                      │        │
@@ -737,14 +796,15 @@ the largest and riskiest part. Everything else is thin CRUD.
 | Hosting | TS and Python run on the **same host**, so the uploads directory is shared as is |
 | piu-spy transport | Either the deployed agents are updated to post to the new port, or a reverse proxy forwards the legacy port/paths to TS. In both cases the ingestion endpoints (group A) keep their **paths, headers, multipart field and response shapes** |
 | piu-spy modes | Only **screen** and **manual** are in use and get ported. Stream and test are deferred |
-| owjibot | Left alone for now; it keeps running on the legacy public endpoint (C6). May become a plugin later |
+| owjibot | Not used any more (2026-10-01). Its endpoint (C6) isn't ported: it stops answering when Python stops |
 | Telegram account link | Keep matching by `telegram_tag`, so linked users don't have to link again |
 | Bot event stats | Dropped, not ported. It was a leaderboard for one official piugame event (6 hard-coded charts, "Nightmare event"); monthly tournaments cover the idea |
 | Web admin scope | Parity with the desktop tool (plus the listed bug fixes); no extra UX work for now |
-| DB config | Lives with the DB in `packages/core/.env` (prod: `shared/core.env`); services' own `.env` files hold only their settings. Migrations are run through core's scripts, over SSH from the new release directory |
+| DB config | Lives with the DB in `packages/database/.env` (prod: `shared/database.env`); services' own `.env` files hold only their settings. Migrations are run through `packages/database`'s scripts, over SSH from the new release directory |
+| Shared packages (2026-10-01) | `packages/database` is only the database (client, types, migrations, events). `packages/utils` holds the game rules more than one package needs. Everything else lives in the one service that uses it; services call each other over HTTP on the host when they must (the purgatory recheck) |
 | Server layout | New deploys live under `~/pumpking/` (see "Build and release") |
 | Service boundaries | Result ingestion and the Telegram bot are **separate services** (`packages/ingest`, `packages/bot`) with their own processes and deploys. Web / API changes don't redeploy them, and they keep working when an API deploy fails or the API is down. Ingestion is the most critical service (see "Service boundaries and deployment") |
-| Deploy trigger | Every service deploys **on change** of its own package or `packages/core`, like the other packages. No release tags. Deploys are atomic, and roll back automatically when the health check fails |
+| Deploy trigger | Every service deploys **on change** of its own package, `packages/database/src` or `packages/utils`, like the other packages. A migration alone only migrates. No release tags. Deploys are atomic, and roll back automatically when the health check fails |
 | Migration guard | Before prod migrations run, CI runs the tests of **every currently deployed service** against the new migrations. Prod migrations run only if they pass |
 | Database access | One shared MySQL user for all services. No per-service users |
 | Effects | Ingestion only stores the result plus an event. pp / exp / totals are computed asynchronously by a worker that reads events. Results without effects yet show correctly on the leaderboard (see "Events and effects") |
@@ -752,7 +812,7 @@ the largest and riskiest part. Everything else is thin CRUD.
 | Runtime | Services run their TS sources with **tsx** in prod, the same runtime as dev, tests and migrations. No bundling, no build output. Type-checking happens only in CI (`tsc`). Node's built-in type stripping is a possible later cleanup (it needs the path aliases replaced and `.ts` extensions on imports) |
 | Process manager | **pm2**, like every other app on the host. No Docker: it would split one small host between two ways of running, logging and restarting things |
 | Releases | A release is the **whole repo** at one commit plus its `node_modules`, never a per-package selection, so adding a package or dependency changes nothing in the deploy. Capistrano-style release dirs with a symlink per service (see "Build and release") |
-| Monorepo tooling | npm workspaces + TS project references only. No Nx / Lerna: nothing is built, and the dependency graph (everything → `core`) is covered by a few path filters |
+| Monorepo tooling | npm workspaces + TS project references only. No Nx / Lerna: nothing is built, and the dependency graph (every service → `database`, `utils`) is covered by a few path filters |
 
 ## Consumers
 
@@ -1002,7 +1062,7 @@ diffs a local tracklist JSON against B17 and pushes changes through B18–B20.
   procedure / route instead of an open endpoint. The tracklist sync becomes an
   admin page or a TS script.
 - **Telegram becomes a TS bot platform** (see "Telegram bot platform") in
-  `packages/bot`. Group C is replaced by calls to `packages/core` services. It can be built before the rest,
+  `packages/bot`. Group C is replaced by the bot's own queries through `packages/database`. It can be built before the rest,
   because the bot only reads data that Python already writes to the shared
   database.
 - **Characterization before replacing ingestion.** Port the `piu-top/tests`
@@ -1021,25 +1081,25 @@ diffs a local tracklist JSON against B17 and pushes changes through B18–B20.
 
 | Service | Package | Runs as | Deploys when changed | Must keep working through |
 |---|---|---|---|---|
-| Web API (+ effects worker, cron jobs) | `packages/api` | pm2 `pumpking-api` | `api/**`, `core/**` | — |
-| Result ingestion | `packages/ingest` | pm2 `pumpking-ingest`, own port | `ingest/**`, `core/**` | API / bot outages, failed API / web deploys |
-| Telegram bot | `packages/bot` | pm2 `pumpking-bot` | `bot/**`, `core/**` | API / ingestion outages |
-| Web | `packages/web` | GitHub Pages (unchanged) | `web/**` | — |
-| Shared code | `packages/core` | Not deployed itself; each service imports its TS sources (workspace package, `exports` point at `.ts`) | — | — |
+| Web API (+ effects worker, cron jobs) | `packages/api` | pm2 `pumpking-api` | `api/**`, `database/src/**`, `utils/**` | — |
+| Result ingestion | `packages/ingest` | pm2 `pumpking-ingest`, own port | `ingest/**`, `database/src/**`, `utils/**` | API / bot outages, failed API / web deploys |
+| Telegram bot | `packages/bot` | pm2 `pumpking-bot` | `bot/**`, `database/src/**`, `utils/**` | API / ingestion outages |
+| Web | `packages/web` | GitHub Pages (unchanged) | `web/**`, `utils/**` | — |
+| Database | `packages/database` | Not deployed itself; each service imports its TS sources (workspace package, `exports` point at `.ts`). Its migrations run in the release step | — | — |
+| Shared rules | `packages/utils` | Not deployed itself, like `database` | — | — |
 
 A `package-lock.json` change counts as a change to every service.
-`packages/core` holds:
-- the database client, Kysely types, migrations and migration scripts;
-- constants;
-- pure domain logic (validators, scoring, pp / exp calculation);
-- the event table helpers.
+`packages/database` holds the database client, Kysely types, migrations and
+migration scripts, the event table helpers and `pingDb`. `packages/utils` holds
+the Pump It Up rules more than one package uses: mixes, grades, the phoenix
+score, mods. Code that one service uses stays in that service.
 
-Core uses only relative imports internally: tsx applies the running service's
-tsconfig, so core can't have path aliases of its own. Modules the web imports
-at runtime (e.g. mix constants) must stay browser-safe (no `node:` imports).
+The shared packages use only relative imports internally: tsx applies the
+running service's tsconfig, so they can't have path aliases of their own.
+`utils` must stay browser-safe (no `node:` imports): the web bundles it.
 
-The web keeps importing types from `@/api/*`. Once API types import from core,
-core becomes a composite TS project that the API's `tsconfig.ref.json`
+The web keeps importing types from `@/api/*`. API types import from both
+packages, which are composite TS projects that the API's `tsconfig.ref.json`
 references, so the web's `tsc --build` keeps working.
 
 ### Build and release
@@ -1053,7 +1113,7 @@ references, so the web's `tsc --build` keeps working.
   ~/pumpking/
     releases/<sha>/   full checkout (rsync --link-dest against the previous
                       release) + `npm ci` run inside this new directory
-    shared/core.env   DB config, symlinked into each release as packages/core/.env
+    shared/database.env  DB config, symlinked into each release as packages/database/.env
     shared/<service>.env
     api    -> releases/<sha>     one symlink per service, so services can
     ingest -> releases/<sha>     run different commits and roll back alone
@@ -1126,10 +1186,10 @@ service deploys. Web stays on its own GitHub Pages workflow.
    redeployed, and services whose deploy might fail and roll back onto the
    new schema.
 4. **Migrate prod** once, only if steps 2–3 pass, and only when
-   `packages/core/migrations/` changed: over SSH, `npm run migrate:latest
-   --prefix packages/core` inside the new release directory (so the new
+   `packages/database/migrations/` changed: over SSH, `npm run migrate:latest
+   --prefix packages/database` inside the new release directory (so the new
    migrations are there before any service switches to it), with
-   `shared/core.env`.
+   `shared/database.env`.
 5. **Deploy** the affected services in parallel. Each has its own rollback;
    a failed ingestion deploy doesn't stop the API deploy and vice versa.
 
@@ -1198,7 +1258,7 @@ starts.
 - **Library**: grammY. It's TS-native and middleware-based, and has plugins
   for inline menus, conversations and a long-polling runner.
 - **Process**: the `packages/bot` service (see "Service boundaries and
-  deployment"), using `packages/core` for data access. It runs as a single
+  deployment"), using `packages/database` for data access. It runs as a single
   instance, because a Telegram token supports only one long-polling consumer.
   Jobs use `node-cron` like the API's `src/jobs/`.
 - **Plugin contract**: each feature is a module that declares its

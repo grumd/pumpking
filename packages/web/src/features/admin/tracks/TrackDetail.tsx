@@ -1,6 +1,6 @@
 import type { ApiOutputs } from '@/api/trpc/router';
 import { Badge, Button, Group, NumberInput, SimpleGrid, Stack, Table, Text } from '@mantine/core';
-import { MIX_NAME_BY_ID } from '@pumpking/core/constants/mixes';
+import { MIX_NAME_BY_ID } from '@pumpking/utils/mixes';
 import { useQuery } from '@tanstack/react-query';
 import { useEffect, useRef, useState } from 'react';
 

@@ -1,5 +1,5 @@
-import { db } from '@pumpking/core/db';
-import { addEvent } from '@pumpking/core/events';
+import { db } from '@pumpking/database/db';
+import { addEvent } from '@pumpking/database/events';
 import type { Response, Request, NextFunction } from 'express';
 
 // Called by the Python ingestion after it inserts or updates a result. The effects job

@@ -1,4 +1,4 @@
-import { pingDb } from '@pumpking/core/health';
+import { pingDb } from '@pumpking/database/health';
 import createDebug from 'debug';
 import express from 'express';
 

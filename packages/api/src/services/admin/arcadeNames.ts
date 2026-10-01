@@ -1,5 +1,5 @@
-import { ARCADE_NAME_MIXES, MIX_NAME_BY_ID } from '@pumpking/core/constants/mixes';
-import { db, type Transaction } from '@pumpking/core/db';
+import { db, type Transaction } from '@pumpking/database/db';
+import { ARCADE_NAME_MIXES, MIX_NAME_BY_ID } from '@pumpking/utils/mixes';
 
 /**
  * Arcade names: the names players and tracks have on the arcade screen, per mix

@@ -1,0 +1,14 @@
+{
+  "name": "@pumpking/utils",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Pump It Up rules shared by the pumpking services and the web: mixes, grades, scoring, mods",
+  "exports": {
+    "./*": "./src/*.ts"
+  },
+  "scripts": {
+    "ts-check": "tsc --noEmit --pretty"
+  },
+  "author": "grumd",
+  "license": "MIT"
+}

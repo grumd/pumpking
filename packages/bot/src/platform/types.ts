@@ -1,5 +1,5 @@
 import type { BotConfig } from '../env';
-import type { EventPayloads, EventType } from '@pumpking/core/events';
+import type { EventPayloads, EventType } from '@pumpking/database/events';
 
 /**
  * The plugin contract of the bot platform (W9 in docs/python-api-migration/PLAN.md).

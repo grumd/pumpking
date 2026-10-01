@@ -11,7 +11,7 @@ import {
 } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { useLocalStorage } from '@mantine/hooks';
-import { MIXES } from '@pumpking/core/constants/mixes';
+import { MIXES } from '@pumpking/utils/mixes';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
 import { FaExclamationCircle } from 'react-icons/fa';

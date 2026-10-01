@@ -3,7 +3,7 @@ import {
   SKILL_CHARTS_REQUIRED,
   TOURNAMENT_BRACKETS,
   type BracketCode,
-} from '@pumpking/core/constants/tournaments';
+} from 'constants/tournaments';
 
 // The highest level L with SKILL_CHARTS_REQUIRED qualifying charts at L or harder.
 export const skillLevel = (qualifyingLevels: number[]): number | null => {

@@ -1,4 +1,4 @@
-import { db } from '@pumpking/core/db';
+import { db } from '@pumpking/database/db';
 import { sql } from 'kysely';
 
 export const ARCADE = { name: 'test-arcade', token: 'arcade-token' };

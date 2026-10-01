@@ -1,6 +1,6 @@
 import { app } from '../app';
 import { ARCADE } from './seed';
-import { db } from '@pumpking/core/db';
+import { db } from '@pumpking/database/db';
 import { sql } from 'kysely';
 import request from 'supertest';
 

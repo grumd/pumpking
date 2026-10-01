@@ -1,6 +1,6 @@
 import { tournamentEndedMessage, tournamentStartedMessages } from '../plugins/tournaments';
 import { seedTournament } from './helpers';
-import { db } from '@pumpking/core/db';
+import { db } from '@pumpking/database/db';
 import { assert } from 'chai';
 
 describe('Tournament posts', () => {

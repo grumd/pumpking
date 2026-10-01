@@ -1,4 +1,4 @@
-import { db } from '@pumpking/core/db';
+import { db } from '@pumpking/database/db';
 
 /**
  * The bot preferences of a player, `players.telegram_bot_preferences`. The JSON is

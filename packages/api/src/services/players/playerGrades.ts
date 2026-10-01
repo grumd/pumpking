@@ -1,5 +1,5 @@
-import { Transaction, db } from '@pumpking/core/db';
-import { GradePhoenix, phoenixGradeOrder } from '@pumpking/core/scoring/grades';
+import { Transaction, db } from '@pumpking/database/db';
+import { GradePhoenix, phoenixGradeOrder } from '@pumpking/utils/grades';
 import { sql } from 'kysely';
 
 // Chart type is read from shared_charts.type - the canonical per-chart type
