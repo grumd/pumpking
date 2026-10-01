@@ -198,7 +198,23 @@ export const searchCharts = async (params: ChartsSearchParams) => {
           fn.max('latest_ci.level').as('latest_chart_level'),
           fn.max('latest_ci.mix').as('latest_chart_mix'),
         ])
-        .where(scoreField, 'is not', null);
+        .where(scoreField, 'is not', null)
+        // A result that only ties the player's best score doesn't replace it,
+        // so it shouldn't move the chart to the top of the recently played
+        .where(({ not, exists }) =>
+          not(
+            exists((eb) =>
+              eb
+                .selectFrom('results as _r')
+                .select('_r.id')
+                .where('_r.player_id', '=', sql.ref('r.player_id'))
+                .where('_r.shared_chart', '=', sql.ref('r.shared_chart'))
+                .where(`_r.${scoreField}`, '=', sql.ref(`r.${scoreField}`))
+                .where('_r.mix', 'in', mixes)
+                .where('_r.added', '<', sql.ref('r.added'))
+            )
+          )
+        );
 
       /**
        * Below are filters that filter CHARTS, not results
@@ -381,14 +397,15 @@ export const searchCharts = async (params: ChartsSearchParams) => {
             scoreField
           )}, 1) over (partition by r.shared_chart, r.player_id order by ${sql.ref(
             scoreField
-          )} desc)`.as('score_increase_real'),
+          )} desc, r.added asc)`.as('score_increase_real'),
           // RANK() OVER (
           //   PARTITION BY player_id, shared_chart
           //   ORDER BY score DESC
           // ) AS `score_rank`
+          // Of equal scores the earliest one ranks first, it's the one that was a new best
           sql<number>`row_number() over (partition by r.shared_chart, r.player_id order by ${sql.ref(
             scoreField
-          )} desc)`.as('score_rank'),
+          )} desc, r.added asc)`.as('score_rank'),
         ])
         .where(scoreField, 'is not', null)
         .where('r.mix', 'in', mixes);

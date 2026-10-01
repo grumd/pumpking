@@ -94,6 +94,67 @@ describe('Charts search (Phoenix scoring only)', () => {
     assert.equal(sItems[0].label, 'S20');
   });
 
+  describe('sorting by last played date', () => {
+    const twoDaysAgo = new Date(Date.now() - 2 * 24 * 60 * 60 * 1000);
+    const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000);
+    twoDaysAgo.setMilliseconds(0);
+
+    beforeEach(async () => {
+      // Chart 1 was last played two days ago, chart 6 yesterday
+      await db
+        .updateTable('results')
+        .set({ added: twoDaysAgo, gained: twoDaysAgo })
+        .where('shared_chart', '=', 1)
+        .execute();
+      await db
+        .insertInto('results')
+        .values({
+          ...getResultDefaults({ playerId: 2, score: 900000 }),
+          shared_chart: 6,
+          chart_instance: 5,
+          added: yesterday,
+          gained: yesterday,
+        })
+        .executeTakeFirstOrThrow();
+    });
+
+    it("doesn't move a chart up for a result that only ties the player's best score", async () => {
+      const oldBest = await db
+        .selectFrom('results')
+        .select('id')
+        .where('shared_chart', '=', 1)
+        .where('player_id', '=', 1)
+        .executeTakeFirstOrThrow();
+      await db
+        .insertInto('results')
+        .values(getResultDefaults({ playerId: 1, score: 1000000 }))
+        .executeTakeFirstOrThrow();
+
+      const items = await searchCharts({ limit: 10, offset: 0 });
+      assert.deepEqual(
+        items.map((chart) => chart.id),
+        [6, 1],
+        'chart 1 stays below the chart that was played after it'
+      );
+      assert.equal(items[1].updatedOn.getTime(), twoDaysAgo.getTime(), 'the old best date');
+      assert.equal(items[1].results[0].id, oldBest.id, 'the old best result is shown');
+    });
+
+    it('moves a chart up for a new best score', async () => {
+      await db
+        .insertInto('results')
+        .values(getResultDefaults({ playerId: 1, score: 1000000 }))
+        .executeTakeFirstOrThrow();
+      await db
+        .insertInto('results')
+        .values(getResultDefaults({ playerId: 3, score: 750000 }))
+        .executeTakeFirstOrThrow();
+
+      const items = await searchCharts({ limit: 10, offset: 0 });
+      assert.deepEqual(items.map((chart) => chart.id), [1, 6]);
+    });
+  });
+
   it('single chart query also uses phoenix scoring', async () => {
     await db
       .insertInto('results')
