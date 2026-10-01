@@ -185,7 +185,7 @@ export const rivalsPlugin: Plugin = {
   commands: [{ command: 'rivals', description: 'Show rivals info', handle: handleRivalsCommand }],
   events: {
     resultAdded: async ({ resultId }, bot) => {
-      await sendNotifications(bot, await notificationsForResult(resultId));
+      await sendNotifications(bot, resultId, await notificationsForResult(resultId));
     },
   },
 };

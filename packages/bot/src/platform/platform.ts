@@ -75,6 +75,10 @@ export const createPlatform = (plugins: Plugin[], config: BotConfig, sender: Sen
     }
   };
 
+  // One line per incoming message or button press, to see later what a player asked
+  const logIncoming = (ctx: ChatContext, what: string) =>
+    console.log(`Bot: ${ctx.username ? `@${ctx.username}` : ctx.chatId} > ${what}`);
+
   const helpText = () =>
     'Commands:\n' +
     commands
@@ -84,6 +88,7 @@ export const createPlatform = (plugins: Plugin[], config: BotConfig, sender: Sen
 
   /** A `/command`; `ctx.text` is what follows it */
   const handleCommand = (name: string, ctx: ChatContext) => {
+    logIncoming(ctx, `/${name} ${ctx.text}`.trim());
     const command = commands.find((c) => c.command === name);
     return runHandler(ctx, async () => {
       if (command) {
@@ -96,6 +101,7 @@ export const createPlatform = (plugins: Plugin[], config: BotConfig, sender: Sen
 
   /** A plain text message: its first word picks the command, like "rivals add Bob" */
   const handleText = (ctx: ChatContext) => {
+    logIncoming(ctx, ctx.text);
     const [word, rest] = splitFirstWord(ctx.text);
     const lower = word.toLowerCase().replace(/^\//, '');
     const command = commands.find((c) => c.command === lower || c.aliases?.includes(lower));
@@ -111,6 +117,7 @@ export const createPlatform = (plugins: Plugin[], config: BotConfig, sender: Sen
 
   /** A button press, with the data `<plugin>:<action>:<argument>` */
   const handleCallback = (data: string, ctx: ChatContext) => {
+    logIncoming(ctx, `button ${data}`);
     const [pluginName, action, ...argument] = data.split(':');
     const handle = plugins.find((plugin) => plugin.name === pluginName)?.callbacks?.[action];
     return runHandler(ctx, async () => {

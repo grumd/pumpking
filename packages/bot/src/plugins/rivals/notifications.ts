@@ -314,9 +314,14 @@ export const replayNotifications = async (
   return notifications.filter((n) => n.recipient.id === testPlayer.id);
 };
 
-export const sendNotifications = async (bot: BotServices, notifications: Notification[]) => {
+export const sendNotifications = async (
+  bot: BotServices,
+  resultId: number,
+  notifications: Notification[]
+) => {
   for (const { recipient, html } of notifications) {
     if (recipient.telegramId != null) {
+      console.log(`Bot: rivals: notifying ${recipient.nickname} about result ${resultId}`);
       await bot.sender.send(recipient.telegramId, html);
     }
   }
