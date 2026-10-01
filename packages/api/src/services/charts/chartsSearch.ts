@@ -168,16 +168,21 @@ export const searchCharts = async (params: ChartsSearchParams) => {
         )
         .innerJoin('shared_charts as sc', 'sc.id', 'r.shared_chart')
         .innerJoin('tracks', 'tracks.id', 'sc.track')
-        .innerJoin('chart_instances as latest_ci', (join) =>
-          join.on('latest_ci.id', '=', (eb) =>
+        // The chart's instance in the latest of the mixes, found once per chart
+        .innerJoin(
+          (eb) =>
             eb
               .selectFrom('chart_instances')
-              .select('id')
-              .where('shared_chart', '=', sql.ref('r.shared_chart'))
+              .select(({ fn }) => ['shared_chart', fn.max('mix').as('mix')])
               .where('mix', 'in', mixes)
-              .orderBy('mix', 'desc')
-              .limit(1)
-          )
+              .groupBy('shared_chart')
+              .as('latest_mix'),
+          (join) => join.onRef('latest_mix.shared_chart', '=', 'r.shared_chart')
+        )
+        .innerJoin('chart_instances as latest_ci', (join) =>
+          join
+            .onRef('latest_ci.shared_chart', '=', 'latest_mix.shared_chart')
+            .onRef('latest_ci.mix', '=', 'latest_mix.mix')
         )
         .innerJoin('players', 'r.player_id', 'players.id')
         .select(({ fn }) => [
