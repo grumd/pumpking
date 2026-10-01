@@ -23,8 +23,10 @@
       "types/*": ["./src/types/*"],
       "utils": ["./src/utils/index.ts"],
       "utils/*": ["./src/utils/*"],
-      // The API resolves like node10 (no "exports"), so point it at core's sources directly
-      "@pumpking/core/*": ["../core/src/*"]
+      "constants/*": ["./src/constants/*"],
+      // The API resolves like node10 (no "exports"), so point it at the packages' sources directly
+      "@pumpking/database/*": ["../database/src/*"],
+      "@pumpking/utils/*": ["../utils/src/*"]
     }
   },
   "include": [

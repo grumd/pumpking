@@ -3,7 +3,7 @@ name: Test API
 on:
   pull_request:
     branches: ['master']
-    paths: ['packages/api/**', 'packages/core/**']
+    paths: ['packages/api/**', 'packages/database/**', 'packages/utils/**']
 
 jobs:
   test_api:

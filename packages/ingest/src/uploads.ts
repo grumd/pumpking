@@ -1,5 +1,5 @@
+import { type AgentCall, errorMessage, getAgent, requireArg } from './agentApi';
 import { getUploadsRoot } from './env';
-import { type AgentCall, errorMessage, getAgent, requireArg } from './legacy';
 import busboy from 'busboy';
 import createDebug from 'debug';
 import type { RequestHandler } from 'express';

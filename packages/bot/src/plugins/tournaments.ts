@@ -1,7 +1,7 @@
 import { formatNumber, wrap } from '../platform/texts';
 import type { BotServices, Plugin } from '../platform/types';
-import { MIX_NAME_BY_ID, SUPPORTED_MIXES } from '@pumpking/core/constants/mixes';
-import { db } from '@pumpking/core/db';
+import { db } from '@pumpking/database/db';
+import { MIX_NAME_BY_ID, SUPPORTED_MIXES } from '@pumpking/utils/mixes';
 import { sql } from 'kysely';
 
 // Posts the monthly tournament to the tournaments channel: each bracket's pool and players

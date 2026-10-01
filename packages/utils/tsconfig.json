@@ -1,0 +1,15 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "lib": ["ES2022"],
+    "target": "ES2022",
+    "module": "CommonJS",
+    "rootDir": ".",
+    "composite": true,
+    "incremental": true,
+    "emitDeclarationOnly": true,
+    "declarationDir": "./types"
+  },
+  // Relative imports only: tsx runs this package with the importing service's tsconfig
+  "include": ["./src/**/*.ts"]
+}

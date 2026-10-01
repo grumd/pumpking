@@ -19,7 +19,7 @@
     "test:bot": "npm run test --prefix packages/bot",
     "clean": "rm -rf node_modules && rm -rf packages/*/node_modules",
     "prettier": "prettier --write \"packages/**/*.{js,jsx,ts,tsx}\"",
-    "ts": "npm run ts-check --prefix packages/core && npm run ts-check --prefix packages/api && npm run ts-check --prefix packages/ingest && npm run ts-check --prefix packages/bot && npm run ts --prefix packages/web",
+    "ts": "npm run ts-check --prefix packages/database && npm run ts-check --prefix packages/utils && npm run ts-check --prefix packages/api && npm run ts-check --prefix packages/ingest && npm run ts-check --prefix packages/bot && npm run ts --prefix packages/web",
     "prepare": "husky",
     "commit": "cz"
   },

@@ -1,5 +1,5 @@
-import { SUPPORTED_MIXES } from '@pumpking/core/constants/mixes';
-import { db, type Transaction } from '@pumpking/core/db';
+import { db, type Transaction } from '@pumpking/database/db';
+import { SUPPORTED_MIXES } from '@pumpking/utils/mixes';
 import { sql, type RawBuilder } from 'kysely';
 
 // Results that count for tournaments, shared by the skill rule and the scorer.

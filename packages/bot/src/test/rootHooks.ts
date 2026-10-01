@@ -1,5 +1,5 @@
 import { clearTables } from './helpers';
-import { createTestDatabase, deleteTestDatabase } from '@pumpking/core/test/testDatabase';
+import { createTestDatabase, deleteTestDatabase } from '@pumpking/database/test/testDatabase';
 import type { AsyncFunc, Context, RootHookObject } from 'mocha';
 
 const beforeAll: AsyncFunc = async function (this: Context) {

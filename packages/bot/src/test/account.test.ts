@@ -8,7 +8,7 @@ import {
 import { accountPlugin, linkPlayer } from '../plugins/account';
 import { rivalsPlugin } from '../plugins/rivals';
 import { addPlayer, chatContext, createTestPlatform, rivalsPreferences } from './helpers';
-import { db } from '@pumpking/core/db';
+import { db } from '@pumpking/database/db';
 import { assert } from 'chai';
 
 describe('Preferences', () => {

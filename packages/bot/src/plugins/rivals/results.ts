@@ -1,6 +1,6 @@
 import { getVisiblePlayers, type BotPlayer } from '../../platform/players';
-import { MIXES } from '@pumpking/core/constants/mixes';
-import { db } from '@pumpking/core/db';
+import { db } from '@pumpking/database/db';
+import { mix as currentMix } from '@pumpking/utils/currentMix';
 import { sql } from 'kysely';
 
 // The data of the rivals notifications: each player's best result on a chart, as the
@@ -35,7 +35,7 @@ export const getChartInfo = async (sharedChartId: number): Promise<ChartInfo | u
     .innerJoin('chart_instances', (join) =>
       join
         .onRef('chart_instances.shared_chart', '=', 'shared_charts.id')
-        .on('chart_instances.mix', '=', MIXES.Phoenix2)
+        .on('chart_instances.mix', '=', currentMix)
     )
     .select([
       'shared_charts.id',

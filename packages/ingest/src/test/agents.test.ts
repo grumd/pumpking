@@ -1,7 +1,7 @@
 import { app } from '../app';
 import { post } from './helpers';
 import { ARCADE } from './seed';
-import { db } from '@pumpking/core/db';
+import { db } from '@pumpking/database/db';
 import { assert } from 'chai';
 import fs from 'fs';
 import os from 'os';
@@ -126,22 +126,5 @@ describe('Agents', () => {
         .expect(200);
       assert.deepEqual(res.body, { error: 'permission denied' });
     });
-  });
-
-  it('show who played on an agent recently, publicly', async () => {
-    await db
-      .insertInto('agent_sessions')
-      .values({
-        agent_id: 2,
-        client_session_mark: 'now',
-        added_at: new Date(Date.now() - 60 * 60 * 1000),
-        last_updated_at: new Date(),
-        status: '{}',
-      })
-      .execute();
-    // Only the uptime: nobody has played
-    const res = await request(app).get('/agent/2/lastPlayers/').expect(200);
-    assert.deepEqual(res.body.lastResults, {});
-    assert.hasAllKeys(res.body.agentStatus, ['startedMinsAgo', 'updatedMinsAgo']);
   });
 });

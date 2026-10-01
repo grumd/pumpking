@@ -1,4 +1,4 @@
-import { db } from '@pumpking/core/db';
+import { db } from '@pumpking/database/db';
 import { sql } from 'kysely';
 
 // Per-plugin persistent state: one JSON value per plugin and key (the `bot_state` table)

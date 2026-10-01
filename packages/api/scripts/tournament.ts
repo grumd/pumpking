@@ -1,5 +1,5 @@
 import '../src/envconfig';
-import { db } from '@pumpking/core/db';
+import { db } from '@pumpking/database/db';
 import {
   createTournament,
   currentSiteMonth,

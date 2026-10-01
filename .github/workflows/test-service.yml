@@ -14,7 +14,7 @@ on:
         type: string
         default: ''
       migrations_from:
-        description: Test with this commit's packages/core/migrations instead
+        description: Test with this commit's packages/database/migrations instead
         type: string
         default: ''
 
@@ -31,12 +31,28 @@ jobs:
         with:
           ref: ${{ inputs.ref }}
 
+      # Commits from before packages/core was renamed (PR #45) have the database package
+      # in packages/core. Until every deployed/<service> tag is past the rename, the
+      # migration guard tests such commits
+      - name: Find the database package
+        id: db
+        run: |
+          if [ -d packages/database ]; then
+            echo "dir=packages/database" >> "$GITHUB_OUTPUT"
+          else
+            echo "dir=packages/core" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Use the migrations of ${{ inputs.migrations_from }}
         if: inputs.migrations_from != ''
         run: |
           git fetch --depth 1 origin ${{ inputs.migrations_from }}
-          rm -rf packages/core/migrations
-          git checkout FETCH_HEAD -- packages/core/migrations
+          rm -rf ${{ steps.db.outputs.dir }}/migrations
+          git checkout FETCH_HEAD -- packages/database/migrations
+          if [ ${{ steps.db.outputs.dir }} = packages/core ]; then
+            mv packages/database/migrations packages/core/migrations
+            rmdir packages/database
+          fi
 
       - name: Setup node
         uses: actions/setup-node@v4
@@ -45,11 +61,11 @@ jobs:
           cache: 'npm'
       - run: npm ci
 
-      - name: 'Create core .env file'
+      - name: 'Create database .env file'
         uses: iamsauravsharma/create-dotenv@v1.2.2
         with:
           file-name: '.env'
-          directory: 'packages/core'
+          directory: ${{ steps.db.outputs.dir }}
         env:
           DB_DATABASE_TEST: test
           DB_USERNAME: root
@@ -66,8 +82,8 @@ jobs:
           SCREENSHOT_AGENT_BASE_FOLDER: ~/test-screenshots
           SCREENSHOT_FILE_PATH_DB: '{nickname}/{dateAdded}/{dateTimeAdded}.jpg'
 
-      - name: Type-check core
-        run: npm run ts-check --prefix packages/core
+      - name: Type-check the database package
+        run: npm run ts-check --prefix ${{ steps.db.outputs.dir }}
 
       - name: Type-check ${{ inputs.service }}
         run: npm run ts-check --prefix packages/${{ inputs.service }}

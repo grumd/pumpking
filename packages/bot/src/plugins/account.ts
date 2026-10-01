@@ -1,6 +1,6 @@
 import { wrap } from '../platform/texts';
 import type { ChatContext, Plugin } from '../platform/types';
-import { db } from '@pumpking/core/db';
+import { db } from '@pumpking/database/db';
 
 // Links a Telegram chat to a player: the player's `telegram_tag` (set on the site) has to
 // be the Telegram username. Ported from the legacy bot's RegisterPlayer and the backend's

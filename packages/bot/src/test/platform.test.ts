@@ -14,8 +14,8 @@ import {
   seedTournament,
   testConfig,
 } from './helpers';
-import { db } from '@pumpking/core/db';
-import { addEvent } from '@pumpking/core/events';
+import { db } from '@pumpking/database/db';
+import { addEvent } from '@pumpking/database/events';
 import { assert } from 'chai';
 import { sql } from 'kysely';
 

@@ -1,4 +1,4 @@
-import { db } from '@pumpking/core/db';
+import { db } from '@pumpking/database/db';
 import { assert } from 'chai';
 import { searchCharts } from 'services/charts/chartsSearch';
 import { getResultDefaults } from 'test/seeds/initialSeed';

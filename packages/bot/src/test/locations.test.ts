@@ -4,13 +4,13 @@ import {
   updateLocation,
   type Location,
 } from '../plugins/locations';
-import { addChart, addPlayer, addResult } from './helpers';
 import {
   getAgentLastPlayers,
   getAgentsStatus,
   type AgentStatus,
-} from '@pumpking/core/agents/activity';
-import { db } from '@pumpking/core/db';
+} from '../plugins/locations/activity';
+import { addChart, addPlayer, addResult } from './helpers';
+import { db } from '@pumpking/database/db';
 import { assert } from 'chai';
 import { sql } from 'kysely';
 

@@ -5,9 +5,9 @@ import {
   saveArcadeNames,
 } from './arcadeNames';
 import { describeChanges } from './report';
-import { ARCADE_NAME_MIXES, MIX_NAME_BY_ID } from '@pumpking/core/constants/mixes';
-import type { Players } from '@pumpking/core/database';
-import { db } from '@pumpking/core/db';
+import type { Players } from '@pumpking/database/database';
+import { db } from '@pumpking/database/db';
+import { ARCADE_NAME_MIXES, MIX_NAME_BY_ID } from '@pumpking/utils/mixes';
 import { type Selectable, sql } from 'kysely';
 import { error } from 'utils';
 

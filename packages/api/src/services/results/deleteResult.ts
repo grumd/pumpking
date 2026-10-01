@@ -1,5 +1,5 @@
-import { db } from '@pumpking/core/db';
-import { addEvent } from '@pumpking/core/events';
+import { db } from '@pumpking/database/db';
+import { addEvent } from '@pumpking/database/events';
 import createDebug from 'debug';
 import { error } from 'utils';
 

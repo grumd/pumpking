@@ -1,4 +1,4 @@
-import { Transaction, db } from '@pumpking/core/db';
+import { Transaction, db } from '@pumpking/database/db';
 import { sql } from 'kysely';
 
 export const getPlayerMostPlayedCharts = async (

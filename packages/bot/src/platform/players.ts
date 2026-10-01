@@ -1,5 +1,5 @@
 import { migratePreferences, type BotPreferences } from './preferences';
-import { db } from '@pumpking/core/db';
+import { db } from '@pumpking/database/db';
 import { sql } from 'kysely';
 
 // The players the bot knows about: the visible ones, like the legacy /telegram/players

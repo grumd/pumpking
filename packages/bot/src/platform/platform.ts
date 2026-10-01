@@ -2,8 +2,8 @@ import type { BotConfig } from '../env';
 import { NotRegisteredError } from './preferences';
 import { wrap } from './texts';
 import type { BotServices, ChatContext, Command, Job, Plugin, Sender } from './types';
-import { db } from '@pumpking/core/db';
-import { createEventConsumer, type Event } from '@pumpking/core/events';
+import { db } from '@pumpking/database/db';
+import { createEventConsumer, type Event } from '@pumpking/database/events';
 import createDebug from 'debug';
 import { sql } from 'kysely';
 

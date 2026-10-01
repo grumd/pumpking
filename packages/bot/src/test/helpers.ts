@@ -2,7 +2,7 @@ import type { BotConfig } from '../env';
 import { createPlatform } from '../platform/platform';
 import type { BotPreferences } from '../platform/preferences';
 import type { BotServices, ChatContext, Keyboard, Plugin, Sender } from '../platform/types';
-import { db } from '@pumpking/core/db';
+import { db } from '@pumpking/database/db';
 import { sql } from 'kysely';
 
 export const ADMIN_ID = 9000;

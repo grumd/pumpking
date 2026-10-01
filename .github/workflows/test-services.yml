@@ -4,7 +4,7 @@ name: Test Services
 on:
   pull_request:
     branches: ['master']
-    paths: ['packages/ingest/**', 'packages/bot/**', 'packages/core/**']
+    paths: ['packages/ingest/**', 'packages/bot/**', 'packages/database/**', 'packages/utils/**']
 
 jobs:
   test_service:

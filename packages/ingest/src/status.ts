@@ -1,5 +1,5 @@
-import type { AgentCall } from './legacy';
-import { db } from '@pumpking/core/db';
+import type { AgentCall } from './agentApi';
+import { db } from '@pumpking/database/db';
 import { sql } from 'kysely';
 
 /**

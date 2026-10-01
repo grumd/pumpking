@@ -1,5 +1,5 @@
-import { ARCADE_NAME_MIXES, MIXES } from '@pumpking/core/constants/mixes';
-import { db, type Transaction } from '@pumpking/core/db';
+import { db, type Transaction } from '@pumpking/database/db';
+import { ARCADE_NAME_MIXES, MIXES } from '@pumpking/utils/mixes';
 import { error } from 'utils';
 import { z } from 'zod';
 

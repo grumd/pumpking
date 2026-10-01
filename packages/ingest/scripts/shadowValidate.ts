@@ -14,7 +14,7 @@
  * The `report` lines aren't compared: they print the changed datetimes differently.
  */
 import '../src/env';
-import { db } from '@pumpking/core/db';
+import { db } from '@pumpking/database/db';
 import fs from 'fs';
 import minimist from 'minimist';
 import { isDeepStrictEqual } from 'util';

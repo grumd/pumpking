@@ -3,7 +3,7 @@
   "compilerOptions": {
     "lib": ["ES2022"],
     "target": "ES2022",
-    // A fresh service: resolve @pumpking/core through its package "exports", no path aliases
+    // A fresh service: resolve the @pumpking packages through their "exports", no path aliases
     "module": "preserve",
     "moduleResolution": "bundler",
     "noEmit": true

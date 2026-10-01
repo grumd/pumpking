@@ -1,10 +1,10 @@
 import { calculateResultsPp } from './resultsPp';
-import { db } from '@pumpking/core/db';
-import { getResultExp } from '@pumpking/core/profile/exp';
+import { db } from '@pumpking/database/db';
 import createDebug from 'debug';
 import { sql } from 'kysely';
 import { refreshPlayerTotalExp } from 'services/players/playerExp';
 import { getSinglePlayerTotalPp, updatePpHistoryIfNeeded } from 'services/players/playersPp';
+import { getResultExp } from 'services/results/exp';
 
 const debug = createDebug('backend-ts:processor:on-result-changed');
 

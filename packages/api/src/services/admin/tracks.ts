@@ -5,7 +5,7 @@ import {
   saveArcadeNames,
 } from './arcadeNames';
 import { describeChanges } from './report';
-import { db } from '@pumpking/core/db';
+import { db } from '@pumpking/database/db';
 import { error } from 'utils';
 
 export const listTracks = async () => {

@@ -1,9 +1,9 @@
-import { agentRoute, errorMessage } from './legacy';
+import { agentRoute, errorMessage } from './agentApi';
+import { recheckPurgatory } from './ingestion/purgatory';
 import { submitResults, validateResults } from './results';
 import { saveStatus } from './status';
 import { getUploadInfo, MAX_UPLOAD_BYTES, uploadFile } from './uploads';
-import { getAgentLastPlayers } from '@pumpking/core/agents/activity';
-import { pingDb } from '@pumpking/core/health';
+import { pingDb } from '@pumpking/database/health';
 import createDebug from 'debug';
 import express, { type ErrorRequestHandler } from 'express';
 
@@ -11,7 +11,7 @@ const debug = createDebug('ingest:app');
 
 /**
  * Result ingestion for piu-spy, compatible with the legacy Python API it replaces: the
- * same paths, headers, multipart field and answers (see legacy.ts). Only the screen and
+ * same paths, headers, multipart field and answers (see agentApi.ts). Only the screen and
  * manual modes are served; the legacy stream and test modes aren't used any more.
  */
 export const app = express();
@@ -50,11 +50,12 @@ app.post(
   agentRoute((call) => validateResults(call, 'manual'))
 );
 
-// Public: who played on an agent in the last hours, and its uptime. owjibot posts it to
-// its group chats
-app.get('/agent/:id/lastPlayers', async (req, res) => {
+// For the API's admin purgatory recheck (body `{ id? }`): rechecks one row or all of them.
+// Internal: nginx forwards only piu-spy's paths here
+app.post('/internal/purgatory/recheck', async (req, res) => {
   try {
-    res.json(await getAgentLastPlayers(Number(req.params.id)));
+    const id = req.body?.id;
+    res.json(await recheckPurgatory(id == null ? undefined : Number(id)));
   } catch (error) {
     debug(error);
     res.status(500).json({ error: errorMessage(error) });

@@ -1,4 +1,4 @@
-import { db } from '@pumpking/core/db';
+import { db } from '@pumpking/database/db';
 import createDebug from 'debug';
 import { OAuth2Client } from 'google-auth-library';
 import { StatusError } from 'utils/errors';

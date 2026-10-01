@@ -76,7 +76,7 @@ export const printableDuration = (totalSeconds: number) => {
 
 /**
  * Parses the naive UTC "YYYY-MM-DD HH:MM:SS" strings of the agent activity queries
- * (packages/core/src/agents/activity.ts) into milliseconds
+ * (plugins/locations/activity.ts) into milliseconds
  */
 export const parseUtc = (naive: string) => Date.parse(`${naive.replace(' ', 'T')}Z`);
 

@@ -1,6 +1,8 @@
-import { GradePhoenix, PlatePhoenix } from '@pumpking/core/scoring/grades';
-
-import type { ResultApiOutput } from 'features/leaderboards/hooks/useChartsQuery';
+import {
+  GradePhoenix,
+  PlatePhoenix,
+  getPhoenixGrade as getMillionScoringGrade,
+} from '@pumpking/utils/grades';
 
 export const Mixes = {
   24: 'Prime',
@@ -23,66 +25,5 @@ export { GradePhoenix, PlatePhoenix };
  * Phoenix 2 (mix 28) grade formula - the latest one, applied to all mixes.
  * The original per-result grade is only shown in the result details popup.
  */
-export const getPhoenixGrade = (score?: number | null): GradePhoenix | null => {
-  if (score == null) return null;
-  switch (true) {
-    case score >= 995_000:
-      return GradePhoenix.SSSP;
-    case score >= 990_000:
-      return GradePhoenix.SSS;
-    case score >= 985_000:
-      return GradePhoenix.SSP;
-    case score >= 980_000:
-      return GradePhoenix.SS;
-    case score >= 975_000:
-      return GradePhoenix.SP;
-    case score >= 970_000:
-      return GradePhoenix.S;
-    case score >= 960_000:
-      return GradePhoenix.AAAP;
-    case score >= 950_000:
-      return GradePhoenix.AAA;
-    case score >= 940_000:
-      return GradePhoenix.AAP;
-    case score >= 920_000:
-      return GradePhoenix.AA;
-    case score >= 900_000:
-      return GradePhoenix.AP;
-    case score >= 800_000:
-      return GradePhoenix.A;
-    case score >= 700_000:
-      return GradePhoenix.B;
-    case score >= 600_000:
-      return GradePhoenix.C;
-    case score >= 500_000:
-      return GradePhoenix.D;
-    default:
-      return GradePhoenix.F;
-  }
-};
-
-export const getPhoenixPlate = (result: ResultApiOutput): PlatePhoenix | null => {
-  const [perfect, great, good, bad, miss] = result.stats;
-  if (perfect == null || great == null || good == null || bad == null || miss == null) return null;
-
-  switch (true) {
-    case miss > 20:
-      return PlatePhoenix.R;
-    case miss > 10:
-      return PlatePhoenix.F;
-    case miss > 5:
-      return PlatePhoenix.T;
-    case miss > 0:
-      return PlatePhoenix.M;
-    case bad > 0:
-      return PlatePhoenix.S;
-    case good > 0:
-      return PlatePhoenix.E;
-    case great > 0:
-      return PlatePhoenix.U;
-    case perfect > 0:
-      return PlatePhoenix.P;
-    default:
-      return null;
-  }
-};
+export const getPhoenixGrade = (score?: number | null): GradePhoenix | null =>
+  score == null ? null : getMillionScoringGrade(score);

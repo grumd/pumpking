@@ -1,4 +1,4 @@
-import { createEventConsumer } from '@pumpking/core/events';
+import { createEventConsumer } from '@pumpking/database/events';
 import { resultAddedEffect } from 'services/results/resultAddedEffect';
 import { resultChangedEffect } from 'services/results/resultChangedEffect';
 

@@ -1,4 +1,4 @@
-import { db, type Transaction } from '@pumpking/core/db';
+import { db, type Transaction } from '@pumpking/database/db';
 import { sql } from 'kysely';
 import _ from 'lodash/fp';
 
