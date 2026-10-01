@@ -12,7 +12,7 @@ interface ArcadeNamesEditorProps {
 }
 
 // A player's or track's name on each mix's arcade screen, which ingestion matches the
-// recognized name against. "Edits" is how far (Levenshtein distance) a recognized name
+// recognized name against. "Edit dist" is how far (Levenshtein distance) a recognized name
 // may be off and still match. An empty name means none on that mix
 export const ArcadeNamesEditor = ({
   value,
@@ -24,7 +24,7 @@ export const ArcadeNamesEditor = ({
       <Table.Tr>
         <Table.Th w="7rem">Mix</Table.Th>
         <Table.Th>Arcade name</Table.Th>
-        <Table.Th w="6rem">Edits</Table.Th>
+        <Table.Th w="6rem">Edit dist</Table.Th>
       </Table.Tr>
     </Table.Thead>
     <Table.Tbody>
