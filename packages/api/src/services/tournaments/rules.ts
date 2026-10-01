@@ -1,5 +1,6 @@
 import {
   COUNTED_CHARTS,
+  RANKED_MIN_CHARTS,
   SKILL_CHARTS_REQUIRED,
   TOURNAMENT_BRACKETS,
   type BracketCode,
@@ -22,21 +23,18 @@ export const bracketForSkill = (skill: number | null): BracketCode => {
 
 export type Medal = 'gold' | 'silver' | 'bronze';
 
-export const medalForRank = (rank: number): Medal | null =>
-  (['gold', 'silver', 'bronze'] as const)[rank - 1] ?? null;
+export const medalForRank = (rank: number | null): Medal | null =>
+  rank === null ? null : (['gold', 'silver', 'bronze'] as const)[rank - 1] ?? null;
 
 export interface PlayerChartBests {
   playerId: number;
-  nickname: string;
-  region: string | null;
   bests: { sharedChartId: number; score: number }[];
 }
 
 export interface LeaderboardEntry {
   playerId: number;
-  nickname: string;
-  region: string | null;
-  rank: number;
+  // null: fewer than RANKED_MIN_CHARTS charts played, listed by total without a place
+  rank: number | null;
   total: number;
   charts: { sharedChartId: number; score: number; counted: boolean }[];
 }
@@ -49,8 +47,6 @@ export const rankLeaderboard = (players: PlayerChartBests[]): LeaderboardEntry[]
     const counted = sorted.slice(0, COUNTED_CHARTS);
     return {
       playerId: player.playerId,
-      nickname: player.nickname,
-      region: player.region,
       total: counted.reduce((sum, chart) => sum + chart.score, 0),
       bestSingle: sorted[0]?.score ?? 0,
       charts: sorted.map((chart) => ({ ...chart, counted: counted.includes(chart) })),
@@ -61,8 +57,12 @@ export const rankLeaderboard = (players: PlayerChartBests[]): LeaderboardEntry[]
     (a, b) => b.total - a.total || b.bestSingle - a.bestSingle || a.playerId - b.playerId
   );
 
+  const ranked = scored.filter((player) => player.charts.length >= RANKED_MIN_CHARTS);
+
   return scored.map(({ bestSingle, ...entry }) => ({
     ...entry,
-    rank: 1 + scored.filter((other) => other.total > entry.total).length,
+    rank: ranked.some((player) => player.playerId === entry.playerId)
+      ? 1 + ranked.filter((other) => other.total > entry.total).length
+      : null,
   }));
 };

@@ -1,6 +1,6 @@
 import { eligibleResults, poolChartIds } from './eligibility';
 import { bracketForSkill, medalForRank, skillLevel } from './rules';
-import { getBracketLeaderboard } from './tournament';
+import { getLiveStandings } from './tournament';
 import { db, type Transaction } from '@pumpking/database/db';
 import { addEvent } from '@pumpking/database/events';
 import {
@@ -204,31 +204,23 @@ export const endTournaments = async (now: string = siteNow()) =>
       .execute();
 
     for (const { id } of ending) {
-      const brackets = await trx
-        .selectFrom('tournament_brackets')
-        .select('id')
-        .where('tournament_id', '=', id)
-        .execute();
-
-      for (const bracket of brackets) {
-        const leaderboard = await getBracketLeaderboard(bracket.id, trx);
-        if (leaderboard.length) {
-          await trx
-            .insertInto('tournament_results')
-            .values(
-              leaderboard.map((entry) => ({
-                tournament_id: id,
-                bracket_id: bracket.id,
-                player_id: entry.playerId,
-                rank: entry.rank,
-                score: entry.total,
-                medal: medalForRank(entry.rank),
-                charts: JSON.stringify(entry.charts),
-                created_at: new Date(),
-              }))
-            )
-            .execute();
-        }
+      const standings = await getLiveStandings(id, trx);
+      if (standings.length) {
+        await trx
+          .insertInto('tournament_results')
+          .values(
+            standings.map((entry) => ({
+              tournament_id: id,
+              bracket_id: entry.bracketId,
+              player_id: entry.playerId,
+              rank: entry.rank,
+              score: entry.total,
+              medal: medalForRank(entry.rank),
+              charts: JSON.stringify(entry.charts),
+              created_at: new Date(),
+            }))
+          )
+          .execute();
       }
 
       await trx.updateTable('tournaments').set({ state: 'Ended' }).where('id', '=', id).execute();

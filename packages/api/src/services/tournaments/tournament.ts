@@ -1,5 +1,5 @@
 import { eligibleResults } from './eligibility';
-import { rankLeaderboard, type LeaderboardEntry, type Medal } from './rules';
+import { rankLeaderboard } from './rules';
 import { db, type Transaction } from '@pumpking/database/db';
 import { SUPPORTED_MIXES } from '@pumpking/utils/mixes';
 import { sql } from 'kysely';
@@ -10,57 +10,52 @@ const tournamentWindow = {
   to: sql.ref<Date>('t.end_date'),
 };
 
-export const getBracketLeaderboard = async (bracketId: number, trx?: Transaction) => {
+// Each bracket's ranking by the best eligible scores on its pool, for a Live tournament
+// (and for the end job, which freezes it into tournament_results).
+export const getLiveStandings = async (tournamentId: number, trx?: Transaction) => {
   const rows = await eligibleResults(tournamentWindow, trx)
+    .innerJoin('tournament_player_brackets as tpb', 'tpb.player_id', 'p.id')
     .innerJoin('tournament_charts as tc', (join) =>
-      join.onRef('tc.shared_chart_id', '=', 'r.shared_chart').on('tc.bracket_id', '=', bracketId)
+      join
+        .onRef('tc.bracket_id', '=', 'tpb.bracket_id')
+        .onRef('tc.shared_chart_id', '=', 'r.shared_chart')
     )
-    .innerJoin('tournament_player_brackets as tpb', (join) =>
-      join.onRef('tpb.player_id', '=', 'p.id').onRef('tpb.bracket_id', '=', 'tc.bracket_id')
-    )
-    .innerJoin('tournaments as t', 't.id', 'tc.tournament_id')
+    .innerJoin('tournaments as t', 't.id', 'tpb.tournament_id')
     .select([
+      'tpb.bracket_id',
       'p.id',
-      'p.nickname',
-      'p.region',
       'tc.shared_chart_id',
       sql<number>`max(r.score_phoenix)`.as('score'),
     ])
-    .groupBy(['p.id', 'tc.shared_chart_id'])
+    .where('tpb.tournament_id', '=', tournamentId)
+    .groupBy(['tpb.bracket_id', 'p.id', 'tc.shared_chart_id'])
     .execute();
 
-  return rankLeaderboard(
-    Object.values(_.groupBy('id', rows)).map((playerRows) => ({
-      playerId: playerRows[0].id,
-      nickname: playerRows[0].nickname,
-      region: playerRows[0].region,
-      bests: playerRows.map((row) => ({ sharedChartId: row.shared_chart_id, score: row.score })),
-    }))
+  return Object.values(_.groupBy('bracket_id', rows)).flatMap((bracketRows) =>
+    rankLeaderboard(
+      Object.values(_.groupBy('id', bracketRows)).map((playerRows) => ({
+        playerId: playerRows[0].id,
+        bests: playerRows.map((row) => ({ sharedChartId: row.shared_chart_id, score: row.score })),
+      }))
+    ).map((entry) => ({ ...entry, bracketId: bracketRows[0].bracket_id }))
   );
 };
 
-const getFinalLeaderboard = async (
-  bracketId: number
-): Promise<(LeaderboardEntry & { medal: Medal | null })[]> => {
-  const rows = await db
-    .selectFrom('tournament_results as tr')
-    .innerJoin('players as p', 'p.id', 'tr.player_id')
-    .select(['p.id', 'p.nickname', 'p.region', 'tr.rank', 'tr.score', 'tr.medal', 'tr.charts'])
-    .where('tr.bracket_id', '=', bracketId)
-    .orderBy('tr.rank')
-    .orderBy('tr.id')
+const getFinalStandings = (tournamentId: number) =>
+  db
+    .selectFrom('tournament_results')
+    .select([
+      'bracket_id as bracketId',
+      'player_id as playerId',
+      'rank',
+      'score as total',
+      'medal',
+      'charts',
+    ])
+    .where('tournament_id', '=', tournamentId)
+    // written in leaderboard order by the end job
+    .orderBy('id')
     .execute();
-
-  return rows.map((row) => ({
-    playerId: row.id,
-    nickname: row.nickname,
-    region: row.region,
-    rank: row.rank,
-    total: row.score,
-    medal: row.medal,
-    charts: row.charts,
-  }));
-};
 
 export const listTournaments = () =>
   db
@@ -88,7 +83,7 @@ export const getTournament = async ({
     return null;
   }
 
-  const [brackets, charts, playerCounts, playerBracket] = await Promise.all([
+  const [brackets, charts, instances, players, standings] = await Promise.all([
     db
       .selectFrom('tournament_brackets')
       .select(['id', 'code', 'name', 'min_id', 'max_id'])
@@ -113,61 +108,73 @@ export const getTournament = async ({
       .orderBy('tc.id')
       .execute(),
     db
-      .selectFrom('tournament_player_brackets')
-      .select(['bracket_id', (eb) => eb.fn.countAll<number>().as('count')])
-      .where('tournament_id', '=', tournament.id)
-      .groupBy('bracket_id')
+      .selectFrom('chart_instances as ci')
+      .innerJoin('tournament_charts as tc', 'tc.shared_chart_id', 'ci.shared_chart')
+      .select(['ci.shared_chart', 'ci.mix', 'ci.label', 'ci.level'])
+      .where('tc.tournament_id', '=', tournament.id)
+      .where('ci.mix', 'in', SUPPORTED_MIXES)
+      .orderBy('ci.mix')
       .execute(),
-    playerId
-      ? db
-          .selectFrom('tournament_player_brackets')
-          .select(['bracket_id as bracketId', 'skill_level as skillLevel'])
-          .where('tournament_id', '=', tournament.id)
-          .where('player_id', '=', playerId)
-          .executeTakeFirst()
-      : undefined,
+    db
+      .selectFrom('tournament_player_brackets as tpb')
+      .innerJoin('players as p', 'p.id', 'tpb.player_id')
+      .select(['tpb.bracket_id', 'tpb.skill_level', 'p.id', 'p.nickname', 'p.region'])
+      .where('tpb.tournament_id', '=', tournament.id)
+      .where('p.hidden', '=', 0)
+      .orderBy('p.nickname')
+      .execute(),
+    tournament.state === 'Ended'
+      ? getFinalStandings(tournament.id)
+      : getLiveStandings(tournament.id).then((rows) =>
+          rows.map((row) => ({ ...row, medal: null }))
+        ),
   ]);
 
-  const instances = await db
-    .selectFrom('chart_instances')
-    .select(['shared_chart', 'mix', 'label', 'level'])
-    .where(
-      'shared_chart',
-      'in',
-      charts.map((chart) => chart.sharedChartId)
-    )
-    .where('mix', 'in', SUPPORTED_MIXES)
-    .orderBy('mix')
-    .execute();
+  const playerById = new Map(players.map((player) => [player.id, player]));
+  const scored = new Set(standings.map((entry) => entry.playerId));
+  const me = playerId === undefined ? undefined : playerById.get(playerId);
 
-  const leaderboards = await Promise.all(
-    brackets.map(async (bracket) =>
-      tournament.state === 'Ended'
-        ? getFinalLeaderboard(bracket.id)
-        : (await getBracketLeaderboard(bracket.id)).map((entry) => ({ ...entry, medal: null }))
-    )
-  );
+  const toEntry = (player: (typeof players)[number], standing?: (typeof standings)[number]) => ({
+    playerId: player.id,
+    nickname: player.nickname,
+    region: player.region,
+    rank: standing?.rank ?? null,
+    total: standing?.total ?? 0,
+    medal: standing?.medal ?? null,
+    charts: standing?.charts ?? [],
+  });
 
   return {
     ...tournament,
-    playerBracket: playerBracket ?? null,
-    brackets: brackets.map((bracket, index) => ({
-      id: bracket.id,
-      code: bracket.code,
-      name: bracket.name,
-      minSkill: bracket.min_id === null ? null : Number(bracket.min_id),
-      maxSkill: Number(bracket.max_id),
-      playerCount: Number(playerCounts.find((row) => row.bracket_id === bracket.id)?.count ?? 0),
-      charts: charts
-        .filter((chart) => chart.bracket_id === bracket.id)
-        .map(({ bracket_id, ...chart }) => ({
-          ...chart,
-          instances: instances
-            .filter((instance) => instance.shared_chart === chart.sharedChartId)
-            .map(({ mix, label, level }) => ({ mix, label, level })),
-        })),
-      leaderboard: leaderboards[index],
-    })),
+    playerBracket: me ? { bracketId: me.bracket_id, skillLevel: me.skill_level } : null,
+    brackets: brackets.map((bracket) => {
+      const bracketPlayers = players.filter((player) => player.bracket_id === bracket.id);
+      return {
+        id: bracket.id,
+        code: bracket.code,
+        name: bracket.name,
+        minSkill: bracket.min_id === null ? null : Number(bracket.min_id),
+        maxSkill: Number(bracket.max_id),
+        playerCount: bracketPlayers.length,
+        charts: charts
+          .filter((chart) => chart.bracket_id === bracket.id)
+          .map(({ bracket_id, ...chart }) => ({
+            ...chart,
+            instances: instances
+              .filter((instance) => instance.shared_chart === chart.sharedChartId)
+              .map(({ mix, label, level }) => ({ mix, label, level })),
+          })),
+        // Ranked players first, then the bracket's players without a score, unranked.
+        leaderboard: [
+          ...standings
+            .filter((entry) => entry.bracketId === bracket.id && playerById.has(entry.playerId))
+            .map((entry) => toEntry(playerById.get(entry.playerId)!, entry)),
+          ...bracketPlayers
+            .filter((player) => !scored.has(player.id))
+            .map((player) => toEntry(player)),
+        ],
+      };
+    }),
   };
 };
 
