@@ -103,6 +103,8 @@ export const validateMillionStats = (mixId: number, data: ResultData) => {
     throw new UnrecognizedResult('Pass status is unknown');
   }
 
+  // A pass always has a plate and a fail never has one, so this also checks that (the
+  // legacy code checked it again later, which could never fail)
   const calculatedPlate = calcPlate(steps, isPass);
   if (plate !== calculatedPlate) {
     throw new UnrecognizedResult(
@@ -121,12 +123,6 @@ export const validateMillionStats = (mixId: number, data: ResultData) => {
         `Invalid score_increase: ${formatNumber(scoreIncrease)} > score ${formatNumber(score)}`
       );
     }
-  }
-
-  if ((plate !== null) !== isPass) {
-    throw new UnrecognizedResult(
-      `Plate '${pyStr(calculatedPlate)}' should be shown for result with pass and vice versa`
-    );
   }
 
   // Checked last, as in the legacy code. Rank mode on these mixes comes from piu-spy,

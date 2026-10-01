@@ -67,7 +67,7 @@ const findResultChartInstance = async (db: Kysely<DB>, mixId: number, data: Resu
 };
 
 // The number of steps can be one off the chart's, as the legacy code allowed
-const checkNumberOfSteps = (chart: ChartInstance, data: ResultData) => {
+const checkNumberOfSteps = (chart: ChartInstance, data: ResultData): number => {
   const steps = getStepStats(data);
   if (!steps) {
     // Only possible before Phoenix (the legacy code failed the whole request here)
@@ -84,6 +84,7 @@ const checkNumberOfSteps = (chart: ChartInstance, data: ResultData) => {
       `Number of steps ${numberOfSteps} is lesser than chart #${chart.id} min ${chart.min_total_steps} steps`
     );
   }
+  return numberOfSteps;
 };
 
 /**
@@ -120,13 +121,14 @@ const validateResult = async (db: Kysely<DB>, data: ResultData): Promise<ValidRe
   }
 
   const chart = await findResultChartInstance(db, mixId, data);
-  checkNumberOfSteps(chart, data);
+  const steps = checkNumberOfSteps(chart, data);
 
   // On million-scoring mixes, rank mode comes from piu-spy, not from the mods
   const rankMode = millionScoring ? data.rank_mode : validateComboStats(chart, data);
 
   return {
     chart,
+    steps,
     row: {
       ...data,
       score: data.score!,

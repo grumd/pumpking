@@ -1,8 +1,9 @@
 import dotenv from 'dotenv';
 import path from 'path';
 
-// The service's own settings (packages/ingest/.env). The DB config comes from core's .env.
-// Variables already set in the environment win; the file may be missing
+// The service's own settings (packages/ingest/.env); the DB config comes from
+// packages/database/.env. Variables already set in the environment win; the file may be
+// missing
 dotenv.config({ path: path.join(__dirname, '../.env') });
 
 // Where piu-spy's uploads go, one folder per agent (the legacy PIUTOP_UPLOADS_ROOT)

@@ -27,7 +27,7 @@ export interface AgentCall {
   report: string[];
 }
 
-export const getArgs = (req: Request): Args => {
+const getArgs = (req: Request): Args => {
   const body = req.body && typeof req.body === 'object' && !Array.isArray(req.body) ? req.body : {};
   return { ...body, ...req.query };
 };

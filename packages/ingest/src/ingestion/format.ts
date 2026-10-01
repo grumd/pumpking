@@ -3,16 +3,8 @@
 // Python's `f"{n:,}"`
 export const formatNumber = (n: number) => n.toLocaleString('en-US');
 
-// Python's `str()` for the values that end up in messages
-export const pyStr = (value: unknown): string => {
-  if (value === null || value === undefined) {
-    return 'None';
-  }
-  if (typeof value === 'boolean') {
-    return value ? 'True' : 'False';
-  }
-  return String(value);
-};
+// Python's `str()` for the values that end up in messages: strings, numbers and nulls
+export const pyStr = (value: unknown): string => (value == null ? 'None' : String(value));
 
 // Close to Python's `repr()`, for the report lines that print changed fields
 export const pyRepr = (value: unknown): string =>
