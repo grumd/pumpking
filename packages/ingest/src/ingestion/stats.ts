@@ -10,12 +10,9 @@ type StatField =
   | 'perfects'
   | 'max_combo';
 
-// Anything with stats: a result as sent or as stored
-export type WithStats = Partial<Record<StatField, unknown>>;
-
 // piu-spy sends JSON, so a stat may arrive as something other than a whole number
-const getStat = (data: WithStats, field: StatField): number | null => {
-  const value = data[field];
+const getStat = (data: ResultData, field: StatField): number | null => {
+  const value: unknown = data[field];
   if (value === undefined || value === null) {
     return null;
   }
@@ -34,7 +31,7 @@ export interface StepStats {
 }
 
 /** All five judgements, or null when any of them is unknown */
-export const getStepStats = (data: WithStats): StepStats | null => {
+export const getStepStats = (data: ResultData): StepStats | null => {
   const perfects = getStat(data, 'perfects');
   const greats = getStat(data, 'greats');
   const goods = getStat(data, 'goods');

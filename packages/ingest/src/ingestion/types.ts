@@ -59,6 +59,8 @@ export interface ResultRow extends ResultData {
 export interface ValidResult {
   row: ResultRow;
   chart: ChartInstance;
+  // The result's number of steps, which fits the chart's
+  steps: number;
 }
 
 /**

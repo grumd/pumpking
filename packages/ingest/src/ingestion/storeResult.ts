@@ -1,6 +1,5 @@
 import { naiveSeconds, pyDict, pyRepr } from './format';
-import { getStepStats, totalSteps, type WithStats } from './stats';
-import type { ChartInstance, ResultRow, ValidResult } from './types';
+import type { ResultRow, ValidResult } from './types';
 import type { DB, Results } from '@pumpking/database/database';
 import { addEvent } from '@pumpking/database/events';
 import { randomInt } from 'crypto';
@@ -13,8 +12,8 @@ import { type Insertable, type Kysely, sql, type Updateable } from 'kysely';
  * done. Otherwise run it in a transaction: an added or updated result gets its
  * `resultAdded` event in it, and the effects job applies pp / exp afterwards.
  *
- * Also learns the chart's number of steps from results with complete stats, which the
- * validation of later results relies on.
+ * Also learns the chart's number of steps from its results, which the validation of later
+ * results relies on.
  */
 
 export interface StoreOptions {
@@ -87,19 +86,13 @@ const randomToken = (length: number) => {
   return Array.from({ length }, () => letters[randomInt(letters.length)]).join('');
 };
 
+// The chart's number of steps, as far as its results show it
 const updateChartNumberOfSteps = async (
   db: Kysely<DB>,
-  chart: ChartInstance,
-  fields: WithStats,
+  { chart, steps }: ValidResult,
   resultId: number,
   { checkOnly, report }: StoreOptions
 ) => {
-  const stepStats = getStepStats(fields);
-  if (!stepStats) {
-    return;
-  }
-  const steps = totalSteps(stepStats);
-
   const update: { max_total_steps?: number; min_total_steps?: number } = {};
   if (chart.max_total_steps == null || steps > chart.max_total_steps) {
     update.max_total_steps = steps;
@@ -119,22 +112,17 @@ const updateChartNumberOfSteps = async (
   report.push(`Chart #${chart.id} update: '${pyDict(update)}'`);
 };
 
-// Booleans from piu-spy compare equal to the stored 0 / 1
-const sameValue = (a: unknown, b: unknown) =>
-  (typeof a === 'boolean' ? Number(a) : a) === (typeof b === 'boolean' ? Number(b) : b);
-
 // Adds what the new recognition knows to the stored result
 const updateResult = async (
   db: Kysely<DB>,
-  chart: ChartInstance,
+  valid: ValidResult,
   stored: StoredResult,
-  row: ResultRow,
   options: StoreOptions
 ): Promise<StoreStatus> => {
+  const { row } = valid;
   const changes = Object.fromEntries(
     Object.entries(row).filter(
-      ([field, value]) =>
-        value !== undefined && !sameValue(value, stored[field as keyof StoredResult])
+      ([field, value]) => value !== undefined && value !== stored[field as keyof StoredResult]
     )
   ) as Partial<ResultRow>;
 
@@ -158,7 +146,7 @@ const updateResult = async (
     );
   options.report.push(`Result #${stored.id} update: '{${diff.join(', ')}}'`);
 
-  await updateChartNumberOfSteps(db, chart, { ...stored, ...changes }, stored.id, options);
+  await updateChartNumberOfSteps(db, valid, stored.id, options);
   if (!options.checkOnly) {
     await addEvent(db, 'resultAdded', { resultId: stored.id });
   }
@@ -170,8 +158,7 @@ const updateResult = async (
 
 const addResult = async (
   db: Kysely<DB>,
-  chart: ChartInstance,
-  row: ResultRow,
+  valid: ValidResult,
   options: StoreOptions
 ): Promise<StoreStatus> => {
   let resultId = -1;
@@ -179,7 +166,7 @@ const addResult = async (
     const { insertId } = await db
       .insertInto('results')
       .values({
-        ...asResultColumns(row),
+        ...asResultColumns(valid.row),
         token: randomToken(10),
         is_new_best_score: 0,
       } as Insertable<Results>)
@@ -187,7 +174,7 @@ const addResult = async (
     resultId = Number(insertId);
   }
 
-  await updateChartNumberOfSteps(db, chart, row, resultId, options);
+  await updateChartNumberOfSteps(db, valid, resultId, options);
   if (!options.checkOnly) {
     await addEvent(db, 'resultAdded', { resultId });
   }
@@ -197,17 +184,18 @@ const addResult = async (
   return { status };
 };
 
-// Manual results (e.g. from a profile import) may lack the perfects and the grade, so a
-// result with the same score is the same play when the other stats agree
+// Manual results (e.g. from a profile import) may lack the grade, so a result with the
+// same score is the same play when the other stats agree. Not the perfects, which the
+// legacy imports from Step It Up didn't have (such results don't pass validation now)
 const MANUAL_MATCHED_FIELDS = ['misses', 'bads', 'goods', 'greats', 'max_combo'] as const;
 
 const updateWithManualResult = async (
   db: Kysely<DB>,
-  chart: ChartInstance,
+  valid: ValidResult,
   similarResults: StoredResult[],
-  row: ResultRow,
   options: StoreOptions
 ) => {
+  const { row } = valid;
   const byTime = [...similarResults].sort(
     (a, b) =>
       Math.abs(naiveSeconds(a.gained) - naiveSeconds(row.gained)) -
@@ -216,33 +204,28 @@ const updateWithManualResult = async (
   // The legacy code meant to skip the results whose stats differ, but its check never
   // skipped any (a `continue` of the inner loop)
   const sameStats = byTime.find((stored) =>
-    MANUAL_MATCHED_FIELDS.every(
-      (field) => stored[field] == null || stored[field] === (row[field] ?? null)
-    )
+    MANUAL_MATCHED_FIELDS.every((field) => stored[field] == null || stored[field] === row[field])
   );
   if (!sameStats) {
     return null;
   }
 
-  // What the manual result lacks, the stored one has
-  const merged: ResultRow = {
-    ...row,
-    perfects: row.perfects === undefined ? sameStats.perfects : row.perfects,
-    grade: row.grade === '?' ? sameStats.grade : row.grade,
-  };
-  return updateResult(db, chart, sameStats, merged, options);
+  // A grade that the manual result lacks, the stored one has
+  const merged: ResultRow = { ...row, grade: row.grade === '?' ? sameStats.grade : row.grade };
+  return updateResult(db, { ...valid, row: merged }, sameStats, options);
 };
 
 export const storeResult = async (
   db: Kysely<DB>,
-  { row, chart }: ValidResult,
+  valid: ValidResult,
   options: StoreOptions
 ): Promise<StoreStatus> => {
+  const { row } = valid;
   const similarResults = await selectSimilarResults(db, row);
   const gained = naiveSeconds(row.gained);
 
   if (options.isManual) {
-    const status = await updateWithManualResult(db, chart, similarResults, row, options);
+    const status = await updateWithManualResult(db, valid, similarResults, options);
     if (status) {
       return status;
     }
@@ -250,14 +233,14 @@ export const storeResult = async (
     for (const stored of similarResults) {
       // An exact date is better than a date that was only known roughly
       if (!stored.exact_gain_date && gained <= naiveSeconds(stored.gained)) {
-        return updateResult(db, chart, stored, row, options);
+        return updateResult(db, valid, stored, options);
       }
       // The same play recognized again: the later recognition is probably better
       if (
         stored.exact_gain_date &&
         Math.abs(naiveSeconds(stored.gained) - gained) < SAME_PLAY_SECONDS
       ) {
-        return updateResult(db, chart, stored, row, options);
+        return updateResult(db, valid, stored, options);
       }
     }
   } else {
@@ -268,5 +251,5 @@ export const storeResult = async (
     }
   }
 
-  return addResult(db, chart, row, options);
+  return addResult(db, valid, options);
 };
