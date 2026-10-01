@@ -430,9 +430,10 @@ job on the 25th:
   created_at, unique(tournament_id, player_id)`
 - One row per bracket player with 1+ qualifying results (rank + final score);
   `medal` set for the top-3 places.
-- No minimum participation in v1 — a solo player's gold is a gold (the
-  bracket's participation is visible on the leaderboard); a minimum would be
-  a one-constant change later.
+- A player gets a place only with scores on at least 3 pool charts
+  (`RANKED_MIN_CHARTS`, decided 2026-10-01). Players with fewer stay on the
+  leaderboard by total, with no place and no cup, and places count only the
+  others (1, 2, –, 3). No minimum bracket size: a solo player's gold is a gold.
 
 **Authority**: from the moment of `Ended` on, `tournament_results` is the single
 source of truth for that tournament — the 25th–1st winners display, the

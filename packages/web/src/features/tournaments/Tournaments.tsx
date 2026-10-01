@@ -119,9 +119,9 @@ const BracketView = ({ bracket, playerId }: { bracket: Bracket; playerId?: numbe
                     key={entry.playerId}
                     bg={entry.playerId === playerId ? 'dark.5' : undefined}
                   >
-                    <Table.Td fw="bold">
+                    <Table.Td fw="bold" c={entry.rank === null ? 'dimmed' : undefined}>
                       <Group gap={6} wrap="nowrap">
-                        {entry.rank}
+                        {entry.rank ?? '–'}
                         {entry.medal && <Medal medal={entry.medal} />}
                       </Group>
                     </Table.Td>
@@ -151,8 +151,8 @@ const BracketView = ({ bracket, playerId }: { bracket: Bracket; playerId?: numbe
                         </Table.Td>
                       );
                     })}
-                    <Table.Td ta="right" fw="bold">
-                      {formatScore(entry.total)}
+                    <Table.Td ta="right" fw="bold" c={entry.rank === null ? 'dimmed' : undefined}>
+                      {entry.charts.length ? formatScore(entry.total) : '–'}
                     </Table.Td>
                   </Table.Tr>
                 ))}
@@ -181,10 +181,10 @@ const PlayerSummary = ({ tournament, playerId }: { tournament: Tournament; playe
       {lang.TOURNAMENT_YOUR_BRACKET}: <b>{lang.TOURNAMENT_BRACKET(bracket.code)}</b>
       {playerBracket.skillLevel !== null &&
         ` (${lang.TOURNAMENT_PLACEMENT(playerBracket.skillLevel)})`}
-      {entry && (
+      {entry && entry.charts.length > 0 && (
         <>
           {' · '}
-          {lang.TOURNAMENT_PLACE}: <b>{entry.rank}</b> · {lang.TOTAL}:{' '}
+          {lang.TOURNAMENT_PLACE}: <b>{entry.rank ?? '–'}</b> · {lang.TOTAL}:{' '}
           <b>{formatScore(entry.total)}</b>
         </>
       )}

@@ -150,22 +150,19 @@ describe('Tournaments', () => {
   });
 
   describe('ranking', () => {
-    it('sums the best 3 of up to 6 charts and shares tied places', () => {
+    it('sums the best 3 of up to 6 charts, shares tied places, places only 3+ charts', () => {
       const leaderboard = rankLeaderboard([
         {
           playerId: 1,
-          nickname: 'a',
-          region: null,
           bests: [900, 990, 950, 800, 970, 100].map((score, i) => ({ sharedChartId: i, score })),
         },
         {
           playerId: 2,
-          nickname: 'b',
-          region: null,
           bests: [1000, 950, 960].map((score, i) => ({ sharedChartId: i, score })),
         },
-        { playerId: 3, nickname: 'c', region: null, bests: [{ sharedChartId: 0, score: 999 }] },
-        { playerId: 4, nickname: 'd', region: null, bests: [{ sharedChartId: 0, score: 999 }] },
+        { playerId: 3, bests: [{ sharedChartId: 0, score: 999 }] },
+        { playerId: 4, bests: [{ sharedChartId: 0, score: 999 }] },
+        { playerId: 5, bests: [300, 300, 300].map((score, i) => ({ sharedChartId: i, score })) },
       ]);
 
       assert.deepEqual(
@@ -173,8 +170,9 @@ describe('Tournaments', () => {
         [
           [2, 1, 2910],
           [1, 1, 2910],
-          [3, 3, 999],
-          [4, 3, 999],
+          [3, null, 999],
+          [4, null, 999],
+          [5, 3, 900],
         ]
       );
       assert.deepEqual(
@@ -371,9 +369,14 @@ describe('Tournaments', () => {
         [
           [3, 1, 2940000],
           [2, 1, 2940000],
-          [4, 3, 1700000],
+          // 2 charts: no place
+          [4, null, 1700000],
+          // the bracket's players without a score, by nickname
+          [7, null, 0],
+          [1, null, 0],
         ]
       );
+      assert.deepEqual(bracket.leaderboard.at(-1)!.charts, []);
       assert.deepEqual(
         bracket.leaderboard[1].charts.map((c) => [c.sharedChartId, c.score, c.counted]),
         [
@@ -418,13 +421,18 @@ describe('Tournaments', () => {
           .filter((c) => c.code === 'Easy')
           .map((c) => c.shared_chart_id);
         const t = '2026-10-10 12:00:00';
-        // players 2 and 3 tie for 1st, 4 is 3rd, 7 is 4th
+        // players 2 and 3 tie for 1st, 4 has only 2 charts, 7 is 3rd
         await addResult(2, easy[0], 990000, t);
         await addResult(2, easy[1], 980000, t);
+        await addResult(2, easy[5], 900000, t);
         await addResult(3, easy[2], 985000, t);
         await addResult(3, easy[3], 985000, t);
-        await addResult(4, easy[4], 960000, t);
-        await addResult(7, easy[5], 950000, t);
+        await addResult(3, easy[5], 900000, t);
+        await addResult(4, easy[4], 995000, t);
+        await addResult(4, easy[0], 985000, t);
+        for (const i of [0, 1, 2]) {
+          await addResult(7, easy[i], 600000, t);
+        }
         await endTournaments('2026-10-25 00:00:00');
       });
 
@@ -436,7 +444,7 @@ describe('Tournaments', () => {
         ]);
       });
 
-      it('freezes the final results with medals, ties sharing the cup', async () => {
+      it('freezes the final results with medals, ties sharing the cup, 3 charts required', async () => {
         const rows = await db
           .selectFrom('tournament_results')
           .select(['player_id', 'rank', 'score', 'medal', 'charts'])
@@ -447,15 +455,16 @@ describe('Tournaments', () => {
         assert.deepEqual(
           rows.map((r) => [r.player_id, r.rank, r.score, r.medal]),
           [
-            [2, 1, 1970000, 'gold'],
-            [3, 1, 1970000, 'gold'],
-            [4, 3, 960000, 'bronze'],
-            [7, 4, 950000, null],
+            [2, 1, 2870000, 'gold'],
+            [3, 1, 2870000, 'gold'],
+            [4, null, 1980000, null],
+            [7, 3, 1800000, 'bronze'],
           ]
         );
         assert.deepEqual(rows[0].charts, [
           { sharedChartId: easy[0], score: 990000, counted: true },
           { sharedChartId: easy[1], score: 980000, counted: true },
+          { sharedChartId: easy[5], score: 900000, counted: true },
         ]);
       });
 
@@ -469,21 +478,26 @@ describe('Tournaments', () => {
         assert.deepEqual(
           bracket.leaderboard.map((e) => [e.playerId, e.rank, e.total, e.medal]),
           [
-            [2, 1, 1970000, 'gold'],
-            [3, 1, 1970000, 'gold'],
-            [4, 3, 960000, 'bronze'],
-            [7, 4, 950000, null],
+            [2, 1, 2870000, 'gold'],
+            [3, 1, 2870000, 'gold'],
+            [4, null, 1980000, null],
+            [7, 3, 1800000, 'bronze'],
+            [6, null, 0, null],
+            [1, null, 0, null],
           ]
         );
         assert.deepEqual(bracket.leaderboard[2].charts, [
-          { sharedChartId: easy[4], score: 960000, counted: true },
+          { sharedChartId: easy[4], score: 995000, counted: true },
+          { sharedChartId: easy[0], score: 985000, counted: true },
         ]);
       });
 
       it('counts cups on the profile and in the ranking', async () => {
         const next = await createTournament({ year: 2026, month: 11 });
-        const nextEasy = (await getPool(next.id)).find((c) => c.code === 'Easy')!;
-        await addResult(3, nextEasy.shared_chart_id, 900000, '2026-11-10 12:00:00');
+        const nextEasy = (await getPool(next.id)).filter((c) => c.code === 'Easy');
+        for (const chart of nextEasy.slice(0, 3)) {
+          await addResult(3, chart.shared_chart_id, 900000, '2026-11-10 12:00:00');
+        }
         await endTournaments('2026-11-25 00:00:00');
 
         const awards = await getPlayerAwards(3);
@@ -494,14 +508,14 @@ describe('Tournaments', () => {
             [tournamentId, 'Easy', 1, 'gold'],
           ]
         );
-        assert.lengthOf(await getPlayerAwards(7), 0);
+        assert.lengthOf(await getPlayerAwards(4), 0);
 
         await db.updateTable('players').set({ pp: 100 }).execute();
         const stats = await getPlayersStats();
         const cups = (playerId: number) => stats.find((p) => p.id === playerId)!.cups;
         assert.deepEqual(cups(3), { gold: 2, silver: 0, bronze: 0 });
-        assert.deepEqual(cups(4), { gold: 0, silver: 0, bronze: 1 });
-        assert.deepEqual(cups(7), { gold: 0, silver: 0, bronze: 0 });
+        assert.deepEqual(cups(4), { gold: 0, silver: 0, bronze: 0 });
+        assert.deepEqual(cups(7), { gold: 0, silver: 0, bronze: 1 });
       });
     });
 

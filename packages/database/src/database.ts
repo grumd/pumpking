@@ -352,7 +352,7 @@ export interface TournamentResults {
   tournament_id: number;
   bracket_id: number;
   player_id: number;
-  rank: number;
+  rank: number | null;
   score: number;
   medal: 'bronze' | 'gold' | 'silver' | null;
   charts: ColumnType<TournamentResultChartJson[], string, string>;
