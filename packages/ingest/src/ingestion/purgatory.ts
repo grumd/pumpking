@@ -13,6 +13,10 @@ import { type Insertable, type Kysely, sql } from 'kysely';
 
 // purgatory.reason is a VARCHAR(512); a long list of best guesses mustn't fail the insert
 const REASON_LENGTH = 512;
+// purgatory.screen_file is a VARCHAR(150), results.screen_file a VARCHAR(300): a longer
+// name is a reason to send a result here, and mustn't fail the insert either (the legacy
+// code failed the request)
+const SCREEN_FILE_LENGTH = 150;
 
 const PURGATORY_FIELDS = [
   'screen_file',
@@ -51,7 +55,11 @@ export const addToPurgatory = async (database: Kysely<DB>, data: ResultData, rea
   // The naive datetime strings are written as they are
   const { insertId } = await database
     .insertInto('purgatory')
-    .values({ ...row, reason: reason.slice(0, REASON_LENGTH) } as Insertable<Purgatory>)
+    .values({
+      ...row,
+      screen_file: data.screen_file?.slice(0, SCREEN_FILE_LENGTH),
+      reason: reason.slice(0, REASON_LENGTH),
+    } as Insertable<Purgatory>)
     .executeTakeFirstOrThrow();
   return { status: 'added to purgatory', id: Number(insertId), reason };
 };
