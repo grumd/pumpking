@@ -3,13 +3,10 @@ import { getState, setState } from '../../platform/state';
 import { durationText, parseUtc, printableDuration, secondsAgo, wrap } from '../../platform/texts';
 import { callbackData, type ChatContext, type Keyboard, type Plugin } from '../../platform/types';
 import { getAgentLastPlayers, getAgentsStatus, type AgentStatus } from './activity';
-import createDebug from 'debug';
 
 // Locations are the arcades running a piu-spy agent. The watchers of one location hear
 // when it starts, stalls or resumes working and when a new player shows up there, and
 // anyone can see who played where recently. Ported from the legacy bot's locations.py
-
-const debug = createDebug('bot:locations');
 
 const PLUGIN = 'locations';
 const AGENT_TIMEOUT_MINUTES = 3;
@@ -50,19 +47,21 @@ export const updateLocation = (
 
   for (const player of Object.keys(state.players)) {
     if (!(player in prev.players)) {
-      debug(`Player ${player} appeared in location <${state.name}>`);
+      console.log(`Bot: Player ${player} appeared in location <${state.name}>`);
       notify(`👉  Player <b>${wrap(player)}</b> appeared in location <b>${name}</b>`);
     }
   }
 
   if (prev.startedAt !== state.startedAt) {
     const offline = Math.floor((parseUtc(state.startedAt) - parseUtc(prev.lastUpdatedAt)) / 1000);
-    debug(`Location <${state.name}> started working after ${printableDuration(offline)}`);
+    console.log(
+      `Bot: Location <${state.name}> started working after ${printableDuration(offline)}`
+    );
     notify(`➕  Location <b>${name}</b> started working after ${printableDuration(offline)}`);
     location.stalled = false;
   } else if (location.stalled) {
     if (prev.lastUpdatedAt !== state.lastUpdatedAt) {
-      debug(`Location <${state.name}> resumed working`);
+      console.log(`Bot: Location <${state.name}> resumed working`);
       notify(`🟰  Location <b>${name}</b> resumed working`);
       location.stalled = false;
     }
@@ -70,7 +69,9 @@ export const updateLocation = (
     const updatedAgo = secondsAgo(state.lastUpdatedAt, now);
     if (updatedAgo >= STALL_FROM_SECONDS && updatedAgo <= STALL_TO_SECONDS) {
       const worked = Math.floor((parseUtc(state.lastUpdatedAt) - parseUtc(state.startedAt)) / 1000);
-      debug(`Location <${state.name}> stopped working after ${printableDuration(worked)}`);
+      console.log(
+        `Bot: Location <${state.name}> stopped working after ${printableDuration(worked)}`
+      );
       notify(`➖  Location <b>${name}</b> stopped working after ${printableDuration(worked)}`);
       location.stalled = true;
     }
