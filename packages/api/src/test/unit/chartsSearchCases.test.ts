@@ -282,6 +282,23 @@ describe('Charts search cases', () => {
       assert.equal(chart.results[0].id, first);
     });
 
+    it('of the same result stored twice in a second, shows the first stored', async () => {
+      const first = await addResult({ player: 1, chart: 101, score: 900000, added: at(1), pp: 10 });
+      await addResult({ player: 1, chart: 101, score: 900000, added: at(1) });
+      await addResult({ player: 2, chart: 101, score: 900000, added: at(1) });
+
+      const [chart] = await search();
+      assert.deepEqual(
+        chart.results.map((r) => [r.playerId, r.pp]),
+        [
+          [1, 10],
+          [2, null],
+        ]
+      );
+      assert.equal(chart.results[0].id, first);
+      assert.equal(chart.results[0].scoreIncrease, 0);
+    });
+
     it('of equal scores of different players, shows the earlier result first', async () => {
       await addResult({ player: 1, chart: 101, score: 900000, added: at(3) });
       await addResult({ player: 2, chart: 101, score: 900000, added: at(1) });
