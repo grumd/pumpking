@@ -1,24 +1,32 @@
 import type { ApiOutputs } from '@/api/trpc/router';
-import { Badge, Button, Group, NumberInput, SimpleGrid, Stack, Table, Text } from '@mantine/core';
+import { ActionIcon, Button, Group, SimpleGrid, Stack, Text, UnstyledButton } from '@mantine/core';
 import { MIX_NAME_BY_ID } from '@pumpking/utils/mixes';
 import { useQuery } from '@tanstack/react-query';
-import { useEffect, useRef, useState } from 'react';
+import classNames from 'classnames';
+import { Fragment, useEffect, useRef, useState } from 'react';
+import { FiArrowRight, FiMoreHorizontal } from 'react-icons/fi';
 
+import css from './track-detail.module.scss';
+
+import { chartLabelColor } from 'components/ChartLabel/ChartLabel';
+import chartLabelCss from 'components/ChartLabel/chart-label.module.css';
 import Loader from 'components/Loader/Loader';
 
 import { api } from 'utils/trpc';
 
 import { useAdminAction } from '../activity/activity';
 import { ArcadeNamesEditor } from '../components/ArcadeNamesEditor';
+import { DetailDrawer } from '../components/DetailDrawer';
 import { Info, Section } from '../components/layout';
 import { useEditForm } from '../hooks/useEditForm';
+import { ChartInstanceDetail } from './ChartInstanceDetail';
 
 type Track = ApiOutputs['admin']['tracks']['get'];
 type ChartInstance = Track['charts'][number]['instances'][number];
 
 interface TrackDetailProps {
   id: number;
-  // A chart instance to point out, e.g. the one a purgatory reason is about
+  // A chart instance to point out and open, e.g. the one a purgatory reason is about
   highlightChartId?: number;
 }
 
@@ -39,6 +47,14 @@ const TrackView = ({ track, highlightChartId }: { track: Track; highlightChartId
     api.admin.tracks.saveArcadeNames.mutationOptions(),
     () => `Edit arcade names of track #${track.id}`
   );
+  // The chart the link points to (e.g. from purgatory) opens in its window
+  const [editingId, setEditingId] = useState<number | null>(highlightChartId ?? null);
+  useEffect(() => {
+    setEditingId(highlightChartId ?? null);
+  }, [highlightChartId]);
+  const editing = track.charts
+    .flatMap((chart) => chart.instances)
+    .find((instance) => instance.id === editingId);
 
   return (
     <Stack gap="lg">
@@ -60,6 +76,8 @@ const TrackView = ({ track, highlightChartId }: { track: Track; highlightChartId
             value={form.values.arcadeNames}
             onChange={(v) => form.set('arcadeNames', v)}
             defaultEdist={1}
+            // Only the mixes the track has charts on
+            mixes={track.charts.flatMap((chart) => chart.instances.map((instance) => instance.mix))}
           />
           <Group justify="flex-end" gap="xs">
             {form.isDirty && (
@@ -81,119 +99,165 @@ const TrackView = ({ track, highlightChartId }: { track: Track; highlightChartId
       </SimpleGrid>
 
       <Section title="Charts">
-        <Text size="xs" c="dimmed">
-          Steps: the range of step counts (perfect to miss) a result on the chart may have.
-          Ingestion learns it from results and sends results outside it (± 1) to purgatory.
-        </Text>
-        <Table verticalSpacing={4} horizontalSpacing="xs">
-          <Table.Thead>
-            <Table.Tr>
-              <Table.Th>Chart</Table.Th>
-              <Table.Th>Mix</Table.Th>
-              <Table.Th>#</Table.Th>
-              <Table.Th w="7rem">Min steps</Table.Th>
-              <Table.Th w="7rem">Max steps</Table.Th>
-              <Table.Th w="5rem" />
-            </Table.Tr>
-          </Table.Thead>
-          <Table.Tbody>
-            {track.charts.flatMap((chart) =>
-              chart.instances.map((instance, index) => (
-                <ChartStepsRow
-                  key={instance.id}
-                  instance={instance}
-                  // The chart's label and type on its first row only
-                  chart={index === 0 ? chart : null}
-                  highlighted={instance.id === highlightChartId}
-                />
-              ))
-            )}
-          </Table.Tbody>
-        </Table>
+        <div className={css.sharedList}>
+          {track.charts.map((chart) => (
+            <SharedChart
+              key={chart.id}
+              chart={chart}
+              highlightChartId={highlightChartId}
+              onEdit={setEditingId}
+            />
+          ))}
+        </div>
       </Section>
+
+      <DetailDrawer
+        opened={!!editing}
+        onClose={() => setEditingId(null)}
+        title={
+          editing &&
+          `Chart #${editing.id}: ${editing.label}, ${
+            MIX_NAME_BY_ID[editing.mix] ?? `mix #${editing.mix}`
+          }`
+        }
+        wide
+      >
+        {editing && <ChartInstanceDetail key={editing.id} instance={editing} />}
+      </DetailDrawer>
     </Stack>
   );
 };
 
-interface ChartStepsRowProps {
+// A shared chart, ticket style: its instances mix by mix, with arrows between them. The
+// instances of mixes with no name are folded into a "…" button that shows them
+const SharedChart = ({
+  chart,
+  highlightChartId,
+  onEdit,
+}: {
+  chart: Track['charts'][number];
+  highlightChartId?: number;
+  onEdit: (chartInstanceId: number) => void;
+}) => {
+  const [showAll, setShowAll] = useState(false);
+  // An instance, or null for a run of folded ones
+  const items: (ChartInstance | null)[] = [];
+  for (const instance of chart.instances) {
+    if (showAll || MIX_NAME_BY_ID[instance.mix] || instance.id === highlightChartId) {
+      items.push(instance);
+    } else if (items.at(-1) !== null) {
+      items.push(null);
+    }
+  }
+
+  return (
+    <div className={css.shared}>
+      <div className={css.sharedHeader}>
+        <span className={css.sharedTitle}>shared</span>
+        <span className={css.id}>#{chart.id}</span>
+      </div>
+      <div className={css.instances}>
+        {items.map((instance, index) => (
+          <Fragment key={instance?.id ?? `folded-${index}`}>
+            {index > 0 && (
+              <span className={css.arrow}>
+                <FiArrowRight size={22} />
+              </span>
+            )}
+            {instance ? (
+              <ChartInstanceCard
+                instance={instance}
+                type={chart.type}
+                // The card before it: after a "…" button the label is bright
+                sameLabelAsPrevious={items[index - 1]?.label === instance.label}
+                sameStepsAsPrevious={
+                  !!items[index - 1] &&
+                  items[index - 1]?.min_total_steps === instance.min_total_steps &&
+                  items[index - 1]?.max_total_steps === instance.max_total_steps
+                }
+                highlighted={instance.id === highlightChartId}
+                onClick={() => onEdit(instance.id)}
+              />
+            ) : (
+              <ActionIcon
+                variant="default"
+                size="lg"
+                onClick={() => setShowAll(true)}
+                title="Show the charts of mixes with no name"
+              >
+                <FiMoreHorizontal />
+              </ActionIcon>
+            )}
+          </Fragment>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+interface ChartInstanceCardProps {
   instance: ChartInstance;
-  chart: Track['charts'][number] | null;
+  type: Track['charts'][number]['type'];
+  // The label didn't change since the previous card: it's dimmed
+  sameLabelAsPrevious: boolean;
+  // Same for the step range: dimmed when it didn't change, bright when it did
+  sameStepsAsPrevious: boolean;
   highlighted: boolean;
+  onClick: () => void;
 }
 
-const ChartStepsRow = ({ instance, chart, highlighted }: ChartStepsRowProps) => {
-  const [min, setMin] = useState<number | null>(instance.min_total_steps);
-  const [max, setMax] = useState<number | null>(instance.max_total_steps);
-  const rowRef = useRef<HTMLTableRowElement>(null);
-  const isDirty = min !== instance.min_total_steps || max !== instance.max_total_steps;
-  const save = useAdminAction(
-    api.admin.tracks.updateChartSteps.mutationOptions(),
-    () => `Edit steps of chart #${instance.id}`
-  );
-
-  useEffect(() => {
-    setMin(instance.min_total_steps);
-    setMax(instance.max_total_steps);
-  }, [instance.min_total_steps, instance.max_total_steps]);
+const ChartInstanceCard = ({
+  instance,
+  type,
+  sameLabelAsPrevious,
+  sameStepsAsPrevious,
+  highlighted,
+  onClick,
+}: ChartInstanceCardProps) => {
+  const ref = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     if (highlighted) {
-      rowRef.current?.scrollIntoView({ block: 'center' });
+      ref.current?.scrollIntoView({ block: 'center' });
     }
   }, [highlighted]);
 
-  const stepsInput = (value: number | null, onChange: (v: number | null) => void) => (
-    <NumberInput
-      size="xs"
-      value={value ?? ''}
-      onChange={(v) => onChange(typeof v === 'number' ? v : null)}
-      allowDecimal={false}
-      allowNegative={false}
-      hideControls
-    />
-  );
+  const hasSteps = instance.min_total_steps !== null || instance.max_total_steps !== null;
 
   return (
-    <Table.Tr
-      ref={rowRef}
-      style={highlighted ? { background: 'var(--mantine-color-red-light)' } : undefined}
+    <UnstyledButton
+      ref={ref}
+      onClick={onClick}
+      className={classNames(css.instance, highlighted && css.highlighted)}
     >
-      <Table.Td>
-        {chart && (
-          <Group gap={4}>
-            <Text size="sm" fw={600}>
-              {instance.label}
-            </Text>
-            <Badge variant="default" size="xs">
-              {chart.type}
-            </Badge>
-          </Group>
-        )}
-        {!chart && <Text size="sm">{instance.label}</Text>}
-      </Table.Td>
-      <Table.Td>
-        <Text size="sm">{MIX_NAME_BY_ID[instance.mix] ?? `#${instance.mix}`}</Text>
-      </Table.Td>
-      <Table.Td>
-        <Text size="xs" c="dimmed">
-          {instance.id}
-        </Text>
-      </Table.Td>
-      <Table.Td>{stepsInput(min, setMin)}</Table.Td>
-      <Table.Td>{stepsInput(max, setMax)}</Table.Td>
-      <Table.Td>
-        {isDirty && (
-          <Button
-            size="compact-xs"
-            loading={save.isPending}
-            onClick={() =>
-              save.mutate({ chartInstanceId: instance.id, minTotalSteps: min, maxTotalSteps: max })
-            }
+      <div className={css.instanceId}>#{instance.id}</div>
+      <div className={css.instanceBody}>
+        <div className={css.instanceChart}>
+          <span>{MIX_NAME_BY_ID[instance.mix] ?? `Mix #${instance.mix}`}</span>
+          {/* Older mixes' labels (e.g. NL-5) don't tell the type, the shared chart does */}
+          <span
+            className={classNames(
+              chartLabelCss.chartLabel,
+              chartLabelColor(type),
+              sameLabelAsPrevious && css.labelSame
+            )}
           >
-            Save
-          </Button>
-        )}
-      </Table.Td>
-    </Table.Tr>
+            {instance.label}
+          </span>
+        </div>
+        <div className={css.instanceFooter}>
+          <span title="Results">
+            {instance.resultsCount > 0 ? `≡ ${instance.resultsCount.toLocaleString('en')}` : ''}
+          </span>
+          <span title="Steps" className={sameStepsAsPrevious ? undefined : css.stepsChanged}>
+            {!hasSteps
+              ? '\u00a0'
+              : instance.min_total_steps === instance.max_total_steps
+              ? `◆ ${instance.min_total_steps}`
+              : `◆ ${instance.min_total_steps ?? '?'}–${instance.max_total_steps ?? '?'}`}
+          </span>
+        </div>
+      </div>
+    </UnstyledButton>
   );
 };

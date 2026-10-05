@@ -6,6 +6,7 @@ import {
 } from 'services/admin/tracklistSync';
 import {
   findChartInstanceTrack,
+  getChartInstanceResults,
   getTrack,
   listTracks,
   saveTrackArcadeNames,
@@ -22,6 +23,9 @@ export const tracks = router({
   byChartInstance: adminProcedure
     .input(z.object({ chartInstanceId: z.number() }))
     .query(({ input }) => findChartInstanceTrack(input.chartInstanceId)),
+  chartResults: adminProcedure
+    .input(z.object({ chartInstanceId: z.number(), cursor: z.number().nullish() }))
+    .query(({ input }) => getChartInstanceResults(input.chartInstanceId, input.cursor)),
   saveArcadeNames: adminProcedure
     .input(z.object({ id: z.number(), arcadeNames: arcadeNames(100) }))
     .mutation(({ input }) => saveTrackArcadeNames(input.id, input.arcadeNames)),

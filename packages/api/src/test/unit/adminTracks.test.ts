@@ -1,6 +1,7 @@
 import { db } from '@pumpking/database/db';
 import { assert } from 'chai';
 import { errorMessage, output, trpcMutation, trpcQuery } from 'test/helpers/trpc';
+import { getResultDefaults } from 'test/seeds/initialSeed';
 
 // The legacy mix list: a tracklist file's `mixes` are in this order, so Phoenix2 is #28
 const MIX_NAMES = [
@@ -35,6 +36,75 @@ describe('Admin tracks', () => {
       await trpcQuery('admin.tracks.byChartInstance', { chartInstanceId: 3 }).expect(200)
     );
     assert.deepEqual(byChart, { trackId: 1 });
+  });
+
+  it("counts each chart instance's results", async () => {
+    await db
+      .insertInto('results')
+      .values([
+        { ...getResultDefaults({ playerId: 4 }), shared_chart: 3, chart_instance: 3 },
+        { ...getResultDefaults({ playerId: 4 }), shared_chart: 3, chart_instance: 3 },
+      ])
+      .execute();
+    const counts = await db
+      .selectFrom('results')
+      .select(({ fn }) => ['chart_instance', fn.countAll<number>().as('count')])
+      .groupBy('chart_instance')
+      .execute();
+    const expected = new Map(counts.map((row) => [row.chart_instance, Number(row.count)]));
+
+    const track = output(await trpcQuery('admin.tracks.get', { id: 1 }).expect(200));
+    const instances = track.charts.flatMap(
+      (c: { instances: { id: number; resultsCount: number }[] }) => c.instances
+    );
+    assert.isAtLeast(expected.get(3) ?? 0, 2);
+    for (const instance of instances) {
+      assert.equal(
+        instance.resultsCount,
+        expected.get(instance.id) ?? 0,
+        `instance #${instance.id}`
+      );
+    }
+  });
+
+  it("lists a chart instance's results, newest first", async () => {
+    await db
+      .insertInto('results')
+      .values([
+        { ...getResultDefaults({ playerId: 4 }), shared_chart: 3, chart_instance: 3 },
+        { ...getResultDefaults({ playerId: 4 }), shared_chart: 3, chart_instance: 3 },
+      ])
+      .execute();
+    const expected = await db
+      .selectFrom('results')
+      .select('id')
+      .where('chart_instance', '=', 3)
+      .orderBy('id', 'desc')
+      .execute();
+
+    const ids = (page: { rows: { id: number }[] }) => page.rows.map((row) => row.id);
+    const first = output(
+      await trpcQuery('admin.tracks.chartResults', { chartInstanceId: 3 }).expect(200)
+    );
+    assert.deepEqual(
+      ids(first),
+      expected.map((row) => row.id)
+    );
+    assert.isNull(first.nextCursor);
+
+    // The results older than the cursor
+    const older = output(
+      await trpcQuery('admin.tracks.chartResults', {
+        chartInstanceId: 3,
+        cursor: expected[0].id,
+      }).expect(200)
+    );
+    assert.deepEqual(
+      ids(older),
+      expected.slice(1).map((row) => row.id)
+    );
+
+    await trpcQuery('admin.tracks.chartResults', { chartInstanceId: 999999 }).expect(404);
   });
 
   it('saves and removes arcade names', async () => {
