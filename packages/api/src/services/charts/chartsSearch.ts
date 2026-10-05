@@ -199,6 +199,7 @@ export const searchCharts = async (params: ChartsSearchParams) => {
           fn.max('latest_ci.mix').as('latest_chart_mix'),
         ])
         .where(scoreField, 'is not', null)
+        .where('r.mix', 'in', mixes)
         // A result that only ties the player's best score doesn't replace it,
         // so it shouldn't move the chart to the top of the recently played
         .where(({ not, exists }) =>
@@ -236,19 +237,24 @@ export const searchCharts = async (params: ChartsSearchParams) => {
         subQuery = subQuery.where('r.player_id', 'not in', hiddenPlayerIds);
       }
       if (hiddenRegions && hiddenRegions.length > 0) {
-        subQuery = subQuery.where('players.region', 'not in', hiddenRegions);
+        // Players without a region are not in a hidden region
+        subQuery = subQuery.where(({ or, cmpr }) =>
+          or([cmpr('players.region', 'is', null), cmpr('players.region', 'not in', hiddenRegions)])
+        );
       }
 
       if (songNameParts) {
+        // The typed % and _ are matched as themselves
+        const escapedParts = songNameParts.map((part) => part.replace(/[\\%_]/g, '\\$&'));
         subQuery = subQuery.where(
           ({ ref, fn, val }) =>
             fn('concat', [
               fn('lower', [ref('tracks.full_name')]),
-              val(`' '`),
+              val(' '),
               fn('lower', [ref('latest_ci.label')]),
             ]),
           'like',
-          `%${songNameParts.join('%')}%`
+          `%${escapedParts.join('%')}%`
         );
       }
 
@@ -324,6 +330,7 @@ export const searchCharts = async (params: ChartsSearchParams) => {
         }
       }
 
+      // Charts with the same sort value are ordered by id, so they keep their order from page to page
       return subQuery
         .groupBy('shared_chart_id')
         .orderBy(
@@ -334,6 +341,7 @@ export const searchCharts = async (params: ChartsSearchParams) => {
             : 'chart_update_date',
           sortChartsDir
         )
+        .orderBy('shared_chart_id', sortChartsDir)
         .offset(offset)
         .limit(limit);
     })
@@ -434,7 +442,10 @@ export const searchCharts = async (params: ChartsSearchParams) => {
         : 'chart_update_date',
       sortChartsDir
     )
-    .orderBy('score', 'desc');
+    .orderBy('shared_chart', sortChartsDir)
+    // Of equal scores, the one that was set first ranks higher
+    .orderBy('score', 'desc')
+    .orderBy('added', 'asc');
 
   // console.log(replaceSqlParams(query.compile()));
 
