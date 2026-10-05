@@ -31,7 +31,7 @@ export const getTrack = async (trackId: number) => {
     throw error(404, `Track not found: id ${trackId}`);
   }
 
-  const [sharedCharts, chartInstances, arcadeNames] = await Promise.all([
+  const [sharedCharts, chartInstances, resultCounts, arcadeNames] = await Promise.all([
     db
       .selectFrom('shared_charts')
       .select(['id', 'index_in_track', 'type'])
@@ -44,15 +44,26 @@ export const getTrack = async (trackId: number) => {
       .where('track', '=', trackId)
       .orderBy('mix')
       .execute(),
+    db
+      .selectFrom('results')
+      .select(({ fn }) => ['chart_instance', fn.countAll<number>().as('count')])
+      .where('chart_instance', 'in', (eb) =>
+        eb.selectFrom('chart_instances').select('id').where('track', '=', trackId)
+      )
+      .groupBy('chart_instance')
+      .execute(),
     getTrackArcadeNames([trackId]),
   ]);
+  const resultsCount = new Map(resultCounts.map((row) => [row.chart_instance, Number(row.count)]));
 
   return {
     ...track,
     arcadeNames: arcadeNames(trackId),
     charts: sharedCharts.map((sharedChart) => ({
       ...sharedChart,
-      instances: chartInstances.filter((instance) => instance.shared_chart === sharedChart.id),
+      instances: chartInstances
+        .filter((instance) => instance.shared_chart === sharedChart.id)
+        .map((instance) => ({ ...instance, resultsCount: resultsCount.get(instance.id) ?? 0 })),
     })),
   };
 };
@@ -68,6 +79,54 @@ export const findChartInstanceTrack = async (chartInstanceId: number) => {
     throw error(404, `Chart instance not found: id ${chartInstanceId}`);
   }
   return { trackId: chartInstance.track };
+};
+
+const CHART_RESULTS_FIRST_PAGE = 200;
+const CHART_RESULTS_PAGE = 500;
+
+/**
+ * A chart instance's results, newest first: the newest 200, then with a cursor (the id of
+ * the oldest result shown) the next 500 older ones
+ */
+export const getChartInstanceResults = async (chartInstanceId: number, cursor?: number | null) => {
+  const limit = cursor ? CHART_RESULTS_PAGE : CHART_RESULTS_FIRST_PAGE;
+  const chartInstance = await db
+    .selectFrom('chart_instances')
+    .select('id')
+    .where('id', '=', chartInstanceId)
+    .executeTakeFirst();
+  if (!chartInstance) {
+    throw error(404, `Chart instance not found: id ${chartInstanceId}`);
+  }
+
+  const rows = await db
+    .selectFrom('results')
+    .leftJoin('players', 'players.id', 'results.player_id')
+    .leftJoin('agents', 'agents.id', 'results.agent')
+    .select([
+      'results.id',
+      'results.gained',
+      'results.player_id',
+      'players.nickname',
+      'results.score',
+      'results.grade',
+      'results.plate',
+      'results.perfects',
+      'results.greats',
+      'results.goods',
+      'results.bads',
+      'results.misses',
+      'results.agent',
+      'agents.name as agent_name',
+      'results.is_hidden',
+    ])
+    .where('results.chart_instance', '=', chartInstanceId)
+    .$if(!!cursor, (query) => query.where('results.id', '<', cursor ?? 0))
+    .orderBy('results.id', 'desc')
+    .limit(limit)
+    .execute();
+  // Another page if this one is full (the next one may turn out empty)
+  return { rows, nextCursor: rows.length === limit ? rows[rows.length - 1].id : null };
 };
 
 export const saveTrackArcadeNames = async (trackId: number, arcadeNames: ArcadeNames) => {

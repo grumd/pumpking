@@ -9,6 +9,9 @@ interface ArcadeNamesEditorProps {
   onChange: (value: ArcadeNames) => void;
   // The edit distance a new name starts with
   defaultEdist: number;
+  // The mixes to show, if not all of them. A mix that has a name is shown anyway, so it can
+  // be removed
+  mixes?: number[];
 }
 
 // A player's or track's name on each mix's arcade screen, which ingestion matches the
@@ -18,6 +21,7 @@ export const ArcadeNamesEditor = ({
   value,
   onChange,
   defaultEdist,
+  mixes,
 }: ArcadeNamesEditorProps): JSX.Element => (
   <Table withRowBorders={false} verticalSpacing={4} horizontalSpacing="xs">
     <Table.Thead>
@@ -28,7 +32,9 @@ export const ArcadeNamesEditor = ({
       </Table.Tr>
     </Table.Thead>
     <Table.Tbody>
-      {MIX_OPTIONS_WITH_ARCADE_NAMES.map((mix) => {
+      {MIX_OPTIONS_WITH_ARCADE_NAMES.filter(
+        (mix) => !mixes || mixes.includes(mix.id) || value[mix.id]
+      ).map((mix) => {
         const arcadeName = value[mix.id] ?? null;
         return (
           <Table.Tr key={mix.id}>
