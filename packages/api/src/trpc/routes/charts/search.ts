@@ -24,13 +24,15 @@ export const search = publicProcedure
   .query(async ({ ctx, input }) => {
     const { cursor, pageSize, ...rest } = input;
     const offset = cursor ?? 0;
+    const items = await searchCharts({
+      ...rest,
+      limit: pageSize,
+      offset,
+      currentPlayerId: ctx.user?.id,
+    });
     return {
-      items: await searchCharts({
-        ...rest,
-        limit: pageSize,
-        offset,
-        currentPlayerId: ctx.user?.id,
-      }),
-      nextCursor: offset + pageSize,
+      items,
+      // A page shorter than pageSize is the last one, so the list stops asking for more
+      nextCursor: items.length < pageSize ? null : offset + pageSize,
     };
   });

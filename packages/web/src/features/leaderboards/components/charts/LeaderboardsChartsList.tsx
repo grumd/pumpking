@@ -38,7 +38,7 @@ export const LeaderboardsChartsList = (): JSX.Element => {
       ) : chartsList?.length ? (
         <Virtuoso
           endReached={() => {
-            if (charts.hasNextPage) charts.fetchNextPage();
+            if (charts.hasNextPage && !charts.isFetching) charts.fetchNextPage();
           }}
           useWindowScroll
           data={chartsList}
