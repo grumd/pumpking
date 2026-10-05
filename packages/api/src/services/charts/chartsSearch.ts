@@ -143,105 +143,118 @@ export const searchCharts = async (params: ChartsSearchParams) => {
       .filter(([, hidden]) => hidden)
       .map(([id]) => Number(id));
 
+  // The results that count for a chart's date and pp: each player's best on the chart in these
+  // mixes (of equal best scores the earliest, so a later tie doesn't move the chart up), from
+  // the players the viewer sees. `column` is read from `index` newest / highest first, and
+  // the first result that counts is the chart's one: its latest best date, or its highest pp
+  const bestResult = (column: 'added' | 'pp', index: string) => {
+    let subQuery = db
+      .selectFrom('results as r')
+      .innerJoin('players', 'players.id', 'r.player_id')
+      // Without the hints MySQL reads other indexes of results, and runs several times slower
+      .modifyFront(sql.raw(`/*+ INDEX(r ${index}) */`))
+      .select(column === 'added' ? 'r.added' : 'r.pp')
+      .where('r.shared_chart', '=', sql.ref('latest_mix.shared_chart'))
+      .where('r.mix', 'in', mixes)
+      .where(`r.${scoreField}`, 'is not', null)
+      .where(({ not, exists }) =>
+        not(
+          exists(
+            db
+              .selectFrom('results as b')
+              .modifyFront(
+                sql.raw('/*+ INDEX(b index_results_player_id_shared_chart_score_phoenix) */')
+              )
+              .select('b.id')
+              .where('b.player_id', '=', sql.ref('r.player_id'))
+              .where('b.shared_chart', '=', sql.ref('r.shared_chart'))
+              .where('b.mix', 'in', mixes)
+              .where(`b.${scoreField}`, '>=', sql.ref(`r.${scoreField}`))
+              .where(({ or, cmpr }) =>
+                or([
+                  cmpr(`b.${scoreField}`, '>', sql.ref(`r.${scoreField}`)),
+                  cmpr('b.added', '<', sql.ref('r.added')),
+                ])
+              )
+          )
+        )
+      );
+
+    if (!isCurrentPlayerHidden) {
+      subQuery = subQuery.where('players.hidden', '=', 0);
+    }
+    if (isCurrentPlayerHidden && currentPlayerId) {
+      subQuery = subQuery.where('r.player_id', '=', currentPlayerId);
+    }
+    if (hiddenPlayerIds && hiddenPlayerIds.length > 0) {
+      // Hidden players are still shown on the chart, but they don't move it up
+      subQuery = subQuery.where('r.player_id', 'not in', hiddenPlayerIds);
+    }
+    if (hiddenRegions && hiddenRegions.length > 0) {
+      // Players without a region are not in a hidden region
+      subQuery = subQuery.where(({ or, cmpr }) =>
+        or([cmpr('players.region', 'is', null), cmpr('players.region', 'not in', hiddenRegions)])
+      );
+    }
+    if (sortChartsByPlayers && sortChartsByPlayers.length > 0) {
+      subQuery = subQuery.where('r.player_id', 'in', sortChartsByPlayers);
+    }
+
+    // By shared_chart too, so MySQL reads the index backwards instead of sorting
+    return subQuery.orderBy('r.shared_chart', 'desc').orderBy(`r.${column}`, 'desc').limit(1);
+  };
+
   const query = db
+    // The chart's instance in the latest of the mixes
+    .with('latest_mix', (_db) => {
+      let subQuery = _db
+        .selectFrom('chart_instances')
+        .select(({ fn }) => ['shared_chart', fn.max('mix').as('mix')])
+        .where('mix', 'in', mixes)
+        .groupBy('shared_chart');
+      if (sharedChartId) {
+        subQuery = subQuery.where('shared_chart', '=', sharedChartId);
+      }
+      return subQuery;
+    })
     .with('filtered_charts', (_db) => {
       let subQuery = _db
-        .selectFrom('results as r')
-        .innerJoin(
-          (eb) =>
-            eb
-              .selectFrom('results')
-              .select(({ fn }) => [
-                'player_id',
-                'shared_chart',
-                fn.max(scoreField).as('best_score'),
-              ])
-              .groupBy(['shared_chart', 'player_id'])
-              .where(scoreField, 'is not', null)
-              .where('mix', 'in', mixes) // filter by mix - only get top scores of players for these mixes
-              .as('max_score_results'),
-          (join) =>
-            join
-              .onRef('max_score_results.player_id', '=', 'r.player_id')
-              .onRef('max_score_results.shared_chart', '=', 'r.shared_chart')
-              .onRef('max_score_results.best_score', '=', `r.${scoreField}`)
-        )
-        .innerJoin('shared_charts as sc', 'sc.id', 'r.shared_chart')
-        .innerJoin('tracks', 'tracks.id', 'sc.track')
-        // The chart's instance in the latest of the mixes, found once per chart
-        .innerJoin(
-          (eb) =>
-            eb
-              .selectFrom('chart_instances')
-              .select(({ fn }) => ['shared_chart', fn.max('mix').as('mix')])
-              .where('mix', 'in', mixes)
-              .groupBy('shared_chart')
-              .as('latest_mix'),
-          (join) => join.onRef('latest_mix.shared_chart', '=', 'r.shared_chart')
-        )
+        .selectFrom('latest_mix')
         .innerJoin('chart_instances as latest_ci', (join) =>
           join
             .onRef('latest_ci.shared_chart', '=', 'latest_mix.shared_chart')
             .onRef('latest_ci.mix', '=', 'latest_mix.mix')
         )
-        .innerJoin('players', 'r.player_id', 'players.id')
-        .select(({ fn }) => [
-          'r.shared_chart as shared_chart_id',
-          fn.max('r.added').as('chart_update_date'),
-          sortChartsBy === 'difficulty'
-            ? fn
-                .coalesce(fn.max('sc.interpolated_difficulty'), fn.max('latest_ci.level'))
-                .as('difficulty')
-            : fn.max('sc.interpolated_difficulty').as('difficulty'),
-          fn.max('r.pp').as('best_pp'),
-          fn.max('latest_ci.label').as('latest_chart_label'),
-          fn.max('latest_ci.level').as('latest_chart_level'),
-          fn.max('latest_ci.mix').as('latest_chart_mix'),
-        ])
-        .where(scoreField, 'is not', null)
-        .where('r.mix', 'in', mixes)
-        // A result that only ties the player's best score doesn't replace it,
-        // so it shouldn't move the chart to the top of the recently played
-        .where(({ not, exists }) =>
-          not(
-            exists((eb) =>
-              eb
-                .selectFrom('results as _r')
-                .select('_r.id')
-                .where('_r.player_id', '=', sql.ref('r.player_id'))
-                .where('_r.shared_chart', '=', sql.ref('r.shared_chart'))
-                .where(`_r.${scoreField}`, '=', sql.ref(`r.${scoreField}`))
-                .where('_r.mix', 'in', mixes)
-                .where('_r.added', '<', sql.ref('r.added'))
-            )
+        .innerJoin('shared_charts as sc', 'sc.id', 'latest_mix.shared_chart')
+        .innerJoin('tracks', 'tracks.id', 'sc.track')
+        // Charts without a result that counts are not listed
+        .innerJoinLateral(
+          () => bestResult('added', 'results_shared_chart_added').as('latest_best'),
+          (join) => join.onTrue()
+        )
+        .$if(sortChartsBy === 'pp', (qb) =>
+          qb.innerJoinLateral(
+            () => bestResult('pp', 'results_shared_chart_pp').as('top_pp'),
+            (join) => join.onTrue()
           )
-        );
+        )
+        .select(({ fn }) => [
+          'latest_mix.shared_chart as shared_chart_id',
+          'latest_best.added as chart_update_date',
+          sortChartsBy === 'difficulty'
+            ? fn.coalesce('sc.interpolated_difficulty', 'latest_ci.level').as('difficulty')
+            : 'sc.interpolated_difficulty as difficulty',
+          sortChartsBy === 'pp'
+            ? sql<number | null>`top_pp.pp`.as('best_pp')
+            : sql<number | null>`null`.as('best_pp'),
+          'latest_ci.label as latest_chart_label',
+          'latest_ci.level as latest_chart_level',
+          'latest_ci.mix as latest_chart_mix',
+        ]);
 
       /**
        * Below are filters that filter CHARTS, not results
        */
-
-      if (!isCurrentPlayerHidden) {
-        subQuery = subQuery.where('players.hidden', '=', 0);
-      }
-      if (isCurrentPlayerHidden && currentPlayerId) {
-        subQuery = subQuery.where('r.player_id', '=', currentPlayerId);
-      }
-
-      if (sharedChartId) {
-        subQuery = subQuery.where('r.shared_chart', '=', sharedChartId);
-      }
-
-      if (hiddenPlayerIds && hiddenPlayerIds.length > 0) {
-        // We filter hidden players here so that charts that were recently played by them are not at the top
-        subQuery = subQuery.where('r.player_id', 'not in', hiddenPlayerIds);
-      }
-      if (hiddenRegions && hiddenRegions.length > 0) {
-        // Players without a region are not in a hidden region
-        subQuery = subQuery.where(({ or, cmpr }) =>
-          or([cmpr('players.region', 'is', null), cmpr('players.region', 'not in', hiddenRegions)])
-        );
-      }
 
       if (songNameParts) {
         // The typed % and _ are matched as themselves
@@ -282,20 +295,16 @@ export const searchCharts = async (params: ChartsSearchParams) => {
         );
       }
 
-      if (sortChartsByPlayers && sortChartsByPlayers.length > 0) {
-        subQuery = subQuery.where('r.player_id', 'in', sortChartsByPlayers);
-      }
-
       if (playersSome && playersSome.length > 0) {
         subQuery = subQuery.where(({ exists }) =>
           exists((eb) =>
             eb
               .selectFrom('results as _r')
               .select('_r.id')
-              .where('_r.shared_chart', '=', sql.ref('r.shared_chart'))
+              .where('_r.shared_chart', '=', sql.ref('latest_mix.shared_chart'))
               .where('_r.player_id', 'in', playersSome)
-              .where(scoreField, 'is not', null)
-              .where('mix', 'in', mixes)
+              .where(`_r.${scoreField}`, 'is not', null)
+              .where('_r.mix', 'in', mixes)
           )
         );
       }
@@ -306,10 +315,10 @@ export const searchCharts = async (params: ChartsSearchParams) => {
               eb
                 .selectFrom('results as _r')
                 .select('_r.id')
-                .where('_r.shared_chart', '=', sql.ref('r.shared_chart'))
+                .where('_r.shared_chart', '=', sql.ref('latest_mix.shared_chart'))
                 .where('_r.player_id', 'in', playersNone)
-                .where(scoreField, 'is not', null)
-                .where('mix', 'in', mixes)
+                .where(`_r.${scoreField}`, 'is not', null)
+                .where('_r.mix', 'in', mixes)
             )
           )
         );
@@ -321,10 +330,10 @@ export const searchCharts = async (params: ChartsSearchParams) => {
               eb
                 .selectFrom('results as _r')
                 .select('_r.id')
-                .where('_r.shared_chart', '=', sql.ref('r.shared_chart'))
+                .where('_r.shared_chart', '=', sql.ref('latest_mix.shared_chart'))
                 .where('_r.player_id', '=', playerId)
-                .where(scoreField, 'is not', null)
-                .where('mix', 'in', mixes)
+                .where(`_r.${scoreField}`, 'is not', null)
+                .where('_r.mix', 'in', mixes)
             )
           );
         }
@@ -332,7 +341,6 @@ export const searchCharts = async (params: ChartsSearchParams) => {
 
       // Charts with the same sort value are ordered by id, so they keep their order from page to page
       return subQuery
-        .groupBy('shared_chart_id')
         .orderBy(
           sortChartsBy === 'pp'
             ? 'best_pp'
@@ -405,15 +413,16 @@ export const searchCharts = async (params: ChartsSearchParams) => {
             scoreField
           )}, 1) over (partition by r.shared_chart, r.player_id order by ${sql.ref(
             scoreField
-          )} desc, r.added asc)`.as('score_increase_real'),
+          )} desc, r.added asc, r.id asc)`.as('score_increase_real'),
           // RANK() OVER (
           //   PARTITION BY player_id, shared_chart
           //   ORDER BY score DESC
           // ) AS `score_rank`
-          // Of equal scores the earliest one ranks first, it's the one that was a new best
+          // Of equal scores the earliest one ranks first, it's the one that was a new best. The
+          // same result is sometimes stored twice in the same second: the first stored has the pp
           sql<number>`row_number() over (partition by r.shared_chart, r.player_id order by ${sql.ref(
             scoreField
-          )} desc, r.added asc)`.as('score_rank'),
+          )} desc, r.added asc, r.id asc)`.as('score_rank'),
         ])
         .where(scoreField, 'is not', null)
         .where('r.mix', 'in', mixes);
@@ -445,7 +454,8 @@ export const searchCharts = async (params: ChartsSearchParams) => {
     .orderBy('shared_chart', sortChartsDir)
     // Of equal scores, the one that was set first ranks higher
     .orderBy('score', 'desc')
-    .orderBy('added', 'asc');
+    .orderBy('added', 'asc')
+    .orderBy('result_id', 'asc');
 
   // console.log(replaceSqlParams(query.compile()));
 
