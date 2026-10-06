@@ -156,6 +156,50 @@ describe('Purgatory recheck', () => {
     assert.include(result, { grade: null, mods_list: null, rank_mode: 0, recognized_player_id: 7 });
   });
 
+  it("skips a Phoenix score's check against the stats when asked, and only then", async () => {
+    // XX scores, which only have a minimum, are still checked
+    const phoenix = await addUnknownPlayer({ score: 991_000, score_increase: 991_000 });
+    const res = await post(
+      '/results/screen/submit',
+      xxScreen({ ...xxResult(), player_name: 'DAVE', score: 100_000 })
+    );
+    const xx = res.body.updates[0].id as number;
+    await learnDave();
+    await db
+      .insertInto('arcade_player_names')
+      .values({ mix_id: 26, player_id: 7, name: 'DAVE', name_edist: 0 })
+      .execute();
+
+    assert.deepEqual((await recheck()).body.outcomes, [
+      {
+        id: phoenix,
+        outcome: 'stays',
+        reason: 'Invalid score 991,000 for specified stats, should be ~ 991,925',
+        reasonChanged: true,
+      },
+      {
+        id: xx,
+        outcome: 'stays',
+        reason: 'Invalid score: 100,000 is too low for stats specified',
+        reasonChanged: true,
+      },
+    ]);
+    assert.deepEqual((await recheck({ skipScoreCheck: true })).body.outcomes, [
+      { id: phoenix, outcome: 'added', status: 'result added' },
+      {
+        id: xx,
+        outcome: 'stays',
+        reason: 'Invalid score: 100,000 is too low for stats specified',
+        reasonChanged: false,
+      },
+    ]);
+    const results = await getResults();
+    assert.deepEqual(
+      results.map((r) => r.score),
+      [991_000]
+    );
+  });
+
   it('answers 500 when the database fails', async () => {
     await addUnknownPlayer();
     await withoutTable('arcade_player_names', async () => {

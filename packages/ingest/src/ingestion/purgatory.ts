@@ -1,6 +1,6 @@
 import { checkResult } from './checkResult';
 import { storeResult } from './storeResult';
-import type { ResultData } from './types';
+import type { CheckOptions, ResultData } from './types';
 import type { DB, Purgatory } from '@pumpking/database/database';
 import { db } from '@pumpking/database/db';
 import { type Insertable, type Kysely, sql } from 'kysely';
@@ -76,7 +76,7 @@ export type RecheckOutcome =
  * that are valid now move to results, discarded ones are deleted, the others get their
  * new reason. Returns the outcome per row and the report lines of the stored results
  */
-export const recheckPurgatory = async (id?: number) => {
+export const recheckPurgatory = async (id?: number, options: CheckOptions = {}) => {
   // The naive datetimes as strings: these columns come after `*`, so they replace the
   // DATETIME ones in the rows
   let query = db
@@ -101,7 +101,7 @@ export const recheckPurgatory = async (id?: number) => {
   for (const row of rows) {
     const { id: rowId, reason, steps_sum: _stepsSum, ...fields } = row;
     const data: ResultData = fields;
-    const checked = await checkResult(db, data);
+    const checked = await checkResult(db, data, options);
     switch (checked.outcome) {
       case 'valid': {
         const { status } = await db.transaction().execute(async (trx) => {

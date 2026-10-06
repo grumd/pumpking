@@ -102,6 +102,11 @@ interface RecheckResponse {
   error?: string;
 }
 
+export interface RecheckOptions {
+  // Skip the check of the score against the stats, for a score the admin vouches for
+  skipScoreCheck?: boolean;
+}
+
 // Ingest runs on the same host
 const ingestUrl = () => process.env.INGEST_URL || 'http://127.0.0.1:3002';
 
@@ -110,7 +115,7 @@ const ingestUrl = () => process.env.INGEST_URL || 'http://127.0.0.1:3002';
  * discarded ones are deleted, the others get their new reason. Ingest does it, so a row
  * is judged exactly as a new result would be
  */
-export const recheckPurgatory = async (id?: number) => {
+export const recheckPurgatory = async (id?: number, options: RecheckOptions = {}) => {
   if (id != null) {
     await getPurgatoryRow(id);
   }
@@ -120,7 +125,7 @@ export const recheckPurgatory = async (id?: number) => {
     const response = await fetch(`${ingestUrl()}/internal/purgatory/recheck`, {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ id }),
+      body: JSON.stringify({ id, ...options }),
       signal: AbortSignal.timeout(120_000),
     });
     body = (await response.json()) as RecheckResponse;
@@ -156,8 +161,12 @@ export const recheckPurgatory = async (id?: number) => {
   };
 };
 
-export const updateAndRecheckPurgatoryRow = async (id: number, edit: PurgatoryEdit) => {
+export const updateAndRecheckPurgatoryRow = async (
+  id: number,
+  edit: PurgatoryEdit,
+  options: RecheckOptions = {}
+) => {
   const { report: editReport } = await updatePurgatoryRow(id, edit);
-  const recheck = await recheckPurgatory(id);
+  const recheck = await recheckPurgatory(id, options);
   return { outcomes: recheck.outcomes, report: [...editReport, ...recheck.report] };
 };

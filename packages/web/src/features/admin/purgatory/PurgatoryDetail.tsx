@@ -1,6 +1,7 @@
 import type { ApiOutputs } from '@/api/trpc/router';
-import { Alert, Box, Button, Group, SimpleGrid, Stack, Text } from '@mantine/core';
+import { Alert, Box, Button, Checkbox, Group, SimpleGrid, Stack, Text } from '@mantine/core';
 import { useQuery } from '@tanstack/react-query';
+import { useState } from 'react';
 import { FaExclamationTriangle } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
 
@@ -65,6 +66,7 @@ const PurgatoryForm = ({ row, onResolved }: { row: Row; onResolved: () => void }
     max_combo: row.max_combo,
     calories: row.calories,
   });
+  const [skipScoreCheck, setSkipScoreCheck] = useState(false);
   const reason = parseReason(row.reason);
   const mixId = mixIdByName(row.mix_name);
   const highlighted = (field: PurgatoryField) => reason.fields.includes(field);
@@ -210,6 +212,12 @@ const PurgatoryForm = ({ row, onResolved }: { row: Row; onResolved: () => void }
             Delete
           </ConfirmButton>
           <Group gap="xs">
+            <Checkbox
+              label="Skip score calculations check"
+              checked={skipScoreCheck}
+              onChange={(e) => setSkipScoreCheck(e.currentTarget.checked)}
+              disabled={isBusy}
+            />
             {form.isDirty && (
               <Button variant="default" onClick={form.reset} disabled={isBusy}>
                 Undo changes
@@ -218,7 +226,9 @@ const PurgatoryForm = ({ row, onResolved }: { row: Row; onResolved: () => void }
             <Button
               loading={updateAndRecheck.isPending}
               disabled={isBusy}
-              onClick={() => updateAndRecheck.mutate({ id: row.id, edit: form.changes })}
+              onClick={() =>
+                updateAndRecheck.mutate({ id: row.id, edit: form.changes, skipScoreCheck })
+              }
             >
               {form.isDirty ? 'Save and recheck' : 'Recheck'}
             </Button>

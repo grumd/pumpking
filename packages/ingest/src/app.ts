@@ -51,12 +51,17 @@ app.post(
   agentRoute((call) => validateResults(call, 'manual'))
 );
 
-// For the API's admin purgatory recheck (body `{ id? }`): rechecks one row or all of them.
+// For the API's admin purgatory recheck (body `{ id?, skipScoreCheck? }`): rechecks one row
+// or all of them, optionally without checking the score against the stats.
 // Internal: nginx forwards only piu-spy's paths here
 app.post('/internal/purgatory/recheck', async (req, res) => {
   try {
     const id = req.body?.id;
-    res.json(await recheckPurgatory(id == null ? undefined : Number(id)));
+    res.json(
+      await recheckPurgatory(id == null ? undefined : Number(id), {
+        skipScoreCheck: req.body?.skipScoreCheck === true,
+      })
+    );
   } catch (error) {
     debug(error);
     res.status(500).json({ error: errorMessage(error) });
