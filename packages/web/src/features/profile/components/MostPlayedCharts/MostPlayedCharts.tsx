@@ -15,22 +15,21 @@ import { useLanguage } from 'utils/context/translation';
 import { getLongTimeAgo } from 'utils/timeAgo';
 import { api } from 'utils/trpc';
 
+import { mostPlayedInput, pageOptions } from '../../hooks/profileTabQueries';
 import css from './most-played-charts.module.css';
-
-const pageSize = 10;
 
 export const MostPlayedCharts = (): JSX.Element => {
   const params = useParams();
   const charts = useInfiniteQuery(
     api.players.mostPlayed.infiniteQueryOptions(
-      { playerId: params.id ? Number(params.id) : undefined, pageSize },
-      { getNextPageParam: (lastPage) => lastPage.nextCursor, initialCursor: 0 }
+      mostPlayedInput(params.id ? Number(params.id) : undefined),
+      pageOptions
     )
   );
   const lang = useLanguage();
 
   return (
-    <Card p="xs" title={lang.MOST_PLAYED_CHARTS}>
+    <>
       <SimpleGrid spacing="xs" className={css.grid}>
         {charts.data?.pages.flatMap((page) =>
           page.items.map((item) => {
@@ -71,6 +70,6 @@ export const MostPlayedCharts = (): JSX.Element => {
           {lang.SHOW_MORE}
         </Button>
       )}
-    </Card>
+    </>
   );
 };

@@ -1,6 +1,7 @@
 import { Badge } from '@mantine/core';
 
 import { colorByMix } from 'constants/colors';
+import { mixShortNames } from 'constants/mixShortNames';
 
 import { isMixNumber } from 'utils/scoring/grades';
 
@@ -17,15 +18,7 @@ export const MixPlate = ({ mix }: MixPlateProps): JSX.Element | null => {
 
   return isMixNumber(mix) && currentMix !== null && currentMix !== mix ? (
     <Badge size="xs" color={colorByMix[mix]}>
-      {
-        {
-          24: 'PR',
-          25: 'PR2',
-          26: 'XX',
-          27: 'PH',
-          28: 'PH2',
-        }[mix]
-      }
+      {mixShortNames[mix]}
     </Badge>
   ) : null;
 };

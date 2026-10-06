@@ -1,6 +1,7 @@
 import { achievements } from './achievements';
 import { grades } from './grades';
 import { highestPpCharts } from './highestPpCharts';
+import { latestResults } from './latestResults';
 import { list } from './list';
 import { mostPlayed } from './mostPlayedCharts';
 import { pp } from './pp';
@@ -15,4 +16,5 @@ export const players = router({
   achievements,
   mostPlayed,
   highestPpCharts,
+  latestResults,
 });

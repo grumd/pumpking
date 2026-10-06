@@ -27,7 +27,7 @@ const DoubleSingleGraph = () => {
   type Root = (typeof graphData)[number];
 
   return (
-    <ResponsiveContainer aspect={1.6}>
+    <ResponsiveContainer width="100%" height="100%">
       <BarChart
         data={graphData}
         stackOffset="sign"

@@ -1,36 +1,32 @@
-import { Anchor, Button, Flex, SimpleGrid, Stack, Text } from '@mantine/core';
+import { Button, SimpleGrid, Text, Tooltip } from '@mantine/core';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { MdExpandMore } from 'react-icons/md';
 import { useParams } from 'react-router';
-import { NavLink } from 'react-router-dom';
 
 import { Card } from 'components/Card/Card';
-import { ChartLabel } from 'components/ChartLabel/ChartLabel';
-import { Grade } from 'components/Grade/Grade';
 import Loader from 'components/Loader/Loader';
 
-import { routes } from 'constants/routes';
-
 import { useLanguage } from 'utils/context/translation';
-import { getLongTimeAgo } from 'utils/timeAgo';
 import { api } from 'utils/trpc';
 
-import css from './highest-pp-charts.module.css';
-
-const pageSize = 20;
+import { bestScoresInput, pageOptions } from '../../hooks/profileTabQueries';
+import { ResultChartLabel } from '../ResultChartLabel';
+import { ResultName } from '../ResultName';
+import { ResultScore } from '../ResultScore';
+import css from '../result-row.module.css';
 
 export const HighestPpCharts = (): JSX.Element => {
   const params = useParams();
   const charts = useInfiniteQuery(
     api.players.highestPpCharts.infiniteQueryOptions(
-      { playerId: params.id ? Number(params.id) : undefined, pageSize },
-      { getNextPageParam: (lastPage) => lastPage.nextCursor, initialCursor: 0 }
+      bestScoresInput(params.id ? Number(params.id) : undefined),
+      pageOptions
     )
   );
   const lang = useLanguage();
 
   return (
-    <Card p="xs" title={lang.BEST_SCORES}>
+    <>
       <SimpleGrid spacing="xs" className={css.grid}>
         {charts.data?.pages.flatMap((page) =>
           page.items.map((item) => {
@@ -43,42 +39,34 @@ export const HighestPpCharts = (): JSX.Element => {
                 : `rgba(255, 255, 255, ${Math.min(1, Math.max(0.2, 1 - (daysAgo - 30) / 360))})`;
             return (
               <Card key={item.shared_chart} fz="md" p="0.5em" level={2} className={css.row}>
-                <Flex>
-                  <ChartLabel label={item.label} />
-                </Flex>
-                <Anchor
-                  component={NavLink}
-                  to={routes.leaderboard.sharedChart.getPath({
-                    sharedChartId: item.shared_chart,
-                  })}
-                >
-                  {item.full_name}
-                </Anchor>
-                <Text lh="1" c={dateColor} fz="xs">
-                  {getLongTimeAgo(lang, date)}
-                </Text>
-                <Stack c="dark.2" gap="0.1em" ta="right">
-                  <Text c="dark.1" lh="1em" size="xs">
-                    {(item.pp * item.weight).toFixed(2)}pp
-                  </Text>
-                  <Text lh="1em" size="xs">
-                    weighted {Math.round(item.weight * 100)}%
-                  </Text>
-                </Stack>
-                <Grade
-                  pl="0.5em"
-                  h="1em"
-                  w="100%"
-                  score={item.score ?? 0}
-                  isPass={item.is_pass ?? false}
+                <ResultChartLabel label={item.label} mix={item.mix} labelMix={item.label_mix} />
+                <ResultName
+                  sharedChartId={item.shared_chart}
+                  name={item.full_name}
+                  date={date}
+                  dateColor={dateColor}
                 />
-                <Text pl="0.5em" fw="bold" ta="right">
-                  {item.pp?.toFixed(2)}
-                  <Text span c="dark.2" ta="right">
-                    {' '}
-                    pp
+                <ResultScore
+                  score={item.score_phoenix}
+                  scorePhoenix={item.score_phoenix}
+                  plate={item.plate}
+                  isPass={item.is_pass}
+                />
+                {/* What this result adds to the player's pp after weighting */}
+                <Tooltip
+                  label={`${item.pp.toFixed(2)} × ${Math.round(item.weight * 100)}% = ${(
+                    item.pp * item.weight
+                  ).toFixed(2)}`}
+                  events={{ hover: true, focus: false, touch: true }}
+                >
+                  <Text pl="0.5em" fw="bold" ta="right">
+                    {item.pp?.toFixed(2)}
+                    <Text span c="dark.2" className={css.ppUnit}>
+                      {' '}
+                      pp
+                    </Text>
                   </Text>
-                </Text>
+                </Tooltip>
               </Card>
             );
           })
@@ -96,6 +84,6 @@ export const HighestPpCharts = (): JSX.Element => {
           {lang.SHOW_MORE}
         </Button>
       )}
-    </Card>
+    </>
   );
 };

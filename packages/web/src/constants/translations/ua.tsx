@@ -158,10 +158,14 @@ export const ua = {
   LEVEL_ACHIEVEMENTS_HINT:
     '* для отримання ачівки треба зіграти близько 10% усіх чартів даного рівня на потрібний грейд',
   ACHIEVEMENTS: 'досягнення',
-  MOST_PLAYED_CHARTS: 'чарти, що часто гралися',
-  BEST_SCORES: 'найкращі результати',
+  LATEST: 'останні',
+  PP_GRAPH: 'Графік PP',
+  PLACE_GRAPH: 'Графік місця',
+  MOST_PLAYED: 'найчастіше грані',
+  TOP_RESULTS: 'найкращі результати',
   PLACE_IN_TOP: 'місце у топі',
   TOTAL: 'усього',
+  TOTAL_EXP: 'усього досвіду',
   UNITE_GRAPHS: "об'єднати графіки",
   RESULTS: 'Резалти:',
   TOP_POPULAR_TRACKS: 'Топ популярних треків',
@@ -256,7 +260,6 @@ export const ua = {
   FILL_FORM: 'Вставити числа',
 
   // Admin
-  ADMIN_PANEL: 'Адмін панель',
   DELETE_RESULT: 'Видалити результат',
   DELETE_RESULT_CONFIRM:
     'Ви впевнені, що хочете видалити цей результат? Цю дію неможливо скасувати.',

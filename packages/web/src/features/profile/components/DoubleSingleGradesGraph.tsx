@@ -179,7 +179,7 @@ const GradesGraph = () => {
   }
 
   return (
-    <ResponsiveContainer aspect={0.74}>
+    <ResponsiveContainer width="100%" height="100%">
       <BarChart
         data={graphDataMapped}
         margin={{ top: 5, bottom: 5, right: 5, left: 0 }}
