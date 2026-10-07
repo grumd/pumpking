@@ -11,7 +11,8 @@ export const ResultsCollapser = ({ children, count }) => {
   if (collapsed && count > 1) {
     return (
       <tr className="results-collapser" onClick={() => setCollapsed(false)}>
-        <td colSpan="20">
+        {/* exactly the columns of the chart table, extra ones would take space from the nickname */}
+        <td colSpan="11">
           <div>
             <button>
               {count && lang.SHOW_MORE_RESULTS ? (

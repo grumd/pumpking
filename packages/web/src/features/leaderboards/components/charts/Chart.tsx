@@ -124,6 +124,19 @@ const Chart = memo(function _Chart({ chart }: { chart: ChartApiOutput }) {
           <div className="chart">
             <div className="results">
               <table>
+                <colgroup>
+                  <col className="place" />
+                  <col className="nickname" />
+                  <col className="score" />
+                  <col className="grade" />
+                  <col className="miss" />
+                  <col className="bad" />
+                  <col className="good" />
+                  <col className="great" />
+                  <col className="perfect" />
+                  <col className="combo" />
+                  <col className="date" />
+                </colgroup>
                 <tbody>
                   {resultGroups.map((group) => {
                     const groupResults = group.results.map((res) => {
