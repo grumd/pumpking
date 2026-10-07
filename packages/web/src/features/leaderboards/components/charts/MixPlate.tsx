@@ -1,4 +1,4 @@
-import { Badge } from '@mantine/core';
+import type { ReactNode } from 'react';
 
 import { colorByMix } from 'constants/colors';
 
@@ -8,24 +8,20 @@ import { useFilter } from '../../hooks/useFilter';
 
 interface MixPlateProps {
   mix: number;
+  children: ReactNode;
 }
 
-export const MixPlate = ({ mix }: MixPlateProps): JSX.Element | null => {
+// Puts the children in a bubble of the mix's color when the result is from an earlier mix
+export const MixPlate = ({ mix, children }: MixPlateProps): JSX.Element => {
   const { mixes } = useFilter();
 
   const currentMix = mixes?.length ? Math.max(...mixes) : null;
 
   return isMixNumber(mix) && currentMix !== null && currentMix !== mix ? (
-    <Badge size="xs" color={colorByMix[mix]}>
-      {
-        {
-          24: 'PR',
-          25: 'PR2',
-          26: 'XX',
-          27: 'PH',
-          28: 'PH2',
-        }[mix]
-      }
-    </Badge>
-  ) : null;
+    <span className="mix-plate" style={{ background: colorByMix[mix] }}>
+      {children}
+    </span>
+  ) : (
+    <>{children}</>
+  );
 };

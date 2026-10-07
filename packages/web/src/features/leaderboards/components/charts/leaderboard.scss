@@ -151,7 +151,7 @@
 
         > .chart {
           background: #424242;
-          padding: 8px;
+          padding: 4px 8px;
           display: flex;
           flex-flow: row wrap;
           border-radius: 10px;
@@ -164,10 +164,38 @@
             position: relative;
             > table {
               width: 100%;
+              // the same column widths in every chart, the nickname takes the rest
+              table-layout: fixed;
+              col {
+                &.place {
+                  width: 41px;
+                }
+                &.score {
+                  width: 98px;
+                }
+                &.grade {
+                  width: 64px;
+                }
+                &.miss,
+                &.bad,
+                &.good,
+                &.great {
+                  width: 50px;
+                }
+                &.perfect {
+                  width: 60px;
+                }
+                &.combo {
+                  width: 54px;
+                }
+                &.date {
+                  width: 70px;
+                }
+              }
             }
             td,
             th {
-              padding: 2px 4px 0 4px;
+              padding: 3px 4px 2px 4px;
               &.opacity {
                 opacity: 0.4;
               }
@@ -184,24 +212,28 @@
                   min-width: 0;
                 }
               }
+              &.date {
+                color: #bbb;
+                font-size: 80%;
+                width: 44px;
+                min-width: 44px;
+                text-align: center;
+                padding-left: 18px; // a gap after the combo
+                white-space: nowrap;
+                .mix-plate {
+                  padding: 1px 6px;
+                  border-radius: 1000px;
+                }
+              }
               &.grade {
                 width: 48px;
+                padding-right: 12px; // a gap before the stats
                 .img-holder {
                   display: flex;
                   align-items: center;
                   justify-content: center;
                 }
               }
-              &.date {
-                color: #c9c9c9;
-                font-size: 65%;
-                width: 45px;
-                text-align: right;
-                > .rrui__tooltip__target {
-                  white-space: nowrap;
-                }
-              }
-
               &.accuracy {
                 width: 62px;
                 text-align: right;
@@ -219,11 +251,15 @@
                 }
               }
               &.number {
-                width: 54px;
+                width: 50px;
                 text-align: right;
+                font-size: 80%;
+                &.zero {
+                  color: #aaa;
+                }
               }
               &.perfect {
-                width: 66px;
+                width: 60px;
               }
               &.combo {
                 width: 52px;
@@ -266,9 +302,6 @@
                   &.mods {
                     opacity: 0.7;
                   }
-                  &.date {
-                    color: #888;
-                  }
                 }
                 &.latest {
                   // outline: 1px solid #80808080;
@@ -283,6 +316,23 @@
                       font-weight: 600;
                       color: var(--fresh_result_color);
                     }
+                  }
+                }
+                // the stats block from miss to combo has small rounded outer corners
+                &:first-child td {
+                  &.miss {
+                    border-top-left-radius: 2px;
+                  }
+                  &.combo {
+                    border-top-right-radius: 2px;
+                  }
+                }
+                &:last-child td {
+                  &.miss {
+                    border-bottom-left-radius: 2px;
+                  }
+                  &.combo {
+                    border-bottom-right-radius: 2px;
                   }
                 }
                 &:not(.empty) {
@@ -301,6 +351,9 @@
                     }
                     &.perfect {
                       background: rgba(0, 255, 255, 0.05);
+                    }
+                    &.combo {
+                      background: rgba(255, 255, 255, 0.05);
                     }
                   }
                 }
@@ -351,6 +404,13 @@
           padding: 0 0.3em;
           border-radius: 0;
           > .results {
+            // place and combo cells are hidden here, so the columns size by content
+            > table {
+              table-layout: auto;
+              col {
+                width: auto !important;
+              }
+            }
             td,
             th {
               vertical-align: middle;
@@ -362,13 +422,20 @@
                 padding: 1px;
                 width: 33%; // take up to 33% of all space
                 max-width: none;
+                font-size: 15px;
+                // the name is a Mantine Text / Anchor with its own size
+                .mantine-Text-root,
+                .mantine-Anchor-root {
+                  font-size: inherit;
+                }
               }
               &.score {
                 width: 10%;
+                font-size: 15px;
               }
               &.grade {
                 width: 3%;
-                padding: 0 4px 0 1px;
+                padding: 0 8px 0 4px; // gaps after the score and before the stats
                 .img-holder img {
                   height: 14px;
                 }
@@ -376,22 +443,28 @@
               &.number {
                 width: initial;
                 padding: 3px;
-                font-size: 80%;
               }
               &.perfect {
                 width: initial;
               }
               &.combo {
                 width: initial;
-                font-size: 75%;
               }
               &.accuracy {
                 font-size: 75%;
                 width: initial;
               }
               &.date {
-                font-size: 75%;
-                width: initial;
+                padding-left: 4px;
+              }
+            }
+            // combo is hidden here, so the stats block ends at perfect
+            tbody tr {
+              &:first-child td.perfect {
+                border-top-right-radius: 2px;
+              }
+              &:last-child td.perfect {
+                border-bottom-right-radius: 2px;
               }
             }
             thead {

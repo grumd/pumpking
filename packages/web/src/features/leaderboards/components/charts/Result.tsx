@@ -17,6 +17,7 @@ import { filterAtom } from 'features/leaderboards/hooks/useFilter';
 import { useUser } from 'hooks/useUser';
 
 import { translation, useLanguage } from 'utils/context/translation';
+import { Mixes, isMixNumber } from 'utils/scoring/grades';
 import { getShortTimeAgo } from 'utils/timeAgo';
 
 import type { ChartApiOutput } from '../../hooks/useChartsQuery';
@@ -91,6 +92,9 @@ const Result = ({ result, chart }: { result: ResultExtended; chart: ChartApiOutp
     }
   };
 
+  // the chart on the result's mix, when it's not the latest mix
+  const originalChart = chart.otherChartInstances.find((instance) => instance.mix === result.mix);
+
   const playerRoute =
     result.playerId == null ? null : routes.profile.getPath({ id: result.playerId });
 
@@ -154,27 +158,43 @@ const Result = ({ result, chart }: { result: ResultExtended; chart: ChartApiOutp
                 R
               </Badge>
             )}
-            <MixPlate mix={result.mix} />
           </Group>
         </Group>
       </td>
       <td className={classNames('score')}>
-        <Popover withArrow shadow="sm" width={200} position="top">
+        <Popover withArrow shadow="sm" position="top">
           <Popover.Target>
             <span className="score-span">
-              <span>{Math.floor(result.score / 1000)}</span>
+              <span>{Math.floor(result.score / 1000).toLocaleString('en-US')}</span>
               <span style={{ fontSize: '70%' }}>,{`${result.score % 1000}`.padStart(3, '0')}</span>
             </span>
           </Popover.Target>
-          <Popover.Dropdown p="sm">
+          <Popover.Dropdown p="sm" miw={200}>
             <Box>
               <ResultScreenshotLink resultId={result.id} />
 
               <Box
                 component="dl"
                 m={0}
-                style={{ display: 'grid', gridTemplateColumns: 'auto 1fr', gap: '0.25rem 0.5rem' }}
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'auto 1fr',
+                  gap: '0.25rem 0.5rem',
+                  // each field on one line, the popup grows to fit them
+                  whiteSpace: 'nowrap',
+                }}
               >
+                {originalChart && isMixNumber(originalChart.mix) && (
+                  <>
+                    <Text component="dt" c="dimmed" size="sm">
+                      {lang.ORIGINAL_CHART}
+                    </Text>
+                    <Text component="dd" m={0} size="sm">
+                      {Mixes[originalChart.mix]} {originalChart.label}
+                    </Text>
+                  </>
+                )}
+
                 {DEBUG && (
                   <>
                     <Text component="dt" c="dimmed" size="sm">
@@ -198,7 +218,7 @@ const Result = ({ result, chart }: { result: ResultExtended; chart: ChartApiOutp
                       {lang.ORIGINAL_SCORE}
                     </Text>
                     <Text component="dd" m={0} size="sm" style={{ whiteSpace: 'nowrap' }}>
-                      {Math.floor(result.originalScore / 1000)},
+                      {Math.floor(result.originalScore / 1000).toLocaleString('en-US')},
                       <span style={{ fontSize: '70%' }}>
                         {`${result.originalScore % 1000}`.padStart(3, '0')}
                       </span>
@@ -206,7 +226,7 @@ const Result = ({ result, chart }: { result: ResultExtended; chart: ChartApiOutp
                   </>
                 )}
 
-                {result.grade != null && (
+                {originalChart && result.grade != null && (
                   <>
                     <Text component="dt" c="dimmed" size="sm">
                       {lang.ORIGINAL_GRADE}
@@ -217,19 +237,27 @@ const Result = ({ result, chart }: { result: ResultExtended; chart: ChartApiOutp
                   </>
                 )}
 
-                <Text component="dt" c="dimmed" size="sm">
-                  {lang.PLAYER}:
-                </Text>
-                <Text component="dd" m={0} size="sm">
-                  {playerRoute ? (
-                    <Anchor component={Link} to={playerRoute}>
-                      {result.playerName}
-                      {result.playerNameArcade ? ` (${result.playerNameArcade})` : null}
-                    </Anchor>
-                  ) : `${result.playerName}` + result.playerNameArcade ? (
-                    ` (${result.playerNameArcade})`
-                  ) : null}
-                </Text>
+                {result.isExactGainedDate && result.combo != null && (
+                  <>
+                    <Text component="dt" c="dimmed" size="sm" hiddenFrom="sm">
+                      {lang.MAX_COMBO}:
+                    </Text>
+                    <Text component="dd" m={0} size="sm" hiddenFrom="sm">
+                      {result.combo}x
+                    </Text>
+                  </>
+                )}
+
+                {result.playerNameArcade && (
+                  <>
+                    <Text component="dt" c="dimmed" size="sm">
+                      AM.Pass:
+                    </Text>
+                    <Text component="dd" m={0} size="sm">
+                      {result.playerNameArcade}
+                    </Text>
+                  </>
+                )}
 
                 {result.exp ? (
                   <>
@@ -263,17 +291,6 @@ const Result = ({ result, chart }: { result: ResultExtended; chart: ChartApiOutp
                     </Text>
                   </>
                 )}
-
-                {result.isExactGainedDate && result.combo != null && (
-                  <>
-                    <Text component="dt" c="dimmed" size="sm" hiddenFrom="sm">
-                      {lang.COMBO}:
-                    </Text>
-                    <Text component="dd" m={0} size="sm" hiddenFrom="sm">
-                      {result.combo}
-                    </Text>
-                  </>
-                )}
               </Box>
 
               {!result.isExactGainedDate && (
@@ -286,13 +303,15 @@ const Result = ({ result, chart }: { result: ResultExtended; chart: ChartApiOutp
                   pr="xs"
                   icon={<FaExclamationTriangle />}
                   styles={{ message: { fontSize: 'var(--mantine-font-size-sm)' } }}
+                  // wraps within the popup's width instead of widening it
+                  style={{ width: 0, minWidth: '100%' }}
                 >
                   {lang.MY_BEST_SCORE_WARNING}
                 </Alert>
               )}
 
               {result.isExactGainedDate && !result.scoreIncrease && (
-                <Text size="sm" mt="xs">
+                <Text size="sm" mt="xs" style={{ width: 0, minWidth: '100%' }}>
                   {lang.SIGHTREAD}
                 </Text>
               )}
@@ -332,21 +351,29 @@ const Result = ({ result, chart }: { result: ResultExtended; chart: ChartApiOutp
           <Grade w="auto" h="1rem" score={result.score} isPass={result.passed ?? false} />
         </div>
       </td>
-      <td className={classNames('number', 'miss')}>{result.stats[4]}</td>
-      <td className={classNames('number', 'bad')}>{result.stats[3]}</td>
-      <td className={classNames('number', 'good')}>{result.stats[2]}</td>
-      <td className={classNames('number', 'great')}>{result.stats[1]}</td>
-      <td className={classNames('number', 'perfect')}>{result.stats[0]}</td>
+      <td className={classNames('number', 'miss', { zero: result.stats[4] === 0 })}>
+        {result.stats[4]}
+      </td>
+      <td className={classNames('number', 'bad', { zero: result.stats[3] === 0 })}>
+        {result.stats[3]}
+      </td>
+      <td className={classNames('number', 'good', { zero: result.stats[2] === 0 })}>
+        {result.stats[2]}
+      </td>
+      <td className={classNames('number', 'great', { zero: result.stats[1] === 0 })}>
+        {result.stats[1]}
+      </td>
+      <td className={classNames('number', 'perfect', { zero: result.stats[0] === 0 })}>
+        {result.stats[0]}
+      </td>
       <td className={classNames('combo', 'desktop-only')}>{result.combo && `${result.combo}x`}</td>
-      <td
-        className={classNames('date', {
-          latest: result.isLatestScore,
-        })}
-      >
+      <td className="date">
         <Tooltip label={tooltipFormatter(lang, result)}>
           <div>
-            {getShortTimeAgo(lang, new Date(result.gained))}
-            {result.isExactGainedDate ? '' : '?'}
+            <MixPlate mix={result.mix}>
+              {getShortTimeAgo(lang, new Date(result.gained))}
+              {result.isExactGainedDate ? '' : '?'}
+            </MixPlate>
           </div>
         </Tooltip>
       </td>
