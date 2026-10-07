@@ -74,3 +74,10 @@ export type CheckedResult =
   | ({ outcome: 'valid' } & ValidResult)
   | { outcome: 'unrecognized'; reason: string }
   | { outcome: 'discarded'; reason: string };
+
+export interface CheckOptions {
+  // An admin rechecking a purgatory row vouches for its score: the check of a
+  // million-scoring score against the stats is skipped (the screen can be right where the
+  // formula isn't). Combo-scoring mixes ignore it
+  skipScoreCheck?: boolean;
+}

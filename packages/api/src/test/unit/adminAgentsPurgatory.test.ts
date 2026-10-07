@@ -128,8 +128,8 @@ describe('Admin purgatory', () => {
   // Ingest does the recheck itself (its tests cover it); this stands in for its endpoint
   describe('recheck', () => {
     let server: Server;
-    let respond: (body: { id?: number }) => object;
-    let requests: { id?: number }[];
+    let respond: (body: { id?: number; skipScoreCheck?: boolean }) => object;
+    let requests: { id?: number; skipScoreCheck?: boolean }[];
 
     before((done) => {
       const ingest = express();
@@ -178,6 +178,21 @@ describe('Admin purgatory', () => {
       ]);
       const row = await db.selectFrom('purgatory').select('player_name').executeTakeFirstOrThrow();
       assert.equal(row.player_name, 'DUMMY2P2');
+    });
+
+    it("asks ingest to skip the score's check when the admin does", async () => {
+      const id = await insertRow({ reason: 'Invalid score 991,000 for specified stats' });
+      respond = () => ({
+        outcomes: [{ id, outcome: 'added', status: 'result added' }],
+        report: ['Rechecked 1 items in purgatory'],
+      });
+
+      await trpcMutation('admin.purgatory.updateAndRecheck', {
+        id,
+        edit: {},
+        skipScoreCheck: true,
+      }).expect(200);
+      assert.deepEqual(requests, [{ id, skipScoreCheck: true }]);
     });
 
     it('rechecks everything, and tells what happened to each row', async () => {

@@ -2,7 +2,7 @@ import { DiscardedResult, UnrecognizedResult } from './errors';
 import { formatNumber, pyStr } from './format';
 import { getResultMods } from './mods';
 import { getResultStats, type StepStats } from './stats';
-import type { ResultData } from './types';
+import type { CheckOptions, ResultData } from './types';
 import { getPhoenixGrade } from '@pumpking/utils/grades';
 import { getUnroundedPhoenixScore } from '@pumpking/utils/phoenixScore';
 
@@ -60,7 +60,11 @@ export const calcPhoenixScoreFromStats = (data: ResultData): number | null => {
   return steps && maxCombo != null ? Math.ceil(unroundedScore(steps, maxCombo)) : null;
 };
 
-export const validateMillionStats = (mixId: number, data: ResultData) => {
+export const validateMillionStats = (
+  mixId: number,
+  data: ResultData,
+  { skipScoreCheck }: CheckOptions = {}
+) => {
   const { score, scoreIncrease, maxCombo, steps, grade, isPass, plate } = getResultStats(data);
 
   if (score === 0) {
@@ -84,7 +88,7 @@ export const validateMillionStats = (mixId: number, data: ResultData) => {
   }
 
   const calculatedScore = unroundedScore(steps, maxCombo);
-  if (Math.abs(score - calculatedScore) > 1) {
+  if (!skipScoreCheck && Math.abs(score - calculatedScore) > 1) {
     throw new UnrecognizedResult(
       `Invalid score ${formatNumber(score)} for specified stats, should be ~ ${formatNumber(
         Math.trunc(calculatedScore)

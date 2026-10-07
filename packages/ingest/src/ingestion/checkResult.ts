@@ -4,7 +4,7 @@ import { calcPhoenixScoreFromStats, validateMillionStats } from './millionScorin
 import { findPlayer } from './players';
 import { getStepStats, totalSteps } from './stats';
 import { findChartInstances, findTracks, type TrackMatch } from './tracks';
-import type { CheckedResult, ChartInstance, ResultData, ValidResult } from './types';
+import type { CheckedResult, CheckOptions, ChartInstance, ResultData, ValidResult } from './types';
 import type { DB } from '@pumpking/database/database';
 import { findMixId, isMillionScoringMix } from '@pumpking/utils/mixes';
 import { InvalidModsError } from '@pumpking/utils/mods';
@@ -95,7 +95,11 @@ const checkNumberOfSteps = (chart: ChartInstance, data: ResultData): number => {
  * The recognized track name is always trusted to be close: the legacy stream mode, which
  * guessed the track from the label and the number of steps, isn't ported.
  */
-const validateResult = async (db: Kysely<DB>, data: ResultData): Promise<ValidResult> => {
+const validateResult = async (
+  db: Kysely<DB>,
+  data: ResultData,
+  options: CheckOptions
+): Promise<ValidResult> => {
   const mixId = findMixId(data.mix_name);
   if (mixId == null) {
     throw new UnrecognizedResult(`'${data.mix_name}' is not in list`);
@@ -117,7 +121,7 @@ const validateResult = async (db: Kysely<DB>, data: ResultData): Promise<ValidRe
   // well, before the number of steps is compared to the chart's
   const millionScoring = isMillionScoringMix(mixId);
   if (millionScoring) {
-    validateMillionStats(mixId, data);
+    validateMillionStats(mixId, data, options);
   }
 
   const chart = await findResultChartInstance(db, mixId, data);
@@ -144,9 +148,13 @@ const validateResult = async (db: Kysely<DB>, data: ResultData): Promise<ValidRe
 };
 
 /** What validation decides about a result (see CheckedResult) */
-export const checkResult = async (db: Kysely<DB>, data: ResultData): Promise<CheckedResult> => {
+export const checkResult = async (
+  db: Kysely<DB>,
+  data: ResultData,
+  options: CheckOptions = {}
+): Promise<CheckedResult> => {
   try {
-    return { outcome: 'valid', ...(await validateResult(db, data)) };
+    return { outcome: 'valid', ...(await validateResult(db, data, options)) };
   } catch (e) {
     if (e instanceof UnrecognizedResult || e instanceof InvalidModsError) {
       return { outcome: 'unrecognized', reason: e.message };
