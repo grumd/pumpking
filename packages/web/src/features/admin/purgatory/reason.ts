@@ -26,7 +26,7 @@ const RULES: [RegExp, PurgatoryField[]][] = [
   [/^Invalid track|^Invalid chart|^Ambiguous chart/, ['track_name', 'chart_label']],
   [/^Number of steps|^Result with no stats/, STATS],
   [/^Invalid score_increase|^Score increase/, ['score_increase']],
-  [/^Invalid score/, ['score']],
+  [/^Invalid score/, ['score', ...STATS, 'max_combo']],
   [/^Invalid grade/, ['grade']],
   [/^Invalid plate|^Plate '/, ['plate']],
   [/max_combo/, ['max_combo']],
