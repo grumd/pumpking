@@ -4,6 +4,7 @@ import { assert } from 'chai';
 import { db } from '@pumpking/database/db';
 import { getPlayersStats } from 'services/players/players';
 import { req } from 'test/helpers';
+import { output, trpcQuery } from 'test/helpers/trpc';
 import { getResultDefaults } from 'test/seeds/initialSeed';
 
 describe('Players', () => {
@@ -130,5 +131,37 @@ describe('Players', () => {
     const player2 = stats.filter((p) => p.id === 2);
     assert.lengthOf(player2, 1, 'player 2 appears once despite two arcade names');
     assert.equal(player2[0].arcade_name, 'DUMMY2P2', 'stats show the latest arcade name');
+  });
+
+  it('lists latest results newest first, without hidden ones', async () => {
+    const day = (n: number) => new Date(Date.UTC(2030, 0, n));
+    const insert = (gained: Date, extra: { is_hidden?: number; shared_chart?: number; plate?: string } = {}) =>
+      db
+        .insertInto('results')
+        .values({ ...getResultDefaults({ playerId: 1 }), gained, ...extra })
+        .executeTakeFirstOrThrow();
+    await insert(day(2), { shared_chart: 3, plate: 'UG' });
+    await insert(day(3), { is_hidden: 1 });
+    await insert(day(1));
+
+    const res = await trpcQuery('players.latestResults', { playerId: 1, pageSize: 2 }).expect(200);
+    const { items, nextCursor } = output(res);
+    assert.deepEqual(
+      items.map((x: { date: string; shared_chart: number }) => [x.date, x.shared_chart]),
+      [
+        [day(2).toISOString(), 3],
+        [day(1).toISOString(), 1],
+      ],
+      'newest first, the hidden result is left out'
+    );
+    assert.include(items[0], {
+      score: 1000000,
+      score_phoenix: 1000000,
+      plate: 'UG',
+      is_pass: false,
+      mix: 26,
+      label_mix: 28,
+    });
+    assert.equal(nextCursor, 2);
   });
 });

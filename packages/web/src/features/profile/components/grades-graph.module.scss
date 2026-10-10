@@ -4,3 +4,27 @@
   border-radius: 6px;
   padding: 6px 8px 3px 8px;
 }
+
+// The grades card takes the height of the column next to it (exp and graph tabs):
+// the graph is positioned absolutely, so it doesn't add to the row's height
+.fillCard {
+  display: flex;
+  flex-direction: column;
+}
+
+.fill {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 10em;
+
+  // In the graph tabs on phones: no column next to it to take the height from
+  @media (max-width: 600px) {
+    flex: none;
+    aspect-ratio: 1.3;
+  }
+}
+
+.fillInner {
+  position: absolute;
+  inset: 0;
+}

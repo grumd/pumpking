@@ -1,0 +1,4 @@
+/* Tighter than Mantine's default tab padding (10px 16px), for the profile's tabbed cards */
+.tab {
+  padding: 6px 10px;
+}

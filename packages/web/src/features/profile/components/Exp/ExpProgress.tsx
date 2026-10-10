@@ -10,6 +10,9 @@ import { getRankIndex, ranks } from 'components/ExpRankImg/expRanks';
 import { useLanguage } from 'utils/context/translation';
 import { api } from 'utils/trpc';
 
+// Whole exp points, with thousands separators
+const formatExp = (exp: number) => Math.floor(exp).toLocaleString('en-US');
+
 export const ExpProgress = (): React.ReactNode => {
   const params = useParams();
   const lang = useLanguage();
@@ -28,20 +31,20 @@ export const ExpProgress = (): React.ReactNode => {
     : 1;
 
   return (
-    <Group pl="sm" pr="sm" pb="sm" fz="lg">
+    <Group fz="lg" wrap="nowrap">
       <Stack align="center" gap="0.25em" w="2.5em">
         <ExpRankImg rankIndex={currentRankIndex} />
-        <Text size="0.6rem">{currentRank.threshold}</Text>
+        <Text size="0.6rem">{formatExp(currentRank.threshold)}</Text>
       </Stack>
       <Stack align="center" gap="0" className={css.expLineBlock}>
         {nextRank ? (
           <span>
             <Text size="sm" span c="gold">
-              {Math.floor(playerExp - currentRank.threshold)}
+              {formatExp(playerExp - currentRank.threshold)}
             </Text>
             <Text size="sm" span>
               {' '}
-              / {nextRank.threshold - currentRank.threshold}
+              / {formatExp(nextRank.threshold - currentRank.threshold)}
             </Text>
           </span>
         ) : null}
@@ -54,9 +57,9 @@ export const ExpProgress = (): React.ReactNode => {
         </div>
         <span>
           <Text size="sm" span>
-            {lang.TOTAL}:{' '}
+            {lang.TOTAL_EXP}:{' '}
             <Text span c="gold" inherit>
-              {playerExp}
+              {formatExp(playerExp)}
             </Text>
           </Text>
         </span>
@@ -64,7 +67,7 @@ export const ExpProgress = (): React.ReactNode => {
       {nextRank && (
         <Stack align="center" gap="0.25em" w="2.5em">
           <ExpRankImg rankIndex={currentRankIndex + 1} />
-          <Text size="0.6rem">{nextRank.threshold}</Text>
+          <Text size="0.6rem">{formatExp(nextRank.threshold)}</Text>
         </Stack>
       )}
     </Group>

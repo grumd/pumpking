@@ -168,10 +168,14 @@ export const pl: BaseTranslation = {
   LEVEL_ACHIEVEMENTS_HINT:
     '* aby zdobyć osiągnięcie, musisz zagrać ~10% wszystkich czartów danego poziomu na określoną ocenę',
   ACHIEVEMENTS: 'osiągnięcia',
-  MOST_PLAYED_CHARTS: 'najczęściej grane czarty',
-  BEST_SCORES: 'najlepsze wyniki',
+  LATEST: 'ostatnie',
+  PP_GRAPH: 'Wykres PP',
+  PLACE_GRAPH: 'Wykres miejsca',
+  MOST_PLAYED: 'najczęściej grane',
+  TOP_RESULTS: 'najlepsze wyniki',
   PLACE_IN_TOP: 'miejsce w top',
   TOTAL: 'razem',
+  TOTAL_EXP: 'razem exp',
   UNITE_GRAPHS: 'połącz wykresy',
   RESULTS: 'Wyniki:',
   TOP_POPULAR_TRACKS: 'Najpopularniejsze utwory',
@@ -265,7 +269,6 @@ export const pl: BaseTranslation = {
   FILL_FORM: 'Wstaw liczby',
 
   // Admin
-  ADMIN_PANEL: 'Panel Admina',
   DELETE_RESULT: 'Usuń wynik',
   DELETE_RESULT_CONFIRM: 'Czy na pewno chcesz usunąć ten wynik? Tej akcji nie można cofnąć.',
   ENABLED: 'Włączone',

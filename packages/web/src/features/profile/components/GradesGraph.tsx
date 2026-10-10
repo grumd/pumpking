@@ -30,7 +30,7 @@ const GradesGraph = () => {
   };
 
   return (
-    <ResponsiveContainer aspect={1.6}>
+    <ResponsiveContainer width="100%" height="100%">
       <BarChart
         stackOffset="sign"
         data={graphData}

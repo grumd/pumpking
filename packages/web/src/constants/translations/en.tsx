@@ -165,10 +165,14 @@ export const en = {
   LEVEL_ACHIEVEMENTS_HINT:
     '* to gain an achievement, you should play ~10% of all charts of that level on a specific grade',
   ACHIEVEMENTS: 'achievements',
-  MOST_PLAYED_CHARTS: 'most played charts',
-  BEST_SCORES: 'best scores',
+  LATEST: 'latest',
+  PP_GRAPH: 'PP graph',
+  PLACE_GRAPH: 'Place graph',
+  MOST_PLAYED: 'most played',
+  TOP_RESULTS: 'top results',
   PLACE_IN_TOP: 'place in top',
   TOTAL: 'total',
+  TOTAL_EXP: 'total exp',
   UNITE_GRAPHS: 'unite graphs',
   RESULTS: 'Results:',
   TOP_POPULAR_TRACKS: 'Most popular tracks',
@@ -284,7 +288,6 @@ export const en = {
   FILL_FORM: 'Fill form',
 
   // Admin
-  ADMIN_PANEL: 'Admin Panel',
   DELETE_RESULT: 'Delete result',
   DELETE_RESULT_CONFIRM:
     'Are you sure you want to delete this result? This action cannot be undone.',

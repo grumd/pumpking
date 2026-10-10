@@ -1,0 +1,89 @@
+/* The rows of the "Latest" and "Best scores" lists. Wide screens: label, name, mix, time ago,
+   score, grade with plate, pp, a column each. Phones: the mix goes under the label, the
+   time under the name and the grade under the score, so the cells (display: contents on
+   wide screens) become stacks. The name column can shrink below its longest word, so the
+   numbers always fit */
+.grid {
+  grid-template-columns: auto minmax(0, 1fr) auto auto auto auto auto;
+
+  @media (max-width: 600px) {
+    grid-template-columns: auto minmax(0, 1fr) auto auto;
+  }
+}
+
+.row {
+  display: grid;
+  grid-template-columns: subgrid;
+  grid-column: 1 / -1;
+  align-items: center;
+  justify-content: start;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.labelCell,
+.nameCell,
+.scoreCell {
+  display: contents;
+}
+
+/* The label's cell has the mix too, so on wide screens the label and the name are put first
+   to get the mix after the name */
+.label {
+  order: -2;
+}
+
+.name {
+  order: -1;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.score {
+  text-align: right;
+}
+
+/* A smaller "pp" after the value (.row: to win over the Text styles) */
+.row .ppUnit {
+  font-size: 0.75em;
+}
+
+.grade {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 0.25em;
+}
+
+.score,
+.grade {
+  padding-left: 0.5em;
+}
+
+@media (max-width: 600px) {
+  .labelCell,
+  .nameCell,
+  .scoreCell {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2em;
+  }
+
+  .labelCell {
+    align-items: center;
+  }
+
+  .nameCell {
+    min-width: 0;
+  }
+
+  .scoreCell {
+    align-items: flex-end;
+    padding-left: 0.5em;
+  }
+
+  .score,
+  .grade {
+    padding-left: 0;
+  }
+}

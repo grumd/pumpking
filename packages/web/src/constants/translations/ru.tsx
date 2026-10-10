@@ -158,10 +158,14 @@ export const ru = {
   LEVEL_ACHIEVEMENTS_HINT:
     '* для получения ачивки нужно сыграть около 10% всех чартов данного левела на нужный грейд',
   ACHIEVEMENTS: 'достижения',
-  MOST_PLAYED_CHARTS: 'часто играемые чарты',
-  BEST_SCORES: 'лучшие результаты',
+  LATEST: 'последние',
+  PP_GRAPH: 'График PP',
+  PLACE_GRAPH: 'График места',
+  MOST_PLAYED: 'часто играемые',
+  TOP_RESULTS: 'лучшие результаты',
   PLACE_IN_TOP: 'место в топе',
   TOTAL: 'всего',
+  TOTAL_EXP: 'всего опыта',
   UNITE_GRAPHS: 'объединить графики',
   RESULTS: 'Резалты:',
   TOP_POPULAR_TRACKS: 'Топ популярных треков',
@@ -257,7 +261,6 @@ export const ru = {
   FILL_FORM: 'Вставить числа',
 
   // Admin
-  ADMIN_PANEL: 'Админ панель',
   DELETE_RESULT: 'Удалить результат',
   DELETE_RESULT_CONFIRM:
     'Вы уверены, что хотите удалить этот результат? Это действие нельзя отменить.',
