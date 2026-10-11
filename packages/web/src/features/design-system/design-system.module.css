@@ -1,0 +1,11 @@
+.swatch {
+  width: rem(56px);
+  height: rem(40px);
+  border-radius: var(--mantine-radius-sm);
+  border: rem(1px) solid var(--pk-border);
+}
+
+.spacingBar {
+  height: rem(12px);
+  background: var(--mantine-color-accent-filled);
+}
