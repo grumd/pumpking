@@ -1,0 +1,5 @@
+/* The keyboard focus ring of every Mantine control (theme.focusClassName) */
+.focus:focus-visible {
+  outline: rem(2px) solid var(--pk-focus-ring);
+  outline-offset: rem(2px);
+}

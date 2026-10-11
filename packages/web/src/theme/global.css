@@ -1,0 +1,24 @@
+/* The only global stylesheet. Everything else is a CSS module or a theme default */
+
+/* Every rem (so every Mantine size) scales with this */
+html {
+  font-size: 18px;
+}
+
+@mixin smaller-than $mantine-breakpoint-md {
+  html {
+    font-size: 14px;
+  }
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+/* Mantine controls get theme.focusClassName; this covers everything else */
+:focus-visible {
+  outline: rem(2px) solid var(--pk-focus-ring);
+  outline-offset: rem(2px);
+}
