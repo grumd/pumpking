@@ -1,0 +1,47 @@
+/* Attached to every Mantine Table by the theme */
+
+.tr[data-clickable] {
+  cursor: pointer;
+}
+
+.tr[data-selected] {
+  background: var(--pk-surface-3);
+}
+
+/* variant="rows": every row is its own surface-2 tile with rounded ends.
+   Keep the first and last columns visible on every width, so the corners stay round */
+.table[data-variant='rows'] {
+  border-collapse: separate;
+  border-spacing: 0 var(--mantine-spacing-xxs);
+
+  & .tr {
+    border: 0;
+  }
+
+  & .th {
+    border: 0;
+    color: var(--mantine-color-dimmed);
+    font-weight: 400;
+    padding-top: 0;
+    padding-bottom: 0;
+  }
+
+  & .td {
+    background: var(--pk-surface-2);
+  }
+
+  & .td:first-child {
+    border-start-start-radius: var(--mantine-radius-md);
+    border-end-start-radius: var(--mantine-radius-md);
+  }
+
+  & .td:last-child {
+    border-start-end-radius: var(--mantine-radius-md);
+    border-end-end-radius: var(--mantine-radius-md);
+  }
+
+  & .tr:hover .td,
+  & .tr[data-selected] .td {
+    background: var(--pk-surface-3);
+  }
+}

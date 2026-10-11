@@ -1,4 +1,4 @@
-import { Badge, MantineProvider, Switch, createTheme } from '@mantine/core';
+import { MantineProvider } from '@mantine/core';
 import '@mantine/core/styles.css';
 import { Notifications } from '@mantine/notifications';
 import '@mantine/notifications/styles.css';
@@ -8,55 +8,20 @@ import { HashRouter } from 'react-router-dom';
 
 import Root from 'features/root/Root';
 
+import { cssVariablesResolver } from 'theme/cssVariables';
+import 'theme/global.css';
+import { theme } from 'theme/theme';
+
 import { Language, translation } from 'utils/context/translation';
 import { queryClient } from 'utils/trpc';
 
-const theme = createTheme({
-  autoContrast: true,
-  primaryColor: 'gray',
-  breakpoints: {
-    xs: '30em',
-    sm: '48em',
-    md: '64em',
-    lg: '74em',
-    xl: '90em',
-  },
-  lineHeights: {
-    xs: '1.2',
-    sm: '1.3',
-    md: '1.4',
-    lg: '1.5',
-    xl: '1.6',
-  },
-  spacing: {
-    xxs: '0.25rem',
-    xs: '0.625rem',
-    sm: '0.75rem',
-    md: '1rem',
-    lg: '1.25rem',
-    xl: '2rem',
-  },
-  components: {
-    Badge: Badge.extend({
-      defaultProps: {
-        pl: '0.5em',
-        pr: '0.5em',
-        radius: 'sm',
-        lh: 1,
-      },
-    }),
-    Switch: Switch.extend({
-      defaultProps: {
-        withThumbIndicator: false,
-        color: 'teal',
-      },
-    }),
-  },
-});
-
 function App() {
   return (
-    <MantineProvider theme={theme} defaultColorScheme="dark">
+    <MantineProvider
+      theme={theme}
+      cssVariablesResolver={cssVariablesResolver}
+      defaultColorScheme="dark"
+    >
       <Notifications position="bottom-right" />
       <GoogleOAuthProvider clientId="197132042723-cmibep21qf6dald9l2l01rif7l5dtd4s.apps.googleusercontent.com">
         <QueryClientProvider client={queryClient}>

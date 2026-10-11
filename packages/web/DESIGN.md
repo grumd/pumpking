@@ -132,7 +132,7 @@ Set in `theme.ts`, so don't repeat them as props:
 | `Alert` | `variant="light"`, `radius="md"` |
 | `Anchor` | underline on hover; default text color is Mantine's anchor gray |
 | `Input` (all inputs) | focus border in accent |
-| `Table` | `verticalSpacing="xs"`, `stripedColor` surface-stripe, `highlightOnHoverColor` surface-3; `variant="rows"` (below) |
+| `Table` | `stripedColor` surface-stripe, `highlightOnHoverColor` surface-3; `variant="rows"` (below) |
 | `Badge` | `radius="sm"`, tight padding |
 | `Switch` | `color="teal"`, no thumb indicator |
 
