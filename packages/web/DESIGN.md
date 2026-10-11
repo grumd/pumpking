@@ -80,7 +80,7 @@ The theme is **dark only** today. Every color that depends on the scheme is a CS
 
 | Group | Names | Allowed as |
 |---|---|---|
-| Chart type | `single` `singlePerf` `double` `doublePerf` `halfDouble` `coop` | filled backgrounds only (`ChartLabel`, `color=` on a filled `Badge`), graph fills |
+| Chart type | `single` `singlePerf` `double` `doublePerf` `halfDouble` `coop` | filled backgrounds only (`ChartLabel`, `color=` on a filled `Badge`), graph fills. Text that names a single/double chart type on a dark surface (too dark for these) uses `c="red.2"` / `c="green.2"` |
 | Mix | `mix24` (Prime) `mix25` (Prime 2) `mix26` (XX) `mix27` (Phoenix) `mix28` (Phoenix 2) | filled `Badge` only. `mixColor(mix)` maps a mix number to the name |
 | Judgement | `perfect` `great` `good` `bad` `miss` | text (`c="perfect"`) and fills |
 | Medal | `gold` `silver` `bronze` | text, icons, fills. "Gold" is this one color everywhere (cups, trophy links, exp numbers, the exp bar) |
