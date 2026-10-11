@@ -1,0 +1,24 @@
+/* A player the user hid, shown with "show all" */
+.row[data-hidden] {
+  opacity: var(--pk-opacity-hidden);
+}
+
+/* Columns that take only the width they need; the names get the rest */
+.shrink {
+  width: 0;
+  white-space: nowrap;
+}
+
+.crown {
+  display: inline-flex;
+  vertical-align: middle;
+}
+
+/* About 31px on desktop and 24px on phones (the root font changes at md) */
+.expRank {
+  width: rem(28px);
+
+  & img {
+    display: block;
+  }
+}

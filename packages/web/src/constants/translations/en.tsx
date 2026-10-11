@@ -157,6 +157,7 @@ export const en = {
   HIDE_UNSELECTED: 'hide unselected',
   SHOW_ALL: 'show all',
   HIDE_COUNTRIES: 'hide countries',
+  SHOW_IN_RANKING: 'show in ranking',
   RANK: 'rank',
   LAST_TIME_PLAYED: 'last time played',
   COMPARE_WITH: 'compare with',

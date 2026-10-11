@@ -150,6 +150,7 @@ export const ru = {
   HIDE_UNSELECTED: 'скрыть невыбранных',
   SHOW_ALL: 'показать всех',
   HIDE_COUNTRIES: 'скрыть страны',
+  SHOW_IN_RANKING: 'показывать в рейтинге',
   RANK: 'ранк',
   LAST_TIME_PLAYED: 'последняя игра',
   COMPARE_WITH: 'сравнить с',
