@@ -49,7 +49,7 @@ const BracketView = ({ bracket, playerId }: { bracket: Bracket; playerId?: numbe
     <Stack gap="sm" pt="sm">
       <Card
         title={lang.TOURNAMENT_POOL}
-        headerNode={
+        actions={
           <Text size="sm" c="dimmed">
             {lang.SKILL}: {skillRange(bracket, lang.UNRATED)} · {bracket.playerCount}{' '}
             {lang.TOURNAMENT_PLAYERS}

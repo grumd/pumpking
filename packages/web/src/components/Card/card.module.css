@@ -1,15 +1,20 @@
 .header {
   display: flex;
-  flex-flow: row nowrap;
   justify-content: space-between;
-  padding-left: 0.4em;
   align-items: flex-start;
+  gap: var(--mantine-spacing-xs);
+  padding-left: var(--mantine-spacing-xxs);
 }
 
-.text {
-  font-size: 1.5em;
+.title {
+  margin: 0 0 var(--mantine-spacing-xs);
+  padding-bottom: var(--mantine-spacing-xxs);
+  border-bottom: rem(1px) solid var(--pk-border);
+  font-size: var(--mantine-font-size-xl);
+  font-weight: 400;
   line-height: 1;
-  padding-bottom: 0.3em;
-  margin-bottom: 0.5em;
-  border-bottom: 1px solid var(--mantine-color-dark-3);
+}
+
+.actions {
+  margin-left: auto;
 }

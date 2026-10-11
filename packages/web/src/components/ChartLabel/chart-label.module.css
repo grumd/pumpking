@@ -1,33 +1,20 @@
 .chartLabel {
-  font-weight: 600;
-  line-height: 100%;
+  display: inline-flex;
   flex: 0 0 auto;
-  background: grey;
-  gap: 0.1em;
-  text-align: center;
-  display: flex;
   align-items: center;
   justify-content: center;
+  gap: 0.1em;
   height: 1.4em;
-  border-radius: 0.25em;
   padding: 0 0.4em;
+  border-radius: var(--mantine-radius-sm);
+  color: var(--pk-text-strong);
+  font-weight: 600;
+  line-height: 1;
+  text-align: center;
 }
 
-.single {
-  background: var(--single_chart_color);
-}
-.singlep {
-  background: var(--single_perf_chart_color);
-}
-.double {
-  background: var(--double_chart_color);
-}
-.doublep {
-  background: var(--double_perf_chart_color);
-}
-.halfdouble {
-  background: var(--half_double_chart_color);
-}
-.coop {
-  background: var(--coop_chart_color);
+/* Darkened with the page color, so the chart type still shows */
+.chartLabel[data-same] {
+  box-shadow: inset 0 0 0 100vmax color-mix(in srgb, var(--pk-surface-page) 55%, transparent);
+  color: var(--mantine-color-dimmed);
 }

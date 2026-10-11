@@ -14,7 +14,7 @@ Open `/#/design-system` in dev (`npm start`) to see every token and block render
 
 | What | Where |
 |---|---|
-| Raw token values (colors, palettes): the only file with hex colors | `src/theme/tokens.ts` |
+| Raw token values (colors, palettes, page widths): the only file with hex colors | `src/theme/tokens.ts` |
 | Mantine theme: spacing, type, radius, breakpoints, component defaults | `src/theme/theme.ts` |
 | CSS variables (`--pk-*`) built from the tokens | `src/theme/cssVariables.ts` |
 | Breakpoints (read by the theme and by `postcss.config.cjs`) | `src/theme/breakpoints.json` |
@@ -197,8 +197,9 @@ Full-width centered Mantine dots. Use while a query loads. Inside an input's `ri
 The colored chart label (`S21`, `D18`, `SP3`, `COOP2`, `HD20`).
 
 - `label: string` as written in the DB. Use it for every chart label, admin tables included. Don't render labels as plain `Badge`s.
-- `chartLabelColor(label)` returns the Mantine color name for graphs.
+- `typeLabel?: string`: the label that tells the chart type when `label` doesn't (older mixes' labels like `NL-5`).
 - `same?: boolean`: a muted look for "same as the previous mix" (admin track detail).
+- `chartLabelColor(label)` (`ChartLabel/chartLabelColor.ts`) returns the Mantine color name, for graphs.
 
 ### Other shared components
 

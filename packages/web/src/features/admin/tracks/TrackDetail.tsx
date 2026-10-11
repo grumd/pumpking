@@ -8,8 +8,7 @@ import { FiArrowRight, FiMoreHorizontal } from 'react-icons/fi';
 
 import css from './track-detail.module.scss';
 
-import { chartLabelColor } from 'components/ChartLabel/ChartLabel';
-import chartLabelCss from 'components/ChartLabel/chart-label.module.css';
+import { ChartLabel } from 'components/ChartLabel/ChartLabel';
 import Loader from 'components/Loader/Loader';
 
 import { api } from 'utils/trpc';
@@ -235,15 +234,7 @@ const ChartInstanceCard = ({
         <div className={css.instanceChart}>
           <span>{MIX_NAME_BY_ID[instance.mix] ?? `Mix #${instance.mix}`}</span>
           {/* Older mixes' labels (e.g. NL-5) don't tell the type, the shared chart does */}
-          <span
-            className={classNames(
-              chartLabelCss.chartLabel,
-              chartLabelColor(type),
-              sameLabelAsPrevious && css.labelSame
-            )}
-          >
-            {instance.label}
-          </span>
+          <ChartLabel label={instance.label} typeLabel={type} same={sameLabelAsPrevious} />
         </div>
         <div className={css.instanceFooter}>
           <span title="Results">

@@ -27,7 +27,7 @@ export const TournamentCups = () => {
   return (
     <Card
       title={lang.TOURNAMENT_CUPS}
-      headerNode={
+      actions={
         <Box fz="lg">
           <MedalCounts
             cups={{

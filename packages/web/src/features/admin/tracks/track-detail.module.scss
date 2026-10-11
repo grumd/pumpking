@@ -119,7 +119,3 @@
 
 // A label that didn't change since the previous mix: dimmed, its background by a dark layer
 // over the chart color
-.instanceChart .labelSame {
-  background-image: linear-gradient(rgba(0, 0, 0, 0.55), rgba(0, 0, 0, 0.55));
-  color: var(--mantine-color-dimmed);
-}
