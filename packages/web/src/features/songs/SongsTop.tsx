@@ -1,13 +1,17 @@
-import { Container, Flex, Group, SimpleGrid, Stack, Text } from '@mantine/core';
+import { Group, SimpleGrid, Table, Text } from '@mantine/core';
 import { useQuery } from '@tanstack/react-query';
 import { FaPlay } from 'react-icons/fa';
 
 import { Card } from 'components/Card/Card';
 import Loader from 'components/Loader/Loader';
+import { PageContainer } from 'components/PageContainer/PageContainer';
+import { Place } from 'components/Place/Place';
 
 import { useLanguage } from 'utils/context/translation';
 import { getLongTimeAgo } from 'utils/timeAgo';
 import { api } from 'utils/trpc';
+
+import css from './songs-top.module.css';
 
 interface TrackListItem {
   id: number;
@@ -28,34 +32,22 @@ function TrackList<T extends TrackListItem>({
   renderRightSide,
 }: TrackListProps<T>): JSX.Element {
   return (
-    <Card title={title} p="sm">
+    <Card title={title}>
       {isLoading && <Loader />}
       {!isLoading && data && (
-        <Stack component="ol" gap="xxs" p={0} m={0} style={{ listStyle: 'none' }}>
-          {data.map((item, index) => (
-            <Card key={item.id} component="li" level={2} p="xs" pt="xxs" pb="xxs">
-              <Flex align="center" gap="sm">
-                <Text
-                  fw={index < 3 ? 700 : 400}
-                  c={
-                    index === 0
-                      ? 'yellow.4'
-                      : index === 1
-                      ? 'gray.4'
-                      : index === 2
-                      ? 'orange.6'
-                      : 'dimmed'
-                  }
-                  w="1.6em"
-                >
-                  {index + 1}.
-                </Text>
-                <Text flex={1}>{item.full_name}</Text>
-                {renderRightSide(item, index)}
-              </Flex>
-            </Card>
-          ))}
-        </Stack>
+        <Table variant="rows">
+          <Table.Tbody>
+            {data.map((item, index) => (
+              <Table.Tr key={item.id}>
+                <Table.Td className={css.place}>
+                  <Place place={index + 1} medals />
+                </Table.Td>
+                <Table.Td>{item.full_name}</Table.Td>
+                <Table.Td className={css.rightSide} ta="right">{renderRightSide(item, index)}</Table.Td>
+              </Table.Tr>
+            ))}
+          </Table.Tbody>
+        </Table>
       )}
     </Card>
   );
@@ -67,8 +59,8 @@ interface PlaycountProps {
 
 function Playcount({ count }: PlaycountProps): JSX.Element {
   return (
-    <Group gap="xs" fw={600}>
-      <FaPlay style={{ fontSize: '60%' }} />
+    <Group gap="xxs" justify="flex-end" wrap="nowrap" fw={600}>
+      <FaPlay size="0.6em" />
       <span>{count}</span>
     </Group>
   );
@@ -97,8 +89,8 @@ export default function SongsTop(): JSX.Element {
   const leastPlayed = useQuery(api.tracks.leastPlayed.queryOptions());
 
   return (
-    <Container component="main" size="md" p="sm">
-      <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md">
+    <PageContainer>
+      <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="sm">
         <TrackList
           title={lang.TOP_POPULAR_TRACKS}
           data={mostPlayed.data}
@@ -129,6 +121,6 @@ export default function SongsTop(): JSX.Element {
           renderRightSide={(item) => <Playcount count={item.countplay} />}
         />
       </SimpleGrid>
-    </Container>
+    </PageContainer>
   );
 }
