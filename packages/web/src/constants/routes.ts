@@ -29,6 +29,9 @@ export const routes = {
   tournaments: {
     path: `/tournaments`,
   },
+  designSystem: {
+    path: `/design-system`,
+  },
   profile: {
     path: `/profiles/:id`,
     getPath: (params: { id?: number | string }) => `/profiles/${params.id}`,

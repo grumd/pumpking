@@ -25,6 +25,19 @@ const LazyProfileNew = React.lazy(() => import('../profile/Profile'));
 const LazyRanking = React.lazy(() => import('../ranking/Ranking'));
 const LazySongsTop = React.lazy(() => import('../songs/SongsTop'));
 const LazyTournaments = React.lazy(() => import('../tournaments/Tournaments'));
+const LazyDesignSystem = React.lazy(() => import('../design-system/DesignSystem'));
+
+// The design system reference page, dev only, with or without login
+const designSystemRoute = import.meta.env.DEV ? (
+  <Route
+    path={routes.designSystem.path}
+    element={
+      <Suspense fallback={<Loader />}>
+        <LazyDesignSystem />
+      </Suspense>
+    }
+  />
+) : null;
 
 function Root() {
   const userQuery = useUser();
@@ -42,6 +55,7 @@ function Root() {
       <Routes>
         <Route path={routes.register.path} element={<RegistrationPage />} />
         <Route path={routes.discordCallback.path} element={<DiscordCallback />} />
+        {designSystemRoute}
         <Route path="*" element={<RootRedirect />} />
       </Routes>
     );
@@ -64,6 +78,7 @@ function Root() {
           <Route path={routes.profile.path} element={<LazyProfileNew />} />
           <Route path={routes.songs.path} element={<LazySongsTop />} />
           <Route path={routes.tournaments.path} element={<LazyTournaments />} />
+          {designSystemRoute}
           <Route
             path={routes.admin.path + '/*'}
             element={
