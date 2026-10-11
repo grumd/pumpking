@@ -5,6 +5,8 @@ export const ua = {
   NOTHING_FOUND: 'Нічого не знайдено',
   ERROR: 'Помилка',
   SOMETHING_WENT_WRONG: 'Щось пішло не так',
+  CLEAR: 'Очистити',
+  UNREAD: 'непрочитане',
   // Main top menu
   LEADERBOARDS: 'лідерборди',
   RANKING: 'ранкінг',

@@ -1,0 +1,14 @@
+.flag {
+  border-radius: var(--mantine-radius-sm);
+  opacity: 0.85;
+}
+
+.md {
+  width: rem(20px);
+  height: rem(15px);
+}
+
+.sm {
+  width: rem(16px);
+  height: rem(12px);
+}

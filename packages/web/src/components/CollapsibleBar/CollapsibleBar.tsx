@@ -2,6 +2,8 @@ import { Button, Collapse, Stack } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import { FaChevronRight } from 'react-icons/fa';
 
+import css from './collapsible-bar.module.css';
+
 export default function CollapsibleBar({
   children,
   title,
@@ -20,7 +22,8 @@ export default function CollapsibleBar({
         variant="light"
         justify="start"
         onClick={toggle}
-        leftSection={<FaChevronRight style={opened ? { transform: 'rotate(90deg)' } : {}} />}
+        aria-expanded={opened}
+        leftSection={<FaChevronRight className={css.chevron} data-open={opened || undefined} />}
       >
         {title}
       </Button>

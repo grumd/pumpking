@@ -1,6 +1,7 @@
 .leaderboard-page {
   width: 100%;
   max-width: 940px;
+  margin-inline: auto;
   header {
     padding: 10px 10px 0 10px;
     font-size: 26px;
@@ -164,6 +165,7 @@
             position: relative;
             > table {
               width: 100%;
+              border-spacing: 0;
             }
             td,
             th {
@@ -277,11 +279,11 @@
                     &.nickname,
                     &.nickname a,
                     &.score {
-                      color: var(--fresh_result_color);
+                      color: var(--mantine-color-fresh-filled);
                     }
                     &.date {
                       font-weight: 600;
-                      color: var(--fresh_result_color);
+                      color: var(--mantine-color-fresh-filled);
                     }
                   }
                 }
@@ -330,6 +332,9 @@
 
 @media screen and (max-width: 900px) {
   .leaderboard-page {
+    .desktop-only {
+      display: none;
+    }
     .search-block {
       margin-bottom: 4px;
     }

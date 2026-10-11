@@ -1,3 +1,4 @@
+import { Anchor } from '@mantine/core';
 import { FaExternalLinkAlt } from 'react-icons/fa';
 
 interface ResultScreenshotLinkProps {
@@ -6,12 +7,13 @@ interface ResultScreenshotLinkProps {
 
 export const ResultScreenshotLink = ({ resultId }: ResultScreenshotLinkProps): JSX.Element => {
   return (
-    <a
+    <Anchor
       href={`${import.meta.env.VITE_API_BASE_PATH}/results/${resultId}/screenshot`}
       target="_blank"
       rel="noopener noreferrer"
+      inherit
     >
-      screenshot <FaExternalLinkAlt style={{ fontSize: '80%' }} />
-    </a>
+      screenshot <FaExternalLinkAlt size="0.8em" />
+    </Anchor>
   );
 };

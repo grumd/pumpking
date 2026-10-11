@@ -1,16 +1,13 @@
 import { Group, Text } from '@mantine/core';
+import cx from 'classnames';
 import { FaTrophy } from 'react-icons/fa';
+
+import css from './medal.module.css';
 
 export type MedalType = 'gold' | 'silver' | 'bronze';
 
-const colors: Record<MedalType, string> = {
-  gold: '#e8b923',
-  silver: '#c0c0c0',
-  bronze: '#cd7f32',
-};
-
 export const Medal = ({ medal, size = '1em' }: { medal: MedalType; size?: string }) => (
-  <FaTrophy color={colors[medal]} size={size} style={{ verticalAlign: 'middle', flexShrink: 0 }} />
+  <FaTrophy className={cx(css.medal, css[medal])} size={size} />
 );
 
 export const MedalCounts = ({ cups, size }: { cups: Record<MedalType, number>; size?: string }) => (
@@ -18,7 +15,7 @@ export const MedalCounts = ({ cups, size }: { cups: Record<MedalType, number>; s
     {(['gold', 'silver', 'bronze'] as const)
       .filter((medal) => cups[medal] > 0)
       .map((medal) => (
-        <Group key={medal} gap={4} wrap="nowrap">
+        <Group key={medal} gap="xxs" wrap="nowrap">
           <Medal medal={medal} size={size} />
           <Text span inherit>
             {cups[medal]}

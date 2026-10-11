@@ -16,12 +16,6 @@
   },
   "ignoreFiles": [
     "src/components/Card/card-progress.module.css",
-    "src/components/ExpRankImg/**",
-    "src/components/Flag/**",
-    "src/components/Loader/**",
-    "src/components/ToggleButton/**",
-    "src/components/TopBar/**",
-    "src/features/root/**",
     "src/features/login/**",
     "src/features/profile/**",
     "src/features/leaderboards/**",

@@ -1,6 +1,7 @@
+import cx from 'classnames';
 import { memo } from 'react';
 
-import './flag.scss';
+import css from './flag.module.css';
 
 interface FlagProps {
   region: string;
@@ -11,7 +12,7 @@ interface FlagProps {
 export const Flag = memo(function Flag({ region, className, size = 'md' }: FlagProps) {
   return (
     <img
-      className={`flag flag--${size} ${className ?? ''}`}
+      className={cx(css.flag, css[size], className)}
       src={`https://osu.ppy.sh/images/flags/${region}.png`}
       alt={`${region} flag`}
     />
