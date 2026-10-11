@@ -6,10 +6,10 @@ import { useState } from 'react';
 import { api } from 'utils/trpc';
 
 export function DevLogin() {
-  if (!import.meta.env.DEV) {
-    return null;
-  }
+  return import.meta.env.DEV ? <DevLoginSelect /> : null;
+}
 
+function DevLoginSelect() {
   const [error, setError] = useState<string | null>(null);
   const queryClient = useQueryClient();
 

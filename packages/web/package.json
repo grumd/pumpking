@@ -9,7 +9,7 @@
     "ts": "tsc --build",
     "ts:watch": "tsc --build --watch",
     "build": "tsc --version && tsc --build && vite build",
-    "lint": "eslint src --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
+    "lint": "eslint src --ext ts,tsx --report-unused-disable-directives --max-warnings 0 && stylelint \"src/**/*.{css,scss}\"",
     "preview": "vite preview"
   },
   "dependencies": {
@@ -78,6 +78,7 @@
     "postcss": "^8.4.31",
     "postcss-preset-mantine": "^1.11.0",
     "postcss-simple-vars": "^7.0.1",
+    "stylelint": "^17.16.0",
     "vite": "^7.3.0"
   }
 }
