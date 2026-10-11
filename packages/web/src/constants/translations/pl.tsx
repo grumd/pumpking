@@ -160,6 +160,7 @@ export const pl: BaseTranslation = {
   HIDE_UNSELECTED: 'ukryj niezaznaczone',
   SHOW_ALL: 'pokaż wszystko',
   HIDE_COUNTRIES: 'ukryj kraje',
+  SHOW_IN_RANKING: 'pokaż w rankingu',
   RANK: 'rank',
   LAST_TIME_PLAYED: 'ostatnio grane',
   COMPARE_WITH: 'porównaj z',

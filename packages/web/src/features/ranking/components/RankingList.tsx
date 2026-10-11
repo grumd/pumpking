@@ -1,20 +1,23 @@
 import type { ApiOutputs } from '@/api/trpc/router';
-import { Anchor, Flex, Switch } from '@mantine/core';
-import classNames from 'classnames';
+import { Anchor, Group, Switch, Table, Text, VisuallyHidden } from '@mantine/core';
 import _ from 'lodash/fp';
 import { GiQueenCrown } from 'react-icons/gi';
 import { NavLink } from 'react-router-dom';
 
+import { EmptyState } from 'components/EmptyState/EmptyState';
 import { ExpRankImg } from 'components/ExpRankImg/ExpRankImg';
 import { Flag } from 'components/Flag/Flag';
 import Loader from 'components/Loader/Loader';
 import { MedalCounts } from 'components/Medal/Medal';
+import { Place } from 'components/Place/Place';
 
 import { routes } from 'constants/routes';
 
 import { usePreferencesMutation } from 'hooks/usePreferencesMutation';
 
 import { useLanguage } from 'utils/context/translation';
+
+import css from './ranking-list.module.css';
 
 type PlayerStats = ApiOutputs['players']['stats'][number];
 type UserData = ApiOutputs['user']['current'];
@@ -30,89 +33,113 @@ export default function RankingList({ ranking, isLoading, preferences }: Ranking
   const lang = useLanguage();
   const preferencesMutation = usePreferencesMutation();
 
-  return (
-    <div className="ranking-list">
-      {_.isEmpty(ranking) && !isLoading && 'ничего не найдено'}
-      {isLoading && <Loader />}
-      {!isLoading && ranking && (
-        <table>
-          <thead>
-            <tr>
-              <th className="place">{lang.RANK}</th>
-              <th>{lang.EXP}</th>
-              <th className="name">{lang.NAME}</th>
-              <th className="name name-piu">{lang.AMPASS}</th>
-              <th className="rating">pp</th>
-              <th className="playcount">{lang.PLAYCOUNT}</th>
-              <th className="playcount">{lang.SCORES_count}</th>
-              <th className="accuracy">{lang.ACCURACY}</th>
-              <th className="cups">{lang.TOURNAMENT_CUPS}</th>
-              <th className="hide-col"> </th>
-            </tr>
-          </thead>
-          <tbody>
-            {ranking.map((player, playerIndex) => {
-              const isHidden = preferences?.playersHiddenStatus?.[player.id];
-              const isRegionHidden = player.region && preferences?.hiddenRegions?.[player.region];
-              if ((isHidden || isRegionHidden) && !preferences?.showHiddenPlayersInRanking) {
-                return null;
-              }
+  if (isLoading) {
+    return <Loader />;
+  }
 
-              return (
-                <tr
-                  className={classNames('player', { 'hidden-player': isHidden || isRegionHidden })}
-                  key={player.id}
-                >
-                  <td className="place">
-                    {playerIndex === 0 ? <GiQueenCrown /> : `#${playerIndex + 1}`}
-                  </td>
-                  <td className="exp-rank">
-                    {player.exp != null ? <ExpRankImg exp={player.exp} /> : null}
-                  </td>
-                  <td className="name">
-                    <Flex gap="xxs" align="center">
-                      {player.region ? <Flag region={player.region} /> : null}
-                      <Anchor component={NavLink} to={routes.profile.getPath({ id: player.id })}>
-                        {player.nickname}
-                      </Anchor>
-                    </Flex>
-                  </td>
-                  <td className="name name-piu">
-                    <Anchor component={NavLink} to={routes.profile.getPath({ id: player.id })}>
-                      {player.arcade_name}
-                    </Anchor>
-                  </td>
-                  <td className="rating secondary">
-                    {player.pp != null ? Math.floor(player.pp) : ''}
-                  </td>
-                  <td className="playcount">{player.results_count}</td>
-                  <td className="playcount">{player.best_results_count}</td>
-                  <td className="accuracy">
-                    {player.accuracy ? `${player.accuracy.toFixed(2)}%` : ''}
-                  </td>
-                  <td className="cups">
-                    <MedalCounts cups={player.cups} />
-                  </td>
-                  <td className="hide-col">
-                    <div className="switch-wrapper">
-                      <Switch
-                        onChange={() => {
-                          if (preferences) {
-                            preferencesMutation.mutate(
-                              _.set(['playersHiddenStatus', player.id], !isHidden, preferences)
-                            );
-                          }
-                        }}
-                        checked={!isHidden}
-                      />
-                    </div>
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      )}
-    </div>
+  if (!ranking || _.isEmpty(ranking)) {
+    return <EmptyState>{lang.NOTHING_FOUND}</EmptyState>;
+  }
+
+  return (
+    <Table variant="rows">
+      <Table.Thead>
+        <Table.Tr>
+          <Table.Th>{lang.RANK}</Table.Th>
+          <Table.Th>{lang.EXP}</Table.Th>
+          <Table.Th>{lang.NAME}</Table.Th>
+          <Table.Th visibleFrom="md">{lang.AMPASS}</Table.Th>
+          <Table.Th ta="right">pp</Table.Th>
+          <Table.Th visibleFrom="md" ta="right">
+            {lang.PLAYCOUNT}
+          </Table.Th>
+          <Table.Th visibleFrom="md" ta="right">
+            {lang.SCORES_count}
+          </Table.Th>
+          <Table.Th visibleFrom="md" ta="right">
+            {lang.ACCURACY}
+          </Table.Th>
+          <Table.Th>{lang.TOURNAMENT_CUPS}</Table.Th>
+          <Table.Th />
+        </Table.Tr>
+      </Table.Thead>
+      <Table.Tbody>
+        {ranking.map((player, playerIndex) => {
+          const isHidden = preferences?.playersHiddenStatus?.[player.id];
+          const isRegionHidden = player.region && preferences?.hiddenRegions?.[player.region];
+          if ((isHidden || isRegionHidden) && !preferences?.showHiddenPlayersInRanking) {
+            return null;
+          }
+          const profilePath = routes.profile.getPath({ id: player.id });
+
+          return (
+            <Table.Tr
+              key={player.id}
+              className={css.row}
+              data-hidden={isHidden || isRegionHidden || undefined}
+            >
+              <Table.Td className={css.shrink}>
+                {playerIndex === 0 ? (
+                  <Text span fz="xl" c="gold" className={css.crown}>
+                    <GiQueenCrown />
+                    <VisuallyHidden>#1</VisuallyHidden>
+                  </Text>
+                ) : (
+                  <Place place={playerIndex + 1} medals />
+                )}
+              </Table.Td>
+              <Table.Td className={css.shrink}>
+                {player.exp != null ? (
+                  <div className={css.expRank}>
+                    <ExpRankImg exp={player.exp} />
+                  </div>
+                ) : null}
+              </Table.Td>
+              <Table.Td>
+                <Group gap="xxs" wrap="nowrap">
+                  {player.region ? <Flag region={player.region} /> : null}
+                  <Anchor component={NavLink} to={profilePath}>
+                    {player.nickname}
+                  </Anchor>
+                </Group>
+              </Table.Td>
+              <Table.Td visibleFrom="md">
+                <Anchor component={NavLink} to={profilePath}>
+                  {player.arcade_name}
+                </Anchor>
+              </Table.Td>
+              <Table.Td className={css.shrink} ta="right" fw={700} c="var(--pk-text-strong)">
+                {player.pp != null ? Math.floor(player.pp) : ''}
+              </Table.Td>
+              <Table.Td visibleFrom="md" ta="right" fz="sm" c="dimmed">
+                {player.results_count}
+              </Table.Td>
+              <Table.Td visibleFrom="md" ta="right" fz="sm" c="dimmed">
+                {player.best_results_count}
+              </Table.Td>
+              <Table.Td visibleFrom="md" ta="right" fz="sm" c="dimmed">
+                {player.accuracy ? `${player.accuracy.toFixed(2)}%` : ''}
+              </Table.Td>
+              <Table.Td className={css.shrink}>
+                <MedalCounts cups={player.cups} />
+              </Table.Td>
+              <Table.Td className={css.shrink}>
+                <Switch
+                  aria-label={lang.SHOW_IN_RANKING}
+                  onChange={() => {
+                    if (preferences) {
+                      preferencesMutation.mutate(
+                        _.set(['playersHiddenStatus', player.id], !isHidden, preferences)
+                      );
+                    }
+                  }}
+                  checked={!isHidden}
+                />
+              </Table.Td>
+            </Table.Tr>
+          );
+        })}
+      </Table.Tbody>
+    </Table>
   );
 }

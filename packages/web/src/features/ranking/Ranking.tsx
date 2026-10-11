@@ -1,5 +1,6 @@
 import {
   ActionIcon,
+  Alert,
   Button,
   CheckIcon,
   Group,
@@ -14,9 +15,8 @@ import _ from 'lodash/fp';
 import { useMemo } from 'react';
 import { FaCog, FaSync } from 'react-icons/fa';
 
-import './ranking.scss';
-
 import { Flag } from 'components/Flag/Flag';
+import { PageContainer } from 'components/PageContainer/PageContainer';
 
 import { usePreferencesMutation } from 'hooks/usePreferencesMutation';
 import { useUser } from 'hooks/useUser';
@@ -81,27 +81,29 @@ const Ranking = () => {
   };
 
   return (
-    <div className="ranking-page">
-      <div className="content">
-        {error && error.message}
-        <div className="top-controls">
-          <Button size="sm" disabled={isFetching} onClick={onRefresh} leftSection={<FaSync />}>
-            {lang.UPDATE}
-          </Button>
-          <ActionIcon
-            variant="subtle"
-            size="lg"
-            onClick={openSettings}
-            disabled={!preferences}
-            ml="auto"
-          >
-            <FaCog />
-          </ActionIcon>
-        </div>
-        <RankingList ranking={ranking} isLoading={isLoading} preferences={preferences} />
-      </div>
+    <PageContainer>
+      {error && (
+        <Alert color="red" title={lang.ERROR}>
+          {error.message}
+        </Alert>
+      )}
+      <Group justify="space-between">
+        <Button disabled={isFetching} onClick={onRefresh} leftSection={<FaSync />}>
+          {lang.UPDATE}
+        </Button>
+        <ActionIcon
+          variant="subtle"
+          size="lg"
+          onClick={openSettings}
+          disabled={!preferences}
+          aria-label={lang.FILTERS}
+        >
+          <FaCog />
+        </ActionIcon>
+      </Group>
+      <RankingList ranking={ranking} isLoading={isLoading} preferences={preferences} />
 
-      <Modal opened={settingsOpened} onClose={closeSettings} title={lang.FILTERS} centered>
+      <Modal opened={settingsOpened} onClose={closeSettings} title={lang.FILTERS}>
         <Stack>
           <Switch
             label={lang.SHOW_ALL}
@@ -128,7 +130,7 @@ const Ranking = () => {
           />
         </Stack>
       </Modal>
-    </div>
+    </PageContainer>
   );
 };
 

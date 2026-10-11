@@ -18,7 +18,6 @@
     "src/components/Card/card-progress.module.css",
     "src/features/profile/**",
     "src/features/leaderboards/**",
-    "src/features/admin/**",
-    "src/features/ranking/**"
+    "src/features/admin/**"
   ]
 }
