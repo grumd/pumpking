@@ -16,9 +16,12 @@ import {
   createTheme,
 } from '@mantine/core';
 
+import { translation } from 'utils/context/translation';
+
 import breakpoints from './breakpoints.json';
 import focusCss from './focus.module.css';
 import inputCss from './input.module.css';
+import switchCss from './switch.module.css';
 import tableCss from './table.module.css';
 import { type AppColor, appColors, discordHover } from './tokens';
 
@@ -78,6 +81,9 @@ export const theme = createTheme({
       },
     }),
     Drawer: Drawer.extend({
+      defaultProps: {
+        closeButtonProps: { 'aria-label': translation.CLOSE },
+      },
       styles: {
         title: {
           fontWeight: 700,
@@ -103,6 +109,7 @@ export const theme = createTheme({
       defaultProps: {
         centered: true,
         radius: 'md',
+        closeButtonProps: { 'aria-label': translation.CLOSE },
       },
     }),
     Paper: Paper.extend({
@@ -123,6 +130,7 @@ export const theme = createTheme({
       },
     }),
     Switch: Switch.extend({
+      classNames: switchCss,
       defaultProps: {
         withThumbIndicator: false,
         color: 'teal',

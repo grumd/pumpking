@@ -4,6 +4,7 @@ export const en = {
   ERROR: 'Error',
   SOMETHING_WENT_WRONG: 'Something went wrong',
   CLEAR: 'Clear',
+  CLOSE: 'Close',
   UNREAD: 'unread',
 
   // menu

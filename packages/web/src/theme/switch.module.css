@@ -1,0 +1,5 @@
+/* The switch's input is hidden, so the focus ring goes on the visible track */
+.input:focus-visible + .track {
+  outline: rem(2px) solid var(--pk-focus-ring);
+  outline-offset: rem(2px);
+}
