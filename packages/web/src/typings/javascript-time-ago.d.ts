@@ -91,7 +91,7 @@ declare module 'javascript-time-ago/locale' {
     style: DefaultFormats;
     localeMatcher: string;
     locale: string;
-    numberFormat: { [key: string]: any };
+    numberFormat: { [key: string]: unknown };
   }
 
   export type TimeUnit =

@@ -24,7 +24,7 @@ export const useDiscordLogin = ({ redirectTo = 'login', code }: UseDiscordLoginO
 
   // For login, use a query (result is cached across StrictMode remounts)
   const loginQuery = useQuery({
-    ...api.auth.loginDiscord.queryOptions({ code: code!, redirectUri }),
+    ...api.auth.loginDiscord.queryOptions({ code: code ?? '', redirectUri }),
     enabled: redirectTo === 'login' && !!code,
     staleTime: Infinity,
     retry: false,
@@ -40,7 +40,7 @@ export const useDiscordLogin = ({ redirectTo = 'login', code }: UseDiscordLoginO
 
   // For registration, use a query (result is cached across StrictMode remounts)
   const registrationQuery = useQuery({
-    ...api.auth.getDiscordRegToken.queryOptions({ code: code!, redirectUri }),
+    ...api.auth.getDiscordRegToken.queryOptions({ code: code ?? '', redirectUri }),
     enabled: redirectTo === 'register' && !!code,
     staleTime: Infinity,
     retry: false,

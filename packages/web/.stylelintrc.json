@@ -1,0 +1,31 @@
+{
+  "rules": {
+    "color-no-hex": true,
+    "color-named": "never",
+    "function-disallowed-list": [
+      "rgb",
+      "rgba",
+      "hsl",
+      "hsla",
+      "hwb",
+      "lab",
+      "lch",
+      "oklab",
+      "oklch"
+    ]
+  },
+  "ignoreFiles": [
+    "src/components/Card/card-progress.module.css",
+    "src/components/ExpRankImg/**",
+    "src/components/Flag/**",
+    "src/components/Loader/**",
+    "src/components/ToggleButton/**",
+    "src/components/TopBar/**",
+    "src/features/root/**",
+    "src/features/login/**",
+    "src/features/profile/**",
+    "src/features/leaderboards/**",
+    "src/features/admin/**",
+    "src/features/ranking/**"
+  ]
+}
