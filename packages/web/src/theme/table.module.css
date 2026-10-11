@@ -13,6 +13,7 @@
 .table[data-variant='rows'] {
   border-collapse: separate;
   border-spacing: 0 var(--mantine-spacing-xxs);
+  font-size: var(--mantine-font-size-md);
 
   & .tr {
     border: 0;
