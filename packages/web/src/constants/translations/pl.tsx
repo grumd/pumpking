@@ -5,6 +5,8 @@ export const pl: BaseTranslation = {
   NOTHING_FOUND: 'Nic nie znaleziono',
   ERROR: 'Bład',
   SOMETHING_WENT_WRONG: 'Coś poszło nie tak',
+  CLEAR: 'Wyczyść',
+  UNREAD: 'nieprzeczytane',
 
   // menu
   LEADERBOARDS: 'tabele wyników',

@@ -5,6 +5,8 @@ export const ru = {
   NOTHING_FOUND: 'Ничего не найдено',
   ERROR: 'Ошибка',
   SOMETHING_WENT_WRONG: 'Что-то пошло не так',
+  CLEAR: 'Очистить',
+  UNREAD: 'непрочитано',
   // Main top menu
   LEADERBOARDS: 'лидерборды',
   RANKING: 'ранкинг',

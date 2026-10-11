@@ -1,7 +1,7 @@
 import { Button } from '@mantine/core';
 import cx from 'classnames';
 
-import css from './toggle-button.module.scss';
+import css from './toggle-button.module.css';
 
 interface ToggleButtonProps {
   pressed: boolean;

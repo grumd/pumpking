@@ -1,0 +1,23 @@
+.topBar {
+  border-bottom: rem(1px) solid var(--pk-border);
+}
+
+.links {
+  list-style: none;
+  padding: 0;
+}
+
+.links > li + li::before {
+  content: '•';
+  margin-inline: var(--mantine-spacing-xxs);
+  color: var(--mantine-color-dimmed);
+}
+
+.link {
+  color: var(--mantine-color-dimmed);
+}
+
+.link:hover,
+.link[aria-current='page'] {
+  color: var(--pk-text-strong);
+}

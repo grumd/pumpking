@@ -28,22 +28,13 @@ export const useConfirmationPopup = ({ okText = 'OK' }: UseConfirmationPopupOpti
   return {
     renderPopup: ({ content }: RenderPopupProps) => {
       return (
-        <Modal
-          opened={open}
-          onClose={() => close(false)}
-          centered
-          size="lg"
-          radius="md"
-          withCloseButton={false}
-        >
+        <Modal opened={open} onClose={() => close(false)} size="lg" withCloseButton={false}>
           {content}
           <Group justify="space-between" mt="md">
-            <Button color="red" onClick={() => close(false)}>
+            <Button variant="default" onClick={() => close(false)}>
               {lang.CANCEL}
             </Button>
-            <Button color="green" onClick={() => close(true)}>
-              {okText}
-            </Button>
+            <Button onClick={() => close(true)}>{okText}</Button>
           </Group>
         </Modal>
       );

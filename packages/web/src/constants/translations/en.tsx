@@ -3,6 +3,8 @@ export const en = {
   NOTHING_FOUND: 'Nothing found',
   ERROR: 'Error',
   SOMETHING_WENT_WRONG: 'Something went wrong',
+  CLEAR: 'Clear',
+  UNREAD: 'unread',
 
   // menu
   LEADERBOARDS: 'leaderboards',

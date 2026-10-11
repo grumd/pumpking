@@ -15,7 +15,7 @@ export const ModalTrigger = ({
   return (
     <>
       {renderButton({ open })}
-      <Modal size="auto" centered radius="md" {...rest} opened={opened} onClose={close}>
+      <Modal size="auto" {...rest} opened={opened} onClose={close}>
         {children}
       </Modal>
     </>

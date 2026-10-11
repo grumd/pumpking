@@ -1,0 +1,3 @@
+.chevron[data-open] {
+  transform: rotate(90deg);
+}

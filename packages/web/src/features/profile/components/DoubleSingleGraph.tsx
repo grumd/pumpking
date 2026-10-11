@@ -73,13 +73,13 @@ const DoubleSingleGraph = () => {
         <Bar
           name="D"
           dataKey={(x) => (-100 * (x.byType.D ?? 0)) / (x.totalChartsByType.D ?? 1)}
-          fill="var(--double_chart_color)"
+          fill="var(--mantine-color-double-filled)"
           stackId="stack"
         />
         <Bar
           name="S"
           dataKey={(x) => (100 * (x.byType.S ?? 0)) / (x.totalChartsByType.S ?? 1)}
-          fill="var(--single_chart_color)"
+          fill="var(--mantine-color-single-filled)"
           stackId="stack"
         />
       </BarChart>

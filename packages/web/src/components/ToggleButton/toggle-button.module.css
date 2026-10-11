@@ -1,0 +1,4 @@
+.toggleButton[aria-pressed='true'] {
+  border: rem(1px) solid var(--mantine-color-grape-outline);
+  border-bottom-width: rem(3px);
+}

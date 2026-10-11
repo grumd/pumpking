@@ -1,4 +1,4 @@
-import css from './exp-rank-img.module.scss';
+import css from './exp-rank-img.module.css';
 
 export const ranks = [
   {

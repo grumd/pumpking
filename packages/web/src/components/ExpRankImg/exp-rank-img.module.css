@@ -1,0 +1,23 @@
+.expRank {
+  width: 100%;
+}
+
+.green {
+  filter: drop-shadow(0 0 rem(3px) var(--pk-glow-green));
+}
+
+.gold {
+  filter: drop-shadow(0 0 rem(3px) var(--pk-glow-gold));
+}
+
+.silver {
+  filter: drop-shadow(0 0 rem(2px) var(--pk-glow-silver));
+}
+
+.bronze {
+  filter: drop-shadow(0 0 rem(2px) var(--pk-glow-bronze));
+}
+
+.purple {
+  filter: drop-shadow(0 0 rem(3px) var(--pk-glow-purple));
+}

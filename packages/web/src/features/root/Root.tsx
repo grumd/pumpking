@@ -1,10 +1,8 @@
 import React, { Suspense } from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
 
-import './Root.scss';
-import './index.scss';
-
 import Loader from 'components/Loader/Loader';
+import { PageContainer } from 'components/PageContainer/PageContainer';
 import TopBar from 'components/TopBar/TopBar';
 
 import { routes } from 'constants/routes';
@@ -27,12 +25,18 @@ const LazySongsTop = React.lazy(() => import('../songs/SongsTop'));
 const LazyTournaments = React.lazy(() => import('../tournaments/Tournaments'));
 const LazyDesignSystem = React.lazy(() => import('../design-system/DesignSystem'));
 
+const pageLoader = (
+  <PageContainer>
+    <Loader />
+  </PageContainer>
+);
+
 // The design system reference page, dev only, with or without login
 const designSystemRoute = import.meta.env.DEV ? (
   <Route
     path={routes.designSystem.path}
     element={
-      <Suspense fallback={<Loader />}>
+      <Suspense fallback={pageLoader}>
         <LazyDesignSystem />
       </Suspense>
     }
@@ -43,11 +47,7 @@ function Root() {
   const userQuery = useUser();
 
   if (userQuery.isLoading) {
-    return (
-      <div className="container">
-        <Loader />
-      </div>
-    );
+    return pageLoader;
   }
 
   if (!userQuery.data) {
@@ -62,9 +62,9 @@ function Root() {
   }
 
   return (
-    <div className="container">
+    <>
       <TopBar />
-      <Suspense fallback={<Loader />}>
+      <Suspense fallback={pageLoader}>
         <Routes>
           <Route path="/" element={<Navigate to={routes.leaderboard.path} />} />
           <Route path={routes.register.path} element={<Navigate to={routes.leaderboard.path} />} />
@@ -88,7 +88,7 @@ function Root() {
           <Route path="*" element={<Navigate to={routes.leaderboard.path} />} />
         </Routes>
       </Suspense>
-    </div>
+    </>
   );
 }
 

@@ -1,5 +1,4 @@
-import css from './exp-rank-img.module.scss';
-
+import css from './exp-rank-img.module.css';
 import { getRankIndex, ranks } from './expRanks';
 
 type ExpRankImgProps = { rankIndex: number } | { exp: number };
