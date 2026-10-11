@@ -1,4 +1,4 @@
-import { Select } from '@mantine/core';
+import { Select, Stack, Text, rem } from '@mantine/core';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import cookies from 'browser-cookies';
 import { useState } from 'react';
@@ -42,21 +42,26 @@ function DevLoginSelect() {
   };
 
   return (
-    <div className="dev-login">
+    <Stack gap="xxs">
       <Select
+        aria-label="Dev login"
         placeholder="Dev login as..."
         data={selectData}
         onChange={handleChange}
         searchable
         disabled={devLoginMutation.isPending}
-        styles={{
-          root: { width: 200 },
-        }}
+        w={rem(200)}
       />
       {playersQuery.isError && (
-        <div className="error">Failed to load players: {playersQuery.error.message}</div>
+        <Text c="red" size="sm">
+          Failed to load players: {playersQuery.error.message}
+        </Text>
       )}
-      {error && <div className="error">{error}</div>}
-    </div>
+      {error && (
+        <Text c="red" size="sm">
+          {error}
+        </Text>
+      )}
+    </Stack>
   );
 }

@@ -1,8 +1,7 @@
 import { Alert, Button } from '@mantine/core';
-import { GoogleLogin } from '@react-oauth/google';
 import { FaDiscord } from 'react-icons/fa';
 
-import './login-screen.scss';
+import { GoogleButton } from 'components/GoogleButton/GoogleButton';
 
 import { useDiscordLogin } from 'hooks/useDiscordLogin';
 import { useGoogleLogin } from 'hooks/useGoogleLogin';
@@ -10,6 +9,7 @@ import { useGoogleLogin } from 'hooks/useGoogleLogin';
 import { useLanguage } from 'utils/context/translation';
 
 import { DevLogin } from './DevLogin';
+import { LoginLayout } from './LoginLayout';
 
 export function LoginScreen() {
   const lang = useLanguage();
@@ -19,32 +19,20 @@ export function LoginScreen() {
   const error = google.error || discord.error;
 
   return (
-    <div className="login-screen">
-      <h1 className="site-name">pumpking</h1>
-      <div className="login-button">
-        {/* Hack to make the google login background transparent */}
-        <div style={{ colorScheme: 'light' }}>
-          <GoogleLogin theme="outline" onSuccess={google.onSuccess} onError={google.onError} />
-        </div>
-      </div>
+    <LoginLayout>
+      <GoogleButton onSuccess={google.onSuccess} onError={google.onError} />
       {discord.isConfigured && (
-        <div className="login-button">
-          <Button
-            component="a"
-            href={discord.authUrl}
-            leftSection={<FaDiscord size={20} />}
-            color="#5865F2"
-          >
-            {lang.SIGN_IN_WITH_DISCORD}
-          </Button>
-        </div>
+        <Button
+          component="a"
+          href={discord.authUrl}
+          leftSection={<FaDiscord size={20} />}
+          color="discord"
+        >
+          {lang.SIGN_IN_WITH_DISCORD}
+        </Button>
       )}
-      {error && (
-        <Alert color="red" variant="light">
-          {error}
-        </Alert>
-      )}
+      {error && <Alert color="red">{error}</Alert>}
       <DevLogin />
-    </div>
+    </LoginLayout>
   );
 }

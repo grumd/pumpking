@@ -1,14 +1,14 @@
-import { Alert, Button, Group, Select, Stack, Text, TextInput } from '@mantine/core';
+import { Alert, Box, Button, Group, Select, Stack, Text, TextInput } from '@mantine/core';
 import type { ComboboxItem } from '@mantine/core';
 import { useForm } from '@mantine/form';
-
-import './registration-form.scss';
 
 import { Flag } from 'components/Flag/Flag';
 
 import { useRegister } from 'hooks/useRegister';
 
 import { useLanguage } from 'utils/context/translation';
+
+import { LoginLayout } from './LoginLayout';
 
 interface RegistrationFormProps {
   email: string;
@@ -79,16 +79,15 @@ export function RegistrationForm({ email, registrationToken }: RegistrationFormP
   };
 
   return (
-    <div className="registration-form">
-      <h1 className="site-name">pumpking</h1>
-      <Text size="lg" fw={500} mb="md">
+    <LoginLayout>
+      <Text size="lg" fw={600}>
         {lang.CREATE_YOUR_ACCOUNT}
       </Text>
-      <Text size="sm" c="dimmed" mb="lg">
+      <Text size="sm" c="dimmed">
         {lang.EMAIL_LABEL} {email}
       </Text>
 
-      <form onSubmit={form.onSubmit(onSubmit)}>
+      <Box component="form" w="100%" onSubmit={form.onSubmit(onSubmit)}>
         <Stack gap="md">
           <TextInput
             label={lang.NICKNAME}
@@ -111,17 +110,13 @@ export function RegistrationForm({ email, registrationToken }: RegistrationFormP
             {...form.getInputProps('arcadeName')}
           />
 
-          {error && (
-            <Alert color="red" variant="light">
-              {error}
-            </Alert>
-          )}
+          {error && <Alert color="red">{error}</Alert>}
 
           <Button type="submit" loading={isLoading} fullWidth>
             {lang.REGISTER}
           </Button>
         </Stack>
-      </form>
-    </div>
+      </Box>
+    </LoginLayout>
   );
 }
