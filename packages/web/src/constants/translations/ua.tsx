@@ -6,6 +6,7 @@ export const ua = {
   ERROR: 'Помилка',
   SOMETHING_WENT_WRONG: 'Щось пішло не так',
   CLEAR: 'Очистити',
+  CLOSE: 'Закрити',
   UNREAD: 'непрочитане',
   // Main top menu
   LEADERBOARDS: 'лідерборди',

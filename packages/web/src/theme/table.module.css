@@ -22,6 +22,7 @@
   & .th {
     border: 0;
     color: var(--mantine-color-dimmed);
+    font-size: var(--mantine-font-size-sm);
     font-weight: 400;
     padding-top: 0;
     padding-bottom: 0;

@@ -6,6 +6,7 @@ export const pl: BaseTranslation = {
   ERROR: 'Bład',
   SOMETHING_WENT_WRONG: 'Coś poszło nie tak',
   CLEAR: 'Wyczyść',
+  CLOSE: 'Zamknij',
   UNREAD: 'nieprzeczytane',
 
   // menu

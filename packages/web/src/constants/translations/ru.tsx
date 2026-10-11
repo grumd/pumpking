@@ -6,6 +6,7 @@ export const ru = {
   ERROR: 'Ошибка',
   SOMETHING_WENT_WRONG: 'Что-то пошло не так',
   CLEAR: 'Очистить',
+  CLOSE: 'Закрыть',
   UNREAD: 'непрочитано',
   // Main top menu
   LEADERBOARDS: 'лидерборды',
