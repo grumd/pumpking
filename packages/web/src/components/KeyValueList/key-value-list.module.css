@@ -1,0 +1,21 @@
+.list {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  column-gap: var(--mantine-spacing-xs);
+  row-gap: var(--mantine-spacing-xxs);
+  margin: 0;
+  font-size: var(--mantine-font-size-sm);
+}
+
+/* Each pair is one row of the grid */
+.item {
+  display: contents;
+}
+
+.label {
+  color: var(--mantine-color-dimmed);
+}
+
+.value {
+  margin: 0;
+}

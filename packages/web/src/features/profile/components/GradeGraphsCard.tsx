@@ -18,7 +18,7 @@ export const GradeGraphsCard = (): JSX.Element => {
     return (
       <Card
         title={lang.GRADES}
-        headerNode={
+        actions={
           <ActionIcon variant="subtle" onClick={() => toggle()} aria-label="Switch graphs">
             <TbSwitch />
           </ActionIcon>
@@ -34,7 +34,7 @@ export const GradeGraphsCard = (): JSX.Element => {
       <Card
         flex="1 1 0"
         title={lang.GRADES}
-        headerNode={
+        actions={
           <ActionIcon variant="subtle" onClick={() => toggle()} aria-label="Switch graphs">
             <TbSwitch />
           </ActionIcon>

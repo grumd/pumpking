@@ -1,26 +1,19 @@
-import classNames from 'classnames';
+import { Box } from '@mantine/core';
 
 import { labelToTypeLevel } from 'utils/leaderboards';
 
 import css from './chart-label.module.css';
+import { chartLabelColor } from './chartLabelColor';
 
-/**
- * Derive the label color from the chart label prefix as written in the DB
- * (e.g. 'S15', 'Sp3', 'D18', 'Dp5', 'HD18', 'COOP2').
- * SP/DP charts have their own colors; older mixes write them as `Sp`/`Dp`.
- */
-export const chartLabelColor = (label: string): string | undefined => {
-  const upper = label.toUpperCase();
-  if (upper.startsWith('HD')) return css.halfdouble;
-  if (upper.startsWith('COOP')) return css.coop;
-  if (upper.startsWith('DP')) return css.doublep;
-  if (upper.startsWith('SP')) return css.singlep;
-  if (upper.startsWith('D')) return css.double;
-  if (upper.startsWith('S')) return css.single;
-  return undefined;
-};
+interface ChartLabelProps {
+  label: string;
+  // The label that tells the chart type, when `label` doesn't (older mixes' labels like NL-5)
+  typeLabel?: string;
+  // Muted: the same label as on the previous mix (admin track detail)
+  same?: boolean;
+}
 
-export const ChartLabel = ({ label }: { label: string }) => {
+export const ChartLabel = ({ label, typeLabel = label, same = false }: ChartLabelProps) => {
   const [type, level] = labelToTypeLevel(label);
 
   if (!type || !level) {
@@ -28,9 +21,9 @@ export const ChartLabel = ({ label }: { label: string }) => {
   }
 
   return (
-    <div className={classNames(css.chartLabel, chartLabelColor(label))}>
+    <Box className={css.chartLabel} bg={chartLabelColor(typeLabel) ?? 'gray'} mod={{ same }}>
       <span>{type}</span>
       <span>{level}</span>
-    </div>
+    </Box>
   );
 };

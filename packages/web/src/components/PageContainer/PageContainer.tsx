@@ -1,0 +1,22 @@
+import { Container, Stack } from '@mantine/core';
+import { pageWidths } from 'theme/tokens';
+
+interface PageContainerProps {
+  children: React.ReactNode;
+  width?: keyof typeof pageWidths;
+}
+
+// The outer wrapper of every logged-in page
+export const PageContainer = ({ children, width = 'default' }: PageContainerProps): JSX.Element => {
+  return (
+    <Container
+      component="main"
+      size={pageWidths[width]}
+      w="100%"
+      px={{ base: 'xs', sm: 'sm' }}
+      py="sm"
+    >
+      <Stack gap="sm">{children}</Stack>
+    </Container>
+  );
+};

@@ -30,7 +30,7 @@ const Profile = () => {
       <Stack gap="xs">
         <Card
           title={lang.EXP}
-          headerNode={
+          actions={
             <ModalTrigger
               title={lang.EXP_FAQ_TITLE}
               w="40em"

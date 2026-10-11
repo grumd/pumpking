@@ -56,6 +56,13 @@ export const mixColor = (mix: number): AppColor | undefined => {
   }
 };
 
+// Max widths of a page (PageContainer). default is about 950px on desktop
+export const pageWidths = {
+  default: '53rem',
+  narrow: '24rem',
+  wide: '82.5rem',
+} as const;
+
 // Color-scheme dependent values, written to CSS variables by cssVariables.ts
 export const darkScheme = {
   text: '#eeeeee',

@@ -4,31 +4,25 @@ import css from './card.module.css';
 
 export interface CardProps extends PaperProps {
   children: React.ReactNode;
-  level?: 1 | 2 | 3 | 4;
+  // 1: a section on the page. 2: a card or row inside a level-1 card
+  level?: 1 | 2;
   title?: React.ReactNode;
-  headerNode?: React.ReactNode;
-  component?: 'li' | 'div';
+  // Icon buttons or a small control, right of the title
+  actions?: React.ReactNode;
+  component?: 'li' | 'div' | 'section';
 }
 
-export const Card = ({
-  children,
-  headerNode,
-  level = 1,
-  title,
-  ...rest
-}: CardProps): JSX.Element => {
+export const Card = ({ children, actions, level = 1, title, ...rest }: CardProps): JSX.Element => {
   return (
     <Paper
-      shadow="sm"
-      radius="md"
-      p="sm"
-      bg={['dark.6', 'dark.5', 'dark.4', 'dark.3'][level - 1]}
+      p={level === 1 ? 'sm' : 'xs'}
+      bg={level === 1 ? 'var(--pk-surface-1)' : 'var(--pk-surface-2)'}
       {...rest}
     >
-      {(title || headerNode) && (
+      {(title || actions) && (
         <header className={css.header}>
-          {title && <span className={css.text}>{title}</span>}
-          {headerNode && <div>{headerNode}</div>}
+          {title && <h2 className={css.title}>{title}</h2>}
+          {actions && <div className={css.actions}>{actions}</div>}
         </header>
       )}
       {children}
