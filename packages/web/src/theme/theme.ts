@@ -130,6 +130,13 @@ export const theme = createTheme({
     }),
     Table: Table.extend({
       classNames: tableCss,
+      // Every row list has the same row height
+      vars: (_, props) => ({
+        table: {
+          '--table-vertical-spacing':
+            props.variant === 'rows' ? 'var(--mantine-spacing-xxs)' : undefined,
+        },
+      }),
       defaultProps: {
         stripedColor: 'var(--pk-surface-stripe)',
         highlightOnHoverColor: 'var(--pk-surface-3)',
