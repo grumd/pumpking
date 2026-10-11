@@ -72,7 +72,6 @@ module.exports = {
       // Not migrated to the design system yet. Remove each entry when its feature is migrated
       files: [
         'src/components/Card/CardWithProgress.tsx',
-        'src/features/login/**',
         'src/features/songs/**',
         'src/features/ranking/**',
         'src/features/profile/**',

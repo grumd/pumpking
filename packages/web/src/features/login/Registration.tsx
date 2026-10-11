@@ -1,17 +1,18 @@
-import { Alert, Anchor, Button } from '@mantine/core';
-import { type CredentialResponse, GoogleLogin } from '@react-oauth/google';
+import { Alert, Anchor, Button, Text } from '@mantine/core';
+import { type CredentialResponse } from '@react-oauth/google';
 import { useMutation } from '@tanstack/react-query';
 import { useState } from 'react';
 import { FaDiscord } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
 
-import './registration-page.scss';
+import { GoogleButton } from 'components/GoogleButton/GoogleButton';
 
 import { useDiscordLogin } from 'hooks/useDiscordLogin';
 
 import { useLanguage } from 'utils/context/translation';
 import { api } from 'utils/trpc';
 
+import { LoginLayout } from './LoginLayout';
 import { RegistrationForm } from './RegistrationForm';
 
 interface RegistrationData {
@@ -63,33 +64,23 @@ export function RegistrationPage() {
   const combinedError = error || discord.error;
 
   return (
-    <div className="registration-page">
-      <h1 className="site-name">pumpking</h1>
-      <p>{lang.CREATE_NEW_ACCOUNT}</p>
-      <div className="google-button">
-        {/* Hack to make the google login background transparent */}
-        <div style={{ colorScheme: 'light' }}>
-          <GoogleLogin onSuccess={onGoogleSuccess} onError={onGoogleError} />
-        </div>
-      </div>
+    <LoginLayout>
+      <Text>{lang.CREATE_NEW_ACCOUNT}</Text>
+      <GoogleButton onSuccess={onGoogleSuccess} onError={onGoogleError} />
       {discord.isConfigured && (
         <Button
           component="a"
           href={discord.authUrl}
           leftSection={<FaDiscord size={20} />}
-          color="#5865F2"
+          color="discord"
         >
           {lang.SIGN_UP_WITH_DISCORD}
         </Button>
       )}
-      {combinedError && (
-        <Alert color="red" variant="light" mt="md">
-          {combinedError}
-        </Alert>
-      )}
-      <Anchor component={Link} to="/" mt="md" size="sm">
+      {combinedError && <Alert color="red">{combinedError}</Alert>}
+      <Anchor component={Link} to="/" size="sm">
         {lang.ALREADY_HAVE_ACCOUNT}
       </Anchor>
-    </div>
+    </LoginLayout>
   );
 }

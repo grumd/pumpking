@@ -16,7 +16,6 @@
   },
   "ignoreFiles": [
     "src/components/Card/card-progress.module.css",
-    "src/features/login/**",
     "src/features/profile/**",
     "src/features/leaderboards/**",
     "src/features/admin/**",

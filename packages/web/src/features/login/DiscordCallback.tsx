@@ -1,7 +1,5 @@
-import { Alert, Anchor } from '@mantine/core';
+import { Alert, Anchor, Text } from '@mantine/core';
 import { NavLink, useParams } from 'react-router-dom';
-
-import './login-screen.scss';
 
 import Loader from 'components/Loader/Loader';
 
@@ -11,6 +9,7 @@ import { useDiscordLogin } from 'hooks/useDiscordLogin';
 
 import { useLanguage } from 'utils/context/translation';
 
+import { LoginLayout } from './LoginLayout';
 import { RegistrationForm } from './RegistrationForm';
 
 export function DiscordCallback() {
@@ -28,15 +27,12 @@ export function DiscordCallback() {
 
   if (discord.error) {
     return (
-      <div className="login-screen">
-        <h1 className="site-name">pumpking</h1>
-        <Alert color="red" variant="light">
-          {discord.error}
-        </Alert>
-        <Anchor component={NavLink} to={backLink} mt="md">
+      <LoginLayout>
+        <Alert color="red">{discord.error}</Alert>
+        <Anchor component={NavLink} to={backLink}>
           {backText}
         </Anchor>
-      </div>
+      </LoginLayout>
     );
   }
 
@@ -52,25 +48,21 @@ export function DiscordCallback() {
 
   if (discord.isLoading) {
     return (
-      <div className="login-screen">
-        <h1 className="site-name">pumpking</h1>
+      <LoginLayout>
         <Loader />
-        <p>{redirectTo === 'register' ? lang.VERIFYING_DISCORD : lang.SIGNING_IN_DISCORD}</p>
-      </div>
+        <Text>{redirectTo === 'register' ? lang.VERIFYING_DISCORD : lang.SIGNING_IN_DISCORD}</Text>
+      </LoginLayout>
     );
   }
 
   if (!code) {
     return (
-      <div className="login-screen">
-        <h1 className="site-name">pumpking</h1>
-        <Alert color="red" variant="light">
-          {lang.NO_DISCORD_CODE}
-        </Alert>
-        <Anchor component={NavLink} to={backLink} mt="md">
+      <LoginLayout>
+        <Alert color="red">{lang.NO_DISCORD_CODE}</Alert>
+        <Anchor component={NavLink} to={backLink}>
           {backText}
         </Anchor>
-      </div>
+      </LoginLayout>
     );
   }
 
