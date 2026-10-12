@@ -147,7 +147,7 @@ All in `src/components/`. Everything not listed here is either a Mantine compone
 
 The outer wrapper of every logged-in page: a `<main>` that takes the full width up to the page width, with side padding and an `sm` gap between its children.
 
-- `width`: `'default'` (53rem: about 950px on desktop; also the top bar), `'narrow'` (24rem: single forms like add result), `'wide'` (admin only).
+- `width`: `'default'` (53rem: about 950px on desktop; also the top bar), `'narrow'` (26rem: about 470px on desktop and the full width of a phone; single forms like add result and the login screens), `'wide'` (admin only).
 - Use it once per page, as the root. Don't add `Container`, `max-width` or page padding yourself.
 
 ### `Card`
