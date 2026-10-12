@@ -78,7 +78,7 @@ export default function RankingList({ ranking, isLoading, preferences }: Ranking
               className={css.row}
               data-hidden={isHidden || isRegionHidden || undefined}
             >
-              <Table.Td className={css.shrink}>
+              <Table.Td data-fit>
                 {playerIndex === 0 ? (
                   <Text span fz="xl" c="gold" className={css.crown}>
                     <GiQueenCrown />
@@ -88,7 +88,7 @@ export default function RankingList({ ranking, isLoading, preferences }: Ranking
                   <Place place={playerIndex + 1} medals />
                 )}
               </Table.Td>
-              <Table.Td className={css.shrink}>
+              <Table.Td data-fit>
                 {player.exp != null ? (
                   <div className={css.expRank}>
                     <ExpRankImg exp={player.exp} />
@@ -108,7 +108,7 @@ export default function RankingList({ ranking, isLoading, preferences }: Ranking
                   {player.arcade_name}
                 </Anchor>
               </Table.Td>
-              <Table.Td className={css.shrink} ta="right" fw={700} c="var(--pk-text-strong)">
+              <Table.Td data-fit ta="right" fw={700} c="var(--pk-text-strong)">
                 {player.pp != null ? Math.floor(player.pp) : ''}
               </Table.Td>
               <Table.Td visibleFrom="md" ta="right" fz="sm" c="dimmed">
@@ -120,10 +120,10 @@ export default function RankingList({ ranking, isLoading, preferences }: Ranking
               <Table.Td visibleFrom="md" ta="right" fz="sm" c="dimmed">
                 {player.accuracy ? `${player.accuracy.toFixed(2)}%` : ''}
               </Table.Td>
-              <Table.Td className={css.shrink}>
+              <Table.Td data-fit>
                 <MedalCounts cups={player.cups} />
               </Table.Td>
-              <Table.Td className={css.shrink}>
+              <Table.Td data-fit>
                 <Switch
                   aria-label={lang.SHOW_IN_RANKING}
                   onChange={() => {
