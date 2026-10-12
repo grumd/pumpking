@@ -130,7 +130,7 @@ Set in `theme.ts`, so don't repeat them as props:
 | `Modal` | `centered`, `radius="md"` |
 | `Drawer` | title bold `lg` |
 | `Popover`, `Menu` | dropdown on surface-1, `radius="md"` |
-| `Tooltip` | Mantine's light tooltip (as before); opens on hover, focus and touch |
+| `Tooltip` | Mantine's light tooltip (as before); opens on hover, keyboard focus, and press-and-hold on touch screens |
 | `Progress` | track `--pk-progress-track` |
 | `Alert` | `variant="light"`, `radius="md"` |
 | `Anchor` | underline on hover; default text color is Mantine's anchor gray |
@@ -159,6 +159,7 @@ A surface with an optional title: the "section" of a page.
 - `level?: 1 | 2`: `1` on the page (surface-1, padding `sm`), `2` for a card or row inside a card (surface-2, padding `xs`).
 - Takes the `Paper` props (`component`, `flex`, `p`, `mb`...).
 - Use for any group of content on a page. A card with its own header (the leaderboard chart card) has no `title`, so no underline.
+- The one padding exception: the leaderboard's dense results table uses smaller card paddings below `md` (`p={{ base: 'xs', md: 'sm' }}`, level 2 `px={{ base: 0, md: 'xs' }}`) so its 10 columns fit a phone. Don't copy it elsewhere.
 - Don't nest a level-1 card in another level-1 card. Don't use Mantine's `Card` or `Paper` directly for sections.
 - In admin drawers, groups of fields use the admin-local `Section` (a dimmed heading without a surface), not `Card`.
 
@@ -239,7 +240,7 @@ Don't wrap these; configure them through the theme.
 | Warnings / notes | `<Alert color="yellow">` / `<Alert>` |
 | Tabs | `Tabs` (default variant for navigation between areas, `variant="pills"` for switching a view inside a page) |
 | Something to click | `Button`, `ActionIcon` (always with `aria-label`), `Anchor` for navigation (also for external links), `UnstyledButton` when it must look like plain content (a score you click, a tooltip target). Never `onClick` on a `div`, `span` or `td` alone |
-| Extra info | `Tooltip` for short hints. Its target must be focusable (`UnstyledButton`, `Button`, `Anchor`), or touch and keyboard users can't open it. `Popover` for anything with links or buttons; its width must fit a 375px screen (`width="target"` or a `maw`) |
+| Extra info | `Tooltip` for short hints that are fine to miss on touch screens (they show on press-and-hold). Its target must be focusable (`UnstyledButton`, `Button`, `Anchor`), or touch and keyboard users can't open it. `Popover` for anything with links or buttons; its width must fit a 375px screen (`width="target"` or a `maw`) |
 | Status | `Badge` with a state color |
 | Progress | `Progress` with `color="accent"` |
 
@@ -272,11 +273,12 @@ The migration keeps the old look. These are the places that changed on purpose, 
 | Profile | pp and rank history tooltips get a background | They had none (an undefined class), so the text drew over the graph lines |
 | Profile | Best-score dates fade by age down to 55% instead of 20% | The oldest dates were 1.8:1 |
 | Profile, songs | Lists of rows use `Table variant="rows"` and `Place` | Same list look as the ranking; top-3 colors match the medals |
-| Leaderboard | The score that opens the result details is a button | The popover could only be opened with a mouse or touch |
+| Leaderboard | The score that opens the result details is a button, and focus moves into the popover | The popover could only be opened with a mouse or touch, and its links were out of keyboard reach |
 | Leaderboard | "Show N more" is a real button with a focus ring | It had `all: unset`, so keyboard users couldn't see it |
 | Leaderboard | Combo column hidden below `md`, together with its popover fallback | Between 768 and 900px the combo was shown nowhere |
-| Leaderboard | The charts filter popover fits the screen | It overflowed a 375px screen |
-| Leaderboard | Date tooltips and achievement descriptions open on tap and focus | They were hover only |
+| Leaderboard | The charts filter popover fits the screen and works from the keyboard | It overflowed a 375px screen, and Tab skipped its controls |
+| Leaderboard | Player filters and sorting inputs stack on phones | Three player selects were ~115px wide each, the sort select was cut off, and opening sorting pushed "charts filter" off the screen |
+| Leaderboard, profile | Date tooltips and achievement descriptions open on keyboard focus and on press-and-hold | They were hover only |
 | Ranking | Rows use `Table variant="rows"`; the hide switch has a label | Same list look as songs and profile; the switch had no name for screen readers |
 | Ranking | Empty state and error use `EmptyState` / `Alert` | The empty state was hardcoded Russian text and the error was a raw string |
 | Confirm modal | Cancel is a default button, OK is filled | Cancel was red, which reads as the destructive action |
