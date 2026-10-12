@@ -1,0 +1,114 @@
+.sharedList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--mantine-spacing-lg);
+}
+
+.shared {
+  display: flex;
+  align-items: stretch;
+  background: var(--pk-surface-1);
+  border: rem(1px) solid var(--pk-border);
+  border-radius: var(--mantine-radius-md);
+}
+
+/* The shared chart's id down its left side, reading bottom to top */
+.sharedHeader {
+  display: flex;
+  align-items: center;
+  /* The end of the rotated line: the text sits at the top of the strip */
+  justify-content: flex-end;
+  gap: var(--mantine-spacing-xxs);
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  padding: var(--mantine-spacing-xs) var(--mantine-spacing-xxs);
+  border-left: rem(1px) solid var(--pk-border);
+  white-space: nowrap;
+  font-size: var(--mantine-font-size-xs);
+  color: var(--mantine-color-dimmed);
+}
+
+.id {
+  color: var(--mantine-color-text);
+  font-weight: 600;
+}
+
+.instances {
+  flex: 1;
+  min-width: 0;
+  padding: var(--mantine-spacing-xs) var(--mantine-spacing-sm);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--mantine-spacing-xs) var(--mantine-spacing-lg);
+}
+
+.instance {
+  width: max-content;
+  max-width: 100%;
+  background: var(--pk-surface-sunken);
+  border: rem(1px) solid var(--pk-border);
+  border-radius: var(--mantine-radius-md);
+  display: flex;
+  flex-direction: column;
+
+  &:hover {
+    border-color: var(--mantine-color-dimmed);
+  }
+}
+
+.highlighted,
+.highlighted:hover {
+  border-color: var(--mantine-color-red-filled);
+  background: var(--mantine-color-red-light);
+}
+
+/* The instance id on top, a dashed line below it */
+.instanceId {
+  padding: 0 var(--mantine-spacing-xs);
+  border-bottom: rem(1px) dashed var(--pk-border);
+  text-align: right;
+  font-size: var(--mantine-font-size-xs);
+  color: var(--mantine-color-dimmed);
+}
+
+.instanceBody {
+  display: flex;
+  flex-direction: column;
+  gap: var(--mantine-spacing-xxs);
+  padding: var(--mantine-spacing-xs) var(--mantine-spacing-xs) var(--mantine-spacing-xxs);
+}
+
+.instanceChart {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--mantine-spacing-md);
+  font-size: var(--mantine-font-size-md);
+  white-space: nowrap;
+
+  @mixin smaller-than $mantine-breakpoint-sm {
+    white-space: normal;
+    flex-wrap: wrap;
+    row-gap: var(--mantine-spacing-xxs);
+  }
+}
+
+.instanceFooter {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--mantine-spacing-lg);
+  font-size: var(--mantine-font-size-xs);
+  color: var(--mantine-color-dimmed);
+}
+
+/* A step range that changed since the previous card */
+.stepsChanged {
+  color: var(--mantine-color-text);
+}
+
+.arrow {
+  color: var(--mantine-color-dimmed);
+  flex: none;
+  display: flex;
+}

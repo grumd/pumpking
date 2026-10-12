@@ -3,8 +3,10 @@ import { useDisclosure } from '@mantine/hooks';
 import { FaListUl } from 'react-icons/fa';
 
 import { Card } from 'components/Card/Card';
+import { EmptyState } from 'components/EmptyState/EmptyState';
 
 import { useActivity } from './activity';
+import css from './activity-drawer.module.css';
 
 // The button that opens the activity log, and the log itself
 export const ActivityDrawer = (): JSX.Element => {
@@ -30,7 +32,7 @@ export const ActivityDrawer = (): JSX.Element => {
         Activity
       </Button>
       <Drawer opened={opened} onClose={close} position="right" size="lg" title="Activity">
-        {activity.length === 0 && <Text c="dimmed">Nothing done yet in this session</Text>}
+        {activity.length === 0 && <EmptyState>Nothing done yet in this session</EmptyState>}
         <Stack gap="xs">
           {activity.map((entry) => (
             <Card key={entry.id} level={2}>
@@ -43,7 +45,7 @@ export const ActivityDrawer = (): JSX.Element => {
                 </Text>
               </Group>
               {entry.lines.map((line, index) => (
-                <Text key={index} size="sm" ff="monospace" style={{ wordBreak: 'break-word' }}>
+                <Text key={index} size="sm" ff="monospace" className={css.line}>
                   {line}
                 </Text>
               ))}

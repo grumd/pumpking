@@ -1,9 +1,11 @@
-import { Badge, Button, Group, Stack, Table, Text, TextInput } from '@mantine/core';
+import { Anchor, Button, Group, Stack, Table, Text, TextInput, rem } from '@mantine/core';
 import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
 import { FaRedo, FaSearch } from 'react-icons/fa';
-import { useNavigate, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 
+import { ChartLabel } from 'components/ChartLabel/ChartLabel';
+import { EmptyState } from 'components/EmptyState/EmptyState';
 import Loader from 'components/Loader/Loader';
 
 import { routes } from 'constants/routes';
@@ -42,77 +44,81 @@ export const PurgatoryTab = (): JSX.Element => {
 
   return (
     <Stack gap="sm">
-      <Group justify="space-between">
+      <Group wrap="wrap" gap="xs">
         <TextInput
           placeholder="Filter by reason, player, track, agent"
+          aria-label="Filter purgatory"
           leftSection={<FaSearch />}
           value={filter}
           onChange={(event) => setFilter(event.currentTarget.value)}
-          w="24rem"
+          flex={1}
+          miw={rem(200)}
         />
-        <Group gap="xs">
-          <Text size="sm" c="dimmed">
-            {list.data && `${rows.length} of ${list.data.length} rows`}
-          </Text>
-          <Button
-            leftSection={<FaRedo />}
-            loading={recheckAll.isPending}
-            disabled={!list.data?.length}
-            onClick={() => recheckAll.mutate({})}
-            title="Rechecks every row: valid ones move to results"
-          >
-            Recheck all
-          </Button>
-        </Group>
+        <Text size="sm" c="dimmed">
+          {list.data && `${rows.length} of ${list.data.length} rows`}
+        </Text>
+        <Button
+          leftSection={<FaRedo />}
+          loading={recheckAll.isPending}
+          disabled={!list.data?.length}
+          onClick={() => recheckAll.mutate({})}
+          title="Rechecks every row: valid ones move to results"
+        >
+          Recheck all
+        </Button>
       </Group>
 
       {list.isLoading && <Loader />}
-      {list.data?.length === 0 && (
-        <Text c="dimmed" ta="center" py="xl">
-          Purgatory is empty
-        </Text>
-      )}
+      {list.data?.length === 0 && <EmptyState>Purgatory is empty</EmptyState>}
       {rows.length > 0 && (
-        <Table highlightOnHover verticalSpacing="xs">
-          <Table.Thead>
-            <Table.Tr>
-              <Table.Th>#</Table.Th>
-              <Table.Th>Added</Table.Th>
-              <Table.Th>Agent</Table.Th>
-              <Table.Th>Player</Table.Th>
-              <Table.Th>Track</Table.Th>
-              <Table.Th ta="right">Score</Table.Th>
-              <Table.Th>Reason</Table.Th>
-            </Table.Tr>
-          </Table.Thead>
-          <Table.Tbody>
-            {rows.map((row) => (
-              <Table.Tr
-                key={row.id}
-                onClick={() => navigate(routes.admin.purgatory.getPath({ id: row.id }))}
-                style={{ cursor: 'pointer' }}
-                bg={row.id === openId ? 'dark.5' : undefined}
-              >
-                <Table.Td>{row.id}</Table.Td>
-                <Table.Td style={{ whiteSpace: 'nowrap' }}>{formatDate(row.added)}</Table.Td>
-                <Table.Td>{row.agent_name ?? `#${row.agent}`}</Table.Td>
-                <Table.Td>{row.player_name}</Table.Td>
-                <Table.Td>
-                  {row.track_name}{' '}
-                  <Badge variant="default" size="sm">
-                    {row.chart_label}
-                  </Badge>
-                </Table.Td>
-                <Table.Td ta="right">{formatNumber(row.score)}</Table.Td>
-                <Table.Td>
-                  <Text size="sm" c="red.3" lineClamp={2}>
-                    {row.reason}
-                  </Text>
-                </Table.Td>
+        <Table.ScrollContainer minWidth={700}>
+          <Table highlightOnHover verticalSpacing="xs">
+            <Table.Thead>
+              <Table.Tr>
+                <Table.Th>#</Table.Th>
+                <Table.Th>Added</Table.Th>
+                <Table.Th>Agent</Table.Th>
+                <Table.Th>Player</Table.Th>
+                <Table.Th>Track</Table.Th>
+                <Table.Th ta="right">Score</Table.Th>
+                <Table.Th>Reason</Table.Th>
               </Table.Tr>
-            ))}
-          </Table.Tbody>
-        </Table>
+            </Table.Thead>
+            <Table.Tbody>
+              {rows.map((row) => (
+                <Table.Tr
+                  key={row.id}
+                  onClick={() => navigate(routes.admin.purgatory.getPath({ id: row.id }))}
+                  data-clickable
+                  data-selected={row.id === openId || undefined}
+                >
+                  <Table.Td>
+                    <Anchor
+                      inherit
+                      component={Link}
+                      to={routes.admin.purgatory.getPath({ id: row.id })}
+                      onClick={(event) => event.stopPropagation()}
+                    >
+                      {row.id}
+                    </Anchor>
+                  </Table.Td>
+                  <Table.Td data-fit>{formatDate(row.added)}</Table.Td>
+                  <Table.Td>{row.agent_name ?? `#${row.agent}`}</Table.Td>
+                  <Table.Td>{row.player_name}</Table.Td>
+                  <Table.Td>
+                    {row.track_name} <ChartLabel label={row.chart_label} />
+                  </Table.Td>
+                  <Table.Td ta="right">{formatNumber(row.score)}</Table.Td>
+                  <Table.Td>
+                    <Text size="sm" c="red.3" lineClamp={2}>
+                      {row.reason}
+                    </Text>
+                  </Table.Td>
+                </Table.Tr>
+              ))}
+            </Table.Tbody>
+          </Table>
+        </Table.ScrollContainer>
       )}
 
       <DetailDrawer opened={openId != null} onClose={close} title={`Purgatory #${openId}`} wide>

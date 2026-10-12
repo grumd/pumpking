@@ -1,7 +1,7 @@
-import { Badge, Button, Group, Stack, Table, Text, TextInput } from '@mantine/core';
+import { Anchor, Badge, Button, Group, Stack, Table, Text, TextInput, rem } from '@mantine/core';
 import { useQuery } from '@tanstack/react-query';
 import { FaPlus, FaSearch } from 'react-icons/fa';
-import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 
 import { Flag } from 'components/Flag/Flag';
 import Loader from 'components/Loader/Loader';
@@ -39,9 +39,10 @@ export const PlayersTab = (): JSX.Element => {
 
   return (
     <Stack gap="sm">
-      <Group justify="space-between">
+      <Group wrap="wrap" gap="xs">
         <TextInput
           placeholder="Filter by nickname or arcade name"
+          aria-label="Filter players"
           leftSection={<FaSearch />}
           value={filter}
           onChange={(event) =>
@@ -49,95 +50,109 @@ export const PlayersTab = (): JSX.Element => {
               replace: true,
             })
           }
-          w="24rem"
+          flex={1}
+          miw={rem(200)}
         />
-        <Group gap="xs">
-          <Text size="sm" c="dimmed">
-            {players.data && `${matching.length} of ${players.data.length} players`}
-          </Text>
-          <Button
-            leftSection={<FaPlus />}
-            onClick={() =>
-              navigate({
-                pathname: routes.admin.players.getPath({ id: 'new' }),
-                search: listPath.search,
-              })
-            }
-          >
-            New player
-          </Button>
-        </Group>
+        <Text size="sm" c="dimmed">
+          {players.data && `${matching.length} of ${players.data.length} players`}
+        </Text>
+        <Button
+          leftSection={<FaPlus />}
+          onClick={() =>
+            navigate({
+              pathname: routes.admin.players.getPath({ id: 'new' }),
+              search: listPath.search,
+            })
+          }
+        >
+          New player
+        </Button>
       </Group>
 
       {players.isLoading && <Loader />}
       {players.data && (
-        <Table highlightOnHover verticalSpacing="xs">
-          <Table.Thead>
-            <Table.Tr>
-              <Table.Th>#</Table.Th>
-              <Table.Th>Nickname</Table.Th>
-              {MIX_OPTIONS_WITH_ARCADE_NAMES.map((mix) => (
-                <Table.Th key={mix.id}>{mix.name}</Table.Th>
-              ))}
-              <Table.Th>Region</Table.Th>
-              <Table.Th />
-            </Table.Tr>
-          </Table.Thead>
-          <Table.Tbody>
-            {matching.slice(0, LIMIT).map((player) => (
-              <Table.Tr
-                key={player.id}
-                onClick={() =>
-                  navigate({
-                    pathname: routes.admin.players.getPath({ id: player.id }),
-                    search: listPath.search,
-                  })
-                }
-                style={{ cursor: 'pointer' }}
-                bg={player.id === openId ? 'dark.5' : undefined}
-              >
-                <Table.Td>{player.id}</Table.Td>
-                <Table.Td>{player.nickname}</Table.Td>
+        <Table.ScrollContainer minWidth={820}>
+          <Table highlightOnHover verticalSpacing="xs">
+            <Table.Thead>
+              <Table.Tr>
+                <Table.Th>#</Table.Th>
+                <Table.Th>Nickname</Table.Th>
                 {MIX_OPTIONS_WITH_ARCADE_NAMES.map((mix) => (
-                  <Table.Td key={mix.id} ff="monospace" fz="sm">
-                    {player.arcadeNames[mix.id]?.name}
-                  </Table.Td>
+                  <Table.Th key={mix.id}>{mix.name}</Table.Th>
                 ))}
-                <Table.Td>{player.region && <Flag region={player.region} size="sm" />}</Table.Td>
-                <Table.Td>
-                  <Group gap={4}>
-                    {player.hidden && (
-                      <Badge color="gray" size="sm">
-                        hidden
-                      </Badge>
-                    )}
-                    {player.is_admin && (
-                      <Badge color="grape" size="sm">
-                        admin
-                      </Badge>
-                    )}
-                    {player.can_add_results_manually && (
-                      <Badge color="teal" size="sm">
-                        adds results
-                      </Badge>
-                    )}
-                    {player.discard_results && (
-                      <Badge color="red" size="sm">
-                        discarded
-                      </Badge>
-                    )}
-                    {player.actual_player_id && (
-                      <Badge color="blue" size="sm">
-                        alias of{' '}
-                        {nicknames.get(player.actual_player_id) ?? `#${player.actual_player_id}`}
-                      </Badge>
-                    )}
-                  </Group>
-                </Table.Td>
+                <Table.Th>Region</Table.Th>
+                <Table.Th />
               </Table.Tr>
-            ))}
-          </Table.Tbody>
-        </Table>
+            </Table.Thead>
+            <Table.Tbody>
+              {matching.slice(0, LIMIT).map((player) => {
+                const detailPath = {
+                  pathname: routes.admin.players.getPath({ id: player.id }),
+                  search: listPath.search,
+                };
+                return (
+                  <Table.Tr
+                    key={player.id}
+                    onClick={() => navigate(detailPath)}
+                    data-clickable
+                    data-selected={player.id === openId || undefined}
+                  >
+                    <Table.Td>
+                      <Anchor
+                        inherit
+                        component={Link}
+                        to={detailPath}
+                        onClick={(event) => event.stopPropagation()}
+                      >
+                        {player.id}
+                      </Anchor>
+                    </Table.Td>
+                    <Table.Td>{player.nickname}</Table.Td>
+                    {MIX_OPTIONS_WITH_ARCADE_NAMES.map((mix) => (
+                      <Table.Td key={mix.id} ff="monospace" fz="sm">
+                        {player.arcadeNames[mix.id]?.name}
+                      </Table.Td>
+                    ))}
+                    <Table.Td>
+                      {player.region && <Flag region={player.region} size="sm" />}
+                    </Table.Td>
+                    <Table.Td>
+                      <Group gap="xxs">
+                        {player.hidden && (
+                          <Badge color="gray" size="sm">
+                            hidden
+                          </Badge>
+                        )}
+                        {player.is_admin && (
+                          <Badge color="grape" size="sm">
+                            admin
+                          </Badge>
+                        )}
+                        {player.can_add_results_manually && (
+                          <Badge color="teal" size="sm">
+                            adds results
+                          </Badge>
+                        )}
+                        {player.discard_results && (
+                          <Badge color="red" size="sm">
+                            discarded
+                          </Badge>
+                        )}
+                        {player.actual_player_id && (
+                          <Badge color="blue" size="sm">
+                            alias of{' '}
+                            {nicknames.get(player.actual_player_id) ??
+                              `#${player.actual_player_id}`}
+                          </Badge>
+                        )}
+                      </Group>
+                    </Table.Td>
+                  </Table.Tr>
+                );
+              })}
+            </Table.Tbody>
+          </Table>
+        </Table.ScrollContainer>
       )}
       {matching.length > LIMIT && (
         <Text size="sm" c="dimmed" ta="center">

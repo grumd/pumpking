@@ -1,4 +1,4 @@
-import { Group, Stack, Text, Title } from '@mantine/core';
+import { Group, Stack, Title } from '@mantine/core';
 
 // A titled group of fields in a detail view
 export const Section = ({
@@ -19,14 +19,4 @@ export const Section = ({
     </Group>
     {children}
   </Stack>
-);
-
-// A read-only value with its label
-export const Info = ({ label, value }: { label: string; value: React.ReactNode }) => (
-  <div>
-    <Text size="xs" c="dimmed">
-      {label}
-    </Text>
-    <Text size="sm">{value}</Text>
-  </div>
 );

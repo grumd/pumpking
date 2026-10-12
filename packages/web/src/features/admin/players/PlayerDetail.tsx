@@ -1,9 +1,10 @@
 import type { ApiInputs, ApiOutputs } from '@/api/trpc/router';
-import { Anchor, Button, Group, SimpleGrid, Stack, Switch, Text, Tooltip } from '@mantine/core';
+import { Anchor, Button, Group, SimpleGrid, Stack, Switch, Text } from '@mantine/core';
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 
 import Loader from 'components/Loader/Loader';
+import { Stat } from 'components/Stat/Stat';
 
 import { routes } from 'constants/routes';
 
@@ -13,7 +14,7 @@ import { useAdminAction } from '../activity/activity';
 import { ArcadeNamesEditor } from '../components/ArcadeNamesEditor';
 import { PlayerSelect } from '../components/PlayerSelect';
 import { NumberField, SelectField, TextField } from '../components/fields';
-import { Info, Section } from '../components/layout';
+import { Section } from '../components/layout';
 import { useEditForm } from '../hooks/useEditForm';
 import { formatDate } from '../scoring';
 
@@ -106,9 +107,9 @@ const PlayerForm = ({ player, initial, onCreated }: PlayerFormProps) => {
     <Stack gap="md">
       {player && (
         <Group gap="lg">
-          <Info label="Results" value={player.resultsCount.toLocaleString('en-US')} />
-          <Info label="Last played" value={formatDate(player.lastResultGained)} />
-          <Info label="Hidden since" value={formatDate(player.hidden_since)} />
+          <Stat label="Results" value={player.resultsCount.toLocaleString('en-US')} />
+          <Stat label="Last played" value={formatDate(player.lastResultGained)} />
+          <Stat label="Hidden since" value={formatDate(player.hidden_since)} />
           <Group gap="xs" ml="auto">
             <Anchor component={Link} to={routes.profile.getPath({ id: player.id })} size="sm">
               Profile
@@ -125,7 +126,7 @@ const PlayerForm = ({ player, initial, onCreated }: PlayerFormProps) => {
       )}
 
       <Section title="Profile">
-        <SimpleGrid cols={2} spacing="sm">
+        <SimpleGrid cols={{ base: 1, xs: 2 }} spacing="sm">
           <TextField
             label="Nickname"
             value={form.values.nickname}
@@ -175,16 +176,19 @@ const PlayerForm = ({ player, initial, onCreated }: PlayerFormProps) => {
 
       <Section title="Access">
         <Switch
-          label={<Hint label="Not shown on leaderboards and in the ranking">Hidden</Hint>}
+          label="Hidden"
+          description="Not shown on leaderboards and in the ranking"
           {...switchProps('hidden')}
         />
         <Switch
-          label={<Hint label="Ingestion drops their results">Discard results</Hint>}
+          label="Discard results"
+          description="Ingestion drops their results"
           {...switchProps('discardResults')}
         />
         <Switch label="Can add results on the web" {...switchProps('canAddResultsManually')} />
         <Switch
-          label={<Hint label="Can open this admin page">Is admin</Hint>}
+          label="Is admin"
+          description="Can open this admin page"
           {...switchProps('isAdmin')}
         />
       </Section>
@@ -206,10 +210,3 @@ const PlayerForm = ({ player, initial, onCreated }: PlayerFormProps) => {
     </Stack>
   );
 };
-
-// A switch's short label, with what it does on hover
-const Hint = ({ label, children }: { label: string; children: React.ReactNode }) => (
-  <Tooltip label={label} position="top-start">
-    <span>{children}</span>
-  </Tooltip>
-);

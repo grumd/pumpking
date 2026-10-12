@@ -1,10 +1,21 @@
-import { Badge, Button, Group, NumberInput, Stack, Table, Text, TextInput } from '@mantine/core';
+import {
+  Anchor,
+  Badge,
+  Button,
+  Group,
+  NumberInput,
+  Stack,
+  Table,
+  Text,
+  TextInput,
+  rem,
+} from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import { notifications } from '@mantine/notifications';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { type FormEvent, useState } from 'react';
 import { FaSearch, FaSync } from 'react-icons/fa';
-import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 
 import Loader from 'components/Loader/Loader';
 
@@ -67,93 +78,104 @@ export const TracksTab = (): JSX.Element => {
 
   return (
     <Stack gap="sm">
-      <Group justify="space-between">
-        <Group gap="xs">
-          <TextInput
-            placeholder="Filter by name, external id or arcade name"
-            leftSection={<FaSearch />}
-            value={filter}
-            onChange={(event) =>
-              setSearchParams(event.currentTarget.value ? { q: event.currentTarget.value } : {}, {
-                replace: true,
-              })
-            }
-            w="24rem"
-          />
-          <form onSubmit={onFindChart}>
-            <Group gap="xs">
-              <NumberInput
-                placeholder="Chart #"
-                value={chartId}
-                onChange={setChartId}
-                allowDecimal={false}
-                allowNegative={false}
-                hideControls
-                w="7rem"
-              />
-              <Button type="submit" variant="default" disabled={typeof chartId !== 'number'}>
-                Open chart
-              </Button>
-            </Group>
-          </form>
-        </Group>
-        <Group gap="xs">
-          <Text size="sm" c="dimmed">
-            {tracks.data && `${matching.length} of ${tracks.data.length} tracks`}
-          </Text>
-          <Button leftSection={<FaSync />} onClick={sync.open}>
-            Sync tracklist
-          </Button>
-        </Group>
+      <Group wrap="wrap" gap="xs">
+        <TextInput
+          placeholder="Filter by name, external id or arcade name"
+          aria-label="Filter tracks"
+          leftSection={<FaSearch />}
+          value={filter}
+          onChange={(event) =>
+            setSearchParams(event.currentTarget.value ? { q: event.currentTarget.value } : {}, {
+              replace: true,
+            })
+          }
+          flex={1}
+          miw={rem(200)}
+        />
+        <form onSubmit={onFindChart}>
+          <Group gap="xs" wrap="nowrap">
+            <NumberInput
+              placeholder="Chart #"
+              aria-label="Chart id"
+              value={chartId}
+              onChange={setChartId}
+              allowDecimal={false}
+              allowNegative={false}
+              hideControls
+              w="7rem"
+            />
+            <Button type="submit" variant="default" disabled={typeof chartId !== 'number'}>
+              Open chart
+            </Button>
+          </Group>
+        </form>
+        <Text size="sm" c="dimmed">
+          {tracks.data && `${matching.length} of ${tracks.data.length} tracks`}
+        </Text>
+        <Button leftSection={<FaSync />} onClick={sync.open}>
+          Sync tracklist
+        </Button>
       </Group>
 
       {tracks.isLoading && <Loader />}
       {tracks.data && (
-        <Table highlightOnHover verticalSpacing="xs">
-          <Table.Thead>
-            <Table.Tr>
-              <Table.Th>#</Table.Th>
-              <Table.Th>Track</Table.Th>
-              <Table.Th>External id</Table.Th>
-              {MIX_OPTIONS_WITH_ARCADE_NAMES.map((mix) => (
-                <Table.Th key={mix.id}>{mix.name}</Table.Th>
-              ))}
-            </Table.Tr>
-          </Table.Thead>
-          <Table.Tbody>
-            {matching.slice(0, LIMIT).map((track) => (
-              <Table.Tr
-                key={track.id}
-                onClick={() =>
-                  navigate({
-                    pathname: routes.admin.tracks.getPath({ id: track.id }),
-                    search: listPath.search,
-                  })
-                }
-                style={{ cursor: 'pointer' }}
-                bg={track.id === openId ? 'dark.5' : undefined}
-              >
-                <Table.Td>{track.id}</Table.Td>
-                <Table.Td>
-                  {track.full_name}{' '}
-                  {track.duration && track.duration !== 'Standard' && (
-                    <Badge variant="default" size="sm">
-                      {track.duration}
-                    </Badge>
-                  )}
-                </Table.Td>
-                <Table.Td ff="monospace" fz="sm">
-                  {track.external_id}
-                </Table.Td>
+        <Table.ScrollContainer minWidth={700}>
+          <Table highlightOnHover verticalSpacing="xs">
+            <Table.Thead>
+              <Table.Tr>
+                <Table.Th>#</Table.Th>
+                <Table.Th>Track</Table.Th>
+                <Table.Th>External id</Table.Th>
                 {MIX_OPTIONS_WITH_ARCADE_NAMES.map((mix) => (
-                  <Table.Td key={mix.id} fz="sm">
-                    {track.arcadeNames[mix.id]?.name}
-                  </Table.Td>
+                  <Table.Th key={mix.id}>{mix.name}</Table.Th>
                 ))}
               </Table.Tr>
-            ))}
-          </Table.Tbody>
-        </Table>
+            </Table.Thead>
+            <Table.Tbody>
+              {matching.slice(0, LIMIT).map((track) => {
+                const detailPath = {
+                  pathname: routes.admin.tracks.getPath({ id: track.id }),
+                  search: listPath.search,
+                };
+                return (
+                  <Table.Tr
+                    key={track.id}
+                    onClick={() => navigate(detailPath)}
+                    data-clickable
+                    data-selected={track.id === openId || undefined}
+                  >
+                    <Table.Td>
+                      <Anchor
+                        inherit
+                        component={Link}
+                        to={detailPath}
+                        onClick={(event) => event.stopPropagation()}
+                      >
+                        {track.id}
+                      </Anchor>
+                    </Table.Td>
+                    <Table.Td>
+                      {track.full_name}{' '}
+                      {track.duration && track.duration !== 'Standard' && (
+                        <Badge variant="default" size="sm">
+                          {track.duration}
+                        </Badge>
+                      )}
+                    </Table.Td>
+                    <Table.Td ff="monospace" fz="sm">
+                      {track.external_id}
+                    </Table.Td>
+                    {MIX_OPTIONS_WITH_ARCADE_NAMES.map((mix) => (
+                      <Table.Td key={mix.id} fz="sm">
+                        {track.arcadeNames[mix.id]?.name}
+                      </Table.Td>
+                    ))}
+                  </Table.Tr>
+                );
+              })}
+            </Table.Tbody>
+          </Table>
+        </Table.ScrollContainer>
       )}
       {matching.length > LIMIT && (
         <Text size="sm" c="dimmed" ta="center">

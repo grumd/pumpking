@@ -1,0 +1,9 @@
+/* The well the screen file shows in */
+.screen {
+  background: var(--pk-surface-sunken);
+  border-radius: var(--mantine-radius-md);
+}
+
+.video {
+  object-fit: contain;
+}

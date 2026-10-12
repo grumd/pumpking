@@ -1,5 +1,15 @@
 import type { ApiOutputs } from '@/api/trpc/router';
-import { Badge, Button, Group, NumberInput, Stack, Table, Text } from '@mantine/core';
+import {
+  Alert,
+  Anchor,
+  Badge,
+  Button,
+  Group,
+  NumberInput,
+  Stack,
+  Table,
+  Text,
+} from '@mantine/core';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
 
@@ -145,7 +155,7 @@ const ChartResults = ({
   return (
     <Section title="Results">
       {results.isLoading && <Loader />}
-      {results.error && <Text c="red">{results.error.message}</Text>}
+      {results.error && <Alert color="red">{results.error.message}</Alert>}
       {results.data && (
         <>
           <Text size="xs" c="dimmed">
@@ -154,54 +164,70 @@ const ChartResults = ({
               : `${rows.length} results, newest first`}
             . ◆: the result&apos;s steps, red when outside the chart&apos;s range.
           </Text>
-          <Table highlightOnHover verticalSpacing={4}>
-            <Table.Thead>
-              <Table.Tr>
-                <Table.Th>#</Table.Th>
-                <Table.Th>Played</Table.Th>
-                <Table.Th>Player</Table.Th>
-                <Table.Th ta="right">Score</Table.Th>
-                <Table.Th>Grade</Table.Th>
-                <Table.Th ta="right">◆</Table.Th>
-                <Table.Th>Agent</Table.Th>
-              </Table.Tr>
-            </Table.Thead>
-            <Table.Tbody>
-              {rows.map((row) => {
-                const steps = totalSteps(row);
-                return (
-                  <Table.Tr
-                    key={row.id}
-                    onClick={() => onOpenResult(row.id)}
-                    style={{ cursor: 'pointer' }}
-                    bg={row.id === openResultId ? 'dark.5' : undefined}
-                  >
-                    <Table.Td>{row.id}</Table.Td>
-                    <Table.Td style={{ whiteSpace: 'nowrap' }}>{formatDate(row.gained)}</Table.Td>
-                    <Table.Td>
-                      {row.nickname}{' '}
-                      {!!row.is_hidden && (
-                        <Badge color="gray" size="sm">
-                          hidden
-                        </Badge>
-                      )}
-                    </Table.Td>
-                    <Table.Td ta="right">{formatNumber(row.score)}</Table.Td>
-                    <Table.Td>
-                      {row.grade} {row.plate}
-                    </Table.Td>
-                    <Table.Td
-                      ta="right"
-                      c={steps != null && isOutOfRange(steps) ? 'red' : undefined}
+          <Table.ScrollContainer minWidth={640}>
+            <Table highlightOnHover verticalSpacing="xxs">
+              <Table.Thead>
+                <Table.Tr>
+                  <Table.Th>#</Table.Th>
+                  <Table.Th>Played</Table.Th>
+                  <Table.Th>Player</Table.Th>
+                  <Table.Th ta="right">Score</Table.Th>
+                  <Table.Th>Grade</Table.Th>
+                  <Table.Th ta="right">◆</Table.Th>
+                  <Table.Th>Agent</Table.Th>
+                </Table.Tr>
+              </Table.Thead>
+              <Table.Tbody>
+                {rows.map((row) => {
+                  const steps = totalSteps(row);
+                  return (
+                    <Table.Tr
+                      key={row.id}
+                      onClick={() => onOpenResult(row.id)}
+                      data-clickable
+                      data-selected={row.id === openResultId || undefined}
                     >
-                      {steps ?? '—'}
-                    </Table.Td>
-                    <Table.Td>{row.agent < 0 ? 'web' : row.agent_name ?? `#${row.agent}`}</Table.Td>
-                  </Table.Tr>
-                );
-              })}
-            </Table.Tbody>
-          </Table>
+                      <Table.Td>
+                        <Anchor
+                          inherit
+                          component="button"
+                          type="button"
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            onOpenResult(row.id);
+                          }}
+                        >
+                          {row.id}
+                        </Anchor>
+                      </Table.Td>
+                      <Table.Td data-fit>{formatDate(row.gained)}</Table.Td>
+                      <Table.Td>
+                        {row.nickname}{' '}
+                        {!!row.is_hidden && (
+                          <Badge color="gray" size="sm">
+                            hidden
+                          </Badge>
+                        )}
+                      </Table.Td>
+                      <Table.Td ta="right">{formatNumber(row.score)}</Table.Td>
+                      <Table.Td>
+                        {row.grade} {row.plate}
+                      </Table.Td>
+                      <Table.Td
+                        ta="right"
+                        c={steps != null && isOutOfRange(steps) ? 'red' : undefined}
+                      >
+                        {steps ?? '—'}
+                      </Table.Td>
+                      <Table.Td>
+                        {row.agent < 0 ? 'web' : row.agent_name ?? `#${row.agent}`}
+                      </Table.Td>
+                    </Table.Tr>
+                  );
+                })}
+              </Table.Tbody>
+            </Table>
+          </Table.ScrollContainer>
           {results.hasNextPage && (
             <Group justify="center">
               <Button

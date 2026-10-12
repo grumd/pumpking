@@ -13,9 +13,7 @@ interface FieldProps<T> {
 }
 
 const highlightProps = (highlighted?: boolean) =>
-  highlighted
-    ? { error: true as const, styles: { label: { color: 'var(--mantine-color-red-4)' } } }
-    : {};
+  highlighted ? { error: true as const, labelProps: { c: 'red.4' } } : {};
 
 export const NumberField = ({
   label,

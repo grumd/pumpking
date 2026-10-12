@@ -6,19 +6,19 @@ import classNames from 'classnames';
 import { Fragment, useEffect, useRef, useState } from 'react';
 import { FiArrowRight, FiMoreHorizontal } from 'react-icons/fi';
 
-import css from './track-detail.module.scss';
-
 import { ChartLabel } from 'components/ChartLabel/ChartLabel';
 import Loader from 'components/Loader/Loader';
+import { Stat } from 'components/Stat/Stat';
 
 import { api } from 'utils/trpc';
 
 import { useAdminAction } from '../activity/activity';
 import { ArcadeNamesEditor } from '../components/ArcadeNamesEditor';
 import { DetailDrawer } from '../components/DetailDrawer';
-import { Info, Section } from '../components/layout';
+import { Section } from '../components/layout';
 import { useEditForm } from '../hooks/useEditForm';
 import { ChartInstanceDetail } from './ChartInstanceDetail';
+import css from './track-detail.module.css';
 
 type Track = ApiOutputs['admin']['tracks']['get'];
 type ChartInstance = Track['charts'][number]['instances'][number];
@@ -60,10 +60,10 @@ const TrackView = ({ track, highlightChartId }: { track: Track; highlightChartId
       <SimpleGrid cols={{ base: 1, lg: 2 }} spacing="lg">
         <Stack gap="xs">
           <SimpleGrid cols={2} spacing="xs">
-            <Info label="Full name" value={track.full_name} />
-            <Info label="Short name" value={track.short_name ?? '—'} />
-            <Info label="External id" value={track.external_id} />
-            <Info label="Duration" value={track.duration ?? '—'} />
+            <Stat label="Full name" value={track.full_name} />
+            <Stat label="Short name" value={track.short_name ?? '—'} />
+            <Stat label="External id" value={track.external_id} />
+            <Stat label="Duration" value={track.duration ?? '—'} />
           </SimpleGrid>
           <Text size="xs" c="dimmed">
             Names, charts and labels come from the tracklist: change them with a tracklist sync.
@@ -152,7 +152,7 @@ const SharedChart = ({
   return (
     <div className={css.shared}>
       <div className={css.sharedHeader}>
-        <span className={css.sharedTitle}>shared</span>
+        <span>shared</span>
         <span className={css.id}>#{chart.id}</span>
       </div>
       <div className={css.instances}>
@@ -183,6 +183,7 @@ const SharedChart = ({
                 size="lg"
                 onClick={() => setShowAll(true)}
                 title="Show the charts of mixes with no name"
+                aria-label="Show the charts of mixes with no name"
               >
                 <FiMoreHorizontal />
               </ActionIcon>

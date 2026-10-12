@@ -1,0 +1,15 @@
+/* Track names can be long, chart labels never are */
+.playerAndChart {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 4fr) rem(72px);
+  gap: var(--mantine-spacing-sm);
+
+  /* On phones the player name gets its own line */
+  @mixin smaller-than $mantine-breakpoint-sm {
+    grid-template-columns: minmax(0, 1fr) rem(72px);
+
+    & > :first-child {
+      grid-column: 1 / -1;
+    }
+  }
+}

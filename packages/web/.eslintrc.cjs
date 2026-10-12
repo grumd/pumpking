@@ -68,13 +68,5 @@ module.exports = {
         'no-restricted-syntax': 'off',
       },
     },
-    {
-      // Not migrated to the design system yet. Remove each entry when its feature is migrated
-      files: ['src/features/admin/**'],
-      rules: {
-        'no-restricted-syntax': 'off',
-        'no-restricted-imports': 'off',
-      },
-    },
   ],
 };

@@ -1,11 +1,12 @@
 import type { ApiOutputs } from '@/api/trpc/router';
-import { Alert, Box, Button, Checkbox, Group, SimpleGrid, Stack, Text } from '@mantine/core';
+import { Alert, Button, Checkbox, Group, SimpleGrid, Stack, Text } from '@mantine/core';
 import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
 import { FaExclamationTriangle } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
 
 import Loader from 'components/Loader/Loader';
+import { Stat } from 'components/Stat/Stat';
 
 import { routes } from 'constants/routes';
 
@@ -15,7 +16,7 @@ import { useAdminAction } from '../activity/activity';
 import { ConfirmButton } from '../components/ConfirmButton';
 import { MediaViewer } from '../components/MediaViewer';
 import { NumberField, SelectField, TextField } from '../components/fields';
-import { Info, Section } from '../components/layout';
+import { Section } from '../components/layout';
 import { useEditForm } from '../hooks/useEditForm';
 import {
   PASS_OPTIONS,
@@ -25,6 +26,7 @@ import {
   hasPlates,
   mixIdByName,
 } from '../scoring';
+import css from './purgatory-detail.module.css';
 import { type PurgatoryField, parseReason } from './reason';
 
 interface PurgatoryDetailProps {
@@ -106,14 +108,14 @@ const PurgatoryForm = ({ row, onResolved }: { row: Row; onResolved: () => void }
       <Stack gap="sm">
         <MediaViewer source="purgatory" id={row.id} />
         <SimpleGrid cols={2} spacing="xxs">
-          <Info label="Agent" value={row.agent_name ?? `#${row.agent}`} />
-          <Info label="Mix" value={row.mix_name} />
-          <Info
+          <Stat label="Agent" value={row.agent_name ?? `#${row.agent}`} />
+          <Stat label="Mix" value={row.mix_name} />
+          <Stat
             label="Played"
             value={formatDate(row.gained) + (row.exact_gain_date ? '' : ' (not exact)')}
           />
-          <Info label="Added" value={formatDate(row.added)} />
-          <Info label="Recognition notes" value={row.recognition_notes || '—'} />
+          <Stat label="Added" value={formatDate(row.added)} />
+          <Stat label="Recognition notes" value={row.recognition_notes || '—'} />
         </SimpleGrid>
       </Stack>
 
@@ -136,14 +138,7 @@ const PurgatoryForm = ({ row, onResolved }: { row: Row; onResolved: () => void }
         </Alert>
 
         <Section title="Player and chart">
-          {/* Track names can be long, chart labels never are */}
-          <Box
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 4fr) 4.5rem',
-              gap: 'var(--mantine-spacing-sm)',
-            }}
-          >
+          <div className={css.playerAndChart}>
             <TextField
               label="Player name"
               {...field('player_name')}
@@ -159,12 +154,12 @@ const PurgatoryForm = ({ row, onResolved }: { row: Row; onResolved: () => void }
               {...field('chart_label')}
               onChange={(v) => form.set('chart_label', v ?? '')}
             />
-          </Box>
+          </div>
           <TextField label="Mods" {...field('mods_list')} placeholder="e.g. 2x VJ" />
         </Section>
 
         <Section title="Score">
-          <SimpleGrid cols={3} spacing="sm">
+          <SimpleGrid cols={{ base: 2, sm: 3 }} spacing="sm">
             <NumberField label="Score" {...field('score')} />
             <NumberField label="Score increase" {...field('score_increase')} />
             <SelectField label="Grade" {...field('grade')} options={gradeOptions(mixId)} />
@@ -191,7 +186,7 @@ const PurgatoryForm = ({ row, onResolved }: { row: Row; onResolved: () => void }
             )
           }
         >
-          <SimpleGrid cols={4} spacing="sm">
+          <SimpleGrid cols={{ base: 2, sm: 4 }} spacing="sm">
             <NumberField label="Perfect" {...field('perfects')} />
             <NumberField label="Great" {...field('greats')} />
             <NumberField label="Good" {...field('goods')} />
