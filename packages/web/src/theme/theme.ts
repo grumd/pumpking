@@ -158,6 +158,7 @@ export const theme = createTheme({
     }),
     Tooltip: Tooltip.extend({
       defaultProps: {
+        // focus: keyboard focus. touch: shown while the finger is down (press and hold)
         events: { hover: true, focus: true, touch: true },
       },
     }),
