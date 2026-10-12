@@ -1,9 +1,11 @@
-import { ActionIcon } from '@mantine/core';
+import { ActionIcon, Table } from '@mantine/core';
 import { useAtomValue } from 'jotai';
 import _ from 'lodash/fp';
 import { Fragment, memo, useState } from 'react';
 import { FaGlobeAmericas, FaPlusCircle } from 'react-icons/fa';
 import { NavLink } from 'react-router-dom';
+
+import { Card } from 'components/Card/Card';
 
 import { routes } from 'constants/routes';
 
@@ -12,12 +14,15 @@ import { useHighlightedPlayerIds } from 'features/leaderboards/hooks/useHighligh
 
 import { useUser } from 'hooks/useUser';
 
+import { useLanguage } from 'utils/context/translation';
+
 import type { ChartApiOutput } from '../../hooks/useChartsQuery';
 import { ChartHeader } from './ChartHeader/ChartHeader';
 import Result from './Result';
 import { ResultsCollapser } from './ResultsCollapser';
 
 const Chart = memo(function _Chart({ chart }: { chart: ChartApiOutput }) {
+  const lang = useLanguage();
   const user = useUser().data;
   const currentPlayerId = user?.id;
   const canAddResults = user?.can_add_results_manually;
@@ -95,15 +100,17 @@ const Chart = memo(function _Chart({ chart }: { chart: ChartApiOutput }) {
   // TODO: remove check from sharedCharts when SocketTracker works off results data instead of topPerSong
 
   return (
-    <div className="song-block">
+    <Card p={{ base: 'xs', md: 'sm' }}>
       <ChartHeader chart={chart}>
         {canAddResults && (
           <ActionIcon
             ml="auto"
             variant="subtle"
-            aria-label="Add result"
+            aria-label={lang.ADD_RESULT}
             component={NavLink}
-            to={routes.leaderboard.sharedChart.addResult.getPath({ sharedChartId: String(chart.id) })}
+            to={routes.leaderboard.sharedChart.addResult.getPath({
+              sharedChartId: String(chart.id),
+            })}
           >
             <FaPlusCircle />
           </ActionIcon>
@@ -112,49 +119,49 @@ const Chart = memo(function _Chart({ chart }: { chart: ChartApiOutput }) {
           <ActionIcon
             ml={canAddResults ? undefined : 'auto'}
             variant="subtle"
-            aria-label="Show all"
+            aria-label={lang.SHOW_ALL}
             onClick={() => setShowHidden(!showHidden)}
           >
             <FaGlobeAmericas />
           </ActionIcon>
         )}
       </ChartHeader>
-      <div className="charts">
-        {!_.isEmpty(results) && (
-          <div className="chart">
-            <div className="results">
-              <table>
-                <tbody>
-                  {resultGroups.map((group) => {
-                    const groupResults = group.results.map((res) => {
-                      return (
-                        <Fragment key={res.id}>
-                          <Result chart={chart} result={res} />
-                        </Fragment>
-                      );
-                    });
-                    if (group.isGroupCollapsible) {
-                      return (
-                        <ResultsCollapser
-                          key={`group-${group.results[0].id}`}
-                          count={groupResults.length}
-                        >
-                          {groupResults}
-                        </ResultsCollapser>
-                      );
-                    } else {
-                      return (
-                        <Fragment key={`group-${group.results[0].id}`}>{groupResults}</Fragment>
-                      );
-                    }
-                  })}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        )}
-      </div>
-    </div>
+      {!_.isEmpty(results) && (
+        <Card level={2} p={{ base: 0, md: 'xs' }} py={{ base: 'xxs', md: 'xs' }}>
+          <Table
+            striped="even"
+            withRowBorders={false}
+            verticalSpacing={0}
+            horizontalSpacing="xxs"
+            fz="md"
+          >
+            <Table.Tbody>
+              {resultGroups.map((group) => {
+                const groupResults = group.results.map((res) => {
+                  return (
+                    <Fragment key={res.id}>
+                      <Result chart={chart} result={res} />
+                    </Fragment>
+                  );
+                });
+                if (group.isGroupCollapsible) {
+                  return (
+                    <ResultsCollapser
+                      key={`group-${group.results[0].id}`}
+                      count={groupResults.length}
+                    >
+                      {groupResults}
+                    </ResultsCollapser>
+                  );
+                } else {
+                  return <Fragment key={`group-${group.results[0].id}`}>{groupResults}</Fragment>;
+                }
+              })}
+            </Table.Tbody>
+          </Table>
+        </Card>
+      )}
+    </Card>
   );
 });
 

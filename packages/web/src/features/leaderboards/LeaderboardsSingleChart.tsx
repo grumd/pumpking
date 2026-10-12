@@ -1,10 +1,10 @@
 import { Alert } from '@mantine/core';
-import { FaExclamationCircle, FaInfoCircle } from 'react-icons/fa';
+import { FaExclamationCircle } from 'react-icons/fa';
 import { useParams } from 'react-router';
 
-import './components/charts/leaderboard.scss';
-
+import { EmptyState } from 'components/EmptyState/EmptyState';
 import Loader from 'components/Loader/Loader';
+import { PageContainer } from 'components/PageContainer/PageContainer';
 
 import { useLanguage } from 'utils/context/translation';
 
@@ -23,33 +23,18 @@ const LeaderboardsChartsList = (): JSX.Element => {
   });
 
   return (
-    <div className="leaderboard-page">
-      <div className="content">
-        <div className="top-list">
-          {chart.isError ? (
-            <Alert
-              radius="md"
-              variant="light"
-              color="red"
-              title={lang.ERROR}
-              icon={<FaExclamationCircle />}
-            >
-              {chart.error instanceof Error ? chart.error.message : lang.SOMETHING_WENT_WRONG}
-            </Alert>
-          ) : chart.isFetched && !chartsList?.length ? (
-            <Alert
-              radius="md"
-              variant="default"
-              title={lang.NOTHING_FOUND}
-              icon={<FaInfoCircle />}
-            />
-          ) : chartsList?.length ? (
-            chartsList
-          ) : null}
-          {chart.isLoading && <Loader />}
-        </div>
-      </div>
-    </div>
+    <PageContainer>
+      {chart.isError ? (
+        <Alert color="red" title={lang.ERROR} icon={<FaExclamationCircle />}>
+          {chart.error instanceof Error ? chart.error.message : lang.SOMETHING_WENT_WRONG}
+        </Alert>
+      ) : chart.isFetched && !chartsList?.length ? (
+        <EmptyState>{lang.NOTHING_FOUND}</EmptyState>
+      ) : chartsList?.length ? (
+        chartsList
+      ) : null}
+      {chart.isLoading && <Loader />}
+    </PageContainer>
   );
 };
 

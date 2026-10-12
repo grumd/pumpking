@@ -1,6 +1,5 @@
 import { Badge } from '@mantine/core';
-
-import { colorByMix } from 'constants/colors';
+import { mixColor } from 'theme/tokens';
 
 import { isMixNumber } from 'utils/scoring/grades';
 
@@ -16,7 +15,7 @@ export const MixPlate = ({ mix }: MixPlateProps): JSX.Element | null => {
   const currentMix = mixes?.length ? Math.max(...mixes) : null;
 
   return isMixNumber(mix) && currentMix !== null && currentMix !== mix ? (
-    <Badge size="xs" color={colorByMix[mix]}>
+    <Badge size="xs" color={mixColor(mix)}>
       {
         {
           24: 'PR',

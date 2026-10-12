@@ -2,10 +2,10 @@ import { Anchor, Badge, Group, Text, Tooltip } from '@mantine/core';
 import qs from 'query-string';
 import { FaTrophy, FaYoutube } from 'react-icons/fa';
 import { NavLink } from 'react-router-dom';
+import { mixColor } from 'theme/tokens';
 
 import { ChartLabel } from 'components/ChartLabel/ChartLabel';
 
-import { colorByMix } from 'constants/colors';
 import { routes } from 'constants/routes';
 
 import type { ChartApiOutput } from 'features/leaderboards/hooks/useChartsQuery';
@@ -26,25 +26,21 @@ export const ChartHeader = ({ chart, children = null }: ChartHeaderProps): JSX.E
   const otherInstances = chart.otherChartInstances.slice().sort((a, b) => b.mix - a.mix);
 
   return (
-    <Group p="xs" bdrs="xl" gap="sm" align="center" wrap="wrap" className={css.header}>
-      <Group p={0} gap="sm" align="center" wrap="nowrap" className={css.titleRow}>
+    <Group pb="xs" gap="sm" align="center" wrap="wrap" className={css.header}>
+      <Group gap="sm" align="center" wrap="nowrap" className={css.titleRow}>
         <ChartLabel label={chart.label} />
         <Anchor
           size="xl"
           lh="xs"
           fw="bold"
-          style={{
-            textOverflow: 'ellipsis',
-            overflow: 'hidden',
-            whiteSpace: 'nowrap',
-            minWidth: 0,
-          }}
+          miw={0}
+          truncate
           component={NavLink}
           to={routes.leaderboard.sharedChart.getPath({ sharedChartId: chart.id })}
         >
           {chart.songName}
         </Anchor>
-        <Text component="span" c="dimmed" style={{ whiteSpace: 'nowrap' }}>
+        <Text span c="dimmed">
           {chart.difficulty ? `(${chart.difficulty.toFixed(1)})` : ''}
         </Text>
         <Anchor
@@ -53,16 +49,24 @@ export const ChartHeader = ({ chart, children = null }: ChartHeaderProps): JSX.E
           })}`}
           target="_blank"
           rel="noopener noreferrer"
+          aria-label="YouTube"
           fz="xl"
           lh={0}
         >
           <FaYoutube />
         </Anchor>
       </Group>
-      <Group p={0} gap="sm" align="center" wrap="wrap" className={css.actionsRow}>
+      <Group gap="sm" align="center" wrap="wrap" ml="auto" className={css.actionsRow}>
         {chart.inTournament && (
           <Tooltip label={lang.TOURNAMENT_CHART}>
-            <Anchor component={NavLink} to={routes.tournaments.path} fz="l" lh={0} c="gold">
+            <Anchor
+              component={NavLink}
+              to={routes.tournaments.path}
+              aria-label={lang.TOURNAMENT_CHART}
+              fz="lg"
+              lh={0}
+              c="gold"
+            >
               <FaTrophy />
             </Anchor>
           </Tooltip>
@@ -72,7 +76,7 @@ export const ChartHeader = ({ chart, children = null }: ChartHeaderProps): JSX.E
             return null;
           }
           return (
-            <Badge key={instance.mix} color={colorByMix[instance.mix as keyof typeof colorByMix]}>
+            <Badge key={instance.mix} color={mixColor(instance.mix)}>
               {Mixes[instance.mix as keyof typeof Mixes]}: {instance.label}
             </Badge>
           );
