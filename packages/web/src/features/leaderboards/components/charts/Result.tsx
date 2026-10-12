@@ -1,14 +1,28 @@
-import { Alert, Anchor, Badge, Box, Button, Group, Popover, Text, Tooltip } from '@mantine/core';
-import classNames from 'classnames';
+import {
+  Alert,
+  Anchor,
+  Badge,
+  Button,
+  Center,
+  Group,
+  Popover,
+  Stack,
+  Table,
+  Text,
+  Tooltip,
+  UnstyledButton,
+  rem,
+} from '@mantine/core';
 import { useAtomValue } from 'jotai';
 import { FaAngleDoubleUp, FaExclamationTriangle, FaTrash, FaTrophy } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
 
 import { Flag } from 'components/Flag/Flag';
 import { Grade } from 'components/Grade/Grade';
+import { KeyValueList } from 'components/KeyValueList/KeyValueList';
+import { Place } from 'components/Place/Place';
 import { ResultScreenshotLink } from 'components/ResultScreenshotLink/ResultScreenshotLink';
 
-import { colorsArray } from 'constants/colors';
 import { routes } from 'constants/routes';
 
 import { useDeleteResult } from 'features/admin/hooks/useDeleteResult';
@@ -21,6 +35,7 @@ import { getShortTimeAgo } from 'utils/timeAgo';
 
 import type { ChartApiOutput } from '../../hooks/useChartsQuery';
 import { MixPlate } from './MixPlate';
+import css from './chart-results.module.css';
 
 export type ResultExtended = ChartApiOutput['results'][number] & {
   topPlace: number;
@@ -33,10 +48,22 @@ export type ResultExtended = ChartApiOutput['results'][number] & {
 
 const DEBUG = import.meta.env.VITE_DEBUG_RESULTS === 'true';
 
+// A score with its last three digits smaller: 997,612
+const Score = ({ score }: { score: number }) => {
+  return (
+    <>
+      {Math.floor(score / 1000)}
+      <Text span fz="xs">
+        ,{`${score % 1000}`.padStart(3, '0')}
+      </Text>
+    </>
+  );
+};
+
 const tooltipFormatter = (lang: typeof translation, result: ResultExtended) => {
   if (result.recognitionType === 'manual') {
     return (
-      <div style={{ display: 'flex', alignItems: 'center', flexDirection: 'column' }}>
+      <Stack gap={0} align="center">
         {!result.isExactGainedDate && <div>{lang.EXACT_DATE_UNKNOWN}</div>}
         <div>
           {lang.SCORE_ADDED_MANUALLY} {new Date(result.added).toLocaleDateString()}
@@ -46,7 +73,7 @@ const tooltipFormatter = (lang: typeof translation, result: ResultExtended) => {
             {lang.SCORE_WAS_TAKEN} {new Date(result.gained).toLocaleDateString()}
           </div>
         )}
-      </div>
+      </Stack>
     );
   }
 
@@ -60,7 +87,7 @@ const tooltipFormatter = (lang: typeof translation, result: ResultExtended) => {
         ? `${lang.FROM} machine best`
         : `???`;
     return (
-      <div style={{ display: 'flex', alignItems: 'center', flexDirection: 'column' }}>
+      <Stack gap={0} align="center">
         <div>{lang.EXACT_DATE_UNKNOWN}</div>
         <div>
           {lang.SCORE_WAS_TAKEN} {resultType}
@@ -68,7 +95,7 @@ const tooltipFormatter = (lang: typeof translation, result: ResultExtended) => {
         <div>
           {lang.DATE_RECORDED}: {new Date(result.gained).toLocaleDateString()}
         </div>
-      </div>
+      </Stack>
     );
   } else {
     return new Date(result.gained).toLocaleDateString();
@@ -82,6 +109,7 @@ const Result = ({ result, chart }: { result: ResultExtended; chart: ChartApiOutp
   const isSortedByPp = filter.sortChartsBy === 'pp';
   const isCurrentPlayer = result.playerId === user.data?.id;
   const isAdmin = !!user.data?.is_admin;
+  const isHighlighted = result.highlightIndex >= 0;
 
   const deleteResultMutation = useDeleteResult();
 
@@ -94,54 +122,53 @@ const Result = ({ result, chart }: { result: ResultExtended; chart: ChartApiOutp
   const playerRoute =
     result.playerId == null ? null : routes.profile.getPath({ id: result.playerId });
 
+  const place = chart.results.findIndex((res) => res.id === result.id) + 1;
+
   return (
-    <tr
+    <Table.Tr
       key={result.id}
-      className={classNames({
-        latest: result.isLatestScore,
-      })}
-      style={
-        result.highlightIndex >= 0
-          ? {
-              background: colorsArray[result.highlightIndex] + '3A',
-              outline: `1px solid ${colorsArray[result.highlightIndex]}A0`,
-            }
-          : {}
-      }
+      className={css.row}
+      data-latest={result.isLatestScore || undefined}
+      data-highlighted={isHighlighted || undefined}
+      data-bold={isHighlighted || isCurrentPlayer || undefined}
+      // Read by the module only on highlighted rows
+      style={{ '--pk-highlight': `var(--pk-highlight-${result.highlightIndex})` }}
     >
-      <td className="place" style={isCurrentPlayer ? { fontWeight: 'bold', color: '#ddd' } : {}}>
-        {`#${chart.results.findIndex((res) => res.id === result.id) + 1}`}
-      </td>
-      <td
-        className={classNames('nickname')}
-        style={result.highlightIndex >= 0 || isCurrentPlayer ? { fontWeight: 'bold' } : {}}
-      >
+      <Table.Td className={css.place} visibleFrom="md">
+        {isCurrentPlayer ? (
+          <span className={css.currentPlace}>#{place}</span>
+        ) : (
+          <Place place={place} />
+        )}
+      </Table.Td>
+      <Table.Td className={css.name}>
         <Group gap="xxs" align="center">
           {result.region ? <Flag region={result.region} size="sm" /> : null}
-          <Text size="sm" style={{ flex: '1 1 0', textOverflow: 'ellipsis', overflow: 'hidden' }}>
+          <Text inherit flex="1 1 0" miw={rem(48)} truncate>
             {playerRoute ? (
-              <Anchor component={Link} to={playerRoute} size="sm">
+              <Anchor component={Link} to={playerRoute} inherit>
                 {result.playerName}
               </Anchor>
             ) : (
               <span>{result.playerName}</span>
             )}
             {!!result.placeDifference && (
-              <Text component="span" ml="xxs">
-                <FaAngleDoubleUp style={{ paddingTop: '0.3em', width: '0.8em' }} />
-                {result.placeDifference}
+              <Text span inherit ml="xxs">
+                <FaAngleDoubleUp size={rem(11)} /> {result.placeDifference}
               </Text>
             )}
           </Text>
-          {(DEBUG || (isSortedByPp && result.highlightIndex >= 0)) && (
-            <span className="debug-elo-info"> {result.pp && `${result.pp}pp`}</span>
+          {(DEBUG || (isSortedByPp && isHighlighted)) && (
+            <span> {result.pp && `${result.pp}pp`}</span>
           )}
-          <Group gap="0.25em" ml="auto" wrap="nowrap">
+          <Group gap="xxs" ml="auto" wrap="nowrap">
             {result.countsForTournament && (
               <Tooltip label={lang.TOURNAMENT_RESULT}>
-                <Badge color="gold" c="black" size="xs">
-                  <FaTrophy style={{ verticalAlign: 'middle' }} />
-                </Badge>
+                <UnstyledButton display="flex" aria-label={lang.TOURNAMENT_RESULT}>
+                  <Badge color="gold" size="xs">
+                    <FaTrophy />
+                  </Badge>
+                </UnstyledButton>
               </Tooltip>
             )}
             {result.mods?.includes('HJ') && (
@@ -157,200 +184,160 @@ const Result = ({ result, chart }: { result: ResultExtended; chart: ChartApiOutp
             <MixPlate mix={result.mix} />
           </Group>
         </Group>
-      </td>
-      <td className={classNames('score')}>
-        <Popover withArrow shadow="sm" width={200} position="top">
+      </Table.Td>
+      <Table.Td className={css.score} ta="right">
+        <Popover withArrow width={200} position="top" trapFocus>
           <Popover.Target>
-            <span className="score-span">
-              <span>{Math.floor(result.score / 1000)}</span>
-              <span style={{ fontSize: '70%' }}>,{`${result.score % 1000}`.padStart(3, '0')}</span>
-            </span>
+            <UnstyledButton data-result-score className={css.scoreButton}>
+              <Score score={result.score} />
+            </UnstyledButton>
           </Popover.Target>
           <Popover.Dropdown p="sm">
-            <Box>
-              <ResultScreenshotLink resultId={result.id} />
+            <ResultScreenshotLink resultId={result.id} />
 
-              <Box
-                component="dl"
-                m={0}
-                style={{ display: 'grid', gridTemplateColumns: 'auto 1fr', gap: '0.25rem 0.5rem' }}
-              >
-                {DEBUG && (
-                  <>
-                    <Text component="dt" c="dimmed" size="sm">
-                      result id:
-                    </Text>
-                    <Text component="dd" m={0} size="sm">
-                      {result.id}
-                    </Text>
-                    <Text component="dt" c="dimmed" size="sm">
-                      player id:
-                    </Text>
-                    <Text component="dd" m={0} size="sm">
-                      {result.playerId}
-                    </Text>
-                  </>
-                )}
-
-                {result.originalScore != null && result.originalScore !== result.score && (
-                  <>
-                    <Text component="dt" c="dimmed" size="sm">
-                      {lang.ORIGINAL_SCORE}
-                    </Text>
-                    <Text component="dd" m={0} size="sm" style={{ whiteSpace: 'nowrap' }}>
-                      {Math.floor(result.originalScore / 1000)},
-                      <span style={{ fontSize: '70%' }}>
-                        {`${result.originalScore % 1000}`.padStart(3, '0')}
-                      </span>
-                    </Text>
-                  </>
-                )}
-
-                {result.grade != null && (
-                  <>
-                    <Text component="dt" c="dimmed" size="sm">
-                      {lang.ORIGINAL_GRADE}
-                    </Text>
-                    <Text component="dd" m={0} size="sm">
-                      {result.grade}
-                    </Text>
-                  </>
-                )}
-
-                <Text component="dt" c="dimmed" size="sm">
-                  {lang.PLAYER}:
-                </Text>
-                <Text component="dd" m={0} size="sm">
-                  {playerRoute ? (
-                    <Anchor component={Link} to={playerRoute}>
+            <KeyValueList
+              items={[
+                DEBUG && { label: 'result id:', value: result.id },
+                DEBUG && { label: 'player id:', value: result.playerId },
+                result.originalScore != null &&
+                  result.originalScore !== result.score && {
+                    label: lang.ORIGINAL_SCORE,
+                    value: <Score score={result.originalScore} />,
+                  },
+                result.grade != null && { label: lang.ORIGINAL_GRADE, value: result.grade },
+                {
+                  label: `${lang.PLAYER}:`,
+                  value: playerRoute ? (
+                    <Anchor component={Link} to={playerRoute} inherit>
                       {result.playerName}
                       {result.playerNameArcade ? ` (${result.playerNameArcade})` : null}
                     </Anchor>
                   ) : `${result.playerName}` + result.playerNameArcade ? (
                     ` (${result.playerNameArcade})`
-                  ) : null}
-                </Text>
-
-                {result.exp ? (
-                  <>
-                    <Text component="dt" c="dimmed" size="sm" fw={700}>
+                  ) : null,
+                },
+                !!result.exp && {
+                  label: (
+                    <Text span inherit fw={700}>
                       {lang.EXP}:
                     </Text>
-                    <Text component="dd" m={0} size="sm" fw={700} bg="dark.5" px={4}>
+                  ),
+                  value: (
+                    <Text span inherit fw={700} bg="var(--pk-surface-2)" px="xxs">
                       +{result.exp}
                     </Text>
-                  </>
-                ) : null}
-
-                {result.pp ? (
-                  <>
-                    <Text component="dt" c="dimmed" size="sm" fw={700}>
+                  ),
+                },
+                !!result.pp && {
+                  label: (
+                    <Text span inherit fw={700}>
                       {lang.PP}:
                     </Text>
-                    <Text component="dd" m={0} size="sm" fw={700} bg="dark.5" px={4}>
+                  ),
+                  value: (
+                    <Text span inherit fw={700} bg="var(--pk-surface-2)" px="xxs">
                       {result.pp}pp
                     </Text>
-                  </>
-                ) : null}
+                  ),
+                },
+                result.isExactGainedDate &&
+                  !!result.mods && { label: `${lang.MODS}:`, value: result.mods },
+                result.isExactGainedDate &&
+                  result.combo != null && {
+                    label: (
+                      <Text span inherit hiddenFrom="md">
+                        {lang.COMBO}:
+                      </Text>
+                    ),
+                    value: (
+                      <Text span inherit hiddenFrom="md">
+                        {result.combo}
+                      </Text>
+                    ),
+                  },
+              ]}
+            />
 
-                {result.isExactGainedDate && result.mods && (
-                  <>
-                    <Text component="dt" c="dimmed" size="sm">
-                      {lang.MODS}:
-                    </Text>
-                    <Text component="dd" m={0} size="sm">
-                      {result.mods}
-                    </Text>
-                  </>
-                )}
+            {!result.isExactGainedDate && (
+              <Alert
+                mt="xs"
+                lh="xs"
+                color="yellow"
+                py="xxs"
+                px="xs"
+                icon={<FaExclamationTriangle />}
+              >
+                {lang.MY_BEST_SCORE_WARNING}
+              </Alert>
+            )}
 
-                {result.isExactGainedDate && result.combo != null && (
-                  <>
-                    <Text component="dt" c="dimmed" size="sm" hiddenFrom="sm">
-                      {lang.COMBO}:
-                    </Text>
-                    <Text component="dd" m={0} size="sm" hiddenFrom="sm">
-                      {result.combo}
-                    </Text>
-                  </>
-                )}
-              </Box>
+            {result.isExactGainedDate && !result.scoreIncrease && (
+              <Text size="sm" mt="xs">
+                {lang.SIGHTREAD}
+              </Text>
+            )}
 
-              {!result.isExactGainedDate && (
-                <Alert
-                  mt="xs"
-                  lh="xs"
-                  color="yellow"
-                  p="xxs"
-                  pl="xs"
-                  pr="xs"
-                  icon={<FaExclamationTriangle />}
-                  styles={{ message: { fontSize: 'var(--mantine-font-size-sm)' } }}
-                >
-                  {lang.MY_BEST_SCORE_WARNING}
-                </Alert>
-              )}
-
-              {result.isExactGainedDate && !result.scoreIncrease && (
-                <Text size="sm" mt="xs">
-                  {lang.SIGHTREAD}
-                </Text>
-              )}
-
-              {isAdmin && (
-                <Button
-                  mt="xs"
-                  size="xs"
-                  variant="default"
-                  fullWidth
-                  component={Link}
-                  to={routes.admin.results.getPath({ id: result.id })}
-                >
-                  Open in admin
-                </Button>
-              )}
-              {isAdmin && (
-                <Button
-                  mt="xs"
-                  size="xs"
-                  color="red"
-                  variant="light"
-                  fullWidth
-                  leftSection={<FaTrash />}
-                  onClick={handleDeleteResult}
-                  loading={deleteResultMutation.isPending}
-                >
-                  {lang.DELETE_RESULT}
-                </Button>
-              )}
-            </Box>
+            {isAdmin && (
+              <Button
+                mt="xs"
+                size="xs"
+                variant="default"
+                fullWidth
+                component={Link}
+                to={routes.admin.results.getPath({ id: result.id })}
+              >
+                Open in admin
+              </Button>
+            )}
+            {isAdmin && (
+              <Button
+                mt="xs"
+                size="xs"
+                color="red"
+                variant="light"
+                fullWidth
+                leftSection={<FaTrash />}
+                onClick={handleDeleteResult}
+                loading={deleteResultMutation.isPending}
+              >
+                {lang.DELETE_RESULT}
+              </Button>
+            )}
           </Popover.Dropdown>
         </Popover>
-      </td>
-      <td className={classNames('grade')}>
-        <div className="img-holder">
+      </Table.Td>
+      <Table.Td className={css.grade}>
+        <Center>
           <Grade w="auto" h="1rem" score={result.score} isPass={result.passed ?? false} />
-        </div>
-      </td>
-      <td className={classNames('number', 'miss')}>{result.stats[4]}</td>
-      <td className={classNames('number', 'bad')}>{result.stats[3]}</td>
-      <td className={classNames('number', 'good')}>{result.stats[2]}</td>
-      <td className={classNames('number', 'great')}>{result.stats[1]}</td>
-      <td className={classNames('number', 'perfect')}>{result.stats[0]}</td>
-      <td className={classNames('combo', 'desktop-only')}>{result.combo && `${result.combo}x`}</td>
-      <td
-        className={classNames('date', {
-          latest: result.isLatestScore,
-        })}
-      >
+        </Center>
+      </Table.Td>
+      <Table.Td className={`${css.number} ${css.miss}`} ta="right">
+        {result.stats[4]}
+      </Table.Td>
+      <Table.Td className={`${css.number} ${css.bad}`} ta="right">
+        {result.stats[3]}
+      </Table.Td>
+      <Table.Td className={`${css.number} ${css.good}`} ta="right">
+        {result.stats[2]}
+      </Table.Td>
+      <Table.Td className={`${css.number} ${css.great}`} ta="right">
+        {result.stats[1]}
+      </Table.Td>
+      <Table.Td className={`${css.number} ${css.perfect}`} ta="right">
+        {result.stats[0]}
+      </Table.Td>
+      <Table.Td className={css.combo} visibleFrom="md" ta="right" fz="sm">
+        {result.combo && `${result.combo}x`}
+      </Table.Td>
+      <Table.Td className={css.date} ta="right">
         <Tooltip label={tooltipFormatter(lang, result)}>
-          <div>
+          <UnstyledButton className={css.dateButton}>
             {getShortTimeAgo(lang, new Date(result.gained))}
             {result.isExactGainedDate ? '' : '?'}
-          </div>
+          </UnstyledButton>
         </Tooltip>
-      </td>
-    </tr>
+      </Table.Td>
+    </Table.Tr>
   );
 };
 

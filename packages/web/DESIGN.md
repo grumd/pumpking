@@ -159,7 +159,7 @@ A surface with an optional title: the "section" of a page.
 - `level?: 1 | 2`: `1` on the page (surface-1, padding `sm`), `2` for a card or row inside a card (surface-2, padding `xs`).
 - Takes the `Paper` props (`component`, `flex`, `p`, `mb`...).
 - Use for any group of content on a page. A card with its own header (the leaderboard chart card) has no `title`, so no underline.
-- The one padding exception: the leaderboard's dense results table uses smaller card paddings below `md` (`p={{ base: 'xs', md: 'sm' }}`, level 2 `px={{ base: 0, md: 'xs' }}`) so its 10 columns fit a phone. Don't copy it elsewhere.
+- The one padding exception: the leaderboard's dense results table uses smaller card paddings below `md` (`p={{ base: 'xs', md: 'sm' }}`, level 2 `p={{ base: 0, md: 'xs' }} py={{ base: 'xxs', md: 'xs' }}`) so its 10 columns fit a phone. Don't copy it elsewhere.
 - Don't nest a level-1 card in another level-1 card. Don't use Mantine's `Card` or `Paper` directly for sections.
 - In admin drawers, groups of fields use the admin-local `Section` (a dimmed heading without a surface), not `Card`.
 

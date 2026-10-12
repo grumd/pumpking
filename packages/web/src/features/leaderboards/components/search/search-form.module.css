@@ -1,0 +1,4 @@
+/* A filter that differs from the default */
+.highlight {
+  border: rem(1px) solid var(--mantine-color-grape-outline);
+}

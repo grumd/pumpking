@@ -1,13 +1,20 @@
-import { Button, Flex, Group, MultiSelect, Select, Stack, Text } from '@mantine/core';
+import {
+  Box,
+  Button,
+  Flex,
+  Loader,
+  MultiSelect,
+  Select,
+  SimpleGrid,
+  Stack,
+  Text,
+} from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { useAtom } from 'jotai';
 import { useMemo } from 'react';
 import { FaSearch, FaUndo } from 'react-icons/fa';
 
-import css from './search-form.module.scss';
-
 import CollapsibleBar from 'components/CollapsibleBar/CollapsibleBar';
-import Loader from 'components/Loader/Loader';
 import { TextInputWithReset } from 'components/TextInputWithReset/TextInputWithReset';
 
 import { usePlayers } from 'hooks/usePlayers';
@@ -19,6 +26,7 @@ import { type ChartsFilter } from '../../hooks/useChartsQuery';
 import { filterAtom, initialFilter } from '../../hooks/useFilter';
 import ChartFilter from './ChartFilter';
 import type { SearchFormValues } from './formTypes';
+import css from './search-form.module.css';
 
 const mixOptions = [
   {
@@ -197,13 +205,13 @@ export const SearchForm = (): JSX.Element => {
           title={lang.FILTERS}
         >
           <Text>{lang.SHOW_CHARTS_PLAYED_BY}</Text>
-          <Group gap="md" grow>
+          <SimpleGrid cols={{ base: 1, sm: 3 }} spacing="md" verticalSpacing="xxs">
             <MultiSelect
               label={lang.EACH_OF_THESE}
               placeholder={lang.PLAYERS_PLACEHOLDER}
               checkIconPosition="left"
               data={players}
-              rightSection={isLoadingPlayers ? <Loader /> : null}
+              rightSection={isLoadingPlayers ? <Loader size="xs" /> : null}
               nothingFoundMessage={lang.NOTHING_FOUND}
               searchable
               {...form.getInputProps('playersAll')}
@@ -213,7 +221,7 @@ export const SearchForm = (): JSX.Element => {
               placeholder={lang.PLAYERS_PLACEHOLDER}
               checkIconPosition="left"
               data={players}
-              rightSection={isLoadingPlayers ? <Loader /> : null}
+              rightSection={isLoadingPlayers ? <Loader size="xs" /> : null}
               nothingFoundMessage={lang.NOTHING_FOUND}
               searchable
               {...form.getInputProps('playersSome')}
@@ -223,20 +231,20 @@ export const SearchForm = (): JSX.Element => {
               placeholder={lang.PLAYERS_PLACEHOLDER}
               checkIconPosition="left"
               data={players}
-              rightSection={isLoadingPlayers ? <Loader /> : null}
+              rightSection={isLoadingPlayers ? <Loader size="xs" /> : null}
               nothingFoundMessage={lang.NOTHING_FOUND}
               searchable
               {...form.getInputProps('playersNone')}
             />
-          </Group>
+          </SimpleGrid>
         </CollapsibleBar>
         <Flex gap="md">
-          <div style={{ flex: '1 1 auto' }}>
+          <Box flex="1 1 auto" miw={0}>
             <CollapsibleBar
               buttonClassName={isSortingChanged ? css.highlight : ''}
               title={lang.SORTING}
             >
-              <Group gap="md" grow>
+              <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md" verticalSpacing="xxs">
                 <Select
                   label={lang.SORTING_LABEL}
                   placeholder={lang.SORTING_PLACEHOLDER}
@@ -249,18 +257,18 @@ export const SearchForm = (): JSX.Element => {
                   placeholder={lang.PLAYERS_PLACEHOLDER}
                   checkIconPosition="left"
                   data={players}
-                  rightSection={isLoadingPlayers ? <Loader /> : null}
+                  rightSection={isLoadingPlayers ? <Loader size="xs" /> : null}
                   nothingFoundMessage={lang.NOTHING_FOUND}
                   searchable
                   {...form.getInputProps('sortChartsByPlayers')}
                 />
-              </Group>
+              </SimpleGrid>
             </CollapsibleBar>
-          </div>
+          </Box>
           <ChartFilter buttonClassName={isChartFilterChanged ? css.highlight : ''} form={form} />
         </Flex>
         <Flex gap="md">
-          <Button style={{ flex: '1 1 auto' }} leftSection={<FaSearch />} type="submit">
+          <Button flex="1 1 auto" leftSection={<FaSearch />} type="submit">
             {lang.SEARCH}
           </Button>
           <Button leftSection={<FaUndo />} onClick={onReset}>

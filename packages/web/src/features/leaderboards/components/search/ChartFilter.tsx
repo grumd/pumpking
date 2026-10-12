@@ -19,13 +19,14 @@ export default function ChartFilter({
   const levelsValue = form.values.levels ?? [1, 28];
 
   return (
-    <Popover>
+    <Popover trapFocus>
       <Popover.Target>
         <Button className={buttonClassName}>{lang.FILTER_CHARTS}</Button>
       </Popover.Target>
-      <Popover.Dropdown bg="var(--mantine-color-dark-6)">
+      {/* Never wider than the screen: the toggle buttons wrap on phones */}
+      <Popover.Dropdown maw="calc(100vw - 2 * var(--mantine-spacing-xs))">
         <Stack gap="sm" align="center">
-          <Group gap="sm">
+          <Group gap="sm" justify="center">
             <ToggleButtonGroup
               options={[
                 {
@@ -49,7 +50,7 @@ export default function ChartFilter({
               onChange={(value) => form.setFieldValue('labels', value)}
             />
           </Group>
-          <Group gap="sm">
+          <Group gap="sm" justify="center">
             <ToggleButtonGroup
               options={(['Full', 'Remix', 'Short', 'Standard'] as const).map((duration) => ({
                 value: duration,
@@ -73,6 +74,7 @@ export default function ChartFilter({
           <Group w="100%" gap="sm">
             <Button
               size="xs"
+              aria-label={lang.MIN_LEVEL_DOWN}
               onClick={() => {
                 form.setFieldValue('levels', [
                   Math.max(1, (levelsValue[0] ?? 0) - 1),
@@ -84,6 +86,7 @@ export default function ChartFilter({
             </Button>
             <Button
               size="xs"
+              aria-label={lang.MIN_LEVEL_UP}
               onClick={() => {
                 const newLeft = Math.min(28, Math.max(1, (levelsValue[0] ?? 0) + 1));
                 form.setFieldValue('levels', [
@@ -96,6 +99,7 @@ export default function ChartFilter({
             </Button>
             <Button
               size="xs"
+              aria-label={lang.MAX_LEVEL_DOWN}
               ml="auto"
               onClick={() => {
                 const newRight = Math.max(1, Math.min(28, (levelsValue[1] ?? 28) - 1));
@@ -106,6 +110,7 @@ export default function ChartFilter({
             </Button>
             <Button
               size="xs"
+              aria-label={lang.MAX_LEVEL_UP}
               onClick={() => {
                 form.setFieldValue('levels', [
                   levelsValue[0] ?? 1,

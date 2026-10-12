@@ -1,0 +1,151 @@
+/* The dense results table of a chart card. Widths keep the columns aligned between cards
+   (they are about the old pixel widths on desktop, where the root font is 18px) */
+
+.place {
+  width: rem(29px);
+}
+
+.score {
+  width: rem(80px);
+  white-space: nowrap;
+}
+
+.grade {
+  width: rem(43px);
+}
+
+.number {
+  width: rem(48px);
+}
+
+.perfect {
+  width: rem(59px);
+}
+
+.combo {
+  width: rem(46px);
+}
+
+.name {
+  font-size: var(--mantine-font-size-sm);
+}
+
+.date {
+  width: rem(40px);
+  white-space: nowrap;
+  font-size: var(--mantine-font-size-xs);
+  color: var(--mantine-color-dimmed);
+}
+
+.miss {
+  background: var(--pk-tint-miss);
+}
+
+.bad {
+  background: var(--pk-tint-bad);
+}
+
+.good {
+  background: var(--pk-tint-good);
+}
+
+.great {
+  background: var(--pk-tint-great);
+}
+
+.perfect {
+  background: var(--pk-tint-perfect);
+}
+
+/* The current player's place */
+.currentPlace {
+  color: var(--pk-text-strong);
+  font-weight: 700;
+}
+
+/* A highlighted player: the row sets --pk-highlight */
+.row[data-highlighted] {
+  background: color-mix(in srgb, var(--pk-highlight) 23%, transparent);
+  outline: rem(1px) solid color-mix(in srgb, var(--pk-highlight) 63%, transparent);
+}
+
+.row[data-bold] .name {
+  font-weight: 700;
+}
+
+/* The latest result on the chart */
+.row[data-latest] .name,
+.row[data-latest] .name a,
+.row[data-latest] .score,
+.row[data-latest] .date {
+  color: var(--mantine-color-fresh-filled);
+}
+
+.row[data-latest] .date {
+  font-weight: 600;
+}
+
+/* The buttons take the cell's text */
+.score .scoreButton,
+.date .dateButton {
+  font: inherit;
+}
+
+.scoreButton {
+  padding: 0 var(--mantine-spacing-xxs);
+  border-radius: var(--mantine-radius-sm);
+
+  &:hover {
+    background: var(--pk-surface-3);
+  }
+}
+
+/* "Show N more" */
+.collapser {
+  &:hover {
+    background: var(--pk-surface-3);
+  }
+}
+
+/* Phones: as dense as before, so names keep their room */
+@mixin smaller-than $mantine-breakpoint-md {
+  .row > td {
+    padding-block: calc(var(--mantine-spacing-xxs) / 2);
+    padding-inline: var(--mantine-spacing-xxs) 0;
+  }
+
+  /* Step counts: room on both sides so the numbers don't run together */
+  .row > td.number {
+    padding-inline: var(--mantine-spacing-xxs);
+  }
+
+  .name {
+    width: 33%;
+  }
+
+  .score {
+    width: 10%;
+  }
+
+  .grade {
+    width: 3%;
+  }
+
+  .number,
+  .perfect,
+  .combo,
+  .date {
+    width: auto;
+  }
+
+  .number {
+    font-size: var(--mantine-font-size-sm);
+  }
+}
+
+/* The step counts were 10.4px on phones */
+@mixin smaller-than $mantine-breakpoint-sm {
+  .number {
+    font-size: var(--mantine-font-size-xs);
+  }
+}
