@@ -177,6 +177,7 @@ export const pl: BaseTranslation = {
   PLACE_IN_TOP: 'miejsce w top',
   TOTAL: 'razem',
   UNITE_GRAPHS: 'połącz wykresy',
+  SWITCH_GRAPHS: 'przełącz wykresy',
   RESULTS: 'Wyniki:',
   TOP_POPULAR_TRACKS: 'Najpopularniejsze utwory',
   MONTHLY_TOP_POPULAR_TRACKS: 'Najpopularniejsze utwory w tym miesiącu',

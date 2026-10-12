@@ -1,3 +1,0 @@
-.expGrid {
-  grid-template-columns: repeat(var(--sg-cols), minmax(auto, 1fr));
-}

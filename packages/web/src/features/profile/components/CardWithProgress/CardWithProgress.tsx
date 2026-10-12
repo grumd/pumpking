@@ -1,6 +1,7 @@
 import cx from 'classnames';
 
-import { Card, type CardProps } from './Card';
+import { Card, type CardProps } from 'components/Card/Card';
+
 import css from './card-progress.module.css';
 
 interface CardWithProgressProps extends CardProps {

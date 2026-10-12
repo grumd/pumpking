@@ -1,9 +1,10 @@
-import { Alert, Container, Group, Stack, Text } from '@mantine/core';
+import { Alert, Group } from '@mantine/core';
 import { useQuery } from '@tanstack/react-query';
 import { FaExclamationCircle } from 'react-icons/fa';
 import { useParams } from 'react-router';
 
 import Loader from 'components/Loader/Loader';
+import { Stat } from 'components/Stat/Stat';
 
 import { useLanguage } from 'utils/context/translation';
 import { getLongTimeAgo } from 'utils/timeAgo';
@@ -24,13 +25,7 @@ export const ProfileHeader = (): JSX.Element => {
   if (!currentPlayer) {
     return (
       <header>
-        <Alert
-          radius="md"
-          variant="light"
-          color="red"
-          title={lang.ERROR}
-          icon={<FaExclamationCircle />}
-        >
+        <Alert color="red" title={lang.ERROR} icon={<FaExclamationCircle />}>
           {lang.PROFILE_NOT_FOUND}
         </Alert>
       </header>
@@ -38,43 +33,17 @@ export const ProfileHeader = (): JSX.Element => {
   }
 
   return (
-    <Container p="md">
-      <Group gap="xl" justify="start">
-        <Stack gap="0">
-          <Text size="sm" c="grey">
-            {lang.PLAYER}
-          </Text>
-          <Text size="2.2em" lh="1.4em">
-            {currentPlayer?.nickname}
-          </Text>
-        </Stack>
-        <Stack gap="0">
-          <Text size="sm" c="grey">
-            {lang.RANK}
-          </Text>
-          <Text size="2.2em" lh="1.4em">
-            #{currentPlayerIndex + 1}
-          </Text>
-        </Stack>
-        <Stack gap="0">
-          <Text size="sm" c="grey">
-            {lang.PP}
-          </Text>
-          <Text size="2.2em" lh="1.4em">
-            {currentPlayer?.pp}
-          </Text>
-        </Stack>
-        {currentPlayer?.last_result_date && (
-          <Stack gap="0">
-            <Text size="sm" c="grey">
-              {lang.LAST_TIME_PLAYED}
-            </Text>
-            <Text size="2.2em" lh="1.4em">
-              {getLongTimeAgo(lang, new Date(currentPlayer?.last_result_date))}
-            </Text>
-          </Stack>
-        )}
-      </Group>
-    </Container>
+    <Group component="header" gap="lg" px="sm" py="xs">
+      <Stat size="lg" label={lang.PLAYER} value={currentPlayer.nickname} />
+      <Stat size="lg" label={lang.RANK} value={`#${currentPlayerIndex + 1}`} />
+      <Stat size="lg" label={lang.PP} value={currentPlayer.pp} />
+      {currentPlayer.last_result_date && (
+        <Stat
+          size="lg"
+          label={lang.LAST_TIME_PLAYED}
+          value={getLongTimeAgo(lang, new Date(currentPlayer.last_result_date))}
+        />
+      )}
+    </Group>
   );
 };

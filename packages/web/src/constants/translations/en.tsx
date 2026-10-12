@@ -174,6 +174,7 @@ export const en = {
   PLACE_IN_TOP: 'place in top',
   TOTAL: 'total',
   UNITE_GRAPHS: 'unite graphs',
+  SWITCH_GRAPHS: 'switch graphs',
   RESULTS: 'Results:',
   TOP_POPULAR_TRACKS: 'Most popular tracks',
   MONTHLY_TOP_POPULAR_TRACKS: 'Most popular tracks this month',

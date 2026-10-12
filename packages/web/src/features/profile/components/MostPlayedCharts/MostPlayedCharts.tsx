@@ -1,4 +1,4 @@
-import { Anchor, Button, Flex, SimpleGrid, Text } from '@mantine/core';
+import { Anchor, Button, Group, Table, rem } from '@mantine/core';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { FaPlay } from 'react-icons/fa';
 import { MdExpandMore } from 'react-icons/md';
@@ -15,8 +15,6 @@ import { useLanguage } from 'utils/context/translation';
 import { getLongTimeAgo } from 'utils/timeAgo';
 import { api } from 'utils/trpc';
 
-import css from './most-played-charts.module.css';
-
 const pageSize = 10;
 
 export const MostPlayedCharts = (): JSX.Element => {
@@ -30,44 +28,43 @@ export const MostPlayedCharts = (): JSX.Element => {
   const lang = useLanguage();
 
   return (
-    <Card p="xs" title={lang.MOST_PLAYED_CHARTS}>
-      <SimpleGrid spacing="xs" className={css.grid}>
-        {charts.data?.pages.flatMap((page) =>
-          page.items.map((item) => {
-            return (
-              <Card key={item.shared_chart} fz="md" p="0.5em" level={2} className={css.row}>
-                <Flex>
+    <Card title={lang.MOST_PLAYED_CHARTS}>
+      <Table variant="rows">
+        <Table.Tbody>
+          {charts.data?.pages.flatMap((page) =>
+            page.items.map((item) => (
+              <Table.Tr key={item.shared_chart}>
+                <Table.Td data-fit>
                   <ChartLabel label={item.label} />
-                </Flex>
-                <Anchor
-                  component={NavLink}
-                  to={routes.leaderboard.sharedChart.getPath({
-                    sharedChartId: item.shared_chart,
-                  })}
-                >
-                  {item.full_name}
-                </Anchor>
-                <Text lh="1" c="grey" fz="xs" pr="2em">
+                </Table.Td>
+                <Table.Td>
+                  <Anchor
+                    component={NavLink}
+                    to={routes.leaderboard.sharedChart.getPath({
+                      sharedChartId: item.shared_chart,
+                    })}
+                  >
+                    {item.full_name}
+                  </Anchor>
+                </Table.Td>
+                <Table.Td data-fit visibleFrom="xs" ta="right" fz="sm" c="dimmed">
                   {getLongTimeAgo(lang, new Date(item.latestDate))}
-                </Text>
-                <Text fw="bold" ta="right">
-                  <FaPlay className={css.playIcon} />
-                  {item.count}
-                </Text>
-              </Card>
-            );
-          })
-        )}
-      </SimpleGrid>
+                </Table.Td>
+                <Table.Td data-fit>
+                  <Group gap="xxs" justify="flex-end" wrap="nowrap" fw={600}>
+                    <FaPlay size={rem(10)} />
+                    <span>{item.count}</span>
+                  </Group>
+                </Table.Td>
+              </Table.Tr>
+            ))
+          )}
+        </Table.Tbody>
+      </Table>
       {charts.isFetchingNextPage ? (
         <Loader />
       ) : (
-        <Button
-          leftSection={<MdExpandMore />}
-          mt="xs"
-          color="dark.4"
-          onClick={() => charts.fetchNextPage()}
-        >
+        <Button leftSection={<MdExpandMore />} mt="xs" onClick={() => charts.fetchNextPage()}>
           {lang.SHOW_MORE}
         </Button>
       )}

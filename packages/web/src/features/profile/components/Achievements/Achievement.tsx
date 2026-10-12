@@ -1,6 +1,7 @@
-import { Stack, Text, Tooltip } from '@mantine/core';
+import { Stack, Text, Tooltip, UnstyledButton, rem } from '@mantine/core';
 
-import { CardWithProgress } from 'components/Card/CardWithProgress';
+import { CardWithProgress } from '../CardWithProgress/CardWithProgress';
+import css from './achievement.module.css';
 
 export const Achievement = ({
   name,
@@ -13,16 +14,26 @@ export const Achievement = ({
   progress: number;
   icon: React.ReactNode;
 }): JSX.Element => {
+  const content = (
+    <Stack h="100%" gap="xxs" align="center" justify="center">
+      <div className={css.icon}>{icon}</div>
+      <Text lh="xs" ta="center">
+        {name}
+      </Text>
+    </Stack>
+  );
+
   return (
-    <CardWithProgress level={2} progress={progress}>
-      <Tooltip multiline maw="20em" disabled={!desc} label={desc ?? ''}>
-        <Stack h="100%" gap="0.25em" align="center" justify="center">
-          <Text size="3em" lh="1em">
-            {icon}
-          </Text>
-          <Text lh="1em">{name}</Text>
-        </Stack>
-      </Tooltip>
+    <CardWithProgress progress={progress}>
+      {desc ? (
+        <Tooltip multiline maw={rem(320)} label={desc}>
+          <UnstyledButton w="100%" h="100%">
+            {content}
+          </UnstyledButton>
+        </Tooltip>
+      ) : (
+        content
+      )}
     </CardWithProgress>
   );
 };

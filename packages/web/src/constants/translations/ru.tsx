@@ -167,6 +167,7 @@ export const ru = {
   PLACE_IN_TOP: 'место в топе',
   TOTAL: 'всего',
   UNITE_GRAPHS: 'объединить графики',
+  SWITCH_GRAPHS: 'переключить графики',
   RESULTS: 'Резалты:',
   TOP_POPULAR_TRACKS: 'Топ популярных треков',
   MONTHLY_TOP_POPULAR_TRACKS: 'Топ популярных треков за месяц',
