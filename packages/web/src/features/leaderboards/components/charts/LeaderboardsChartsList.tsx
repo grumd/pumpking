@@ -1,8 +1,8 @@
-import { Alert, Box } from '@mantine/core';
-import { FaExclamationCircle } from 'react-icons/fa';
+import { Box } from '@mantine/core';
 import { Virtuoso } from 'react-virtuoso';
 
 import { EmptyState } from 'components/EmptyState/EmptyState';
+import { ErrorAlert } from 'components/ErrorAlert/ErrorAlert';
 import Loader from 'components/Loader/Loader';
 
 import { useLanguage } from 'utils/context/translation';
@@ -23,9 +23,9 @@ export const LeaderboardsChartsList = (): JSX.Element => {
   return (
     <>
       {charts.isError ? (
-        <Alert color="red" title={lang.ERROR} icon={<FaExclamationCircle />}>
+        <ErrorAlert>
           {charts.error instanceof Error ? charts.error.message : lang.SOMETHING_WENT_WRONG}
-        </Alert>
+        </ErrorAlert>
       ) : charts.isFetched && !chartsList?.length ? (
         <EmptyState>{lang.NOTHING_FOUND}</EmptyState>
       ) : chartsList?.length ? (

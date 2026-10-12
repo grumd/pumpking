@@ -1,5 +1,4 @@
 import { Group, Text } from '@mantine/core';
-import cx from 'classnames';
 import { FaTrophy } from 'react-icons/fa';
 
 import css from './medal.module.css';
@@ -7,7 +6,7 @@ import css from './medal.module.css';
 export type MedalType = 'gold' | 'silver' | 'bronze';
 
 export const Medal = ({ medal, size = '1em' }: { medal: MedalType; size?: string }) => (
-  <FaTrophy className={cx(css.medal, css[medal])} size={size} />
+  <FaTrophy className={css.medal} color={`var(--mantine-color-${medal}-filled)`} size={size} />
 );
 
 export const MedalCounts = ({ cups, size }: { cups: Record<MedalType, number>; size?: string }) => (

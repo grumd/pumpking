@@ -1,8 +1,7 @@
-import { Alert } from '@mantine/core';
-import { FaExclamationCircle } from 'react-icons/fa';
 import { useParams } from 'react-router';
 
 import { EmptyState } from 'components/EmptyState/EmptyState';
+import { ErrorAlert } from 'components/ErrorAlert/ErrorAlert';
 import Loader from 'components/Loader/Loader';
 import { PageContainer } from 'components/PageContainer/PageContainer';
 
@@ -25,9 +24,9 @@ const LeaderboardsChartsList = (): JSX.Element => {
   return (
     <PageContainer>
       {chart.isError ? (
-        <Alert color="red" title={lang.ERROR} icon={<FaExclamationCircle />}>
+        <ErrorAlert>
           {chart.error instanceof Error ? chart.error.message : lang.SOMETHING_WENT_WRONG}
-        </Alert>
+        </ErrorAlert>
       ) : chart.isFetched && !chartsList?.length ? (
         <EmptyState>{lang.NOTHING_FOUND}</EmptyState>
       ) : chartsList?.length ? (

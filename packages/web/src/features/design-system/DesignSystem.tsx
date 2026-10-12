@@ -17,13 +17,14 @@ import {
   Tooltip,
   UnstyledButton,
 } from '@mantine/core';
-import { FaCog, FaExclamationCircle } from 'react-icons/fa';
+import { FaCog } from 'react-icons/fa';
 import breakpoints from 'theme/breakpoints.json';
 import { appColors, gradeColorVar, gradeColors, highlightColors, pageWidths } from 'theme/tokens';
 
 import { Card } from 'components/Card/Card';
 import { ChartLabel } from 'components/ChartLabel/ChartLabel';
 import { EmptyState } from 'components/EmptyState/EmptyState';
+import { ErrorAlert } from 'components/ErrorAlert/ErrorAlert';
 import { KeyValueList } from 'components/KeyValueList/KeyValueList';
 import Loader from 'components/Loader/Loader';
 import { PageContainer } from 'components/PageContainer/PageContainer';
@@ -156,7 +157,7 @@ export default function DesignSystem(): JSX.Element {
       <Card
         title="Card (level 1) with actions"
         actions={
-          <ActionIcon variant="subtle" aria-label="Settings">
+          <ActionIcon aria-label="Settings">
             <FaCog />
           </ActionIcon>
         }
@@ -297,9 +298,7 @@ export default function DesignSystem(): JSX.Element {
               <Tabs.Tab value="b">Pill tab</Tabs.Tab>
             </Tabs.List>
           </Tabs>
-          <Alert color="red" title="Error" icon={<FaExclamationCircle />}>
-            Something went wrong
-          </Alert>
+          <ErrorAlert>Something went wrong</ErrorAlert>
           <Alert color="yellow">A warning</Alert>
           <EmptyState>Nothing found</EmptyState>
           <Loader />

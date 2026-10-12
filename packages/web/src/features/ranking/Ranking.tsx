@@ -1,6 +1,5 @@
 import {
   ActionIcon,
-  Alert,
   Button,
   CheckIcon,
   Group,
@@ -13,9 +12,10 @@ import { useDisclosure } from '@mantine/hooks';
 import { useQuery } from '@tanstack/react-query';
 import _ from 'lodash/fp';
 import { useMemo } from 'react';
-import { FaCog, FaExclamationCircle, FaSync } from 'react-icons/fa';
+import { FaCog, FaSync } from 'react-icons/fa';
 
 import { Card } from 'components/Card/Card';
+import { ErrorAlert } from 'components/ErrorAlert/ErrorAlert';
 import { Flag } from 'components/Flag/Flag';
 import { PageContainer } from 'components/PageContainer/PageContainer';
 
@@ -83,21 +83,12 @@ const Ranking = () => {
 
   return (
     <PageContainer>
-      {error && (
-        <Alert color="red" title={lang.ERROR} icon={<FaExclamationCircle />}>
-          {error.message}
-        </Alert>
-      )}
+      {error && <ErrorAlert>{error.message}</ErrorAlert>}
       <Group justify="space-between">
         <Button disabled={isFetching} onClick={onRefresh} leftSection={<FaSync />}>
           {lang.UPDATE}
         </Button>
-        <ActionIcon
-          variant="subtle"
-          onClick={openSettings}
-          disabled={!preferences}
-          aria-label={lang.FILTERS}
-        >
+        <ActionIcon onClick={openSettings} disabled={!preferences} aria-label={lang.FILTERS}>
           <FaCog />
         </ActionIcon>
       </Group>

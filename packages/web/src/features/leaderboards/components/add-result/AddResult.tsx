@@ -15,11 +15,11 @@ import { useLocalStorage } from '@mantine/hooks';
 import { MIXES } from '@pumpking/utils/mixes';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
-import { FaExclamationCircle } from 'react-icons/fa';
 import { IoIosWarning } from 'react-icons/io';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import { useConfirmationPopup } from 'components/ConfirmationPopup/useConfirmationPopup';
+import { ErrorAlert } from 'components/ErrorAlert/ErrorAlert';
 import { KeyValueList } from 'components/KeyValueList/KeyValueList';
 import Loader from 'components/Loader/Loader';
 import { PageContainer } from 'components/PageContainer/PageContainer';
@@ -36,6 +36,7 @@ import { ImageDataPreview } from './ImageDataPreview';
 import { ScreenshotRecognition } from './ScreenshotRecognition';
 import css from './add-result.module.css';
 import { compressImageData } from './imageUtils';
+import { JUDGEMENTS } from './judgements';
 import { useProcessedImage } from './useProcessedImage';
 
 const GRADE_OPTIONS = [
@@ -81,11 +82,6 @@ const MOD_OPTIONS = [
   { value: 'VJ', label: 'Rank (VJ)' },
   { value: 'HJ', label: 'HJ' },
 ];
-
-// Their names are also the app colors of the judgements (c="perfect")
-const JUDGEMENTS = ['perfect', 'great', 'good', 'bad', 'miss'] as const;
-
-const capitalize = (text: string) => text[0].toUpperCase() + text.slice(1);
 
 interface AddResultFormData {
   screenshot: File | null;
@@ -246,9 +242,7 @@ const AddResult = () => {
   if (!canAddResult) {
     return (
       <PageContainer width="narrow">
-        <Alert color="red" title={lang.ERROR} icon={<FaExclamationCircle />}>
-          {lang.NO_ACCESS_TO_PAGE}
-        </Alert>
+        <ErrorAlert>{lang.NO_ACCESS_TO_PAGE}</ErrorAlert>
       </PageContainer>
     );
   }
@@ -271,15 +265,15 @@ const AddResult = () => {
                 <KeyValueList
                   items={[
                     { label: lang.GRADE, value: formData.grade },
-                    ...JUDGEMENTS.map((field) => ({
+                    ...JUDGEMENTS.map((judgement) => ({
                       label: (
-                        <Text span inherit c={field}>
-                          {capitalize(field)}
+                        <Text span inherit c={judgement.key}>
+                          {judgement.label}
                         </Text>
                       ),
                       value: (
-                        <Text span inherit c={field}>
-                          {formData[field]}
+                        <Text span inherit c={judgement.key}>
+                          {formData[judgement.key]}
                         </Text>
                       ),
                     })),
@@ -372,14 +366,14 @@ const AddResult = () => {
 
               <Checkbox label="Pass" checked={form.values.pass} {...form.getInputProps('pass')} />
 
-              {([...JUDGEMENTS, 'combo'] as const).map((field) => (
+              {[...JUDGEMENTS, { key: 'combo', label: 'Combo' } as const].map((field) => (
                 <TextInput
-                  key={field}
-                  label={capitalize(field)}
+                  key={field.key}
+                  label={field.label}
                   placeholder="000"
                   inputMode="numeric"
                   withAsterisk
-                  {...form.getInputProps(field)}
+                  {...form.getInputProps(field.key)}
                 />
               ))}
 

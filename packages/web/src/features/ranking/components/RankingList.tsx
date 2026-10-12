@@ -108,7 +108,7 @@ export default function RankingList({ ranking, isLoading, preferences }: Ranking
                   {player.arcade_name}
                 </Anchor>
               </Table.Td>
-              <Table.Td data-fit ta="right" fw={700} c="var(--pk-text-strong)">
+              <Table.Td data-fit data-main ta="right">
                 {player.pp != null ? Math.floor(player.pp) : ''}
               </Table.Td>
               <Table.Td visibleFrom="md" ta="right" fz="sm" c="dimmed">

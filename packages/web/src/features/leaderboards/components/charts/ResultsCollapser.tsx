@@ -1,6 +1,5 @@
 import { Table, UnstyledButton } from '@mantine/core';
 import { useState } from 'react';
-import { BsArrowsExpand } from 'react-icons/bs';
 
 import { useLanguage } from 'utils/context/translation';
 
@@ -29,7 +28,7 @@ export const ResultsCollapser = ({ children, count }: ResultsCollapserProps): JS
             fz="xs"
             onClick={() => setCollapsed(false)}
           >
-            {count && lang.SHOW_MORE_RESULTS ? lang.SHOW_MORE_RESULTS(count) : <BsArrowsExpand />}
+            {lang.SHOW_MORE_RESULTS(count)}
           </UnstyledButton>
         </Table.Td>
       </Table.Tr>

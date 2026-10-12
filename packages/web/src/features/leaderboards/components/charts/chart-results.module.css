@@ -20,6 +20,7 @@
 
 .perfect {
   width: rem(59px);
+  background: var(--pk-tint-perfect);
 }
 
 .combo {
@@ -51,10 +52,6 @@
 
 .great {
   background: var(--pk-tint-great);
-}
-
-.perfect {
-  background: var(--pk-tint-perfect);
 }
 
 /* The current player's place */
@@ -107,8 +104,25 @@
   }
 }
 
-/* Phones: as dense as before, so names keep their room */
+/* The chart card and the card of its results table */
+.card {
+  padding: var(--mantine-spacing-sm);
+}
+
+.resultsCard {
+  padding: var(--mantine-spacing-xs);
+}
+
+/* Phones: as dense as before, so names keep their room and the 10 columns fit */
 @mixin smaller-than $mantine-breakpoint-md {
+  .card {
+    padding: var(--mantine-spacing-xs);
+  }
+
+  .resultsCard {
+    padding: var(--mantine-spacing-xxs) 0;
+  }
+
   .row > td {
     padding-block: calc(var(--mantine-spacing-xxs) / 2);
     padding-inline: var(--mantine-spacing-xxs) 0;

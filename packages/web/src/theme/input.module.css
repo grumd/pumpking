@@ -1,6 +1,0 @@
-/* Attached to every Mantine input by the theme: the focus border in the focus color.
-   Same selector weight as Mantine's own rule, which this file comes after */
-[data-mantine-color-scheme] .wrapper[data-variant='default'],
-[data-mantine-color-scheme] .wrapper[data-variant='filled'] {
-  --input-bd-focus: var(--pk-focus-ring);
-}

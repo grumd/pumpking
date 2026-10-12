@@ -17,15 +17,7 @@ import {
   prepareImageForRecognition,
   shrinkAreaToBrightness,
 } from './imageUtils';
-
-// The first five recognized numbers, with their app colors
-const JUDGEMENTS = [
-  { name: 'Perfect', color: 'perfect' },
-  { name: 'Great', color: 'great' },
-  { name: 'Good', color: 'good' },
-  { name: 'Bad', color: 'bad' },
-  { name: 'Miss', color: 'miss' },
-] as const;
+import { JUDGEMENTS } from './judgements';
 
 // A number that wasn't recognized is negative
 const formatNumber = (value: number) => (value >= 0 ? value : '?');
@@ -284,12 +276,12 @@ export const ScreenshotRecognition = ({
                 items={[
                   ...JUDGEMENTS.map((judgement, index) => ({
                     label: (
-                      <Text span inherit c={judgement.color}>
-                        {judgement.name}:
+                      <Text span inherit c={judgement.key}>
+                        {judgement.label}:
                       </Text>
                     ),
                     value: (
-                      <Text span inherit c={judgement.color}>
+                      <Text span inherit c={judgement.key}>
                         {formatNumber(recognizedNumbers[index])}
                       </Text>
                     ),

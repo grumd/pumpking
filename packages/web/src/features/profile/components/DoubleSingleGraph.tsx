@@ -1,4 +1,4 @@
-import { Box, Paper } from '@mantine/core';
+import { Box } from '@mantine/core';
 import { useParams } from 'react-router';
 import {
   Bar,
@@ -14,8 +14,9 @@ import {
 import { KeyValueList } from 'components/KeyValueList/KeyValueList';
 
 import { useGradesGraphData } from '../hooks/usePlayerGrades';
+import { GraphTooltip } from './GraphTooltip';
 import { SeriesLabel } from './SeriesLabel';
-import { axisProps } from './graphAxis';
+import { axisProps, tooltipProps } from './graphAxis';
 
 const DoubleSingleGraph = () => {
   const params = useParams();
@@ -39,8 +40,7 @@ const DoubleSingleGraph = () => {
           margin={{ top: 5, bottom: 5, right: 5, left: 0 }}
         >
           <RechartsTooltip<number, string>
-            isAnimationActive={false}
-            wrapperStyle={{ zIndex: 'var(--mantine-z-index-popover)' }}
+            {...tooltipProps}
             content={({ payload }) => {
               if (!payload || !payload[0]) {
                 return null;
@@ -51,7 +51,7 @@ const DoubleSingleGraph = () => {
               const singlePercent = payload[1]?.value;
               const doublePercent = payload[0].value;
               return (
-                <Paper p="xs" withBorder>
+                <GraphTooltip>
                   <KeyValueList
                     items={[
                       { label: 'Level', value: root.level },
@@ -79,7 +79,7 @@ const DoubleSingleGraph = () => {
                         },
                     ]}
                   />
-                </Paper>
+                </GraphTooltip>
               );
             }}
           />
