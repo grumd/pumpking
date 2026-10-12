@@ -127,7 +127,7 @@ Set in `theme.ts`, so don't repeat them as props:
 |---|---|
 | (all) | `primaryColor: 'gray'` (filled buttons are dark gray), `fontFamily` Nunito, focus ring via `focusClassName` |
 | `Paper` | `radius="md"`, `shadow="sm"`, surface-1 background |
-| `Modal` | `centered`, `radius="md"`, on the page surface |
+| `Modal` | `centered`, `radius="md"`, on the page surface, title bold `lg` (like `Drawer`) |
 | `Drawer` | title bold `lg`, on the page surface |
 | `Popover`, `Menu` | dropdown on surface-1, `radius="md"` |
 | `Tooltip` | Mantine's light tooltip (as before); opens on hover, keyboard focus, and press-and-hold on touch screens |
@@ -147,7 +147,8 @@ All in `src/components/`. Everything not listed here is either a Mantine compone
 
 The outer wrapper of every logged-in page: a `<main>` that takes the full width up to the page width, with side padding and an `sm` gap between its children.
 
-- `width`: `'default'` (53rem: about 950px on desktop; also the top bar), `'narrow'` (26rem: about 470px on desktop and the full width of a phone; single forms like add result and the login screens), `'wide'` (admin only).
+- The top bar always has the default width, so on `wide` (admin) pages it doesn't line up with the content; that's accepted.
+- `width`: `'default'` (53rem: about 950px on desktop; also the top bar), `'narrow'` (27rem: about 490px on desktop and the full width of a phone; single forms like add result and the login screens), `'wide'` (admin only).
 - Use it once per page, as the root. Don't add `Container`, `max-width` or page padding yourself.
 
 ### `Card`
@@ -183,7 +184,8 @@ A two-column `dl`: dimmed labels on the left, values on the right.
 A place in a ranking: `#N`.
 
 - `place: number`, `medals?: boolean`: with `medals`, places 1–3 are bold in gold / silver / bronze.
-- Use it wherever a list shows positions (ranking, leaderboard rows, top tracks, tournaments).
+- Use it wherever a list shows positions (ranking, leaderboard rows, top tracks, tournaments, profile cups).
+- `medals` on rankings of players or tracks. The leaderboard's dense results table and the tournament chart order go without.
 
 ### `EmptyState`
 
@@ -236,7 +238,7 @@ Don't wrap these; configure them through the theme.
 | A selected or "me" row | `Table.Tr` with `data-selected` (surface-3) |
 | A row that opens something | Put a real link or button for that action inside the row; a row `onClick` is only a shortcut on top. Add `data-clickable` to the `Table.Tr` for the pointer cursor |
 | A filter bar over a list | `<Group wrap="wrap" gap="xs">` with the input `flex={1} miw={rem(200)}`, then counts and buttons |
-| Errors | `<Alert color="red" title={lang.ERROR}>` |
+| Errors | `<Alert color="red" title={lang.ERROR} icon={<FaExclamationCircle />}>` |
 | Warnings / notes | `<Alert color="yellow">` / `<Alert>` |
 | Tabs | `Tabs` (default variant for navigation between areas, `variant="pills"` for switching a view inside a page) |
 | Something to click | `Button`, `ActionIcon` (always with `aria-label`), `Anchor` for navigation (also for external links), `UnstyledButton` when it must look like plain content (a score you click, a tooltip target). Never `onClick` on a `div`, `span` or `td` alone |
@@ -279,7 +281,7 @@ The migration keeps the old look. These are the places that changed on purpose, 
 | Leaderboard | The charts filter popover fits the screen and works from the keyboard | It overflowed a 375px screen, and Tab skipped its controls |
 | Leaderboard | Player filters and sorting inputs stack on phones | Three player selects were ~115px wide each, the sort select was cut off, and opening sorting pushed "charts filter" off the screen |
 | Leaderboard, profile | Date tooltips and achievement descriptions open on keyboard focus and on press-and-hold | They were hover only |
-| Ranking | Rows use `Table variant="rows"`; the hide switch has a label | Same list look as songs and profile; the switch had no name for screen readers |
+| Ranking | Rows use `Table variant="rows"` inside a card; the hide switch has a label | Same list look as songs and profile; the switch had no name for screen readers |
 | Ranking | Empty state and error use `EmptyState` / `Alert` | The empty state was hardcoded Russian text and the error was a raw string |
 | Tournaments | Empty states use `EmptyState`; the player's own row uses `data-selected`; tables scroll inside their card on phones | The page was 600px wide on a 375px screen |
 | Confirm modal | Cancel is a default button, OK is filled | Cancel was red, which reads as the destructive action |
