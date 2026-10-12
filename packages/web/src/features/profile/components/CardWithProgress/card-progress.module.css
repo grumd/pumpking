@@ -1,3 +1,4 @@
+/* A ring in the accent color that fills from the bottom up with the progress */
 .progress {
   height: 100%;
   text-align: center;
@@ -5,8 +6,8 @@
 }
 
 .progressBackground {
-  --border-color: #88d3ff;
-  --border-thickness: 0.25em;
+  --border-color: var(--mantine-color-accent-filled);
+  --border-thickness: rem(3px);
   pointer-events: none;
   position: absolute;
   border-bottom-left-radius: calc(var(--paper-radius) + var(--border-thickness));

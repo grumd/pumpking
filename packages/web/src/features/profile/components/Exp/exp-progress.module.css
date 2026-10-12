@@ -1,0 +1,8 @@
+/* Let the bar's glow show outside the track */
+.root {
+  overflow: visible;
+}
+
+.section {
+  box-shadow: 0 0 rem(4px) var(--pk-glow-gold);
+}

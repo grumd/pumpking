@@ -1,15 +1,15 @@
-import { Group, Text } from '@mantine/core';
+import { SimpleGrid, Stack, Text, rem } from '@mantine/core';
 import { useMemo } from 'react';
 import { useParams } from 'react-router';
 
 import { Card } from 'components/Card/Card';
-import { CardWithProgress } from 'components/Card/CardWithProgress';
 import { Grade } from 'components/Grade/Grade';
 
 import { useLanguage } from 'utils/context/translation';
 import { GradePhoenix } from 'utils/scoring/grades';
 
 import { useGradesGraphData } from '../../hooks/usePlayerGrades';
+import { CardWithProgress } from '../CardWithProgress/CardWithProgress';
 
 interface DataRecord {
   level: number | null;
@@ -22,6 +22,8 @@ const types = ['S', 'D'] as const;
 type Types = (typeof types)[number];
 const grades = ['SSS', 'SS', 'S', 'AAA'] as const;
 type Grades = (typeof grades)[number];
+
+const gradeHeight = rem(36);
 
 export const LevelAchievements = (): JSX.Element | null => {
   const params = useParams();
@@ -92,49 +94,41 @@ export const LevelAchievements = (): JSX.Element | null => {
 
   return (
     <Card title={lang.LEVEL_ACHIEVEMENTS}>
-      <Group align="stretch">
+      <SimpleGrid cols={{ base: 4, sm: 8 }} spacing="xs">
         {types.flatMap((type) => {
           const typeData = levelAchievements[type];
           return grades.map((grade) => {
             const data = typeData[grade];
             if (data?.level == null) {
               return (
-                <CardWithProgress key={`${type}-${grade}`} flex="1 1 0" progress={0} level={2}>
-                  <Grade fit="contain" h="2.8em" grade={grade} isPass />
+                <CardWithProgress key={`${type}-${grade}`} progress={0}>
+                  <Grade h={gradeHeight} grade={grade} isPass />
                 </CardWithProgress>
               );
             }
             return (
               <CardWithProgress
                 key={`${type}-${grade}`}
-                pl="0"
-                pr="0"
-                flex="1 1 0"
+                px={0}
                 progress={Math.min(100, Math.round((100 * data.achieved) / data.required))}
-                level={2}
               >
-                <Grade pt="0.3em" h="3em" fit="contain" grade={grade} isPass />
-                <Text
-                  size="2.3em"
-                  lh="1.2"
-                  pt="0.3em"
-                  pb="0.1em"
-                  fw="bold"
-                  c={type === 'D' ? 'green.2' : 'red.2'}
-                >
-                  {type}
-                  {data.level}
-                </Text>
-                <div>
-                  {Math.round((data.achieved / data.required) * 100)}% ({data.achieved}/
-                  {data.required})
-                </div>
+                <Stack gap="xxs" align="center">
+                  <Grade h={gradeHeight} grade={grade} isPass />
+                  <Text fz="xxl" lh="xs" fw="bold" c={type === 'D' ? 'green.2' : 'red.2'}>
+                    {type}
+                    {data.level}
+                  </Text>
+                  <Text fz="xs">
+                    {Math.round((data.achieved / data.required) * 100)}% ({data.achieved}/
+                    {data.required})
+                  </Text>
+                </Stack>
               </CardWithProgress>
             );
           });
         })}
-      </Group>
-      <Text pt="1em" ta="right" size="xs">
+      </SimpleGrid>
+      <Text pt="xs" ta="right" fz="sm" c="dimmed">
         {lang.LEVEL_ACHIEVEMENTS_HINT}
       </Text>
     </Card>

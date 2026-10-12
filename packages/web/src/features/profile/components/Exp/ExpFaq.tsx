@@ -1,26 +1,24 @@
-import { Divider, SimpleGrid, Stack, Text } from '@mantine/core';
+import { Box, Divider, SimpleGrid, Stack, Text, rem } from '@mantine/core';
 
 import { ExpRankImg } from 'components/ExpRankImg/ExpRankImg';
 import { ranks } from 'components/ExpRankImg/expRanks';
 
 import { useLanguage } from 'utils/context/translation';
 
-import css from './exp-faq.module.css';
-
 export const ExpFaq = () => {
   const lang = useLanguage();
   return (
     <article>
       <Text>{lang.EXP_FAQ}</Text>
-      <Divider my="0.5em" />
+      <Divider my="xs" />
       <Text>{lang.EXP_TITLES_LIST_HEADER}</Text>
-      <Divider my="0.5em" />
-      <SimpleGrid cols={9} className={css.expGrid}>
+      <Divider my="xs" />
+      <SimpleGrid cols={{ base: 3, xs: 5, sm: 9 }} spacing="xs">
         {ranks.map((rank, index) => (
-          <Stack align="center" key={rank.threshold} gap="0.25em">
-            <div style={{ width: '3em' }}>
+          <Stack align="center" key={rank.threshold} gap="xxs">
+            <Box w={rem(48)}>
               <ExpRankImg rankIndex={index} />
-            </div>
+            </Box>
             <Text size="xs">{rank.threshold}</Text>
           </Stack>
         ))}

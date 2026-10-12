@@ -19,7 +19,7 @@ export const GradeGraphsCard = (): JSX.Element => {
       <Card
         title={lang.GRADES}
         actions={
-          <ActionIcon variant="subtle" onClick={() => toggle()} aria-label="Switch graphs">
+          <ActionIcon variant="subtle" onClick={() => toggle()} aria-label={lang.SWITCH_GRAPHS}>
             <TbSwitch />
           </ActionIcon>
         }
@@ -30,19 +30,19 @@ export const GradeGraphsCard = (): JSX.Element => {
   }
 
   return (
-    <Stack gap="xs" justify="stretch">
+    <Stack gap="sm">
       <Card
-        flex="1 1 0"
+        flex={1}
         title={lang.GRADES}
         actions={
-          <ActionIcon variant="subtle" onClick={() => toggle()} aria-label="Switch graphs">
+          <ActionIcon variant="subtle" onClick={() => toggle()} aria-label={lang.SWITCH_GRAPHS}>
             <TbSwitch />
           </ActionIcon>
         }
       >
         <GradesGraph />
       </Card>
-      <Card flex="1 1 0">
+      <Card flex={1}>
         <DoubleSingleGraph />
       </Card>
     </Stack>

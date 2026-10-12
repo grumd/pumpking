@@ -1,10 +1,9 @@
-import { ActionIcon, Group, Stack } from '@mantine/core';
+import { ActionIcon, SimpleGrid, Stack } from '@mantine/core';
 import { FaQuestionCircle } from 'react-icons/fa';
-
-import css from './profile.module.scss';
 
 import { Card } from 'components/Card/Card';
 import { ModalTrigger } from 'components/ModalTrigger/ModalTrigger';
+import { PageContainer } from 'components/PageContainer/PageContainer';
 
 import { useLanguage } from 'utils/context/translation';
 
@@ -24,46 +23,44 @@ import { TournamentCups } from './components/TournamentCups';
 const Profile = () => {
   const lang = useLanguage();
   return (
-    <div className={css.profile}>
+    <PageContainer>
       <ProfileHeader />
       <AdminPanel />
-      <Stack gap="xs">
-        <Card
-          title={lang.EXP}
-          actions={
-            <ModalTrigger
-              title={lang.EXP_FAQ_TITLE}
-              w="40em"
-              renderButton={({ open }) => (
-                <ActionIcon variant="subtle" aria-label="Exp FAQ" onClick={open}>
-                  <FaQuestionCircle />
-                </ActionIcon>
-              )}
-            >
-              <ExpFaq />
-            </ModalTrigger>
-          }
-        >
-          <ExpProgress />
-        </Card>
-        <TournamentCups />
-        <Group grow gap="xs" align="stretch">
-          <GradeGraphsCard />
-          <Stack gap="xs" justify="stretch">
-            <Card flex="1 1 0">
-              <PpHistoryGraph />
-            </Card>
-            <Card flex="1 1 0">
-              <PpRankHistoryGraph />
-            </Card>
-          </Stack>
-        </Group>
-        <LevelAchievements />
-        <Achievements />
-        <MostPlayedCharts />
-        <HighestPpCharts />
-      </Stack>
-    </div>
+      <Card
+        title={lang.EXP}
+        actions={
+          <ModalTrigger
+            title={lang.EXP_FAQ_TITLE}
+            size="lg"
+            renderButton={({ open }) => (
+              <ActionIcon variant="subtle" aria-label={lang.EXP_FAQ_TITLE} onClick={open}>
+                <FaQuestionCircle />
+              </ActionIcon>
+            )}
+          >
+            <ExpFaq />
+          </ModalTrigger>
+        }
+      >
+        <ExpProgress />
+      </Card>
+      <TournamentCups />
+      <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="sm">
+        <GradeGraphsCard />
+        <Stack gap="sm">
+          <Card flex={1}>
+            <PpHistoryGraph />
+          </Card>
+          <Card flex={1}>
+            <PpRankHistoryGraph />
+          </Card>
+        </Stack>
+      </SimpleGrid>
+      <LevelAchievements />
+      <Achievements />
+      <MostPlayedCharts />
+      <HighestPpCharts />
+    </PageContainer>
   );
 };
 

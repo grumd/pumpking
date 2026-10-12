@@ -167,6 +167,7 @@ export const ua = {
   PLACE_IN_TOP: 'місце у топі',
   TOTAL: 'усього',
   UNITE_GRAPHS: "об'єднати графіки",
+  SWITCH_GRAPHS: 'перемкнути графіки',
   RESULTS: 'Резалти:',
   TOP_POPULAR_TRACKS: 'Топ популярних треків',
   MONTHLY_TOP_POPULAR_TRACKS: 'Топ популярних треків за місяць',

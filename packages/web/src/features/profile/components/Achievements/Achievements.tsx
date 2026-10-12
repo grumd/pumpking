@@ -35,7 +35,7 @@ export const Achievements = (): JSX.Element => {
     <Card title={lang.ACHIEVEMENTS}>
       {achievements.isLoading && <Loader />}
       {achievements.data && (
-        <SimpleGrid cols={6} spacing="xs">
+        <SimpleGrid cols={{ base: 3, xs: 4, sm: 6 }} spacing="xs">
           <Achievement
             icon={<GiRank1 />}
             progress={achievements.data.combo500 ? 100 : 0}

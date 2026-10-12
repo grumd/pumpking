@@ -22,7 +22,7 @@ export const AdminPanel = (): JSX.Element | null => {
   }
 
   return (
-    <Card title={lang.ADMIN_PANEL} mb="xs">
+    <Card title={lang.ADMIN_PANEL}>
       <Button
         component={Link}
         to={routes.admin.players.getPath({ id: playerId })}
