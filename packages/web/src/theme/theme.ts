@@ -87,6 +87,13 @@ export const theme = createTheme({
         closeButtonProps: { 'aria-label': translation.CLOSE },
       },
       styles: {
+        // On the page color (as before), so cards inside them stand out
+        content: {
+          background: 'var(--pk-surface-page)',
+        },
+        header: {
+          background: 'var(--pk-surface-page)',
+        },
         title: {
           fontWeight: 700,
           fontSize: 'var(--mantine-font-size-lg)',
@@ -112,6 +119,15 @@ export const theme = createTheme({
         centered: true,
         radius: 'md',
         closeButtonProps: { 'aria-label': translation.CLOSE },
+      },
+      styles: {
+        // On the page color (as before), so cards inside them stand out
+        content: {
+          background: 'var(--pk-surface-page)',
+        },
+        header: {
+          background: 'var(--pk-surface-page)',
+        },
       },
     }),
     Paper: Paper.extend({

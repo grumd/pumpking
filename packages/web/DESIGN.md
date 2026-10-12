@@ -127,8 +127,8 @@ Set in `theme.ts`, so don't repeat them as props:
 |---|---|
 | (all) | `primaryColor: 'gray'` (filled buttons are dark gray), `fontFamily` Nunito, focus ring via `focusClassName` |
 | `Paper` | `radius="md"`, `shadow="sm"`, surface-1 background |
-| `Modal` | `centered`, `radius="md"` |
-| `Drawer` | title bold `lg` |
+| `Modal` | `centered`, `radius="md"`, on the page surface |
+| `Drawer` | title bold `lg`, on the page surface |
 | `Popover`, `Menu` | dropdown on surface-1, `radius="md"` |
 | `Tooltip` | Mantine's light tooltip (as before); opens on hover, keyboard focus, and press-and-hold on touch screens |
 | `Progress` | track `--pk-progress-track` |
