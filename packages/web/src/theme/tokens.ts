@@ -79,6 +79,7 @@ export const darkScheme = {
   border: '#424242',
   focusRing: appColors.accent,
   opacityHidden: '0.35',
+  progressTrack: '#777777',
   graphAxis: '#8c8c8c',
   graphGrid: '#4a4a4a',
   graphReference: '#bbbbbb',

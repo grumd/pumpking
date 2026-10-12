@@ -42,7 +42,7 @@ The theme is **dark only** today. Every color that depends on the scheme is a CS
 |---|---|---|
 | `--pk-surface-page` | `#242424` | page background (set on `body`) |
 | `--pk-surface-sunken` | `#1f1f1f` | wells inside a card: media previews, code |
-| `--pk-surface-1` | `#2e2e2e` | a level-1 `Card` on the page; popovers, menus and graph tooltips (theme default) |
+| `--pk-surface-1` | `#2e2e2e` | a level-1 `Card` on the page; `Paper`, popovers, menus (theme default) |
 | `--pk-surface-2` | `#3b3b3b` | a level-2 `Card` or row inside a card; the rows of `Table variant="rows"` |
 | `--pk-surface-stripe` | `#444444` | every other row of a `striped` table |
 | `--pk-surface-3` | `#424242` | hover on a surface-2 row; the selected/"me" row |
@@ -57,6 +57,7 @@ The theme is **dark only** today. Every color that depends on the scheme is a CS
 | `--mantine-color-placeholder` | `#969696` | input placeholders (AA on inputs) |
 | `--pk-border` | `#424242` | dividers, the top bar line, the card title underline |
 | `--pk-focus-ring` | accent | keyboard focus outline. The theme applies it to every Mantine control (`focusClassName`) and `global.css` to other focusable elements; don't set it yourself |
+| `--pk-progress-track` | `#777777` | the empty part of a `Progress` bar (theme default) |
 | `--pk-opacity-hidden` | `0.35` | a row the user chose to hide but still sees (ranking "show all") |
 
 `c="grey"`, `c="dark.2"`, `#888` and opacity for secondary text are not allowed: use `c="dimmed"`.
@@ -128,7 +129,9 @@ Set in `theme.ts`, so don't repeat them as props:
 | `Paper` | `radius="md"`, `shadow="sm"`, surface-1 background |
 | `Modal` | `centered`, `radius="md"` |
 | `Drawer` | title bold `lg` |
-| `Popover`, `Menu`, `Tooltip` | dropdown on surface-1, `radius="md"`; `Tooltip` opens on hover, focus and touch |
+| `Popover`, `Menu` | dropdown on surface-1, `radius="md"` |
+| `Tooltip` | Mantine's light tooltip (as before); opens on hover, focus and touch |
+| `Progress` | track `--pk-progress-track` |
 | `Alert` | `variant="light"`, `radius="md"` |
 | `Anchor` | underline on hover; default text color is Mantine's anchor gray |
 | `Input` (all inputs) | focus border in accent |
@@ -171,7 +174,7 @@ A label over a value.
 A two-column `dl`: dimmed labels on the left, values on the right.
 
 - `items: Array<{ label: ReactNode; value: ReactNode } | false | null | undefined>` (falsy items are skipped).
-- Use for the details of one thing in a popover, modal or tooltip: result details, a confirm dialog, a graph tooltip. A graph tooltip is `<Paper p="xs"><KeyValueList items={...} /></Paper>`.
+- Use for the details of one thing in a popover, modal or tooltip: result details, a confirm dialog, a graph tooltip. A graph tooltip is `<Paper p="xs" withBorder><KeyValueList items={...} /></Paper>` (the border separates it from the card under it); give recharts' `Tooltip` `wrapperStyle={{ zIndex: 'var(--mantine-z-index-popover)' }}` so it stays above the next card.
 - Use `Stat` instead when the values are few and should stand out.
 
 ### `Place`
@@ -228,6 +231,7 @@ Don't wrap these; configure them through the theme.
 | A data table (tournaments, admin lists) | `Table` inside `Table.ScrollContainer minWidth={...}`, so phones scroll it instead of squeezing the page |
 | A dense table of results | `Table striped` + the feature's CSS module for column widths and tints |
 | A list of rows with columns (ranking, top tracks, best scores) | `Table variant="rows"`: each row is a surface-2 tile with rounded ends, hover surface-3. On phones hide secondary columns with `visibleFrom="md"` instead of scrolling |
+| A column as narrow as its content (place, numbers, icons, a switch) | `Table.Td` / `Table.Th` with `data-fit`; the other columns share the rest |
 | A selected or "me" row | `Table.Tr` with `data-selected` (surface-3) |
 | A row that opens something | Put a real link or button for that action inside the row; a row `onClick` is only a shortcut on top. Add `data-clickable` to the `Table.Tr` for the pointer cursor |
 | A filter bar over a list | `<Group wrap="wrap" gap="xs">` with the input `flex={1} miw={rem(200)}`, then counts and buttons |
