@@ -9,7 +9,7 @@
     "ts": "tsc --build",
     "ts:watch": "tsc --build --watch",
     "build": "tsc --version && tsc --build && vite build",
-    "lint": "eslint src --ext ts,tsx --report-unused-disable-directives --max-warnings 0 && stylelint \"src/**/*.{css,scss}\"",
+    "lint": "eslint src --ext ts,tsx --report-unused-disable-directives --max-warnings 0 && stylelint \"src/**/*.css\"",
     "preview": "vite preview"
   },
   "dependencies": {
@@ -39,7 +39,6 @@
     "react-router-dom": "^6.11.1",
     "react-virtuoso": "^4.6.2",
     "recharts": "^2.10.4",
-    "sass": "^1.97.1",
     "temporal-polyfill": "^0.2.1",
     "vite-tsconfig-paths": "^6.0.3",
     "zod": "^3.22.4"
