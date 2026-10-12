@@ -128,6 +128,10 @@ export const theme = createTheme({
         header: {
           background: 'var(--pk-surface-page)',
         },
+        title: {
+          fontWeight: 700,
+          fontSize: 'var(--mantine-font-size-lg)',
+        },
       },
     }),
     Paper: Paper.extend({

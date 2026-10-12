@@ -17,7 +17,7 @@ import {
   Tooltip,
   UnstyledButton,
 } from '@mantine/core';
-import { FaCog } from 'react-icons/fa';
+import { FaCog, FaExclamationCircle } from 'react-icons/fa';
 import breakpoints from 'theme/breakpoints.json';
 import { appColors, gradeColorVar, gradeColors, highlightColors, pageWidths } from 'theme/tokens';
 
@@ -297,7 +297,7 @@ export default function DesignSystem(): JSX.Element {
               <Tabs.Tab value="b">Pill tab</Tabs.Tab>
             </Tabs.List>
           </Tabs>
-          <Alert color="red" title="Error">
+          <Alert color="red" title="Error" icon={<FaExclamationCircle />}>
             Something went wrong
           </Alert>
           <Alert color="yellow">A warning</Alert>
