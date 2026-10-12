@@ -1,4 +1,4 @@
-import { Group, SimpleGrid, Table, Text } from '@mantine/core';
+import { Group, SimpleGrid, Table, Text, rem } from '@mantine/core';
 import { useQuery } from '@tanstack/react-query';
 import { FaPlay } from 'react-icons/fa';
 
@@ -10,8 +10,6 @@ import { Place } from 'components/Place/Place';
 import { useLanguage } from 'utils/context/translation';
 import { getLongTimeAgo } from 'utils/timeAgo';
 import { api } from 'utils/trpc';
-
-import css from './songs-top.module.css';
 
 interface TrackListItem {
   id: number;
@@ -39,11 +37,13 @@ function TrackList<T extends TrackListItem>({
           <Table.Tbody>
             {data.map((item, index) => (
               <Table.Tr key={item.id}>
-                <Table.Td className={css.place}>
+                <Table.Td data-fit>
                   <Place place={index + 1} medals />
                 </Table.Td>
                 <Table.Td>{item.full_name}</Table.Td>
-                <Table.Td className={css.rightSide} ta="right">{renderRightSide(item, index)}</Table.Td>
+                <Table.Td data-fit ta="right">
+                  {renderRightSide(item, index)}
+                </Table.Td>
               </Table.Tr>
             ))}
           </Table.Tbody>
@@ -60,7 +60,7 @@ interface PlaycountProps {
 function Playcount({ count }: PlaycountProps): JSX.Element {
   return (
     <Group gap="xxs" justify="flex-end" wrap="nowrap" fw={600}>
-      <FaPlay size="0.6em" />
+      <FaPlay size={rem(10)} />
       <span>{count}</span>
     </Group>
   );

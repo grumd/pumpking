@@ -1,6 +1,0 @@
-/* The place and the right side take only the width they need; the track name gets the rest */
-.place,
-.rightSide {
-  width: 0;
-  white-space: nowrap;
-}

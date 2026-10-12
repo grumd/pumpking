@@ -3,12 +3,6 @@
   opacity: var(--pk-opacity-hidden);
 }
 
-/* Columns that take only the width they need; the names get the rest */
-.shrink {
-  width: 0;
-  white-space: nowrap;
-}
-
 .crown {
   display: inline-flex;
   vertical-align: middle;
