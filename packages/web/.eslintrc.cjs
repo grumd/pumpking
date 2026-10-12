@@ -70,10 +70,7 @@ module.exports = {
     },
     {
       // Not migrated to the design system yet. Remove each entry when its feature is migrated
-      files: [
-        'src/features/tournaments/**',
-        'src/features/admin/**',
-      ],
+      files: ['src/features/admin/**'],
       rules: {
         'no-restricted-syntax': 'off',
         'no-restricted-imports': 'off',

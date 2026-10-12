@@ -158,6 +158,7 @@ export const pl: BaseTranslation = {
   TOURNAMENT_CUPS: 'puchary',
   TOURNAMENT_CHART: 'Turniej',
   TOURNAMENT_RESULT: 'Liczy się do turnieju',
+  TOURNAMENT_SELECT: 'Turniej',
   SKILL: 'poziom',
   UNRATED: 'bez poziomu',
 

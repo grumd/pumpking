@@ -1,25 +1,17 @@
 import type { ApiOutputs } from '@/api/trpc/router';
-import {
-  Anchor,
-  Badge,
-  Container,
-  Group,
-  Select,
-  Stack,
-  Table,
-  Tabs,
-  Text,
-  Title,
-} from '@mantine/core';
+import { Anchor, Badge, Group, Select, Stack, Table, Tabs, Text, Title, rem } from '@mantine/core';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
 import { NavLink } from 'react-router-dom';
 
 import { Card } from 'components/Card/Card';
 import { ChartLabel } from 'components/ChartLabel/ChartLabel';
+import { EmptyState } from 'components/EmptyState/EmptyState';
 import { Flag } from 'components/Flag/Flag';
 import Loader from 'components/Loader/Loader';
 import { Medal } from 'components/Medal/Medal';
+import { PageContainer } from 'components/PageContainer/PageContainer';
+import { Place } from 'components/Place/Place';
 
 import { routes } from 'constants/routes';
 
@@ -61,7 +53,9 @@ const BracketView = ({ bracket, playerId }: { bracket: Bracket; playerId?: numbe
             <Table.Tbody>
               {bracket.charts.map((chart, index) => (
                 <Table.Tr key={chart.sharedChartId}>
-                  <Table.Td c="dimmed">#{index + 1}</Table.Td>
+                  <Table.Td data-fit>
+                    <Place place={index + 1} />
+                  </Table.Td>
                   <Table.Td>
                     <Anchor
                       component={NavLink}
@@ -75,7 +69,7 @@ const BracketView = ({ bracket, playerId }: { bracket: Bracket; playerId?: numbe
                   <Table.Td>
                     <Group gap="xs" wrap="nowrap">
                       {chart.instances.map((instance) => (
-                        <Stack key={instance.mix} gap={2} align="center">
+                        <Stack key={instance.mix} gap={0} align="center">
                           <ChartLabel label={instance.label} />
                           <Text size="xs" c="dimmed">
                             {isMixNumber(instance.mix) ? Mixes[instance.mix] : instance.mix}
@@ -84,7 +78,7 @@ const BracketView = ({ bracket, playerId }: { bracket: Bracket; playerId?: numbe
                       ))}
                     </Group>
                   </Table.Td>
-                  <Table.Td ta="right" c="dimmed" fz="sm">
+                  <Table.Td data-fit ta="right" c="dimmed" fz="sm">
                     {chart.difficulty !== null &&
                       (Math.floor(chart.difficulty * 10) / 10).toFixed(1)}
                   </Table.Td>
@@ -97,13 +91,13 @@ const BracketView = ({ bracket, playerId }: { bracket: Bracket; playerId?: numbe
 
       <Card title={lang.TOURNAMENT_LEADERBOARD}>
         {bracket.leaderboard.length === 0 ? (
-          <Text c="dimmed">{lang.TOURNAMENT_NO_SCORES}</Text>
+          <EmptyState>{lang.TOURNAMENT_NO_SCORES}</EmptyState>
         ) : (
           <Table.ScrollContainer minWidth={640}>
             <Table highlightOnHover>
               <Table.Thead>
                 <Table.Tr>
-                  <Table.Th>#</Table.Th>
+                  <Table.Th data-fit>#</Table.Th>
                   <Table.Th>{lang.PLAYER}</Table.Th>
                   {bracket.charts.map((chart, index) => (
                     <Table.Th key={chart.sharedChartId} ta="right">
@@ -117,10 +111,10 @@ const BracketView = ({ bracket, playerId }: { bracket: Bracket; playerId?: numbe
                 {bracket.leaderboard.map((entry) => (
                   <Table.Tr
                     key={entry.playerId}
-                    bg={entry.playerId === playerId ? 'dark.5' : undefined}
+                    data-selected={entry.playerId === playerId || undefined}
                   >
-                    <Table.Td fw="bold" c={entry.rank === null ? 'dimmed' : undefined}>
-                      <Group gap={6} wrap="nowrap">
+                    <Table.Td data-fit fw="bold" c={entry.rank === null ? 'dimmed' : undefined}>
+                      <Group gap="xxs" wrap="nowrap">
                         {entry.rank ?? '–'}
                         {entry.medal && <Medal medal={entry.medal} />}
                       </Group>
@@ -260,24 +254,23 @@ export default function Tournaments(): JSX.Element {
   const tournament = useQuery(api.tournaments.get.queryOptions({ tournamentId }));
 
   return (
-    <Container component="main" size="lg" p="sm">
-      <Stack gap="sm">
-        {list.data && list.data.length > 1 && (
-          <Select
-            w={220}
-            allowDeselect={false}
-            value={String(tournamentId ?? list.data[0].id)}
-            onChange={(value) => setTournamentId(Number(value))}
-            data={list.data.map((t) => ({
-              value: String(t.id),
-              label: tournamentName(t.startDate),
-            }))}
-          />
-        )}
-        {tournament.isLoading && <Loader />}
-        {tournament.data === null && <Text>{lang.TOURNAMENT_NONE}</Text>}
-        {tournament.data && <TournamentView tournament={tournament.data} />}
-      </Stack>
-    </Container>
+    <PageContainer>
+      {list.data && list.data.length > 1 && (
+        <Select
+          aria-label={lang.TOURNAMENT_SELECT}
+          w={rem(220)}
+          allowDeselect={false}
+          value={String(tournamentId ?? list.data[0].id)}
+          onChange={(value) => setTournamentId(Number(value))}
+          data={list.data.map((t) => ({
+            value: String(t.id),
+            label: tournamentName(t.startDate),
+          }))}
+        />
+      )}
+      {tournament.isLoading && <Loader />}
+      {tournament.data === null && <EmptyState>{lang.TOURNAMENT_NONE}</EmptyState>}
+      {tournament.data && <TournamentView tournament={tournament.data} />}
+    </PageContainer>
   );
 }
