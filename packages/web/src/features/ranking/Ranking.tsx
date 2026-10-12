@@ -13,8 +13,9 @@ import { useDisclosure } from '@mantine/hooks';
 import { useQuery } from '@tanstack/react-query';
 import _ from 'lodash/fp';
 import { useMemo } from 'react';
-import { FaCog, FaSync } from 'react-icons/fa';
+import { FaCog, FaExclamationCircle, FaSync } from 'react-icons/fa';
 
+import { Card } from 'components/Card/Card';
 import { Flag } from 'components/Flag/Flag';
 import { PageContainer } from 'components/PageContainer/PageContainer';
 
@@ -83,7 +84,7 @@ const Ranking = () => {
   return (
     <PageContainer>
       {error && (
-        <Alert color="red" title={lang.ERROR}>
+        <Alert color="red" title={lang.ERROR} icon={<FaExclamationCircle />}>
           {error.message}
         </Alert>
       )}
@@ -93,7 +94,6 @@ const Ranking = () => {
         </Button>
         <ActionIcon
           variant="subtle"
-          size="lg"
           onClick={openSettings}
           disabled={!preferences}
           aria-label={lang.FILTERS}
@@ -101,7 +101,9 @@ const Ranking = () => {
           <FaCog />
         </ActionIcon>
       </Group>
-      <RankingList ranking={ranking} isLoading={isLoading} preferences={preferences} />
+      <Card>
+        <RankingList ranking={ranking} isLoading={isLoading} preferences={preferences} />
+      </Card>
 
       <Modal opened={settingsOpened} onClose={closeSettings} title={lang.FILTERS}>
         <Stack>

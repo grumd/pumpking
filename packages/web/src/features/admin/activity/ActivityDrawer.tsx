@@ -18,7 +18,6 @@ export const ActivityDrawer = (): JSX.Element => {
     <>
       <Button
         variant="default"
-        size="xs"
         leftSection={<FaListUl />}
         rightSection={
           errors > 0 ? (

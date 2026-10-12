@@ -5,6 +5,7 @@ import { useParams } from 'react-router';
 
 import { Card } from 'components/Card/Card';
 import { Medal, MedalCounts } from 'components/Medal/Medal';
+import { Place } from 'components/Place/Place';
 
 import { tournamentName } from 'features/tournaments/tournamentName';
 
@@ -39,15 +40,16 @@ export const TournamentCups = () => {
         </Box>
       }
     >
-      <Table>
+      <Table variant="rows">
         <Table.Tbody>
           {awards.map((award) => (
             <Table.Tr key={award.tournamentId}>
-              <Table.Td w="1%">{award.medal && <Medal medal={award.medal} />}</Table.Td>
+              <Table.Td data-fit>{award.medal && <Medal medal={award.medal} />}</Table.Td>
               <Table.Td>{tournamentName(award.startDate)}</Table.Td>
               <Table.Td>{lang.TOURNAMENT_BRACKET(award.bracketCode)}</Table.Td>
-              <Table.Td ta="right" c="dimmed">
-                #{award.rank} · {award.score.toLocaleString('en-US')}
+              <Table.Td data-fit ta="right" c="dimmed">
+                {award.rank ? <Place place={award.rank} /> : '–'} ·{' '}
+                {award.score.toLocaleString('en-US')}
               </Table.Td>
             </Table.Tr>
           ))}
