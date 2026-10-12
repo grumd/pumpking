@@ -116,6 +116,7 @@ export const theme = createTheme({
       defaultProps: {
         radius: 'md',
         shadow: 'sm',
+        bg: 'var(--pk-surface-1)',
       },
     }),
     Popover: Popover.extend({
