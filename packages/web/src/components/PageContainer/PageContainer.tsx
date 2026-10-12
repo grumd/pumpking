@@ -1,5 +1,5 @@
 import { Container, Stack } from '@mantine/core';
-import { pageWidths } from 'theme/tokens';
+import { pageSidePadding, pageWidths } from 'theme/tokens';
 
 interface PageContainerProps {
   children: React.ReactNode;
@@ -13,7 +13,7 @@ export const PageContainer = ({ children, width = 'default' }: PageContainerProp
       component="main"
       size={pageWidths[width]}
       w="100%"
-      px={{ base: 'xs', sm: 'sm' }}
+      px={pageSidePadding}
       py="sm"
     >
       <Stack gap="sm">{children}</Stack>

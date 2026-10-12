@@ -63,6 +63,9 @@ export const pageWidths = {
   wide: '82.5rem',
 } as const;
 
+// Side padding of a page (PageContainer), the top bar and the login screens
+export const pageSidePadding = { base: 'xs', sm: 'sm' } as const;
+
 // Color-scheme dependent values, written to CSS variables by cssVariables.ts
 export const darkScheme = {
   text: '#eeeeee',

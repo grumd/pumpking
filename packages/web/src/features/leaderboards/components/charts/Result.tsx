@@ -188,7 +188,7 @@ const Result = ({ result, chart }: { result: ResultExtended; chart: ChartApiOutp
       <Table.Td className={css.score} ta="right">
         <Popover withArrow width={200} position="top" trapFocus>
           <Popover.Target>
-            <UnstyledButton data-result-score className={css.scoreButton}>
+            <UnstyledButton className={css.scoreButton}>
               <Score score={result.score} />
             </UnstyledButton>
           </Popover.Target>
@@ -212,9 +212,11 @@ const Result = ({ result, chart }: { result: ResultExtended; chart: ChartApiOutp
                       {result.playerName}
                       {result.playerNameArcade ? ` (${result.playerNameArcade})` : null}
                     </Anchor>
-                  ) : `${result.playerName}` + result.playerNameArcade ? (
-                    ` (${result.playerNameArcade})`
-                  ) : null,
+                  ) : (
+                    `${result.playerName}${
+                      result.playerNameArcade ? ` (${result.playerNameArcade})` : ''
+                    }`
+                  ),
                 },
                 !!result.exp && {
                   label: (
@@ -244,16 +246,9 @@ const Result = ({ result, chart }: { result: ResultExtended; chart: ChartApiOutp
                   !!result.mods && { label: `${lang.MODS}:`, value: result.mods },
                 result.isExactGainedDate &&
                   result.combo != null && {
-                    label: (
-                      <Text span inherit hiddenFrom="md">
-                        {lang.COMBO}:
-                      </Text>
-                    ),
-                    value: (
-                      <Text span inherit hiddenFrom="md">
-                        {result.combo}
-                      </Text>
-                    ),
+                    label: `${lang.COMBO}:`,
+                    value: result.combo,
+                    hiddenFrom: 'md',
                   },
               ]}
             />
@@ -327,7 +322,7 @@ const Result = ({ result, chart }: { result: ResultExtended; chart: ChartApiOutp
         {result.stats[0]}
       </Table.Td>
       <Table.Td className={css.combo} visibleFrom="md" ta="right" fz="sm">
-        {result.combo && `${result.combo}x`}
+        {result.combo != null && `${result.combo}x`}
       </Table.Td>
       <Table.Td className={css.date} ta="right">
         <Tooltip label={tooltipFormatter(lang, result)}>

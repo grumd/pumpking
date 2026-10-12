@@ -120,7 +120,7 @@ const PurgatoryForm = ({ row, onResolved }: { row: Row; onResolved: () => void }
       </Stack>
 
       <Stack gap="md">
-        <Alert color="red" variant="light" icon={<FaExclamationTriangle />}>
+        <Alert color="red" icon={<FaExclamationTriangle />}>
           <Text size="sm">{row.reason}</Text>
           <Group gap="xs" mt="xs">
             {reason.chartInstanceId && <ChartLink chartInstanceId={reason.chartInstanceId} />}

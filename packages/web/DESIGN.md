@@ -99,7 +99,7 @@ Theme scale: `xxs` 0.25rem, `xs` 0.625rem, `sm` 0.75rem, `md` 1rem, `lg` 1.25rem
 
 | Where | Value |
 |---|---|
-| Page side padding | `xs` on phones, `sm` from `sm` up (`PageContainer`) |
+| Page side padding | `xs` on phones, `sm` from `sm` up (`pageSidePadding` in `tokens.ts`, used by `PageContainer`, the top bar and the login screens) |
 | Between cards on a page | `sm` (`PageContainer` does it) |
 | Inside a card, between blocks | `xs` |
 | Between rows in a list | `xxs` |
@@ -175,7 +175,7 @@ A label over a value.
 
 A two-column `dl`: dimmed labels on the left, values on the right.
 
-- `items: Array<{ label: ReactNode; value: ReactNode } | false | null | undefined>` (falsy items are skipped).
+- `items: Array<{ label: ReactNode; value: ReactNode; hiddenFrom?: MantineBreakpoint } | false | null | undefined>` (falsy items are skipped; `hiddenFrom` hides the row from that breakpoint up, e.g. a value a table column shows there).
 - Use for the details of one thing in a popover, modal or tooltip: result details, a confirm dialog, a graph tooltip. A graph tooltip is `<Paper p="xs" withBorder><KeyValueList items={...} /></Paper>` (the border separates it from the card under it); give recharts' `Tooltip` `wrapperStyle={{ zIndex: 'var(--mantine-z-index-popover)' }}` so it stays above the next card.
 - Use `Stat` instead when the values are few and should stand out.
 
