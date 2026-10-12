@@ -20,10 +20,19 @@ export const ChartLabel = ({ label, typeLabel = label, same = false }: ChartLabe
     return <span>{label}</span>;
   }
 
+  // A label with more than a type and a level (e.g. a misread 'S2O') is shown whole
+  const isTypeLevel = `${type}${level}` === label;
+
   return (
     <Box className={css.chartLabel} bg={chartLabelColor(typeLabel) ?? 'gray'} mod={{ same }}>
-      <span>{type}</span>
-      <span>{level}</span>
+      {isTypeLevel ? (
+        <>
+          <span>{type}</span>
+          <span>{level}</span>
+        </>
+      ) : (
+        <span>{label}</span>
+      )}
     </Box>
   );
 };

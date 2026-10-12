@@ -1,7 +1,7 @@
 import { Anchor, Button, Container, Group } from '@mantine/core';
 import { useQuery } from '@tanstack/react-query';
 import { NavLink } from 'react-router-dom';
-import { pageWidths } from 'theme/tokens';
+import { pageSidePadding, pageWidths } from 'theme/tokens';
 
 import { NoticeIndicator } from 'components/NoticeIndicator/NoticeIndicator';
 
@@ -40,7 +40,7 @@ export default function TopBar() {
     <Container
       component="header"
       size={pageWidths.default}
-      px={{ base: 'xs', sm: 'sm' }}
+      px={pageSidePadding}
       className={css.topBar}
     >
       <Group justify="space-between" wrap="nowrap" gap="xs" py="xs">

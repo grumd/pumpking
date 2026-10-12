@@ -35,6 +35,20 @@ const colors = Object.fromEntries(
 ) as Record<AppColor, MantineColorsTuple>;
 colors.discord = colorsTuple([...Array(9).fill(appColors.discord), discordHover]);
 
+// Modal and Drawer: on the page color (as before), so cards inside them stand out
+const overlayStyles = {
+  content: {
+    background: 'var(--pk-surface-page)',
+  },
+  header: {
+    background: 'var(--pk-surface-page)',
+  },
+  title: {
+    fontWeight: 700,
+    fontSize: 'var(--mantine-font-size-lg)',
+  },
+};
+
 declare module '@mantine/core' {
   export interface MantineThemeColorsOverride {
     colors: Record<DefaultMantineColor | AppColor, MantineColorsTuple>;
@@ -86,19 +100,7 @@ export const theme = createTheme({
       defaultProps: {
         closeButtonProps: { 'aria-label': translation.CLOSE },
       },
-      styles: {
-        // On the page color (as before), so cards inside them stand out
-        content: {
-          background: 'var(--pk-surface-page)',
-        },
-        header: {
-          background: 'var(--pk-surface-page)',
-        },
-        title: {
-          fontWeight: 700,
-          fontSize: 'var(--mantine-font-size-lg)',
-        },
-      },
+      styles: overlayStyles,
     }),
     Input: Input.extend({
       classNames: inputCss,
@@ -120,19 +122,7 @@ export const theme = createTheme({
         radius: 'md',
         closeButtonProps: { 'aria-label': translation.CLOSE },
       },
-      styles: {
-        // On the page color (as before), so cards inside them stand out
-        content: {
-          background: 'var(--pk-surface-page)',
-        },
-        header: {
-          background: 'var(--pk-surface-page)',
-        },
-        title: {
-          fontWeight: 700,
-          fontSize: 'var(--mantine-font-size-lg)',
-        },
-      },
+      styles: overlayStyles,
     }),
     Paper: Paper.extend({
       defaultProps: {

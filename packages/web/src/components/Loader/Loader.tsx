@@ -1,8 +1,8 @@
 import { Center, Loader as MantineLoader } from '@mantine/core';
 
-export default function Loader({ className }: { className?: string }) {
+export default function Loader() {
   return (
-    <Center w="100%" className={className}>
+    <Center w="100%">
       <MantineLoader color="white" type="dots" />
     </Center>
   );
