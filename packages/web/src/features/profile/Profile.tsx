@@ -33,7 +33,7 @@ const Profile = () => {
             title={lang.EXP_FAQ_TITLE}
             size="lg"
             renderButton={({ open }) => (
-              <ActionIcon variant="subtle" aria-label={lang.EXP_FAQ_TITLE} onClick={open}>
+              <ActionIcon aria-label={lang.EXP_FAQ_TITLE} onClick={open}>
                 <FaQuestionCircle />
               </ActionIcon>
             )}

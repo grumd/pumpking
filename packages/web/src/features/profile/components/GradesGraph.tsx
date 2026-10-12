@@ -1,4 +1,4 @@
-import { Box, Paper } from '@mantine/core';
+import { Box } from '@mantine/core';
 import { useParams } from 'react-router';
 import {
   Bar,
@@ -16,8 +16,9 @@ import { KeyValueList } from 'components/KeyValueList/KeyValueList';
 import { GradePhoenix } from 'utils/scoring/grades';
 
 import { useGradesGraphData } from '../hooks/usePlayerGrades';
+import { GraphTooltip } from './GraphTooltip';
 import { SeriesLabel } from './SeriesLabel';
-import { axisProps } from './graphAxis';
+import { axisProps, tooltipProps } from './graphAxis';
 
 const grades = Object.values(GradePhoenix);
 
@@ -47,15 +48,14 @@ const GradesGraph = () => {
           margin={{ top: 5, bottom: 5, right: 5, left: 0 }}
         >
           <RechartsTooltip<number, string>
-            isAnimationActive={false}
-            wrapperStyle={{ zIndex: 'var(--mantine-z-index-popover)' }}
+            {...tooltipProps}
             content={({ payload }) => {
               if (!payload || !payload[0]) {
                 return null;
               }
               const root = payload[0].payload as Root;
               return (
-                <Paper p="xs" withBorder>
+                <GraphTooltip>
                   <KeyValueList
                     items={[
                       { label: 'Level', value: root.level },
@@ -69,7 +69,7 @@ const GradesGraph = () => {
                         })),
                     ]}
                   />
-                </Paper>
+                </GraphTooltip>
               );
             }}
           />

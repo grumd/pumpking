@@ -50,14 +50,8 @@ export const MostPlayedCharts = (): JSX.Element => {
                 <Table.Td data-fit visibleFrom="xs" ta="right" fz="sm" c="dimmed">
                   {getLongTimeAgo(lang, new Date(item.latestDate))}
                 </Table.Td>
-                <Table.Td data-fit>
-                  <Group
-                    gap="xxs"
-                    justify="flex-end"
-                    wrap="nowrap"
-                    fw={700}
-                    c="var(--pk-text-strong)"
-                  >
+                <Table.Td data-fit data-main>
+                  <Group gap="xxs" justify="flex-end" wrap="nowrap">
                     <FaPlay size={rem(10)} />
                     <span>{item.count}</span>
                   </Group>

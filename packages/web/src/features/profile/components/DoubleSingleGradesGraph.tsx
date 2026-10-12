@@ -1,4 +1,4 @@
-import { Box, Paper, Stack, Text } from '@mantine/core';
+import { Box, Stack, Text } from '@mantine/core';
 import { useMemo } from 'react';
 import { useParams } from 'react-router';
 import {
@@ -17,8 +17,9 @@ import { gradeColorVar } from 'theme/tokens';
 import { KeyValueList } from 'components/KeyValueList/KeyValueList';
 
 import { useGradesGraphData } from '../hooks/usePlayerGrades';
+import { GraphTooltip } from './GraphTooltip';
 import { SeriesLabel } from './SeriesLabel';
-import { axisProps } from './graphAxis';
+import { axisProps, tooltipProps } from './graphAxis';
 
 const gradeKeys = [
   ['S', 'SSS+'],
@@ -65,7 +66,7 @@ const TooltipContent: ContentType<number, string> = ({ payload }) => {
     gradeKeys
       .filter(([itemType, grade]) => itemType === type && root.byTypeGrade[`${type}-${grade}`])
       .map(([, grade]) => {
-        const count = root.byTypeGrade[`${type}-${grade}`] ?? 0;
+        const count = root.byTypeGrade[`${type}-${grade}`];
         const percent = (100 * count) / root.totalChartsByType[type];
         return {
           label: <SeriesLabel color={gradeColorVar(grade)}>{grade}</SeriesLabel>,
@@ -76,7 +77,7 @@ const TooltipContent: ContentType<number, string> = ({ payload }) => {
   const doubleItems = gradeItems('D');
 
   return (
-    <Paper p="xs" withBorder>
+    <GraphTooltip>
       <Stack gap="xxs">
         <KeyValueList items={[{ label: 'Level', value: root.level }]} />
         {!!singleItems.length && (
@@ -92,7 +93,7 @@ const TooltipContent: ContentType<number, string> = ({ payload }) => {
           </>
         )}
       </Stack>
-    </Paper>
+    </GraphTooltip>
   );
 };
 
@@ -137,11 +138,7 @@ const GradesGraph = () => {
           margin={{ top: 5, bottom: 5, right: 5, left: 0 }}
           stackOffset="sign"
         >
-          <RechartsTooltip<number, string>
-            isAnimationActive={false}
-            wrapperStyle={{ zIndex: 'var(--mantine-z-index-popover)' }}
-            content={TooltipContent}
-          />
+          <RechartsTooltip<number, string> {...tooltipProps} content={TooltipContent} />
           <XAxis dataKey="level" {...axisProps} />
           <YAxis tickFormatter={yAxisFormatter} width={48} domain={yAxisDomain} {...axisProps} />
           {gradeKeys.map(([type, grade]) => (

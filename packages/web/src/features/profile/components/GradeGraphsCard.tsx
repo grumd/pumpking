@@ -14,16 +14,15 @@ export const GradeGraphsCard = (): JSX.Element => {
   const [value, toggle] = useToggle(['combined', 'separate']);
   const lang = useLanguage();
 
+  const switchButton = (
+    <ActionIcon onClick={() => toggle()} aria-label={lang.SWITCH_GRAPHS}>
+      <TbSwitch />
+    </ActionIcon>
+  );
+
   if (value === 'combined') {
     return (
-      <Card
-        title={lang.GRADES}
-        actions={
-          <ActionIcon variant="subtle" onClick={() => toggle()} aria-label={lang.SWITCH_GRAPHS}>
-            <TbSwitch />
-          </ActionIcon>
-        }
-      >
+      <Card title={lang.GRADES} actions={switchButton}>
         <DoubleSingleGradesGraph />
       </Card>
     );
@@ -31,15 +30,7 @@ export const GradeGraphsCard = (): JSX.Element => {
 
   return (
     <Stack gap="sm">
-      <Card
-        flex={1}
-        title={lang.GRADES}
-        actions={
-          <ActionIcon variant="subtle" onClick={() => toggle()} aria-label={lang.SWITCH_GRAPHS}>
-            <TbSwitch />
-          </ActionIcon>
-        }
-      >
+      <Card flex={1} title={lang.GRADES} actions={switchButton}>
         <GradesGraph />
       </Card>
       <Card flex={1}>

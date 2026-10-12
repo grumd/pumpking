@@ -1,4 +1,5 @@
 import {
+  ActionIcon,
   Alert,
   Badge,
   type DefaultMantineColor,
@@ -21,7 +22,6 @@ import { translation } from 'utils/context/translation';
 
 import breakpoints from './breakpoints.json';
 import focusCss from './focus.module.css';
-import inputCss from './input.module.css';
 import progressCss from './progress.module.css';
 import switchCss from './switch.module.css';
 import tableCss from './table.module.css';
@@ -35,14 +35,8 @@ const colors = Object.fromEntries(
 ) as Record<AppColor, MantineColorsTuple>;
 colors.discord = colorsTuple([...Array(9).fill(appColors.discord), discordHover]);
 
-// Modal and Drawer: on the page color (as before), so cards inside them stand out
+// Modal and Drawer titles
 const overlayStyles = {
-  content: {
-    background: 'var(--pk-surface-page)',
-  },
-  header: {
-    background: 'var(--pk-surface-page)',
-  },
   title: {
     fontWeight: 700,
     fontSize: 'var(--mantine-font-size-lg)',
@@ -82,6 +76,11 @@ export const theme = createTheme({
     xl: '2rem',
   },
   components: {
+    ActionIcon: ActionIcon.extend({
+      defaultProps: {
+        variant: 'subtle',
+      },
+    }),
     Alert: Alert.extend({
       defaultProps: {
         variant: 'light',
@@ -90,10 +89,14 @@ export const theme = createTheme({
     }),
     Badge: Badge.extend({
       defaultProps: {
-        pl: '0.5em',
-        pr: '0.5em',
         radius: 'sm',
-        lh: 1,
+      },
+      styles: {
+        root: {
+          paddingLeft: '0.5em',
+          paddingRight: '0.5em',
+          lineHeight: 1,
+        },
       },
     }),
     Drawer: Drawer.extend({
@@ -103,7 +106,12 @@ export const theme = createTheme({
       styles: overlayStyles,
     }),
     Input: Input.extend({
-      classNames: inputCss,
+      // The focus border in the focus color
+      styles: {
+        wrapper: {
+          '--input-bd-focus': 'var(--pk-focus-ring)',
+        },
+      },
     }),
     Menu: Menu.extend({
       defaultProps: {
@@ -128,7 +136,6 @@ export const theme = createTheme({
       defaultProps: {
         radius: 'md',
         shadow: 'sm',
-        bg: 'var(--pk-surface-1)',
       },
     }),
     Popover: Popover.extend({
@@ -139,6 +146,8 @@ export const theme = createTheme({
       styles: {
         dropdown: {
           background: 'var(--pk-surface-1)',
+          // Never wider than the screen
+          maxWidth: 'calc(100vw - 2 * var(--mantine-spacing-xs))',
         },
       },
     }),

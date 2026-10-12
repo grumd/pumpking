@@ -23,8 +23,7 @@ export default function ChartFilter({
       <Popover.Target>
         <Button className={buttonClassName}>{lang.FILTER_CHARTS}</Button>
       </Popover.Target>
-      {/* Never wider than the screen: the toggle buttons wrap on phones */}
-      <Popover.Dropdown maw="calc(100vw - 2 * var(--mantine-spacing-xs))">
+      <Popover.Dropdown>
         <Stack gap="sm" align="center">
           <Group gap="sm" justify="center">
             <ToggleButtonGroup

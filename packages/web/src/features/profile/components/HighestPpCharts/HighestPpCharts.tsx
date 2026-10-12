@@ -55,20 +55,16 @@ export const HighestPpCharts = (): JSX.Element => {
                     </Anchor>
                   </Table.Td>
                   <Table.Td data-fit visibleFrom="sm" ta="right" fz="sm">
-                    {daysAgo < 30 ? (
-                      <Text span inherit c="green">
-                        {getLongTimeAgo(lang, date)}
-                      </Text>
-                    ) : (
-                      <Text
-                        span
-                        inherit
-                        className={css.fadingDate}
-                        style={{ '--date-opacity': dateOpacity }}
-                      >
-                        {getLongTimeAgo(lang, date)}
-                      </Text>
-                    )}
+                    {/* The last month in green, older dates fade */}
+                    <Text
+                      span
+                      inherit
+                      c={daysAgo < 30 ? 'green' : undefined}
+                      className={css.fadingDate}
+                      style={{ '--date-opacity': dateOpacity }}
+                    >
+                      {getLongTimeAgo(lang, date)}
+                    </Text>
                   </Table.Td>
                   <Table.Td data-fit visibleFrom="xs" ta="right" fz="xs" lh="xs" c="dimmed">
                     <div>{(item.pp * item.weight).toFixed(2)}pp</div>
@@ -82,11 +78,9 @@ export const HighestPpCharts = (): JSX.Element => {
                       isPass={item.is_pass ?? false}
                     />
                   </Table.Td>
-                  <Table.Td data-fit ta="right">
-                    <Text span inherit fw={700} c="var(--pk-text-strong)">
-                      {item.pp?.toFixed(2)}
-                    </Text>
-                    <Text span inherit c="dimmed">
+                  <Table.Td data-fit data-main ta="right">
+                    {item.pp?.toFixed(2)}
+                    <Text span inherit fw={400} c="dimmed">
                       {' '}
                       pp
                     </Text>

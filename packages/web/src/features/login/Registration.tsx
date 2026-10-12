@@ -1,8 +1,7 @@
-import { Alert, Anchor, Button, Text } from '@mantine/core';
+import { Alert, Anchor, Text } from '@mantine/core';
 import { type CredentialResponse } from '@react-oauth/google';
 import { useMutation } from '@tanstack/react-query';
 import { useState } from 'react';
-import { FaDiscord } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
 
 import { GoogleButton } from 'components/GoogleButton/GoogleButton';
@@ -12,6 +11,7 @@ import { useDiscordLogin } from 'hooks/useDiscordLogin';
 import { useLanguage } from 'utils/context/translation';
 import { api } from 'utils/trpc';
 
+import { DiscordButton } from './DiscordButton';
 import { LoginLayout } from './LoginLayout';
 import { RegistrationForm } from './RegistrationForm';
 
@@ -68,14 +68,7 @@ export function RegistrationPage() {
       <Text>{lang.CREATE_NEW_ACCOUNT}</Text>
       <GoogleButton onSuccess={onGoogleSuccess} onError={onGoogleError} />
       {discord.isConfigured && (
-        <Button
-          component="a"
-          href={discord.authUrl}
-          leftSection={<FaDiscord size={20} />}
-          color="discord"
-        >
-          {lang.SIGN_UP_WITH_DISCORD}
-        </Button>
+        <DiscordButton href={discord.authUrl} label={lang.SIGN_UP_WITH_DISCORD} />
       )}
       {combinedError && <Alert color="red">{combinedError}</Alert>}
       <Anchor component={Link} to="/" size="sm">

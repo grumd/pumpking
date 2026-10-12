@@ -37,6 +37,15 @@ import type { ChartApiOutput } from '../../hooks/useChartsQuery';
 import { MixPlate } from './MixPlate';
 import css from './chart-results.module.css';
 
+// The step count columns, left to right, with their place in result.stats
+const stepColumns = [
+  { index: 4, className: css.miss },
+  { index: 3, className: css.bad },
+  { index: 2, className: css.good },
+  { index: 1, className: css.great },
+  { index: 0, className: css.perfect },
+];
+
 export type ResultExtended = ChartApiOutput['results'][number] & {
   topPlace: number;
   isImportant: boolean;
@@ -306,21 +315,11 @@ const Result = ({ result, chart }: { result: ResultExtended; chart: ChartApiOutp
           <Grade w="auto" h="1rem" score={result.score} isPass={result.passed ?? false} />
         </Center>
       </Table.Td>
-      <Table.Td className={`${css.number} ${css.miss}`} ta="right">
-        {result.stats[4]}
-      </Table.Td>
-      <Table.Td className={`${css.number} ${css.bad}`} ta="right">
-        {result.stats[3]}
-      </Table.Td>
-      <Table.Td className={`${css.number} ${css.good}`} ta="right">
-        {result.stats[2]}
-      </Table.Td>
-      <Table.Td className={`${css.number} ${css.great}`} ta="right">
-        {result.stats[1]}
-      </Table.Td>
-      <Table.Td className={`${css.number} ${css.perfect}`} ta="right">
-        {result.stats[0]}
-      </Table.Td>
+      {stepColumns.map(({ index, className }) => (
+        <Table.Td key={index} className={`${css.number} ${className}`} ta="right">
+          {result.stats[index]}
+        </Table.Td>
+      ))}
       <Table.Td className={css.combo} visibleFrom="md" ta="right" fz="sm">
         {result.combo != null && `${result.combo}x`}
       </Table.Td>

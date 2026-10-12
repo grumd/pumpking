@@ -36,7 +36,7 @@ const TokenCode = ({ token }: { token: string }) => (
     <CopyButton value={token}>
       {({ copied, copy }) => (
         <Tooltip label={copied ? 'Copied' : 'Copy'}>
-          <ActionIcon variant="subtle" size="sm" onClick={copy} aria-label="Copy token">
+          <ActionIcon size="sm" onClick={copy} aria-label="Copy token">
             {copied ? <FaCheck /> : <FaCopy />}
           </ActionIcon>
         </Tooltip>
@@ -224,7 +224,6 @@ export const AgentsTab = (): JSX.Element => {
                   </Table.Td>
                   <Table.Td>
                     <ActionIcon
-                      variant="subtle"
                       onClick={() => setEditing(agent)}
                       title="Edit"
                       aria-label={`Edit agent ${agent.name}`}

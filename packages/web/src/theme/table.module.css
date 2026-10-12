@@ -11,6 +11,12 @@
   white-space: nowrap;
 }
 
+/* The main number of a row: pp, play count */
+.td[data-main] {
+  font-weight: 700;
+  color: var(--pk-text-strong);
+}
+
 .tr[data-selected] {
   background: var(--pk-surface-3);
 }

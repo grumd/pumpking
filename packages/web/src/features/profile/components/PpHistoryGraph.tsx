@@ -1,4 +1,4 @@
-import { Box, Paper, Text } from '@mantine/core';
+import { Box, Text } from '@mantine/core';
 import { useMemo } from 'react';
 import { useParams } from 'react-router';
 import {
@@ -16,7 +16,8 @@ import { KeyValueList } from 'components/KeyValueList/KeyValueList';
 import { useLanguage } from 'utils/context/translation';
 
 import { usePlayerPpHistory } from '../hooks/usePlayerPpHistory';
-import { axisProps } from './graphAxis';
+import { GraphTooltip } from './GraphTooltip';
+import { axisProps, tooltipProps } from './graphAxis';
 
 export const PpHistoryGraph = () => {
   const params = useParams();
@@ -59,19 +60,18 @@ export const PpHistoryGraph = () => {
             {...axisProps}
           />
           <RechartsTooltip
-            isAnimationActive={false}
-            wrapperStyle={{ zIndex: 'var(--mantine-z-index-popover)' }}
+            {...tooltipProps}
             content={({ payload }) => {
               if (!payload || !payload[0]) {
                 return null;
               }
               return (
-                <Paper p="xs" withBorder>
+                <GraphTooltip>
                   <Text size="sm" c="dimmed">
                     {new Date(payload[0].payload.date).toLocaleDateString()}
                   </Text>
                   <KeyValueList items={[{ label: lang.PP, value: payload[0].value }]} />
-                </Paper>
+                </GraphTooltip>
               );
             }}
           />

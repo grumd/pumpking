@@ -1,8 +1,8 @@
-import { Alert, Group } from '@mantine/core';
+import { Group } from '@mantine/core';
 import { useQuery } from '@tanstack/react-query';
-import { FaExclamationCircle } from 'react-icons/fa';
 import { useParams } from 'react-router';
 
+import { ErrorAlert } from 'components/ErrorAlert/ErrorAlert';
 import Loader from 'components/Loader/Loader';
 import { Stat } from 'components/Stat/Stat';
 
@@ -25,9 +25,7 @@ export const ProfileHeader = (): JSX.Element => {
   if (!currentPlayer) {
     return (
       <header>
-        <Alert color="red" title={lang.ERROR} icon={<FaExclamationCircle />}>
-          {lang.PROFILE_NOT_FOUND}
-        </Alert>
+        <ErrorAlert>{lang.PROFILE_NOT_FOUND}</ErrorAlert>
       </header>
     );
   }

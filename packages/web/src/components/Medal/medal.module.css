@@ -2,15 +2,3 @@
   vertical-align: middle;
   flex-shrink: 0;
 }
-
-.gold {
-  color: var(--mantine-color-gold-filled);
-}
-
-.silver {
-  color: var(--mantine-color-silver-filled);
-}
-
-.bronze {
-  color: var(--mantine-color-bronze-filled);
-}

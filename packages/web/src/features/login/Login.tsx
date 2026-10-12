@@ -1,5 +1,4 @@
-import { Alert, Button } from '@mantine/core';
-import { FaDiscord } from 'react-icons/fa';
+import { Alert } from '@mantine/core';
 
 import { GoogleButton } from 'components/GoogleButton/GoogleButton';
 
@@ -9,6 +8,7 @@ import { useGoogleLogin } from 'hooks/useGoogleLogin';
 import { useLanguage } from 'utils/context/translation';
 
 import { DevLogin } from './DevLogin';
+import { DiscordButton } from './DiscordButton';
 import { LoginLayout } from './LoginLayout';
 
 export function LoginScreen() {
@@ -22,14 +22,7 @@ export function LoginScreen() {
     <LoginLayout>
       <GoogleButton onSuccess={google.onSuccess} onError={google.onError} />
       {discord.isConfigured && (
-        <Button
-          component="a"
-          href={discord.authUrl}
-          leftSection={<FaDiscord size={20} />}
-          color="discord"
-        >
-          {lang.SIGN_IN_WITH_DISCORD}
-        </Button>
+        <DiscordButton href={discord.authUrl} label={lang.SIGN_IN_WITH_DISCORD} />
       )}
       {error && <Alert color="red">{error}</Alert>}
       <DevLogin />

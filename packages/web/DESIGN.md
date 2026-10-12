@@ -42,7 +42,7 @@ The theme is **dark only** today. Every color that depends on the scheme is a CS
 |---|---|---|
 | `--pk-surface-page` | `#242424` | page background (set on `body`) |
 | `--pk-surface-sunken` | `#1f1f1f` | wells inside a card: media previews, code |
-| `--pk-surface-1` | `#2e2e2e` | a level-1 `Card` on the page; `Paper`, popovers, menus (theme default) |
+| `--pk-surface-1` | `#2e2e2e` | a level-1 `Card` on the page; popovers, menus (theme default); graph tooltips |
 | `--pk-surface-2` | `#3b3b3b` | a level-2 `Card` or row inside a card; the rows of `Table variant="rows"` |
 | `--pk-surface-stripe` | `#444444` | every other row of a `striped` table |
 | `--pk-surface-3` | `#424242` | hover on a surface-2 row; the selected/"me" row |
@@ -126,13 +126,14 @@ Set in `theme.ts`, so don't repeat them as props:
 | Component | Default |
 |---|---|
 | (all) | `primaryColor: 'gray'` (filled buttons are dark gray), `fontFamily` Nunito, focus ring via `focusClassName` |
-| `Paper` | `radius="md"`, `shadow="sm"`, surface-1 background |
+| `Paper` | `radius="md"`, `shadow="sm"`, on the page surface (Mantine's body color) |
 | `Modal` | `centered`, `radius="md"`, on the page surface, title bold `lg` (like `Drawer`) |
 | `Drawer` | title bold `lg`, on the page surface |
-| `Popover`, `Menu` | dropdown on surface-1, `radius="md"` |
+| `Popover`, `Menu` | dropdown on surface-1, `radius="md"`; a `Popover` dropdown is never wider than the screen |
 | `Tooltip` | Mantine's light tooltip (as before); opens on hover, keyboard focus, and press-and-hold on touch screens |
 | `Progress` | track `--pk-progress-track` |
 | `Alert` | `variant="light"`, `radius="md"` |
+| `ActionIcon` | `variant="subtle"` |
 | `Anchor` | underline on hover; default text color is Mantine's anchor gray |
 | `Input` (all inputs) | focus border in accent |
 | `Table` | `stripedColor` surface-stripe, `highlightOnHoverColor` surface-3; `variant="rows"` (below): text `md`, row padding `xxs`, so every row list has the same row height |
@@ -160,7 +161,7 @@ A surface with an optional title: the "section" of a page.
 - `level?: 1 | 2`: `1` on the page (surface-1, padding `sm`), `2` for a card or row inside a card (surface-2, padding `xs`).
 - Takes the `Paper` props (`component`, `flex`, `p`, `mb`...).
 - Use for any group of content on a page. A card with its own header (the leaderboard chart card) has no `title`, so no underline.
-- The one padding exception: the leaderboard's dense results table uses smaller card paddings below `md` (`p={{ base: 'xs', md: 'sm' }}`, level 2 `p={{ base: 0, md: 'xs' }} py={{ base: 'xxs', md: 'xs' }}`) so its 10 columns fit a phone. Don't copy it elsewhere.
+- The one padding exception: the leaderboard's dense results table uses smaller card paddings below `md` (level 1 `xs`, level 2 `xxs 0`) so its 10 columns fit a phone. They are in `chart-results.module.css`, not responsive `p` props, which would add a `<style>` tag per card in the virtualized list. Don't copy it elsewhere.
 - Don't nest a level-1 card in another level-1 card. Don't use Mantine's `Card` or `Paper` directly for sections.
 - In admin drawers, groups of fields use the admin-local `Section` (a dimmed heading without a surface), not `Card`.
 
@@ -176,7 +177,7 @@ A label over a value.
 A two-column `dl`: dimmed labels on the left, values on the right.
 
 - `items: Array<{ label: ReactNode; value: ReactNode; hiddenFrom?: MantineBreakpoint } | false | null | undefined>` (falsy items are skipped; `hiddenFrom` hides the row from that breakpoint up, e.g. a value a table column shows there).
-- Use for the details of one thing in a popover, modal or tooltip: result details, a confirm dialog, a graph tooltip. A graph tooltip is `<Paper p="xs" withBorder><KeyValueList items={...} /></Paper>` (the border separates it from the card under it); give recharts' `Tooltip` `wrapperStyle={{ zIndex: 'var(--mantine-z-index-popover)' }}` so it stays above the next card.
+- Use for the details of one thing in a popover, modal or tooltip: result details, a confirm dialog, a graph tooltip. A graph tooltip on the profile is `<GraphTooltip><KeyValueList items={...} /></GraphTooltip>` (`features/profile/components/GraphTooltip.tsx`: a bordered surface-1 `Paper`), with `{...tooltipProps}` (`graphAxis.ts`) on recharts' `Tooltip`, which keeps it above the next card.
 - Use `Stat` instead when the values are few and should stand out.
 
 ### `Place`
@@ -192,7 +193,14 @@ A place in a ranking: `#N`.
 Centered dimmed text for "nothing here".
 
 - `children`: the message (from translations, e.g. `lang.NOTHING_FOUND`).
-- Use for empty lists and searches. Errors are `<Alert color="red">`, loading is `Loader`.
+- Use for empty lists and searches. Errors are `ErrorAlert`, loading is `Loader`.
+
+### `ErrorAlert`
+
+A red alert titled "Error" with an icon: a query or a page that failed.
+
+- `children`: the message (`error.message`, or a translation like `lang.PROFILE_NOT_FOUND`).
+- A short red note under a form (a failed sign-in, a failed save) is a bare `<Alert color="red">` without the title.
 
 ### `Loader`
 
@@ -235,14 +243,15 @@ Don't wrap these; configure them through the theme.
 | A dense table of results | `Table striped` + the feature's CSS module for column widths and tints |
 | A list of rows with columns (ranking, top tracks, best scores) | `Table variant="rows"`: each row is a surface-2 tile with rounded ends, hover surface-3. On phones hide secondary columns with `visibleFrom="md"` instead of scrolling |
 | A column as narrow as its content (place, numbers, icons, a switch) | `Table.Td` / `Table.Th` with `data-fit`; the other columns share the rest |
+| The main number of a row (pp, play count) | `Table.Td` with `data-main` (bold, `--pk-text-strong`) |
 | A selected or "me" row | `Table.Tr` with `data-selected` (surface-3) |
 | A row that opens something | Put a real link or button for that action inside the row; a row `onClick` is only a shortcut on top. Add `data-clickable` to the `Table.Tr` for the pointer cursor |
 | A filter bar over a list | `<Group wrap="wrap" gap="xs">` with the input `flex={1} miw={rem(200)}`, then counts and buttons |
-| Errors | `<Alert color="red" title={lang.ERROR} icon={<FaExclamationCircle />}>` |
+| Errors | `ErrorAlert` |
 | Warnings / notes | `<Alert color="yellow">` / `<Alert>` |
 | Tabs | `Tabs` (default variant for navigation between areas, `variant="pills"` for switching a view inside a page) |
 | Something to click | `Button`, `ActionIcon` (always with `aria-label`), `Anchor` for navigation (also for external links), `UnstyledButton` when it must look like plain content (a score you click, a tooltip target). Never `onClick` on a `div`, `span` or `td` alone |
-| Extra info | `Tooltip` for short hints that are fine to miss on touch screens (they show on press-and-hold). Its target must be focusable (`UnstyledButton`, `Button`, `Anchor`), or touch and keyboard users can't open it. `Popover` for anything with links or buttons; its width must fit a 375px screen (`width="target"` or a `maw`) |
+| Extra info | `Tooltip` for short hints that are fine to miss on touch screens (they show on press-and-hold). Its target must be focusable (`UnstyledButton`, `Button`, `Anchor`), or touch and keyboard users can't open it. `Popover` for anything with links or buttons; the theme keeps its dropdown within the screen |
 | Status | `Badge` with a state color |
 | Progress | `Progress` with `color="accent"` |
 
