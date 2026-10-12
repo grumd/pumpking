@@ -291,6 +291,7 @@ export const en = {
   RECOGNIZE_SCORE: 'Recognize score',
   RECOGNIZED_NUMBERS: 'Recognized numbers',
   FILL_FORM: 'Fill form',
+  OCR_SELECTED_AREA: 'Selected area',
 
   // Admin
   ADMIN_PANEL: 'Admin Panel',

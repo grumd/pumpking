@@ -4,6 +4,7 @@ import {
   Checkbox,
   FileInput,
   Select,
+  SimpleGrid,
   Stack,
   Text,
   TextInput,
@@ -18,10 +19,10 @@ import { FaExclamationCircle } from 'react-icons/fa';
 import { IoIosWarning } from 'react-icons/io';
 import { useNavigate, useParams } from 'react-router-dom';
 
-import css from './add-result.module.scss';
-
 import { useConfirmationPopup } from 'components/ConfirmationPopup/useConfirmationPopup';
+import { KeyValueList } from 'components/KeyValueList/KeyValueList';
 import Loader from 'components/Loader/Loader';
+import { PageContainer } from 'components/PageContainer/PageContainer';
 
 import { routes } from 'constants/routes';
 
@@ -33,6 +34,7 @@ import { api } from 'utils/trpc';
 import { useSingleChartQuery } from '../../hooks/useSingleChartQuery';
 import { ImageDataPreview } from './ImageDataPreview';
 import { ScreenshotRecognition } from './ScreenshotRecognition';
+import css from './add-result.module.css';
 import { compressImageData } from './imageUtils';
 import { useProcessedImage } from './useProcessedImage';
 
@@ -79,6 +81,11 @@ const MOD_OPTIONS = [
   { value: 'VJ', label: 'Rank (VJ)' },
   { value: 'HJ', label: 'HJ' },
 ];
+
+// Their names are also the app colors of the judgements (c="perfect")
+const JUDGEMENTS = ['perfect', 'great', 'good', 'bad', 'miss'] as const;
+
+const capitalize = (text: string) => text[0].toUpperCase() + text.slice(1);
 
 interface AddResultFormData {
   screenshot: File | null;
@@ -238,66 +245,70 @@ const AddResult = () => {
 
   if (!canAddResult) {
     return (
-      <Alert
-        radius="md"
-        variant="light"
-        color="red"
-        title={lang.ERROR}
-        icon={<FaExclamationCircle />}
-      >
-        {lang.NO_ACCESS_TO_PAGE}
-      </Alert>
+      <PageContainer width="narrow">
+        <Alert color="red" title={lang.ERROR} icon={<FaExclamationCircle />}>
+          {lang.NO_ACCESS_TO_PAGE}
+        </Alert>
+      </PageContainer>
     );
   }
 
   return (
-    <div className={css.addResultPage}>
+    <PageContainer width="narrow">
       {renderPopup({
         content: (
-          <div className={css.confirmation}>
-            <div className={css.splitPanels}>
-              <div className={css.screenshotPanel}>
+          <Stack>
+            <SimpleGrid cols={{ base: 1, sm: 2 }}>
+              <div>
                 {processedImage && (
-                  <ImageDataPreview
-                    imageData={processedImage.imageData}
-                    style={{ maxWidth: '100%', maxHeight: 270 }}
-                  />
+                  <ImageDataPreview imageData={processedImage.imageData} className={css.preview} />
                 )}
               </div>
-              <div className={css.formPanel}>
-                <div className={css.chartName}>{label}</div>
-                <div className={css.grid}>
-                  <div>{lang.GRADE}</div>
-                  <div>{formData.grade}</div>
-                  <div style={{ color: '#29D7FF' }}>Perfect</div>
-                  <div style={{ color: '#29D7FF' }}>{formData.perfect}</div>
-                  <div style={{ color: '#21d021' }}>Great</div>
-                  <div style={{ color: '#21d021' }}>{formData.great}</div>
-                  <div style={{ color: '#dede3a' }}>Good</div>
-                  <div style={{ color: '#dede3a' }}>{formData.good}</div>
-                  <div style={{ color: '#f278fc' }}>Bad</div>
-                  <div style={{ color: '#f278fc' }}>{formData.bad}</div>
-                  <div style={{ color: '#f48181' }}>Miss</div>
-                  <div style={{ color: '#f48181' }}>{formData.miss}</div>
-                  <div>Combo</div>
-                  <div>{formData.combo}</div>
-                  <div style={{ fontWeight: 'bold', fontSize: '110%' }}>Score</div>
-                  <div style={{ fontWeight: 'bold', fontSize: '110%' }}>{formData.score}</div>
-                  <div>{lang.MODS}</div>
-                  <div>{formData.mod || lang.NONE_NORMAL_MODE}</div>
-                </div>
-              </div>
-            </div>
-            <Alert radius="md" variant="light" color="yellow" icon={<IoIosWarning />}>
+              <Stack gap="xs">
+                <Text fz="xl" fw="bold">
+                  {label}
+                </Text>
+                <KeyValueList
+                  items={[
+                    { label: lang.GRADE, value: formData.grade },
+                    ...JUDGEMENTS.map((field) => ({
+                      label: (
+                        <Text span inherit c={field}>
+                          {capitalize(field)}
+                        </Text>
+                      ),
+                      value: (
+                        <Text span inherit c={field}>
+                          {formData[field]}
+                        </Text>
+                      ),
+                    })),
+                    { label: 'Combo', value: formData.combo },
+                    {
+                      label: (
+                        <Text span fz="md" fw="bold">
+                          Score
+                        </Text>
+                      ),
+                      value: (
+                        <Text span fz="md" fw="bold">
+                          {formData.score}
+                        </Text>
+                      ),
+                    },
+                    { label: lang.MODS, value: formData.mod || lang.NONE_NORMAL_MODE },
+                  ]}
+                />
+              </Stack>
+            </SimpleGrid>
+            <Alert color="yellow" icon={<IoIosWarning />}>
               {lang.FALSE_RESULTS_WARNING}
             </Alert>
-          </div>
+          </Stack>
         ),
       })}
-      <Title order={2} mb="xs">
-        {lang.SUBMIT_RESULT}
-      </Title>
-      <Text mb="md">
+      <Title order={2}>{lang.SUBMIT_RESULT}</Title>
+      <Text>
         {lang.CHART}: {label}
       </Text>
       <form onSubmit={form.onSubmit(onSubmit)}>
@@ -361,10 +372,10 @@ const AddResult = () => {
 
               <Checkbox label="Pass" checked={form.values.pass} {...form.getInputProps('pass')} />
 
-              {(['perfect', 'great', 'good', 'bad', 'miss', 'combo'] as const).map((field) => (
+              {([...JUDGEMENTS, 'combo'] as const).map((field) => (
                 <TextInput
                   key={field}
-                  label={field[0].toUpperCase() + field.slice(1)}
+                  label={capitalize(field)}
                   placeholder="000"
                   inputMode="numeric"
                   withAsterisk
@@ -394,14 +405,10 @@ const AddResult = () => {
             </>
           ) : null}
 
-          {error instanceof Error && (
-            <Alert color="red" variant="light">
-              {error.message}
-            </Alert>
-          )}
+          {error instanceof Error && <Alert color="red">{error.message}</Alert>}
         </Stack>
       </form>
-    </div>
+    </PageContainer>
   );
 };
 

@@ -14,5 +14,5 @@
       "oklch"
     ]
   },
-  "ignoreFiles": ["src/features/leaderboards/components/add-result/**", "src/features/admin/**"]
+  "ignoreFiles": ["src/features/admin/**"]
 }

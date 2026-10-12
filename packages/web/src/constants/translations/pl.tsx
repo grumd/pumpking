@@ -272,6 +272,7 @@ export const pl: BaseTranslation = {
   RECOGNIZE_SCORE: 'Rozpoznaj wynik',
   RECOGNIZED_NUMBERS: 'Rozpoznane liczby',
   FILL_FORM: 'Wstaw liczby',
+  OCR_SELECTED_AREA: 'Zaznaczony obszar',
 
   // Admin
   ADMIN_PANEL: 'Panel Admina',
