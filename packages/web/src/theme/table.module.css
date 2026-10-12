@@ -4,6 +4,13 @@
   cursor: pointer;
 }
 
+/* A column as narrow as its content: places, numbers, icons. The other columns share the rest */
+.td[data-fit],
+.th[data-fit] {
+  width: 0;
+  white-space: nowrap;
+}
+
 .tr[data-selected] {
   background: var(--pk-surface-3);
 }

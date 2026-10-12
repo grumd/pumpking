@@ -36,6 +36,7 @@ export const cssVariablesResolver: CSSVariablesResolver = () => {
       '--pk-surface-3': darkScheme.surface3,
       '--pk-border': darkScheme.border,
       '--pk-focus-ring': darkScheme.focusRing,
+      '--pk-progress-track': darkScheme.progressTrack,
 
       '--pk-graph-axis': darkScheme.graphAxis,
       '--pk-graph-grid': darkScheme.graphGrid,

@@ -9,6 +9,7 @@ import {
   Modal,
   Paper,
   Popover,
+  Progress,
   Switch,
   Table,
   Tooltip,
@@ -21,6 +22,7 @@ import { translation } from 'utils/context/translation';
 import breakpoints from './breakpoints.json';
 import focusCss from './focus.module.css';
 import inputCss from './input.module.css';
+import progressCss from './progress.module.css';
 import switchCss from './switch.module.css';
 import tableCss from './table.module.css';
 import { type AppColor, appColors, discordHover } from './tokens';
@@ -129,6 +131,9 @@ export const theme = createTheme({
           background: 'var(--pk-surface-1)',
         },
       },
+    }),
+    Progress: Progress.extend({
+      classNames: progressCss,
     }),
     Switch: Switch.extend({
       classNames: switchCss,
