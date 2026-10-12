@@ -13,6 +13,7 @@ import {
   Text,
   TextInput,
   Tooltip,
+  UnstyledButton,
 } from '@mantine/core';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
@@ -30,12 +31,12 @@ import { ConfirmButton } from '../components/ConfirmButton';
 type Agent = ApiOutputs['admin']['agents']['list'][number];
 
 const TokenCode = ({ token }: { token: string }) => (
-  <Group gap={4} wrap="nowrap">
+  <Group gap="xxs" wrap="nowrap">
     <Code>{token}</Code>
     <CopyButton value={token}>
       {({ copied, copy }) => (
         <Tooltip label={copied ? 'Copied' : 'Copy'}>
-          <ActionIcon variant="subtle" size="sm" onClick={copy}>
+          <ActionIcon variant="subtle" size="sm" onClick={copy} aria-label="Copy token">
             {copied ? <FaCheck /> : <FaCopy />}
           </ActionIcon>
         </Tooltip>
@@ -180,53 +181,62 @@ export const AgentsTab = (): JSX.Element => {
 
       {agents.isLoading && <Loader />}
       {agents.data && (
-        <Table verticalSpacing="xs">
-          <Table.Thead>
-            <Table.Tr>
-              <Table.Th>#</Table.Th>
-              <Table.Th>Name</Table.Th>
-              <Table.Th>Title</Table.Th>
-              <Table.Th>Last seen</Table.Th>
-              <Table.Th>Token</Table.Th>
-              <Table.Th />
-            </Table.Tr>
-          </Table.Thead>
-          <Table.Tbody>
-            {agents.data.map((agent) => (
-              <Table.Tr key={agent.id}>
-                <Table.Td>{agent.id}</Table.Td>
-                <Table.Td ff="monospace" fz="sm">
-                  {agent.name}{' '}
-                  {agent.id === 1 && (
-                    <Badge size="sm" color="grape">
-                      super agent
-                    </Badge>
-                  )}
-                </Table.Td>
-                <Table.Td>{agent.title}</Table.Td>
-                <Table.Td>
-                  {agent.last_seen_at ? (
-                    <Tooltip label={new Date(agent.last_seen_at).toLocaleString()}>
-                      <Text size="sm">{getLongTimeAgo(lang, new Date(agent.last_seen_at))}</Text>
-                    </Tooltip>
-                  ) : (
-                    <Text size="sm" c="dimmed">
-                      never
-                    </Text>
-                  )}
-                </Table.Td>
-                <Table.Td>
-                  <AgentToken agent={agent} />
-                </Table.Td>
-                <Table.Td>
-                  <ActionIcon variant="subtle" onClick={() => setEditing(agent)} title="Edit">
-                    <FaPen />
-                  </ActionIcon>
-                </Table.Td>
+        <Table.ScrollContainer minWidth={700}>
+          <Table verticalSpacing="xs">
+            <Table.Thead>
+              <Table.Tr>
+                <Table.Th>#</Table.Th>
+                <Table.Th>Name</Table.Th>
+                <Table.Th>Title</Table.Th>
+                <Table.Th>Last seen</Table.Th>
+                <Table.Th>Token</Table.Th>
+                <Table.Th />
               </Table.Tr>
-            ))}
-          </Table.Tbody>
-        </Table>
+            </Table.Thead>
+            <Table.Tbody>
+              {agents.data.map((agent) => (
+                <Table.Tr key={agent.id}>
+                  <Table.Td>{agent.id}</Table.Td>
+                  <Table.Td ff="monospace" fz="sm">
+                    {agent.name}{' '}
+                    {agent.id === 1 && (
+                      <Badge size="sm" color="grape">
+                        super agent
+                      </Badge>
+                    )}
+                  </Table.Td>
+                  <Table.Td>{agent.title}</Table.Td>
+                  <Table.Td>
+                    {agent.last_seen_at ? (
+                      <Tooltip label={new Date(agent.last_seen_at).toLocaleString()}>
+                        <UnstyledButton fz="sm">
+                          {getLongTimeAgo(lang, new Date(agent.last_seen_at))}
+                        </UnstyledButton>
+                      </Tooltip>
+                    ) : (
+                      <Text size="sm" c="dimmed">
+                        never
+                      </Text>
+                    )}
+                  </Table.Td>
+                  <Table.Td>
+                    <AgentToken agent={agent} />
+                  </Table.Td>
+                  <Table.Td>
+                    <ActionIcon
+                      variant="subtle"
+                      onClick={() => setEditing(agent)}
+                      title="Edit"
+                      aria-label={`Edit agent ${agent.name}`}
+                    >
+                      <FaPen />
+                    </ActionIcon>
+                  </Table.Td>
+                </Table.Tr>
+              ))}
+            </Table.Tbody>
+          </Table>
+        </Table.ScrollContainer>
       )}
 
       <Modal

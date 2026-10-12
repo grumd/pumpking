@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 
 import Loader from 'components/Loader/Loader';
+import { Stat } from 'components/Stat/Stat';
 
 import { routes } from 'constants/routes';
 
@@ -14,7 +15,7 @@ import { ConfirmButton } from '../components/ConfirmButton';
 import { MediaViewer } from '../components/MediaViewer';
 import { PlayerSelect } from '../components/PlayerSelect';
 import { NumberField, SelectField, TextField } from '../components/fields';
-import { Info, Section } from '../components/layout';
+import { Section } from '../components/layout';
 import { useEditForm } from '../hooks/useEditForm';
 import {
   PASS_OPTIONS,
@@ -83,7 +84,7 @@ const ResultForm = ({ result, onDeleted }: { result: Result; onDeleted: () => vo
       <Stack gap="sm">
         <MediaViewer source="results" id={result.id} />
         <SimpleGrid cols={2} spacing="xxs">
-          <Info
+          <Stat
             label="Chart"
             value={
               <Anchor
@@ -94,26 +95,26 @@ const ResultForm = ({ result, onDeleted }: { result: Result; onDeleted: () => vo
               </Anchor>
             }
           />
-          <Info label="Mix" value={result.mix_name} />
-          <Info
+          <Stat label="Mix" value={result.mix_name} />
+          <Stat
             label="Played"
             value={formatDate(result.gained) + (result.exact_gain_date ? '' : ' (not exact)')}
           />
-          <Info label="Added" value={formatDate(result.added)} />
-          <Info
+          <Stat label="Added" value={formatDate(result.added)} />
+          <Stat
             label="Recognized as"
             value={`${result.player_name}: ${result.recognized_nickname ?? '?'} (#${
               result.recognized_player_id
             })`}
           />
-          <Info
+          <Stat
             label="Agent"
             value={result.agent < 0 ? 'added on the web' : result.agent_name ?? `#${result.agent}`}
           />
-          <Info label="Phoenix score" value={formatNumber(result.score_phoenix)} />
-          <Info label="pp / exp" value={`${result.pp?.toFixed(2) ?? '—'} / ${result.exp ?? '—'}`} />
-          <Info label="Rank mode" value={result.rank_mode ? 'yes' : 'no'} />
-          <Info
+          <Stat label="Phoenix score" value={formatNumber(result.score_phoenix)} />
+          <Stat label="pp / exp" value={`${result.pp?.toFixed(2) ?? '—'} / ${result.exp ?? '—'}`} />
+          <Stat label="Rank mode" value={result.rank_mode ? 'yes' : 'no'} />
+          <Stat
             label="Chart steps"
             value={`${result.min_total_steps ?? '?'}–${result.max_total_steps ?? '?'}`}
           />
@@ -122,7 +123,7 @@ const ResultForm = ({ result, onDeleted }: { result: Result; onDeleted: () => vo
 
       <Stack gap="md">
         <Section title="Score">
-          <SimpleGrid cols={3} spacing="sm">
+          <SimpleGrid cols={{ base: 2, sm: 3 }} spacing="sm">
             <NumberField label="Score" {...field('score')} />
             <NumberField label="Score increase" {...field('scoreIncrease')} />
             <SelectField label="Grade" {...field('grade')} options={gradeOptions(result.mix)} />
@@ -140,7 +141,7 @@ const ResultForm = ({ result, onDeleted }: { result: Result; onDeleted: () => vo
         </Section>
 
         <Section title="Steps">
-          <SimpleGrid cols={4} spacing="sm">
+          <SimpleGrid cols={{ base: 2, sm: 4 }} spacing="sm">
             <NumberField label="Perfect" {...field('perfects')} />
             <NumberField label="Great" {...field('greats')} />
             <NumberField label="Good" {...field('goods')} />

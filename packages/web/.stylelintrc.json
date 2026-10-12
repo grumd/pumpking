@@ -13,6 +13,5 @@
       "oklab",
       "oklch"
     ]
-  },
-  "ignoreFiles": ["src/features/admin/**"]
+  }
 }

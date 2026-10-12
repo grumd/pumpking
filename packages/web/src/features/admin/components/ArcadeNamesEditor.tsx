@@ -23,7 +23,7 @@ export const ArcadeNamesEditor = ({
   defaultEdist,
   mixes,
 }: ArcadeNamesEditorProps): JSX.Element => (
-  <Table withRowBorders={false} verticalSpacing={4} horizontalSpacing="xs">
+  <Table withRowBorders={false} verticalSpacing="xxs" horizontalSpacing="xs">
     <Table.Thead>
       <Table.Tr>
         <Table.Th w="7rem">Mix</Table.Th>
@@ -52,6 +52,7 @@ export const ArcadeNamesEditor = ({
                   });
                 }}
                 placeholder="none"
+                aria-label={`${mix.name} arcade name`}
                 ff="monospace"
               />
             </Table.Td>
@@ -63,6 +64,7 @@ export const ArcadeNamesEditor = ({
                   onChange({ ...value, [mix.id]: { ...arcadeName, edist: Number(edist) || 0 } })
                 }
                 disabled={!arcadeName}
+                aria-label={`${mix.name} edit distance`}
                 min={0}
                 max={10}
                 allowDecimal={false}

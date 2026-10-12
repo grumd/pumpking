@@ -1,5 +1,15 @@
 import type { AdminFileSource } from '@/api/services/admin/files';
-import { Accordion, AspectRatio, Button, Center, Code, Group, Stack, Text } from '@mantine/core';
+import {
+  Accordion,
+  AspectRatio,
+  Button,
+  Center,
+  Code,
+  Group,
+  Image,
+  Stack,
+  Text,
+} from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import { useEffect, useRef, useState } from 'react';
 import { FaCopy, FaDownload } from 'react-icons/fa';
@@ -8,6 +18,7 @@ import Loader from 'components/Loader/Loader';
 
 import { useAdminFile } from '../hooks/useAdminFile';
 import { useObjectUrl } from '../hooks/useObjectUrl';
+import css from './media-viewer.module.css';
 
 // Copies the image, or the video's current frame, as a PNG
 const copyFrame = async (element: HTMLImageElement | HTMLVideoElement) => {
@@ -34,7 +45,7 @@ const ScanJson = ({ blob }: { blob: Blob }): JSX.Element => {
     });
   }, [blob]);
   return (
-    <Code block mah="24rem" style={{ overflow: 'auto' }}>
+    <Code block mah="24rem">
       {text}
     </Code>
   );
@@ -70,7 +81,7 @@ export const MediaViewer = ({ source, id }: MediaViewerProps): JSX.Element => {
 
   return (
     <Stack gap="xs">
-      <AspectRatio ratio={16 / 9} bg="dark.8" style={{ borderRadius: 'var(--mantine-radius-md)' }}>
+      <AspectRatio ratio={16 / 9} className={css.screen}>
         {screen.isLoading && <Loader />}
         {screen.error && !screen.data && (
           <Center>
@@ -86,15 +97,10 @@ export const MediaViewer = ({ source, id }: MediaViewerProps): JSX.Element => {
               loop
               muted
               autoPlay
-              style={{ objectFit: 'contain' }}
+              className={css.video}
             />
           ) : (
-            <img
-              ref={mediaRef}
-              src={screenUrl}
-              alt={screen.data?.fileName}
-              style={{ objectFit: 'contain' }}
-            />
+            <Image ref={mediaRef} src={screenUrl} alt={screen.data?.fileName} fit="contain" />
           ))}
       </AspectRatio>
 

@@ -1,9 +1,21 @@
-import { Badge, Button, Group, NumberInput, Stack, Table, Text, TextInput } from '@mantine/core';
+import {
+  Alert,
+  Anchor,
+  Badge,
+  Button,
+  Group,
+  NumberInput,
+  Stack,
+  Table,
+  Text,
+  TextInput,
+} from '@mantine/core';
 import { useQuery } from '@tanstack/react-query';
 import { type FormEvent, useState } from 'react';
 import { FaSearch } from 'react-icons/fa';
-import { useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { Link, useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 
+import { ChartLabel } from 'components/ChartLabel/ChartLabel';
 import Loader from 'components/Loader/Loader';
 
 import { routes } from 'constants/routes';
@@ -120,7 +132,7 @@ export const ResultsTab = (): JSX.Element => {
       </form>
 
       {results.isLoading && <Loader />}
-      {results.error && <Text c="red">{results.error.message}</Text>}
+      {results.error && <Alert color="red">{results.error.message}</Alert>}
       {results.data && (
         <>
           <Text size="sm" c="dimmed">
@@ -128,56 +140,67 @@ export const ResultsTab = (): JSX.Element => {
               ? `The newest ${results.data.limit} matching results; narrow the search to see older ones`
               : `${results.data.rows.length} results`}
           </Text>
-          <Table highlightOnHover verticalSpacing="xs">
-            <Table.Thead>
-              <Table.Tr>
-                <Table.Th>#</Table.Th>
-                <Table.Th>Played</Table.Th>
-                <Table.Th>Player</Table.Th>
-                <Table.Th>Track</Table.Th>
-                <Table.Th ta="right">Score</Table.Th>
-                <Table.Th>Grade</Table.Th>
-                <Table.Th>Agent</Table.Th>
-              </Table.Tr>
-            </Table.Thead>
-            <Table.Tbody>
-              {results.data.rows.map((row) => (
-                <Table.Tr
-                  key={row.id}
-                  onClick={() =>
-                    navigate({
-                      pathname: routes.admin.results.getPath({ id: row.id }),
-                      search: location.search,
-                    })
-                  }
-                  style={{ cursor: 'pointer' }}
-                  bg={row.id === openId ? 'dark.5' : undefined}
-                >
-                  <Table.Td>{row.id}</Table.Td>
-                  <Table.Td style={{ whiteSpace: 'nowrap' }}>{formatDate(row.gained)}</Table.Td>
-                  <Table.Td>
-                    {row.nickname}{' '}
-                    {!!row.is_hidden && (
-                      <Badge color="gray" size="sm">
-                        hidden
-                      </Badge>
-                    )}
-                  </Table.Td>
-                  <Table.Td>
-                    {row.track}{' '}
-                    <Badge variant="default" size="sm">
-                      {row.chart_label}
-                    </Badge>
-                  </Table.Td>
-                  <Table.Td ta="right">{formatNumber(row.score)}</Table.Td>
-                  <Table.Td>
-                    {row.grade} {row.plate}
-                  </Table.Td>
-                  <Table.Td>{row.agent < 0 ? 'web' : row.agent_name ?? `#${row.agent}`}</Table.Td>
+          <Table.ScrollContainer minWidth={700}>
+            <Table highlightOnHover verticalSpacing="xs">
+              <Table.Thead>
+                <Table.Tr>
+                  <Table.Th>#</Table.Th>
+                  <Table.Th>Played</Table.Th>
+                  <Table.Th>Player</Table.Th>
+                  <Table.Th>Track</Table.Th>
+                  <Table.Th ta="right">Score</Table.Th>
+                  <Table.Th>Grade</Table.Th>
+                  <Table.Th>Agent</Table.Th>
                 </Table.Tr>
-              ))}
-            </Table.Tbody>
-          </Table>
+              </Table.Thead>
+              <Table.Tbody>
+                {results.data.rows.map((row) => {
+                  const detailPath = {
+                    pathname: routes.admin.results.getPath({ id: row.id }),
+                    search: location.search,
+                  };
+                  return (
+                    <Table.Tr
+                      key={row.id}
+                      onClick={() => navigate(detailPath)}
+                      data-clickable
+                      data-selected={row.id === openId || undefined}
+                    >
+                      <Table.Td>
+                        <Anchor
+                          inherit
+                          component={Link}
+                          to={detailPath}
+                          onClick={(event) => event.stopPropagation()}
+                        >
+                          {row.id}
+                        </Anchor>
+                      </Table.Td>
+                      <Table.Td data-fit>{formatDate(row.gained)}</Table.Td>
+                      <Table.Td>
+                        {row.nickname}{' '}
+                        {!!row.is_hidden && (
+                          <Badge color="gray" size="sm">
+                            hidden
+                          </Badge>
+                        )}
+                      </Table.Td>
+                      <Table.Td>
+                        {row.track} <ChartLabel label={row.chart_label} />
+                      </Table.Td>
+                      <Table.Td ta="right">{formatNumber(row.score)}</Table.Td>
+                      <Table.Td>
+                        {row.grade} {row.plate}
+                      </Table.Td>
+                      <Table.Td>
+                        {row.agent < 0 ? 'web' : row.agent_name ?? `#${row.agent}`}
+                      </Table.Td>
+                    </Table.Tr>
+                  );
+                })}
+              </Table.Tbody>
+            </Table>
+          </Table.ScrollContainer>
         </>
       )}
 

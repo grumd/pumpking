@@ -24,7 +24,6 @@ export const DetailDrawer = ({
     position="right"
     size={wide ? '90rem' : '40rem'}
     title={title}
-    styles={{ title: { fontWeight: 700, fontSize: 'var(--mantine-font-size-lg)' } }}
   >
     {children}
   </Drawer>
