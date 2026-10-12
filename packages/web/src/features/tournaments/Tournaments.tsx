@@ -113,9 +113,9 @@ const BracketView = ({ bracket, playerId }: { bracket: Bracket; playerId?: numbe
                     key={entry.playerId}
                     data-selected={entry.playerId === playerId || undefined}
                   >
-                    <Table.Td data-fit fw="bold" c={entry.rank === null ? 'dimmed' : undefined}>
+                    <Table.Td data-fit c={entry.rank === null ? 'dimmed' : undefined}>
                       <Group gap="xxs" wrap="nowrap">
-                        {entry.rank ?? '–'}
+                        {entry.rank ? <Place place={entry.rank} medals /> : '–'}
                         {entry.medal && <Medal medal={entry.medal} />}
                       </Group>
                     </Table.Td>

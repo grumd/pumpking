@@ -59,7 +59,7 @@ interface PlaycountProps {
 
 function Playcount({ count }: PlaycountProps): JSX.Element {
   return (
-    <Group gap="xxs" justify="flex-end" wrap="nowrap" fw={600}>
+    <Group gap="xxs" justify="flex-end" wrap="nowrap" fw={700} c="var(--pk-text-strong)">
       <FaPlay size={rem(10)} />
       <span>{count}</span>
     </Group>
