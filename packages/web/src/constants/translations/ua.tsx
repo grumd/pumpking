@@ -263,6 +263,7 @@ export const ua = {
   RECOGNIZE_SCORE: 'Розпізнати скор',
   RECOGNIZED_NUMBERS: 'Розпізнані числа',
   FILL_FORM: 'Вставити числа',
+  OCR_SELECTED_AREA: 'Виділена область',
 
   // Admin
   ADMIN_PANEL: 'Адмін панель',

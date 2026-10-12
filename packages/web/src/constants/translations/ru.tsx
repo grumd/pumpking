@@ -264,6 +264,7 @@ export const ru = {
   RECOGNIZE_SCORE: 'Распознать скор',
   RECOGNIZED_NUMBERS: 'Распознанные числа',
   FILL_FORM: 'Вставить числа',
+  OCR_SELECTED_AREA: 'Выделенная область',
 
   // Admin
   ADMIN_PANEL: 'Админ панель',

@@ -1,19 +1,34 @@
 import { AreaSelector, type IArea } from '@bmunozg/react-image-area';
-import { Alert, Button, Group, Popover, Stack, Text } from '@mantine/core';
+import { Alert, Button, Group, Popover, SimpleGrid, Stack, Text, rem } from '@mantine/core';
 import type { MIXES } from '@pumpking/utils/mixes';
 import { useMutation } from '@tanstack/react-query';
 import imageCompression from 'browser-image-compression';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
+import { KeyValueList } from 'components/KeyValueList/KeyValueList';
+
 import { useLanguage } from 'utils/context/translation';
 import { api } from 'utils/trpc';
 
+import css from './add-result.module.css';
 import {
   applyProcessing,
   imageDataToCanvas,
   prepareImageForRecognition,
   shrinkAreaToBrightness,
 } from './imageUtils';
+
+// The first five recognized numbers, with their app colors
+const JUDGEMENTS = [
+  { name: 'Perfect', color: 'perfect' },
+  { name: 'Great', color: 'great' },
+  { name: 'Good', color: 'good' },
+  { name: 'Bad', color: 'bad' },
+  { name: 'Miss', color: 'miss' },
+] as const;
+
+// A number that wasn't recognized is negative
+const formatNumber = (value: number) => (value >= 0 ? value : '?');
 
 export interface RecognizedScore {
   perfect: number;
@@ -215,11 +230,11 @@ export const ScreenshotRecognition = ({
         onChange={handleAreasChange}
         maxAreas={1}
         globalAreaStyle={{
-          border: '1.5px solid rgba(0, 0, 0, 0.7)',
-          outline: '1.5px solid rgba(255, 255, 128, 0.7)',
+          border: `${rem(1.5)} solid color-mix(in srgb, var(--pk-surface-page) 70%, transparent)`,
+          outline: `${rem(1.5)} solid var(--mantine-color-accent-filled)`,
         }}
       >
-        <canvas ref={canvasRef} style={{ maxWidth: '100%', height: 'auto' }} />
+        <canvas ref={canvasRef} className={css.canvas} />
       </AreaSelector>
 
       {/* {croppedPreview && <img src={croppedPreview} alt="Cropped preview" />} */}
@@ -245,7 +260,7 @@ export const ScreenshotRecognition = ({
               </div>
             </Alert>
           ) : (
-            <Text size="xs" c="dimmed">
+            <Text size="sm" c="dimmed">
               {lang.OCR_AREA_SELECTED_HINT}
             </Text>
           )}
@@ -262,70 +277,47 @@ export const ScreenshotRecognition = ({
       )}
 
       {recognizedNumbers && (
-        <Alert color="blue" title={lang.RECOGNIZED_NUMBERS} radius="md">
+        <Alert color="blue" title={lang.RECOGNIZED_NUMBERS}>
           <Stack gap="xs">
-            <Group>
-              <div
-                style={{
-                  display: 'grid',
-                  gridTemplateColumns: '1fr min-content',
-                  gap: '0.2em',
-                  flex: '1 1 60%',
-                }}
-              >
-                <Text size="sm" c="cyan">
-                  Perfect:
-                </Text>
-                <Text size="sm" c="cyan" ta="right">
-                  {recognizedNumbers[0] >= 0 ? recognizedNumbers[0] : '?'}
-                </Text>
-                <Text size="sm" c="green">
-                  Great:
-                </Text>
-                <Text size="sm" c="green" ta="right">
-                  {recognizedNumbers[1] >= 0 ? recognizedNumbers[1] : '?'}
-                </Text>
-                <Text size="sm" c="yellow">
-                  Good:
-                </Text>
-                <Text size="sm" c="yellow" ta="right">
-                  {recognizedNumbers[2] >= 0 ? recognizedNumbers[2] : '?'}
-                </Text>
-                <Text size="sm" c="pink">
-                  Bad:
-                </Text>
-                <Text size="sm" c="pink" ta="right">
-                  {recognizedNumbers[3] >= 0 ? recognizedNumbers[3] : '?'}
-                </Text>
-                <Text size="sm" c="red">
-                  Miss:
-                </Text>
-                <Text size="sm" c="red" ta="right">
-                  {recognizedNumbers[4] >= 0 ? recognizedNumbers[4] : '?'}
-                </Text>
-                <Text size="sm">Combo:</Text>
-                <Text size="sm" ta="right">
-                  {recognizedNumbers[5] >= 0 ? recognizedNumbers[5] : '?'}
-                </Text>
-                <Text size="sm" fw="bold">
-                  Score:
-                </Text>
-                <Text size="sm" fw="bold" ta="right">
-                  {recognizedNumbers[6] >= 0 ? recognizedNumbers[6] : '?'}
-                </Text>
-              </div>
+            <SimpleGrid cols={{ base: 1, xs: 2 }}>
+              <KeyValueList
+                items={[
+                  ...JUDGEMENTS.map((judgement, index) => ({
+                    label: (
+                      <Text span inherit c={judgement.color}>
+                        {judgement.name}:
+                      </Text>
+                    ),
+                    value: (
+                      <Text span inherit c={judgement.color}>
+                        {formatNumber(recognizedNumbers[index])}
+                      </Text>
+                    ),
+                  })),
+                  { label: 'Combo:', value: formatNumber(recognizedNumbers[5]) },
+                  {
+                    label: (
+                      <Text span inherit fw="bold">
+                        Score:
+                      </Text>
+                    ),
+                    value: (
+                      <Text span inherit fw="bold">
+                        {formatNumber(recognizedNumbers[6])}
+                      </Text>
+                    ),
+                  },
+                ]}
+              />
               {debugImage && (
-                <img
-                  src={debugImage}
-                  style={{ maxHeight: '12em', objectFit: 'contain', flex: '1 1 30%' }}
-                />
+                <img src={debugImage} alt={lang.OCR_SELECTED_AREA} className={css.recognizedArea} />
               )}
-            </Group>
+            </SimpleGrid>
             <Group gap="xs">
               <Button size="xs" color="blue" onClick={handleConfirmRecognition}>
                 {lang.FILL_FORM}
               </Button>
-              <Button size="xs" variant="light" color="gray" onClick={handleCancelRecognition}>
+              <Button size="xs" variant="light" onClick={handleCancelRecognition}>
                 {lang.CANCEL}
               </Button>
             </Group>
@@ -334,7 +326,7 @@ export const ScreenshotRecognition = ({
       )}
 
       {error && (
-        <Text size="xs" c="red">
+        <Text size="sm" c="red">
           {lang.ERROR}: {error}
         </Text>
       )}

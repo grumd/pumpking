@@ -71,7 +71,6 @@ module.exports = {
     {
       // Not migrated to the design system yet. Remove each entry when its feature is migrated
       files: [
-        'src/features/leaderboards/components/add-result/**',
         'src/features/tournaments/**',
         'src/features/admin/**',
       ],

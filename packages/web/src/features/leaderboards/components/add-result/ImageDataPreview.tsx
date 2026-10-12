@@ -2,10 +2,10 @@ import { useEffect, useRef } from 'react';
 
 interface ImageDataPreviewProps {
   imageData: ImageData;
-  style?: React.CSSProperties;
+  className?: string;
 }
 
-export const ImageDataPreview = ({ imageData, style }: ImageDataPreviewProps) => {
+export const ImageDataPreview = ({ imageData, className }: ImageDataPreviewProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
@@ -19,5 +19,5 @@ export const ImageDataPreview = ({ imageData, style }: ImageDataPreviewProps) =>
     }
   }, [imageData]);
 
-  return <canvas ref={canvasRef} style={style} />;
+  return <canvas ref={canvasRef} className={className} />;
 };
