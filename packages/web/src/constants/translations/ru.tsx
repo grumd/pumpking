@@ -148,6 +148,7 @@ export const ru = {
   TOURNAMENT_CUPS: 'кубки',
   TOURNAMENT_CHART: 'Турнир',
   TOURNAMENT_RESULT: 'Засчитывается в турнир',
+  TOURNAMENT_SELECT: 'Турнир',
   SKILL: 'уровень',
   UNRATED: 'без уровня',
 

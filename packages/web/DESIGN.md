@@ -281,6 +281,7 @@ The migration keeps the old look. These are the places that changed on purpose, 
 | Leaderboard, profile | Date tooltips and achievement descriptions open on keyboard focus and on press-and-hold | They were hover only |
 | Ranking | Rows use `Table variant="rows"`; the hide switch has a label | Same list look as songs and profile; the switch had no name for screen readers |
 | Ranking | Empty state and error use `EmptyState` / `Alert` | The empty state was hardcoded Russian text and the error was a raw string |
+| Tournaments | Empty states use `EmptyState`; the player's own row uses `data-selected`; tables scroll inside their card on phones | The page was 600px wide on a 375px screen |
 | Confirm modal | Cancel is a default button, OK is filled | Cancel was red, which reads as the destructive action |
 | Card titles | One size (`xl`) on every page | They were 27px on songs and tournaments and 17px on the profile |
 | Chart labels | White text instead of `#eee`; admin tables use `ChartLabel` | Slightly better contrast; admin showed labels as gray badges, hiding single/double |

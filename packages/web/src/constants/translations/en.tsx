@@ -155,6 +155,7 @@ export const en = {
   TOURNAMENT_CUPS: 'cups',
   TOURNAMENT_CHART: 'Tournament',
   TOURNAMENT_RESULT: 'Counts for the tournament',
+  TOURNAMENT_SELECT: 'Tournament',
   SKILL: 'skill',
   UNRATED: 'unrated',
 
