@@ -180,6 +180,7 @@ export interface PhotoReads {
   photo_sha256: string;
   cost: Decimal;
   created_at: Date;
+  duplicate_result_id: number | null;
 }
 
 export interface Players {

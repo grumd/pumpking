@@ -12,6 +12,7 @@ import {
   NUMBER_FIELDS,
   type ChartCandidate,
 } from 'services/results/photos/decide';
+import { addPhotoRead } from 'services/results/photos/limits';
 import {
   READER_A,
   READER_B,
@@ -524,6 +525,76 @@ describe('Results from photos', () => {
       assert.deepEqual(second.calls, [READER_A.model]);
     });
 
+    // A result added before by other means, without a photo hash: the play phoenixRead shows
+    const addOlderResult = async (photoHash: string | null = null) => {
+      const { insertId } = await db
+        .insertInto('results')
+        .values({
+          ...getResultDefaults({ playerId: 7, score: phoenixScore }),
+          mix: MIXES.Phoenix2,
+          shared_chart: 3,
+          chart_instance: 3,
+          perfects: 83,
+          greats: 17,
+          max_combo: 100,
+          photo_sha256: photoHash,
+        })
+        .executeTakeFirstOrThrow();
+      return Number(insertId);
+    };
+
+    it('a photo of an older result without a hash gives it the hash, and is never read again', async () => {
+      const resultId = await addOlderResult();
+      const first = stubReader({ [READER_A.model]: phoenixRead() });
+      assert.deepEqual(await recognizePhoto(input(), first.readPhoto), {
+        status: 'duplicate',
+        resultId,
+      });
+      assert.equal((await getResult(resultId)).photo_sha256, hash);
+
+      const again = stubReader({ [READER_A.model]: phoenixRead() });
+      assert.equal((await recognizePhoto(input(), again.readPhoto)).status, 'duplicate');
+      assert.deepEqual(again.calls, []);
+      // Reads of this photo now count as productive: spend on it that would be over the
+      // limit doesn't stop another photo
+      for (let i = 0; i < 25; i++) {
+        await addPhotoRead(7, hash, 0.0015);
+      }
+      const other = stubReader({
+        [READER_A.model]: phoenixRead({
+          max_combo: 90,
+          score: getPhoenixScore({ ...phoenixStats, combo: 90 }),
+        }),
+      });
+      assert.notEqual(
+        (await recognizePhoto(input({ hash: 'b'.repeat(64) }), other.readPhoto)).status,
+        'limited'
+      );
+    });
+
+    it('another photo of a result that has a hash is remembered, and still counts as spend without a result', async () => {
+      const resultId = await addOlderResult('c'.repeat(64));
+      const first = stubReader({ [READER_A.model]: phoenixRead() });
+      assert.equal((await recognizePhoto(input(), first.readPhoto)).status, 'duplicate');
+      assert.equal((await getResult(resultId)).photo_sha256, 'c'.repeat(64));
+      const reads = await db
+        .selectFrom('photo_reads')
+        .select('duplicate_result_id')
+        .where('photo_sha256', '=', hash)
+        .execute();
+      assert.deepEqual(reads, [{ duplicate_result_id: resultId }]);
+
+      const again = stubReader({ [READER_A.model]: phoenixRead() });
+      assert.equal((await recognizePhoto(input(), again.readPhoto)).status, 'duplicate');
+      assert.deepEqual(again.calls, []);
+      const known = await trpcMutation(
+        'results.checkPhotoHashes',
+        { hashes: [hash] },
+        addResultsSession
+      ).expect(200);
+      assert.deepEqual(output(known), [hash]);
+    });
+
     it('rank mode on a chart that can not have it goes to manual input', async () => {
       await db.updateTable('tracks').set({ duration: 'Short' }).where('id', '=', 1).execute();
       const { readPhoto } = stubReader({
@@ -758,6 +829,30 @@ describe('Results from photos', () => {
         addResultsSession
       ).expect(200);
       assert.deepEqual(output(found), [{ sharedChartId: 4, songName: 'Track 1', label: 'HD18' }]);
+    });
+
+    it('submitting a play added before gives that result the photo hash', async () => {
+      const { insertId } = await db
+        .insertInto('results')
+        .values({
+          ...getResultDefaults({ playerId: 7, score: phoenixScore }),
+          mix: MIXES.Phoenix2,
+          shared_chart: 3,
+          chart_instance: 3,
+          perfects: 83,
+          greats: 17,
+          max_combo: 100,
+        })
+        .executeTakeFirstOrThrow();
+      await trpcMutation('results.addResultMutation', addResultInput, addResultsSession).expect(
+        409
+      );
+      const result = await db
+        .selectFrom('results')
+        .select('photo_sha256')
+        .where('id', '=', Number(insertId))
+        .executeTakeFirstOrThrow();
+      assert.equal(result.photo_sha256, hash);
     });
 
     it('checkPhotoHashes needs the add results permission', async () => {
