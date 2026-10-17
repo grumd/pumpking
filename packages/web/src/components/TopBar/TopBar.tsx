@@ -60,6 +60,11 @@ export default function TopBar() {
                 <NavItem to={routes.tournaments.path}>{lang.TOURNAMENTS}</NavItem>
               </NoticeIndicator>
             </li>
+            {user?.can_add_results_manually && (
+              <li>
+                <NavItem to={routes.addResults.path}>{lang.ADD_RESULTS_NAV}</NavItem>
+              </li>
+            )}
             {user?.is_admin && (
               <li>
                 <NavItem to={routes.admin.path}>{lang.ADMIN}</NavItem>

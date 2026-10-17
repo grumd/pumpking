@@ -152,7 +152,7 @@ All in `src/components/`. Everything not listed here is either a Mantine compone
 The outer wrapper of every logged-in page: a `<main>` that takes the full width up to the page width, with side padding and an `sm` gap between its children.
 
 - The top bar always has the default width, so on `wide` (admin) pages it doesn't line up with the content; that's accepted.
-- `width`: `'default'` (53rem: about 950px on desktop; also the top bar), `'narrow'` (27rem: about 490px on desktop and the full width of a phone; single forms like add result and the login screens), `'wide'` (admin only).
+- `width`: `'default'` (53rem: about 950px on desktop; also the top bar), `'narrow'` (27rem: about 490px on desktop and the full width of a phone; single forms like add results and the login screens), `'wide'` (admin only).
 - Use it once per page, as the root. Don't add `Container`, `max-width` or page padding yourself.
 
 ### `Card`
@@ -263,7 +263,7 @@ Don't wrap these; configure them through the theme.
 
 ## Styling rules
 
-1. **No inline styles.** `style={{...}}` and `styles={{...}}` are lint errors. The one exception: `style` may set CSS custom properties (`style={{ '--progress': '42%' }}`), which a CSS module reads. Third-party style objects (the visx brush `selectedBoxStyle`, the image-area `globalAreaStyle`) may only contain `var(--...)` values.
+1. **No inline styles.** `style={{...}}` and `styles={{...}}` are lint errors. The one exception: `style` may set CSS custom properties (`style={{ '--progress': '42%' }}`), which a CSS module reads. Third-party style objects (the visx brush `selectedBoxStyle`) may only contain `var(--...)` values.
 2. **No raw colors outside `src/theme/`.** No hex, `rgb()`, `hsl()` or named colors in CSS modules (stylelint), no hex / `rgb()` / `hsl()` string literals in TSX (eslint), and no `dark.N` / `gray.N` color props. `transparent` and `currentColor` are fine. Use a token.
 3. **No global CSS.** The only global stylesheet is `src/theme/global.css`. Every other style file is a `*.module.css` next to its component. No `.scss`, no global class names.
 4. **Mantine props before CSS.** Layout (`Group`, `Stack`, `SimpleGrid`, `flex`, `w`, `hiddenFrom`), spacing (`p`, `gap`), text (`fz`, `fw`, `c`, `truncate`, `ta`, `lh`) are props. Write a CSS module only for what props can't express: table column widths, a CSS grid, a hover effect, a pseudo-element, a glow.
