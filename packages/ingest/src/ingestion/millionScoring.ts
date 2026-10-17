@@ -1,9 +1,9 @@
 import { DiscardedResult, UnrecognizedResult } from './errors';
 import { formatNumber, pyStr } from './format';
 import { getResultMods } from './mods';
-import { getResultStats, type StepStats } from './stats';
+import { getResultStats, toJudgements, type StepStats } from './stats';
 import type { CheckOptions, ResultData } from './types';
-import { getPhoenixGrade } from '@pumpking/utils/grades';
+import { calcPlate, getPhoenixGrade } from '@pumpking/utils/grades';
 import { getUnroundedPhoenixScore } from '@pumpking/utils/phoenixScore';
 
 /**
@@ -12,44 +12,8 @@ import { getUnroundedPhoenixScore } from '@pumpking/utils/phoenixScore';
  * recomputed and compared.
  */
 
-const calcPlate = (steps: StepStats, isPass: boolean | null): string | null => {
-  const { misses, bads, goods, greats } = steps;
-  if (isPass === false) {
-    return null;
-  }
-  if (misses + bads + goods + greats === 0) {
-    return 'PG';
-  }
-  if (misses + bads + goods === 0) {
-    return 'UG';
-  }
-  if (misses + bads === 0) {
-    return 'EG';
-  }
-  if (misses === 0) {
-    return 'SG';
-  }
-  if (misses <= 5) {
-    return 'MG';
-  }
-  if (misses <= 10) {
-    return 'TG';
-  }
-  if (misses <= 20) {
-    return 'FG';
-  }
-  return 'RG';
-};
-
 const unroundedScore = (steps: StepStats, maxCombo: number) =>
-  getUnroundedPhoenixScore({
-    perfect: steps.perfects,
-    great: steps.greats,
-    good: steps.goods,
-    bad: steps.bads,
-    miss: steps.misses,
-    combo: maxCombo,
-  });
+  getUnroundedPhoenixScore({ ...toJudgements(steps), combo: maxCombo });
 
 /**
  * The phoenix score of a pre-Phoenix result, from its stats (null without them). Rounds
@@ -109,7 +73,7 @@ export const validateMillionStats = (
 
   // A pass always has a plate and a fail never has one, so this also checks that (the
   // legacy code checked it again later, which could never fail)
-  const calculatedPlate = calcPlate(steps, isPass);
+  const calculatedPlate = calcPlate(toJudgements(steps), isPass);
   if (plate !== calculatedPlate) {
     throw new UnrecognizedResult(
       `Invalid plate '${pyStr(plate)}' for specified stats, should be '${pyStr(calculatedPlate)}'`

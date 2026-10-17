@@ -21,7 +21,6 @@
  * Don't run the ingest tests at the same time: they use the same database.
  */
 import '../src/env';
-import { findTracks } from '../src/ingestion/tracks';
 import {
   type Catalog,
   CATALOG_FILE,
@@ -39,6 +38,7 @@ import {
 } from '../src/test/screenCases';
 import { db } from '@pumpking/database/db';
 import { createTestDatabase, deleteTestDatabase } from '@pumpking/database/test/testDatabase';
+import { findTracks } from '@pumpking/database/tracks';
 import { findMixId, SUPPORTED_MIXES } from '@pumpking/utils/mixes';
 import { distance } from 'fastest-levenshtein';
 import fs from 'fs';

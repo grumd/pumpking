@@ -1,3 +1,7 @@
+import type { ChartInstance } from '@pumpking/database/tracks';
+
+export type { ChartInstance };
+
 /**
  * A result as piu-spy recognized it: the `results` / `purgatory` columns it fills. A
  * missing (undefined) field wasn't sent and isn't written; null is written as NULL.
@@ -29,19 +33,6 @@ export interface ResultData {
   grade: string | null;
   is_pass?: number | null;
   plate?: string | null;
-}
-
-// A chart instance that a result was matched to
-export interface ChartInstance {
-  id: number;
-  shared_chart: number;
-  mix: number;
-  label: string;
-  level: number | null;
-  min_total_steps: number | null;
-  max_total_steps: number | null;
-  // tracks.duration
-  duration: string | null;
 }
 
 /** A result's `results` row: what was recognized, and what validation found */
