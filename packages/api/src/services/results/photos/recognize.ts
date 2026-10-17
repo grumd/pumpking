@@ -1,13 +1,21 @@
 import {
   checkRead,
   decide,
+  needsTiebreaker,
   NUMBER_FIELDS,
   passes,
   type ChartCandidate,
   type Field,
   type PhotoValues,
+  type ReadCheck,
 } from './decide';
-import { addPhotoRead, getPhotoLimitReached, type PhotoLimitKind } from './limits';
+import { findPhotoResult, findSamePlay, rememberDuplicatePhoto } from './duplicates';
+import {
+  addPhotoRead,
+  getPhotoLimitReached,
+  reportPhotoLimitReached,
+  type PhotoLimitKind,
+} from './limits';
 import {
   readPhoto as defaultReadPhoto,
   READER_A,
@@ -24,12 +32,7 @@ import { findChartInstances, findTracks } from '@pumpking/database/tracks';
 import { isMillionScoringMix, MIXES } from '@pumpking/utils/mixes';
 import createDebug from 'debug';
 import { sql } from 'kysely';
-import {
-  addResult,
-  findPhotoResult,
-  findSamePlay,
-  rememberDuplicatePhoto,
-} from 'services/results/addResult';
+import { addResult } from 'services/results/addResult';
 import { StatusError } from 'utils/errors';
 
 /**
@@ -78,6 +81,14 @@ export type RecognizeOutcome =
       // Why the result couldn't be saved, when the readers agreed
       message?: string;
     };
+
+// One reader's read, checked; the error when it failed
+interface ReaderOutcome {
+  read: PhotoRead | null;
+  check: ReadCheck | null;
+  cost: number;
+  error?: unknown;
+}
 
 const toPhotoChart = (chart: ChartCandidate): PhotoChart => ({
   sharedChartId: chart.sharedChartId,
@@ -199,49 +210,44 @@ export const recognizePhoto = async (
   }
   const limitReached = await getPhotoLimitReached(input.playerId, input.isAdmin);
   if (limitReached) {
+    await reportPhotoLimitReached(input.playerId, limitReached);
     return { status: 'limited', limit: limitReached.kind, retryAt: limitReached.retryAt };
   }
 
   const mixId = MIXES[input.mix];
   const millionScoring = isMillionScoringMix(mixId);
-  let cost = 0;
-  let readerError: unknown = null;
 
   // A reader that fails (after its retry) or answers with invalid JSON reads nothing
-  const readAndCheck = async (reader: Reader) => {
+  const readAndCheck = async (reader: Reader): Promise<ReaderOutcome> => {
+    let cost = 0;
     try {
       const result = await readPhoto(reader, input.image, input.mix);
-      cost += result.cost;
+      cost = result.cost;
       await addPhotoRead(input.playerId, input.hash, result.cost);
       if (!result.read) {
-        return { read: null, check: null };
+        return { read: null, check: null, cost };
       }
       const charts = await findReadCharts(mixId, result.read);
-      return { read: result.read, check: checkRead(result.read, charts, mixId) };
+      return { read: result.read, check: checkRead(result.read, charts, mixId), cost };
     } catch (e) {
       debug('%s failed: %o', reader.model, e);
-      readerError = e;
-      return { read: null, check: null };
+      return { read: null, check: null, cost, error: e };
     }
   };
 
-  let results: Awaited<ReturnType<typeof readAndCheck>>[];
+  let results: ReaderOutcome[];
   if (millionScoring) {
     // The same model mostly repeats its mistake: the second read is another vendor's
     const first = await readAndCheck(READER_A);
     results = passes(first.check) ? [first] : [first, await readAndCheck(READER_B)];
   } else {
     results = await Promise.all([readAndCheck(READER_A), readAndCheck(READER_B)]);
-    const [a, b] = results.map((result) => result.check);
-    // A third reader from another vendor, when the two don't both pass and agree. Reads
-    // that disagree on pass are asked whatever it says
-    if (
-      decide(mixId, [a, b]).status !== 'confident' &&
-      !(a && b && a.values.pass !== b.values.pass)
-    ) {
+    // A third reader from another vendor breaks the tie
+    if (needsTiebreaker(mixId, [results[0].check, results[1].check])) {
       results.push(await readAndCheck(READER_C));
     }
   }
+  const cost = results.reduce((sum, result) => sum + result.cost, 0);
   if (cost > 0) {
     await db
       .updateTable('players')
@@ -251,6 +257,7 @@ export const recognizePhoto = async (
   }
   const checks = results.map((result) => result.check);
   const reads = results.flatMap((result) => (result.read ? [result.read] : []));
+  const readerError = results.filter((result) => result.error).at(-1)?.error;
   if (readerError && checks.every((check) => check == null)) {
     // Nothing was read: the web offers to try again
     throw readerError;
