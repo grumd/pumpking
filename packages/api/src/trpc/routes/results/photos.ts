@@ -9,18 +9,26 @@ import { z } from 'zod';
 export const photoHash = z.string().regex(/^[0-9a-f]{64}$/);
 
 /**
- * Of the photos' SHA-256 hashes, the ones that results were already added from. A mutation
- * only so that the hashes go in the body: a batch of them is too long for a URL
+ * Of the photos' SHA-256 hashes, the ones whose result is known: added from the photo, or
+ * found when the photo was read before (see rememberDuplicatePhoto). A mutation only so
+ * that the hashes go in the body: a batch of them is too long for a URL
  */
 export const checkPhotoHashes = addResultProcedure
   .input(z.object({ hashes: z.array(photoHash).min(1).max(200) }))
   .mutation(async ({ input }) => {
-    const rows = await db
+    const added = await db
       .selectFrom('results')
       .select('photo_sha256')
       .where('photo_sha256', 'in', input.hashes)
       .execute();
-    return rows.map((row) => row.photo_sha256);
+    const duplicates = await db
+      .selectFrom('photo_reads')
+      .select('photo_sha256')
+      .distinct()
+      .where('photo_sha256', 'in', input.hashes)
+      .where('duplicate_result_id', 'is not', null)
+      .execute();
+    return [...new Set([...added, ...duplicates].map((row) => row.photo_sha256))];
   });
 
 // The mixes with arcade track names, which the song title is matched against

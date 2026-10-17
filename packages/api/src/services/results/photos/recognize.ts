@@ -23,7 +23,12 @@ import { findChartInstances, findTracks } from '@pumpking/database/tracks';
 import { isMillionScoringMix, MIXES, type MixName } from '@pumpking/utils/mixes';
 import createDebug from 'debug';
 import { sql } from 'kysely';
-import { addResult, findPhotoResult, findSamePlay } from 'services/results/addResult';
+import {
+  addResult,
+  findPhotoResult,
+  findSamePlay,
+  rememberDuplicatePhoto,
+} from 'services/results/addResult';
 import { StatusError } from 'utils/errors';
 
 /**
@@ -266,6 +271,7 @@ export const recognizePhoto = async (
   const { chart, values } = decision;
   const samePlay = await findSamePlay(input.playerId, chart.sharedChartId, values);
   if (samePlay) {
+    await rememberDuplicatePhoto(samePlay.id, input.hash);
     return { status: 'duplicate', resultId: samePlay.id };
   }
   if (!input.autoSave) {
