@@ -64,14 +64,24 @@ export type ReadPhoto = (
   options: { millionScoring: boolean }
 ) => Promise<ReadResult>;
 
-const PROMPT = `This is a photo of a Pump It Up arcade result screen (XX or Phoenix). Read it exactly, digit by digit.
+// Phoenix: the wording that was tested. XX: its numbers form one column, which is often a
+// whole row off its labels, and pairing by row then shifts every value
+const PHOENIX_COUNTERS =
+  '- perfect, great, good, bad, miss, max_combo: the counters on the same rows as their labels (they have leading zeroes; the number column can be left or right of the labels and sit slightly above or below them)';
+const XX_COUNTERS =
+  '- perfect, great, good, bad, miss, max_combo: on XX the numbers on the right form one column of 8. Find the calories first: the only number with a decimal point, at the bottom of the column. Counting up from it, the numbers are: total score, max combo, miss, bad, good, great, perfect. So the topmost number is perfect, even when it sits level with the song title. Ignore which label a number is beside: the column is often a whole row off its labels. The counters have leading zeroes; the calories are never used';
+
+const prompt = (millionScoring: boolean) => {
+  const counters = millionScoring ? PHOENIX_COUNTERS : XX_COUNTERS;
+  return `This is a photo of a Pump It Up arcade result screen (XX or Phoenix). Read it exactly, digit by digit.
 - song_title: the song name on the result panel. On XX it is the small text directly above the PERFECT row; the line above the song name may be the arcade's location name, never use that. On Phoenix it is in the banner near the top. Copy it as shown, including suffixes like "- FULL SONG" or "- SHORT CUT". Never use the artist, the big background text or the badges. null only if there is no song name in the photo.
 - chart_type and level: from the round difficulty badge only (SINGLE = S, DOUBLE = D, plus the number in it). Not the stage number and not the player's title such as "EXPERT LV.1".
-- perfect, great, good, bad, miss, max_combo: the counters on the same rows as their labels (they have leading zeroes; the number column can be left or right of the labels and sit slightly above or below them)
+${counters}
 - score: the total score as an integer, without separators (on Phoenix the big SCORE number, not the smaller "+N" below it)
 - grade: the big grade in the middle, e.g. A, S, SS, SSS on XX or AAA+, SS, SSS+ on Phoenix
 - grade_broken: true if the big grade is drawn cracked or shattered (a failed stage)
 - mod_badges: every small square badge along the side of the result panel, as written (e.g. "AV 620", "BGA DARK", "HJ", "VJ", "RANK")`;
+};
 
 const PLATE_PROMPT = `
 - plate_text: on Phoenix, the text written under the big grade, e.g. "MARVELOUS GAME" or "PERFECT GAME". null if there is no such text`;
@@ -141,7 +151,7 @@ export const readPhoto: ReadPhoto = async (reader, image, { millionScoring }) =>
       {
         role: 'user',
         content: [
-          { type: 'text', text: millionScoring ? PROMPT + PLATE_PROMPT : PROMPT },
+          { type: 'text', text: millionScoring ? prompt(true) + PLATE_PROMPT : prompt(false) },
           {
             type: 'image_url',
             image_url: {
