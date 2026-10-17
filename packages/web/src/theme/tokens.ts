@@ -89,6 +89,8 @@ export const darkScheme = {
   graphAxis: '#8c8c8c',
   graphGrid: '#4a4a4a',
   graphReference: '#bbbbbb',
+  graphCursor: 'rgba(255, 255, 255, 0.06)',
+  graphSecond: '#ffa94d',
   glowBronze: 'rgba(0, 0, 0, 0.13)',
   glowSilver: 'rgba(255, 255, 255, 0.33)',
   glowGold: '#ffd700',

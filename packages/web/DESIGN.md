@@ -62,13 +62,15 @@ The theme is **dark only** today. Every color that depends on the scheme is a CS
 
 `c="grey"`, `c="dark.2"`, `#888` and opacity for secondary text are not allowed: use `c="dimmed"`.
 
-**Graphs** (recharts props accept `var()`):
+**Graphs** (visx, in `features/profile/components`; svg props accept `var()`):
 
 | Token | Use |
 |---|---|
-| `--pk-graph-axis` | axis lines and tick labels: `<XAxis stroke="var(--pk-graph-axis)" tick={{ fill: 'var(--pk-graph-axis)' }} />` |
-| `--pk-graph-grid` | `CartesianGrid stroke` |
-| `--pk-graph-reference` | `ReferenceLine stroke` (zero lines) |
+| `--pk-graph-axis` | axis lines and tick labels: `{...axisProps}` (`graphAxis.ts`) on every visx axis |
+| `--pk-graph-grid` | `GridRows stroke` |
+| `--pk-graph-reference` | zero lines, the hover line of a time graph |
+| `--pk-graph-cursor` | the hovered level's column behind the bars; the background of a brush |
+| `--pk-graph-second` | the second line of a graph with two (the ranking place next to pp); its axis labels |
 | `--pk-grade-<grade>` | one color per Phoenix grade, e.g. `var(--pk-grade-sss-plus)`, `var(--pk-grade-aa)`. `gradeColorVar(grade)` in `tokens.ts` builds the name |
 
 **Glows** (the exp rank icons and the exp bar): `--pk-glow-bronze`, `--pk-glow-silver`, `--pk-glow-gold`, `--pk-glow-green`, `--pk-glow-purple`. Use them in `filter: drop-shadow(0 0 rem(3px) var(--pk-glow-gold))` or `box-shadow: 0 0 rem(4px) var(--pk-glow-gold)`. These are the only shadows allowed besides Mantine's `shadow` prop.
@@ -118,7 +120,7 @@ Theme scale: `xxs` 0.25rem, `xs` 0.625rem, `sm` 0.75rem, `md` 1rem, `lg` 1.25rem
 ### Radius and z-index
 
 - Radius: `sm` (buttons, inputs, badges: the Mantine default), `md` (cards, modals, popovers, alerts, table rows: set by the theme). Nothing else.
-- z-index: leave layering to Mantine. No `z-index` in CSS modules.
+- z-index: leave layering to Mantine. No `z-index` in CSS modules, except `var(--mantine-z-index-popover)` on the profile's graph tooltips, which must cover the next card.
 
 ## Theme defaults
 
@@ -162,8 +164,9 @@ A surface with an optional title: the "section" of a page.
 - `level?: 1 | 2`: `1` on the page (surface-1, padding `sm`), `2` for a card or row inside a card (surface-2, padding `xs`).
 - Takes the `Paper` props (`component`, `flex`, `p`, `mb`...).
 - Use for any group of content on a page. A card with its own header (the leaderboard chart card) has no `title`, so no underline.
-- The one padding exception: the leaderboard's dense results table uses smaller card paddings below `md` (level 1 `xs`, level 2 `xxs 0`) so its 10 columns fit a phone. Below `sm` the chart cards also reach the screen edges, square, with `xxs` side padding (and another `xxs` inside the header and after the date): the page's side padding left the results too little room. They are in `chart-results.module.css`, not responsive `p` props, which would add a `<style>` tag per card in the virtualized list. Don't copy it elsewhere.
+- The padding exceptions: the leaderboard's dense results table uses smaller card paddings below `md` (level 1 `xs`, level 2 `xxs 0`) so its columns fit a phone. Below `sm` the chart cards also reach the screen edges, square, with `xxs` side padding (and another `xxs` inside the header and after the date): the page's side padding left the results too little room. They are in `chart-results.module.css`, not responsive `p` props, which would add a `<style>` tag per card in the virtualized list. Don't copy it elsewhere.
 - For the same reason the results rows' text, badge and grade sizes (larger on phones, where the narrow step counts leave room) are plain props: `useRowSizes` (`leaderboards/components/charts/useRowSizes.ts`) picks the phone or desktop set with Mantine's `useMatches`, once per chart card.
+- The ranking card has `xxs` side padding below `md` (a responsive `px` prop), so its table fits a phone.
 - Don't nest a level-1 card in another level-1 card. Don't use Mantine's `Card` or `Paper` directly for sections.
 - In admin drawers, groups of fields use the admin-local `Section` (a dimmed heading without a surface), not `Card`.
 
@@ -180,7 +183,7 @@ A two-column `dl`: dimmed labels on the left, values on the right.
 
 - `items: Array<{ label: ReactNode; value: ReactNode; hiddenFrom?: MantineBreakpoint } | false | null | undefined>` (falsy items are skipped; `hiddenFrom` hides the row from that breakpoint up, e.g. a value a table column shows there).
 - `noWrap?: boolean`: each row on one line. In a `Popover width="min-content"` the dropdown then grows to fit the rows, and notes under the list wrap at that width (the leaderboard result details).
-- Use for the details of one thing in a popover, modal or tooltip: result details, a confirm dialog, a graph tooltip. A graph tooltip on the profile is `<GraphTooltip><KeyValueList items={...} /></GraphTooltip>` (`features/profile/components/GraphTooltip.tsx`: a bordered surface-1 `Paper`), with `{...tooltipProps}` (`graphAxis.ts`) on recharts' `Tooltip`, which keeps it above the next card.
+- Use for the details of one thing in a popover, modal or tooltip: result details, a confirm dialog, a graph tooltip. A graph tooltip on the profile is `<GraphTooltipAt ...><KeyValueList items={...} /></GraphTooltipAt>` (`features/profile/components/GraphTooltip.tsx`: a bordered surface-1 `Paper` next to the pointer, above the next card). `LevelBarsGraph` (stacked bars by level) and `TimeSeriesGraph` (one or two values over time with a brush) render it for you.
 - Use `Stat` instead when the values are few and should stand out.
 
 ### `Place`
@@ -260,7 +263,7 @@ Don't wrap these; configure them through the theme.
 
 ## Styling rules
 
-1. **No inline styles.** `style={{...}}` and `styles={{...}}` are lint errors. The one exception: `style` may set CSS custom properties (`style={{ '--progress': '42%' }}`), which a CSS module reads. Third-party style objects (recharts `contentStyle`, the image-area `globalAreaStyle`) may only contain `var(--...)` values.
+1. **No inline styles.** `style={{...}}` and `styles={{...}}` are lint errors. The one exception: `style` may set CSS custom properties (`style={{ '--progress': '42%' }}`), which a CSS module reads. Third-party style objects (the visx brush `selectedBoxStyle`, the image-area `globalAreaStyle`) may only contain `var(--...)` values.
 2. **No raw colors outside `src/theme/`.** No hex, `rgb()`, `hsl()` or named colors in CSS modules (stylelint), no hex / `rgb()` / `hsl()` string literals in TSX (eslint), and no `dark.N` / `gray.N` color props. `transparent` and `currentColor` are fine. Use a token.
 3. **No global CSS.** The only global stylesheet is `src/theme/global.css`. Every other style file is a `*.module.css` next to its component. No `.scss`, no global class names.
 4. **Mantine props before CSS.** Layout (`Group`, `Stack`, `SimpleGrid`, `flex`, `w`, `hiddenFrom`), spacing (`p`, `gap`), text (`fz`, `fw`, `c`, `truncate`, `ta`, `lh`) are props. Write a CSS module only for what props can't express: table column widths, a CSS grid, a hover effect, a pseudo-element, a glow.

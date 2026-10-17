@@ -1,5 +1,5 @@
 import type { ApiOutputs } from '@/api/trpc/router';
-import { Anchor, Group, Switch, Table, Text, VisuallyHidden } from '@mantine/core';
+import { Anchor, Group, Switch, Table, Text, VisuallyHidden, useMatches } from '@mantine/core';
 import _ from 'lodash/fp';
 import { GiQueenCrown } from 'react-icons/gi';
 import { NavLink } from 'react-router-dom';
@@ -32,6 +32,8 @@ interface RankingListProps {
 export default function RankingList({ ranking, isLoading, preferences }: RankingListProps) {
   const lang = useLanguage();
   const preferencesMutation = usePreferencesMutation();
+  // Phones: the name column takes what the others leave, and long nicknames are cut
+  const nameMaxWidth = useMatches({ base: 0, md: undefined });
 
   if (isLoading) {
     return <Loader />;
@@ -59,7 +61,7 @@ export default function RankingList({ ranking, isLoading, preferences }: Ranking
           <Table.Th visibleFrom="md" ta="right">
             {lang.ACCURACY}
           </Table.Th>
-          <Table.Th>{lang.TOURNAMENT_CUPS}</Table.Th>
+          <Table.Th visibleFrom="md">{lang.TOURNAMENT_CUPS}</Table.Th>
           <Table.Th />
         </Table.Tr>
       </Table.Thead>
@@ -95,10 +97,10 @@ export default function RankingList({ ranking, isLoading, preferences }: Ranking
                   </div>
                 ) : null}
               </Table.Td>
-              <Table.Td>
+              <Table.Td maw={nameMaxWidth}>
                 <Group gap="xxs" wrap="nowrap">
                   {player.region ? <Flag region={player.region} /> : null}
-                  <Anchor component={NavLink} to={profilePath}>
+                  <Anchor component={NavLink} to={profilePath} truncate>
                     {player.nickname}
                   </Anchor>
                 </Group>
@@ -120,7 +122,7 @@ export default function RankingList({ ranking, isLoading, preferences }: Ranking
               <Table.Td visibleFrom="md" ta="right" fz="sm" c="dimmed">
                 {player.accuracy ? `${player.accuracy.toFixed(2)}%` : ''}
               </Table.Td>
-              <Table.Td data-fit>
+              <Table.Td visibleFrom="md" data-fit>
                 <MedalCounts cups={player.cups} />
               </Table.Td>
               <Table.Td data-fit>

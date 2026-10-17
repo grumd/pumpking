@@ -203,16 +203,17 @@ const Result = ({
       // Read by the module only on highlighted rows
       style={{ '--pk-highlight': `var(--pk-highlight-${result.highlightIndex})` }}
     >
-      <Table.Td visibleFrom="md">
+      <Table.Td visibleFrom="md" data-fit>
         <Group gap="xxs" wrap="nowrap">
           <Place place={place} />
           <PlaceChange result={result} fz={sizes.change} />
         </Group>
       </Table.Td>
-      <Table.Td className={css.name} fz={sizes.name}>
+      {/* The score is at the end of the name's cell, so a wide score widens only its own row */}
+      <Table.Td className={css.player} fz={sizes.name}>
         <Group gap="xxs" align="center" wrap="nowrap">
           {result.region ? <Flag region={result.region} size="sm" /> : null}
-          <Text inherit flex="0 1 auto" miw={0} truncate>
+          <Text inherit flex="0 1 auto" miw={0} truncate className={css.name}>
             {playerRoute ? (
               <Anchor component={Link} to={playerRoute} inherit>
                 {result.playerName}
@@ -247,135 +248,133 @@ const Result = ({
               </Badge>
             )}
           </Group>
-        </Group>
-      </Table.Td>
-      <Table.Td className={css.score} fz={sizes.score} data-fit>
-        <Group gap="xxs" justify="flex-end" wrap="nowrap" className={css.scoreGroup}>
-          {scoreChange && (
-            <Badge color="fresh" variant="light" size="sm" flex="none" visibleFrom="sm">
-              {scoreChange}
-            </Badge>
-          )}
-          {/* As wide as the longest row, the notes below wrap */}
-          <Popover withArrow width="min-content" position="top" trapFocus>
-            <Popover.Target>
-              <UnstyledButton className={css.scoreButton}>
-                <Score score={result.score} fractionFz={sizes.scoreFraction} />
-              </UnstyledButton>
-            </Popover.Target>
-            <Popover.Dropdown p="sm" miw={rem(250)}>
-              <ResultScreenshotLink resultId={result.id} />
+          <Group gap="xxs" wrap="nowrap" flex="none" fz={sizes.score} className={css.score}>
+            {scoreChange && (
+              <Badge color="fresh" variant="light" size="sm" flex="none" visibleFrom="sm">
+                {scoreChange}
+              </Badge>
+            )}
+            {/* As wide as the longest row, the notes below wrap */}
+            <Popover withArrow width="min-content" position="top" trapFocus>
+              <Popover.Target>
+                <UnstyledButton className={css.scoreButton}>
+                  <Score score={result.score} fractionFz={sizes.scoreFraction} />
+                </UnstyledButton>
+              </Popover.Target>
+              <Popover.Dropdown p="sm" miw={rem(250)}>
+                <ResultScreenshotLink resultId={result.id} />
 
-              <KeyValueList
-                noWrap
-                items={[
-                  originalChart &&
-                    isMixNumber(originalChart.mix) && {
-                      label: lang.ORIGINAL_CHART,
+                <KeyValueList
+                  noWrap
+                  items={[
+                    originalChart &&
+                      isMixNumber(originalChart.mix) && {
+                        label: lang.ORIGINAL_CHART,
+                        value: (
+                          <Group gap="xxs" wrap="nowrap">
+                            <Badge size="sm" color={mixColor(originalChart.mix)}>
+                              {Mixes[originalChart.mix]}
+                            </Badge>
+                            <ChartLabel label={originalChart.label} />
+                          </Group>
+                        ),
+                      },
+                    DEBUG && { label: 'result id:', value: result.id },
+                    DEBUG && { label: 'player id:', value: result.playerId },
+                    result.originalScore != null &&
+                      result.originalScore !== result.score && {
+                        label: lang.ORIGINAL_SCORE,
+                        value: <Score score={result.originalScore} />,
+                      },
+                    !!originalChart &&
+                      result.grade != null && { label: lang.ORIGINAL_GRADE, value: result.grade },
+                    result.isExactGainedDate &&
+                      result.combo != null && {
+                        label: `${lang.MAX_COMBO}:`,
+                        value: `${result.combo}x`,
+                        hiddenFrom: 'md',
+                      },
+                    !!result.playerNameArcade && {
+                      label: `${lang.AM_PASS}:`,
+                      value: result.playerNameArcade,
+                    },
+                    !!result.exp && {
+                      label: (
+                        <Text span inherit fw={700}>
+                          {lang.EXP}:
+                        </Text>
+                      ),
                       value: (
-                        <Group gap="xxs" wrap="nowrap">
-                          <Badge size="sm" color={mixColor(originalChart.mix)}>
-                            {Mixes[originalChart.mix]}
-                          </Badge>
-                          <ChartLabel label={originalChart.label} />
-                        </Group>
+                        <Text span inherit fw={700} bg="var(--pk-surface-2)" px="xxs">
+                          +{result.exp}
+                        </Text>
                       ),
                     },
-                  DEBUG && { label: 'result id:', value: result.id },
-                  DEBUG && { label: 'player id:', value: result.playerId },
-                  result.originalScore != null &&
-                    result.originalScore !== result.score && {
-                      label: lang.ORIGINAL_SCORE,
-                      value: <Score score={result.originalScore} />,
+                    !!result.pp && {
+                      label: (
+                        <Text span inherit fw={700}>
+                          {lang.PP}:
+                        </Text>
+                      ),
+                      value: (
+                        <Text span inherit fw={700} bg="var(--pk-surface-2)" px="xxs">
+                          {result.pp}pp
+                        </Text>
+                      ),
                     },
-                  !!originalChart &&
-                    result.grade != null && { label: lang.ORIGINAL_GRADE, value: result.grade },
-                  result.isExactGainedDate &&
-                    result.combo != null && {
-                      label: `${lang.MAX_COMBO}:`,
-                      value: `${result.combo}x`,
-                      hiddenFrom: 'md',
-                    },
-                  !!result.playerNameArcade && {
-                    label: `${lang.AM_PASS}:`,
-                    value: result.playerNameArcade,
-                  },
-                  !!result.exp && {
-                    label: (
-                      <Text span inherit fw={700}>
-                        {lang.EXP}:
-                      </Text>
-                    ),
-                    value: (
-                      <Text span inherit fw={700} bg="var(--pk-surface-2)" px="xxs">
-                        +{result.exp}
-                      </Text>
-                    ),
-                  },
-                  !!result.pp && {
-                    label: (
-                      <Text span inherit fw={700}>
-                        {lang.PP}:
-                      </Text>
-                    ),
-                    value: (
-                      <Text span inherit fw={700} bg="var(--pk-surface-2)" px="xxs">
-                        {result.pp}pp
-                      </Text>
-                    ),
-                  },
-                  result.isExactGainedDate &&
-                    !!result.mods && { label: `${lang.MODS}:`, value: result.mods },
-                ]}
-              />
+                    result.isExactGainedDate &&
+                      !!result.mods && { label: `${lang.MODS}:`, value: result.mods },
+                  ]}
+                />
 
-              {!result.isExactGainedDate && (
-                <Alert
-                  mt="xs"
-                  lh="xs"
-                  color="yellow"
-                  py="xxs"
-                  px="xs"
-                  icon={<FaExclamationTriangle />}
-                >
-                  {lang.MY_BEST_SCORE_WARNING}
-                </Alert>
-              )}
+                {!result.isExactGainedDate && (
+                  <Alert
+                    mt="xs"
+                    lh="xs"
+                    color="yellow"
+                    py="xxs"
+                    px="xs"
+                    icon={<FaExclamationTriangle />}
+                  >
+                    {lang.MY_BEST_SCORE_WARNING}
+                  </Alert>
+                )}
 
-              {result.isExactGainedDate && !result.scoreIncrease && (
-                <Text size="sm" mt="xs">
-                  {lang.SIGHTREAD}
-                </Text>
-              )}
+                {result.isExactGainedDate && !result.scoreIncrease && (
+                  <Text size="sm" mt="xs">
+                    {lang.SIGHTREAD}
+                  </Text>
+                )}
 
-              {isAdmin && (
-                <Button
-                  mt="xs"
-                  size="xs"
-                  variant="default"
-                  fullWidth
-                  component={Link}
-                  to={routes.admin.results.getPath({ id: result.id })}
-                >
-                  Open in admin
-                </Button>
-              )}
-              {isAdmin && (
-                <Button
-                  mt="xs"
-                  size="xs"
-                  color="red"
-                  variant="light"
-                  fullWidth
-                  leftSection={<FaTrash />}
-                  onClick={handleDeleteResult}
-                  loading={deleteResultMutation.isPending}
-                >
-                  {lang.DELETE_RESULT}
-                </Button>
-              )}
-            </Popover.Dropdown>
-          </Popover>
+                {isAdmin && (
+                  <Button
+                    mt="xs"
+                    size="xs"
+                    variant="default"
+                    fullWidth
+                    component={Link}
+                    to={routes.admin.results.getPath({ id: result.id })}
+                  >
+                    Open in admin
+                  </Button>
+                )}
+                {isAdmin && (
+                  <Button
+                    mt="xs"
+                    size="xs"
+                    color="red"
+                    variant="light"
+                    fullWidth
+                    leftSection={<FaTrash />}
+                    onClick={handleDeleteResult}
+                    loading={deleteResultMutation.isPending}
+                  >
+                    {lang.DELETE_RESULT}
+                  </Button>
+                )}
+              </Popover.Dropdown>
+            </Popover>
+          </Group>
         </Group>
       </Table.Td>
       <Table.Td className={css.grade} data-fit>
@@ -394,7 +393,7 @@ const Result = ({
           {result.stats[index]}
         </Table.Td>
       ))}
-      <Table.Td visibleFrom="md" ta="right" fz="sm">
+      <Table.Td visibleFrom="md" ta="right" fz="sm" data-fit>
         {result.combo != null && `${result.combo}x`}
       </Table.Td>
       <Table.Td className={css.date} ta="right" fz={sizes.date} data-fit>

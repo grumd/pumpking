@@ -25,7 +25,11 @@ const timeAgo = new TimeAgo(
   }[language]
 );
 
-const getTimeAgo = (lang: typeof translation, jsDate: Date, timeStyle: FixedFormatStyle) => {
+const getTimeAgo = (
+  jsDate: Date,
+  timeStyle: FixedFormatStyle,
+  labels: { today: string; yesterday: string; yesterdayNight: string }
+) => {
   const date = toTemporalInstant.bind(jsDate)().toZonedDateTimeISO(Temporal.Now.timeZoneId());
   const now = Temporal.Now.zonedDateTimeISO(Temporal.Now.timeZoneId());
 
@@ -33,24 +37,35 @@ const getTimeAgo = (lang: typeof translation, jsDate: Date, timeStyle: FixedForm
 
   return dayDiff === 0
     ? date.hour < 5
-      ? lang.YESTERDAY_NIGHT
-      : lang.TODAY
+      ? labels.yesterdayNight
+      : labels.today
     : dayDiff === 1
-    ? lang.YESTERDAY
+    ? labels.yesterday
     : timeAgo.format(jsDate, timeStyle);
 };
 
 export const getShortTimeAgo = (lang: typeof translation, jsDate: Date) => {
-  return getTimeAgo(lang, jsDate, {
+  const timeStyle: FixedFormatStyle = {
     flavour: 'tiny',
     gradation: convenient,
     units: ['day', 'week', 'month'],
+  };
+  // "1d" instead of "yesterday", which is too wide for the leaderboard's date column
+  const oneDayAgo = timeAgo.format(Date.now() - 24 * 60 * 60 * 1000, timeStyle);
+  return getTimeAgo(jsDate, timeStyle, {
+    today: lang.TODAY,
+    yesterday: oneDayAgo,
+    yesterdayNight: oneDayAgo,
   });
 };
 export const getLongTimeAgo = (lang: typeof translation, jsDate: Date) => {
-  return getTimeAgo(lang, jsDate, {
-    flavour: 'long',
-    gradation: convenient,
-    units: ['day', 'week', 'month'],
-  });
+  return getTimeAgo(
+    jsDate,
+    {
+      flavour: 'long',
+      gradation: convenient,
+      units: ['day', 'week', 'month'],
+    },
+    { today: lang.TODAY, yesterday: lang.YESTERDAY, yesterdayNight: lang.YESTERDAY_NIGHT }
+  );
 };

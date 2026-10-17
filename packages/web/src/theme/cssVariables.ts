@@ -41,6 +41,8 @@ export const cssVariablesResolver: CSSVariablesResolver = () => {
       '--pk-graph-axis': darkScheme.graphAxis,
       '--pk-graph-grid': darkScheme.graphGrid,
       '--pk-graph-reference': darkScheme.graphReference,
+      '--pk-graph-cursor': darkScheme.graphCursor,
+      '--pk-graph-second': darkScheme.graphSecond,
 
       '--pk-glow-bronze': darkScheme.glowBronze,
       '--pk-glow-silver': darkScheme.glowSilver,

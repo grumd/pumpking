@@ -3,6 +3,11 @@
   min-width: 0;
 }
 
+/* A long song name wraps instead of truncating: its last letters often tell two charts apart */
+.songName {
+  overflow-wrap: anywhere;
+}
+
 .actionsRow {
   flex: 0 1 auto;
   min-width: 0;

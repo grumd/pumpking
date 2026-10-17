@@ -23,12 +23,12 @@ import { ResultsCollapser } from './ResultsCollapser';
 import css from './chart-results.module.css';
 import { useRowSizes } from './useRowSizes';
 
-// The table's columns. Their widths are the same in every chart card, and the name takes the
-// rest. Place and combo are desktop only, like their cells
+// The table's columns. On desktop their widths are the same in every chart card, so the
+// columns line up, and the name and score take the rest. On phones each is as narrow as its
+// content, so the names keep their room. Place and combo are desktop only, like their cells
 const columns: Array<{ className?: string; visibleFrom?: 'md' }> = [
   { className: css.placeCol, visibleFrom: 'md' },
-  {}, // name
-  { className: css.scoreCol },
+  {}, // name and score
   { className: css.gradeCol },
   { className: css.stepCol }, // miss
   { className: css.stepCol }, // bad

@@ -92,7 +92,7 @@ const Ranking = () => {
           <FaCog />
         </ActionIcon>
       </Group>
-      <Card>
+      <Card p={undefined} py="sm" px={{ base: 'xxs', md: 'sm' }}>
         <RankingList ranking={ranking} isLoading={isLoading} preferences={preferences} />
       </Card>
 

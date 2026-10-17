@@ -1,25 +1,22 @@
-import { Box } from '@mantine/core';
 import { useParams } from 'react-router';
-import {
-  Bar,
-  BarChart,
-  Legend,
-  Tooltip as RechartsTooltip,
-  ReferenceLine,
-  ResponsiveContainer,
-  XAxis,
-  YAxis,
-} from 'recharts';
 
 import { KeyValueList } from 'components/KeyValueList/KeyValueList';
 
+import { useLanguage } from 'utils/context/translation';
+
 import { useGradesGraphData } from '../hooks/usePlayerGrades';
-import { GraphTooltip } from './GraphTooltip';
+import { GraphLegend } from './GraphLegend';
+import { LevelBarsGraph } from './LevelBarsGraph';
 import { SeriesLabel } from './SeriesLabel';
-import { axisProps, tooltipProps } from './graphAxis';
+
+const types = ['S', 'D'] as const;
+
+const typeColor = (type: (typeof types)[number]) =>
+  type === 'S' ? 'var(--mantine-color-single-filled)' : 'var(--mantine-color-double-filled)';
 
 const DoubleSingleGraph = () => {
   const params = useParams();
+  const lang = useLanguage();
   const graphData = useGradesGraphData({
     playerId: params.id ? Number(params.id) : undefined,
   });
@@ -30,83 +27,47 @@ const DoubleSingleGraph = () => {
 
   type Root = (typeof graphData)[number];
 
+  // Singles above the zero line, doubles under it
+  const getTypePercent = (root: Root, type: (typeof types)[number]) =>
+    ((type === 'D' ? -100 : 100) * (root.byType[type] ?? 0)) / (root.totalChartsByType[type] ?? 1);
+
+  const typeItem = (root: Root, type: (typeof types)[number], label: string) => {
+    const total = root.totalChartsByType[type] ?? 0;
+    return (
+      total > 0 && {
+        label: <SeriesLabel color={typeColor(type)}>{label}</SeriesLabel>,
+        value: `${Math.abs(getTypePercent(root, type)).toFixed(1)}% (${
+          root.byType[type] ?? 0
+        }/${total})`,
+      }
+    );
+  };
+
   return (
-    // Axis ticks and the legend in the caption size
-    <Box fz="xs">
-      <ResponsiveContainer aspect={1.6}>
-        <BarChart
-          data={graphData}
-          stackOffset="sign"
-          margin={{ top: 5, bottom: 5, right: 5, left: 0 }}
-        >
-          <RechartsTooltip<number, string>
-            {...tooltipProps}
-            content={({ payload }) => {
-              if (!payload || !payload[0]) {
-                return null;
-              }
-              const root = payload[0].payload as Root;
-              const totalD = root.totalChartsByType.D ?? 0;
-              const totalS = root.totalChartsByType.S ?? 0;
-              const singlePercent = payload[1]?.value;
-              const doublePercent = payload[0].value;
-              return (
-                <GraphTooltip>
-                  <KeyValueList
-                    items={[
-                      { label: 'Level', value: root.level },
-                      totalS > 0 &&
-                        singlePercent != null && {
-                          label: (
-                            <SeriesLabel color="var(--mantine-color-single-filled)">
-                              Single
-                            </SeriesLabel>
-                          ),
-                          value: `${Math.abs(singlePercent).toFixed(1)}% (${Math.round(
-                            (singlePercent * totalS) / 100
-                          )}/${totalS})`,
-                        },
-                      totalD > 0 &&
-                        doublePercent != null && {
-                          label: (
-                            <SeriesLabel color="var(--mantine-color-double-filled)">
-                              Double
-                            </SeriesLabel>
-                          ),
-                          value: `${Math.abs(doublePercent).toFixed(1)}% (${Math.round(
-                            (Math.abs(doublePercent) * totalD) / 100
-                          )}/${totalD})`,
-                        },
-                    ]}
-                  />
-                </GraphTooltip>
-              );
-            }}
+    <>
+      <LevelBarsGraph
+        data={graphData}
+        keys={types}
+        value={getTypePercent}
+        color={typeColor}
+        aspect={1.9}
+        renderTooltip={(root) => (
+          <KeyValueList
+            items={[
+              { label: lang.LEVEL, value: root.level },
+              typeItem(root, 'S', lang.SINGLES),
+              typeItem(root, 'D', lang.DOUBLES),
+            ]}
           />
-          <XAxis dataKey="level" {...axisProps} />
-          <YAxis
-            tickFormatter={(x) => Math.round(Math.abs(x)) + '%'}
-            width={48}
-            {...axisProps}
-            domain={([dataMin, dataMax]) => [Math.min(dataMin, -10), Math.max(10, dataMax)]}
-          />
-          <ReferenceLine y={0} stroke="var(--pk-graph-reference)" />
-          <Legend />
-          <Bar
-            name="D"
-            dataKey={(x) => (-100 * (x.byType.D ?? 0)) / (x.totalChartsByType.D ?? 1)}
-            fill="var(--mantine-color-double-filled)"
-            stackId="stack"
-          />
-          <Bar
-            name="S"
-            dataKey={(x) => (100 * (x.byType.S ?? 0)) / (x.totalChartsByType.S ?? 1)}
-            fill="var(--mantine-color-single-filled)"
-            stackId="stack"
-          />
-        </BarChart>
-      </ResponsiveContainer>
-    </Box>
+        )}
+      />
+      <GraphLegend
+        items={[
+          { label: lang.SINGLES, color: typeColor('S') },
+          { label: lang.DOUBLES, color: typeColor('D') },
+        ]}
+      />
+    </>
   );
 };
 

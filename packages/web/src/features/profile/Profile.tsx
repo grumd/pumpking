@@ -1,4 +1,4 @@
-import { ActionIcon, SimpleGrid, Stack } from '@mantine/core';
+import { ActionIcon, SimpleGrid } from '@mantine/core';
 import { FaQuestionCircle } from 'react-icons/fa';
 
 import { Card } from 'components/Card/Card';
@@ -14,8 +14,7 @@ import { ExpFaq } from './components/Exp/ExpFaq';
 import { ExpProgress } from './components/Exp/ExpProgress';
 import { GradeGraphsCard } from './components/GradeGraphsCard';
 import { LevelAchievements } from './components/LevelAchievements/LevelAchievements';
-import { PpHistoryGraph } from './components/PpHistoryGraph';
-import { PpRankHistoryGraph } from './components/PpRankHistoryGraph';
+import { PpGraphsCard } from './components/PpGraphsCard';
 import { ProfileHeader } from './components/ProfileHeader';
 import { TournamentCups } from './components/TournamentCups';
 
@@ -46,14 +45,7 @@ const Profile = () => {
       <TournamentCups />
       <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="sm">
         <GradeGraphsCard />
-        <Stack gap="sm">
-          <Card flex={1} title={lang.PP_HISTORY}>
-            <PpHistoryGraph />
-          </Card>
-          <Card flex={1} title={lang.RANK_HISTORY}>
-            <PpRankHistoryGraph />
-          </Card>
-        </Stack>
+        <PpGraphsCard />
       </SimpleGrid>
       <LevelAchievements />
       <Achievements />
