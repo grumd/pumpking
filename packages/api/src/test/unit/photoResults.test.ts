@@ -37,7 +37,6 @@ const phoenixRead = (read: Partial<PhotoRead> = {}): PhotoRead => ({
   ...phoenixStats,
   score: phoenixScore,
   grade: 'AA',
-  grade_broken: false,
   mod_badges: ['AV 620'],
   plate_text: 'ULTIMATE GAME',
   ...read,
@@ -55,7 +54,7 @@ const xxRead = (read: Partial<PhotoRead> = {}): PhotoRead => ({
   max_combo: 100,
   score: 120_000,
   grade: 'S',
-  grade_broken: false,
+  stage_failed: false,
   mod_badges: [],
   ...read,
 });
@@ -135,7 +134,7 @@ describe('Results from photos', () => {
     });
 
     it('XX: a broken grade is a failed stage', () => {
-      const check = checkRead(xxRead({ grade: 'A', grade_broken: true }), [chart()], MIXES.XX);
+      const check = checkRead(xxRead({ grade: 'A', stage_failed: true }), [chart()], MIXES.XX);
       assert.isFalse(check.values.pass);
       assert.deepEqual(check.problems, []);
     });

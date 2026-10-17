@@ -46,11 +46,15 @@ export interface PhotoRead {
   max_combo: number;
   score: number;
   grade: string;
-  grade_broken: boolean;
+  // XX only: the grade letter is grey and cracked. Phoenix tells a fail by its missing plate
+  stage_failed?: boolean;
   mod_badges: string[];
   // Phoenix and later only: the text under the grade, null when there is none
   plate_text?: string | null;
 }
+
+// The mixes with arcade track names, which the song title is matched against
+export type PhotoMix = 'XX' | 'Phoenix' | 'Phoenix2';
 
 export interface ReadResult {
   // null when the answer wasn't valid JSON
@@ -64,37 +68,48 @@ export interface PhotoImage {
   data: Buffer;
 }
 
-export type ReadPhoto = (
-  reader: Reader,
-  image: PhotoImage,
-  options: { millionScoring: boolean }
-) => Promise<ReadResult>;
+export type ReadPhoto = (reader: Reader, image: PhotoImage, mix: PhotoMix) => Promise<ReadResult>;
 
-// Phoenix: the wording that was tested. XX: its numbers form one column, which is often a
-// whole row off its labels, and pairing by row then shifts every value
-const PHOENIX_COUNTERS =
-  '- perfect, great, good, bad, miss, max_combo: the counters on the same rows as their labels (they have leading zeroes; the number column can be left or right of the labels and sit slightly above or below them)';
-const XX_COUNTERS =
-  '- perfect, great, good, bad, miss, max_combo: on XX the numbers on the right form one column of 8. Find the calories first: the only number with a decimal point, at the bottom of the column. Counting up from it, the numbers are: total score, max combo, miss, bad, good, great, perfect. So the topmost number is perfect, even when it sits level with the song title. Ignore which label a number is beside: the column is often a whole row off its labels. The counters have leading zeroes; the calories are never used';
+// One prompt per mix, so a small model only reads about the screen in front of it
 
-const prompt = (millionScoring: boolean) => {
-  const counters = millionScoring ? PHOENIX_COUNTERS : XX_COUNTERS;
-  return `This is a photo of a Pump It Up arcade result screen (XX or Phoenix). Read it exactly, digit by digit.
-- song_title: the song name on the result panel. On XX it is the small text directly above the PERFECT row; the line above the song name may be the arcade's location name, never use that. On Phoenix it is in the banner near the top. Copy it as shown, including suffixes like "- FULL SONG" or "- SHORT CUT". Never use the artist, the big background text or the badges. null only if there is no song name in the photo.
-- chart_type and level: from the round difficulty badge only (SINGLE = S, DOUBLE = D, plus the number in it). Not the stage number and not the player's title such as "EXPERT LV.1".
-${counters}
-- score: the total score as an integer, without separators (on Phoenix the big SCORE number, not the smaller "+N" below it)
-- grade: the big grade in the middle, e.g. A, S, SS, SSS on XX or AAA+, SS, SSS+ on Phoenix
-- grade_broken: true if the big grade is drawn cracked or shattered (a failed stage)
-- mod_badges: every small square badge along the side of the result panel, as written (e.g. "AV 620", "BGA DARK", "HJ", "VJ", "RANK")`;
+const TITLE_RULES =
+  'Copy it as shown, including suffixes like "- FULL SONG" or "- SHORT CUT". Never use the artist, the big background text or the badges. null only if there is no song name in the photo.';
+
+const CHART_LINE =
+  '- chart_type and level: from the round difficulty badge only (SINGLE = S, DOUBLE = D, plus the number in it). Not the stage number and not the player\'s title such as "EXPERT LV.1".';
+
+// The numbers column is often a whole row off its labels, and pairing by row then shifts
+// every value: it is read from the calories up
+const XX_PROMPT = `This is a photo of a Pump It Up XX result screen. Read it exactly, digit by digit.
+- song_title: the small text directly above the PERFECT row. The line above it may be the arcade's location name, never use that. ${TITLE_RULES}
+${CHART_LINE}
+- perfect, great, good, bad, miss, max_combo: the numbers on the right form one column of 8. Find the calories first: the only number with a decimal point, at the bottom of the column. Counting up from it, the numbers are: total score, max combo, miss, bad, good, great, perfect. So the topmost number is perfect, even when it sits level with the song title. Ignore which label a number is beside: the column is often a whole row off its labels. The counters have leading zeroes; the calories are never used
+- score: the total score as an integer, without separators
+- grade: the big grade letter in the middle: F, D, C, B, A, S, SS or SSS
+- stage_failed: true if the stage was failed: the grade letter has no color, it is grey or silver-white, usually with dark cracks across it. A passed grade letter is colored, e.g. a blue A or B, a gold S
+- mod_badges: every small square badge along the side of the result panel, as written (e.g. "AV 620", "BGA DARK", "HJ", "VJ")`;
+
+// Phoenix and Phoenix 2 screens look alike; each prompt names only its own mix
+const phoenixPrompt = (
+  mixName: string
+) => `This is a photo of a Pump It Up ${mixName} result screen. Read it exactly, digit by digit.
+- song_title: the song name in the banner near the top. ${TITLE_RULES}
+${CHART_LINE}
+- perfect, great, good, bad, miss, max_combo: the counters on the same rows as their labels (they have leading zeroes; the number column can be left or right of the labels and sit slightly above or below them)
+- score: the big SCORE number as an integer, without separators, not the smaller "+N" below it
+- grade: the big grade in the middle, e.g. F, D, C, B, A, AA+, AAA, AAA+, S, SS+, SSS+
+- plate_text: the text written under the big grade, e.g. "MARVELOUS GAME" or "PERFECT GAME". null if there is no such text (a failed stage has none)
+- mod_badges: every small square badge along the side of the result panel, as written (e.g. "AV 620", "HJ", "RANK")`;
+
+const PROMPTS: Record<PhotoMix, string> = {
+  XX: XX_PROMPT,
+  Phoenix: phoenixPrompt('Phoenix'),
+  Phoenix2: phoenixPrompt('Phoenix 2'),
 };
-
-const PLATE_PROMPT = `
-- plate_text: on Phoenix, the text written under the big grade, e.g. "MARVELOUS GAME" or "PERFECT GAME". null if there is no such text`;
 
 const integer = { type: 'integer' };
 
-const schema = (millionScoring: boolean) => {
+const schema = (mix: PhotoMix) => {
   const properties: Record<string, object> = {
     song_title: { type: ['string', 'null'] },
     // Anthropic rejects an enum on a type list such as ['string', 'null']
@@ -108,9 +123,10 @@ const schema = (millionScoring: boolean) => {
     max_combo: integer,
     score: integer,
     grade: { type: 'string' },
-    grade_broken: { type: 'boolean' },
+    ...(mix === 'XX'
+      ? { stage_failed: { type: 'boolean' } }
+      : { plate_text: { type: ['string', 'null'] } }),
     mod_badges: { type: 'array', items: { type: 'string' } },
-    ...(millionScoring ? { plate_text: { type: ['string', 'null'] } } : {}),
   };
   return {
     type: 'object',
@@ -143,7 +159,7 @@ const getClient = () => {
   return client;
 };
 
-export const readPhoto: ReadPhoto = async (reader, image, { millionScoring }) => {
+export const readPhoto: ReadPhoto = async (reader, image, mix) => {
   const params: ChatCompletionCreateParamsNonStreaming & OpenRouterParams = {
     model: reader.model,
     reasoning: reader.reasoning,
@@ -151,13 +167,13 @@ export const readPhoto: ReadPhoto = async (reader, image, { millionScoring }) =>
     usage: { include: true },
     response_format: {
       type: 'json_schema',
-      json_schema: { name: 'result_screen', strict: true, schema: schema(millionScoring) },
+      json_schema: { name: 'result_screen', strict: true, schema: schema(mix) },
     },
     messages: [
       {
         role: 'user',
         content: [
-          { type: 'text', text: millionScoring ? prompt(true) + PLATE_PROMPT : prompt(false) },
+          { type: 'text', text: PROMPTS[mix] },
           {
             type: 'image_url',
             image_url: {

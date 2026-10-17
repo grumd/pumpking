@@ -177,6 +177,20 @@ saves from 168 to 175 with none wrong, reading 13 photos ($0.0058). The one "wro
 result 215339, is a prod typo: the photo shows 2151600, prod has 2125600. A field-by-field
 majority is not safe: on one photo Haiku and luna made the same row-shift misread.
 
+**Pass / fail and one prompt per mix** (2026-10-18). Each mix has its own prompt (XX,
+Phoenix, Phoenix 2), so a small model only reads about its own screen. On 14 photos with a
+known pass (6 XX with 3 failed, 8 Phoenix with 5 failed), pass / fail reads right:
+
+| | Old: "cracked or shattered" | Color only, no cracks | No color, grey / silver-white, usually cracked |
+|---|---|---|---|
+| Phoenix, Gemini / Haiku (from the plate) | 8/8, 8/8 | 8/8, 8/8 | 8/8, 8/8 |
+| XX: Gemini / Haiku / luna | 6/6, 5/6, 3/6 | 6/6, 3/6, 3/6 | 6/6, 4/6, 6/6 |
+
+In these photos a failed grade is light silver-grey with dark cracks, not dark grey, and a
+color-only description made it worse. Phoenix takes the pass from the plate alone (16/16):
+the models' answers about the grade's color were unreliable, so they aren't asked. A wrong
+"passed" was the only kind of mistake; no read called a passed stage failed.
+
 ## Design
 
 ### Checks for a read
