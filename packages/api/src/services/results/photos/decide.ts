@@ -203,11 +203,32 @@ const unique = (fields: Field[]) => ALL_FIELDS.filter((field) => fields.includes
 export const passes = (check: ReadCheck | null): check is ReadCheck & { chart: ChartCandidate } =>
   !!check && !!check.chart && check.problems.length === 0;
 
+// The chart a read points to by title and label, whether or not its step count fits
+const pointedChart = (check: ReadCheck) => (check.chart ?? check.chartGuess)?.chartInstanceId;
+
 const differingFields = (a: ReadCheck, b: ReadCheck): Field[] =>
   ALL_FIELDS.filter((field) =>
-    field === 'chart'
-      ? a.chart?.chartInstanceId !== b.chart?.chartInstanceId
-      : a.values[field] !== b.values[field]
+    field === 'chart' ? pointedChart(a) !== pointedChart(b) : a.values[field] !== b.values[field]
+  );
+
+/**
+ * XX: a read that passes, and another that agrees with it on everything but one judgement.
+ * The other read misses the chart's exact step count, and with the other four judgements
+ * agreed only one value fits it, so the step count settles the field ("1" read as "7")
+ */
+const settledByStepCount = (checks: (ReadCheck | null)[]) =>
+  checks.find(
+    (check) =>
+      passes(check) &&
+      checks.some((other) => {
+        if (!other || other === check) {
+          return false;
+        }
+        const differing = differingFields(check, other);
+        return (
+          differing.length === 1 && (JUDGEMENT_FIELDS as readonly Field[]).includes(differing[0])
+        );
+      })
   );
 
 const needsInput = (checks: (ReadCheck | null)[]): Decision => {
@@ -251,8 +272,9 @@ const needsInput = (checks: (ReadCheck | null)[]): Decision => {
 /**
  * The decision for a mix, from the checked reads in the order they were made (null for a
  * reader that failed). Phoenix and later: the first read that passes every check is
- * saved. XX and earlier: two reads that both pass and agree on everything; the third
- * read, made only when the first two don't, breaks the tie
+ * saved. XX and earlier: two reads that both pass and agree on everything, or that differ
+ * in one judgement which the step count settles; the third read, made only when the first
+ * two don't, breaks the tie
  */
 export const decide = (mixId: number, checks: (ReadCheck | null)[]): Decision => {
   if (isMillionScoringMix(mixId)) {
@@ -273,6 +295,10 @@ export const decide = (mixId: number, checks: (ReadCheck | null)[]): Decision =>
     if (passes(x) && passes(y) && differingFields(x, y).length === 0) {
       return { status: 'confident', chart: x.chart, values: x.values };
     }
+  }
+  const settled = settledByStepCount(checks) ?? null;
+  if (passes(settled)) {
+    return { status: 'confident', chart: settled.chart, values: settled.values };
   }
   return needsInput(checks);
 };
