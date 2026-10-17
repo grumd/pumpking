@@ -174,6 +174,14 @@ export interface PlayerPreferencesJson {
   hiddenRegions: Record<string, boolean>;
 }
 
+export interface PhotoReads {
+  id: Generated<number>;
+  player_id: number;
+  photo_sha256: string;
+  cost: Decimal;
+  created_at: Date;
+}
+
 export interface Players {
   id: Generated<number>;
   nickname: string;
@@ -198,6 +206,7 @@ export interface Players {
   openai_prompt_tokens: Generated<number>;
   openai_completion_tokens: Generated<number>;
   openai_cost: Decimal | null;
+  ocr_cost: Generated<Decimal>;
 }
 
 export interface PpHistory {
@@ -283,6 +292,7 @@ export interface Results {
   pp: number | null;
   is_manual_input: Generated<number | null>;
   exp: Decimal | null;
+  photo_sha256: string | null;
 }
 
 export interface Sessions {
@@ -424,6 +434,7 @@ export interface DB {
   player_notices: PlayerNotices;
   player_pp_history: PlayerPpHistory;
   player_rank_history: PlayerRankHistory;
+  photo_reads: PhotoReads;
   players: Players;
   pp_history: PpHistory;
   pp_rank_history: PpRankHistory;
