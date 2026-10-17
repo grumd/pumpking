@@ -105,15 +105,21 @@ const getPhotoReadSpend = async (playerId: number): Promise<PhotoReadSpend[]> =>
 
 /**
  * Whether the player may have a photo read: the limit they are over and when they can read
- * again, or null. The first refusal of a limit within its window tells the admins
+ * again, or null
  */
 export const getPhotoLimitReached = async (playerId: number, isAdmin: boolean) => {
   const reached = checkPhotoLimits(await getPhotoReadSpend(playerId), isAdmin);
   if (!reached) {
     return null;
   }
-  const retryAt = new Date(Date.now() + reached.retryInSeconds * 1000);
+  return { ...reached, retryAt: new Date(Date.now() + reached.retryInSeconds * 1000) };
+};
 
+/** Tells the admins about a refusal, the first time for the limit within its window */
+export const reportPhotoLimitReached = async (
+  playerId: number,
+  reached: { kind: PhotoLimitKind; windowHours: number; retryAt: Date }
+) => {
   const notified = await db
     .selectFrom('events')
     .select('id')
@@ -126,10 +132,9 @@ export const getPhotoLimitReached = async (playerId: number, isAdmin: boolean) =
     await addEvent(db, 'photoLimitReached', {
       playerId,
       limit: reached.kind,
-      retryAt: retryAt.toISOString(),
+      retryAt: reached.retryAt.toISOString(),
     });
   }
-  return { kind: reached.kind, retryAt };
 };
 
 /** Logs a paid read, for the limits */

@@ -1,4 +1,4 @@
-import { compressImageData, getDateFromFile } from './imageUtils';
+import { compressCanvas, getDateFromFile } from './imageUtils';
 
 // The readers do best with 2048px on the long side (docs/photo-results/PLAN.md)
 const READER_IMAGE_SIZE = 2048;
@@ -35,6 +35,6 @@ export const preparePhoto = async (file: File): Promise<PreparedPhoto> => {
   bitmap.close();
 
   const image = canvas.toDataURL('image/jpeg', 0.9);
-  const screenshot = await compressImageData(ctx.getImageData(0, 0, canvas.width, canvas.height));
+  const screenshot = await compressCanvas(canvas);
   return { image, screenshot, date: exifDate ?? new Date(), isExactDate: !!exifDate };
 };

@@ -1,10 +1,16 @@
 import { db } from '@pumpking/database/db';
 import { addEvent } from '@pumpking/database/events';
 import { MIXES } from '@pumpking/utils/mixes';
+import { isRankModeAllowed } from '@pumpking/utils/mods';
 import { getPhoenixScore } from '@pumpking/utils/phoenixScore';
 import createDebug from 'debug';
 import fs from 'fs';
 import path from 'path';
+import {
+  findPhotoResult,
+  findSamePlay,
+  rememberDuplicatePhoto,
+} from 'services/results/photos/duplicates';
 import { error } from 'utils';
 import { prepareForKnexUtc } from 'utils/date';
 import {
@@ -53,72 +59,6 @@ interface ManualResult {
   photoHash?: string;
 }
 
-/**
- * The result this photo shows, if it is known: the result added from it, or the play it
- * turned out to show when it was read before
- */
-export const findPhotoResult = async (photoHash: string) => {
-  const added = await db
-    .selectFrom('results')
-    .select('id')
-    .where('photo_sha256', '=', photoHash)
-    .executeTakeFirst();
-  if (added) {
-    return added;
-  }
-  const read = await db
-    .selectFrom('photo_reads')
-    .select('duplicate_result_id')
-    .where('photo_sha256', '=', photoHash)
-    .where('duplicate_result_id', 'is not', null)
-    .executeTakeFirst();
-  return read?.duplicate_result_id == null ? undefined : { id: read.duplicate_result_id };
-};
-
-/**
- * A photo of a play added before is never read again: its hash goes on that result when the
- * result has none (an older result, or one added by other means), and the reads count as
- * productive. A result with another photo's hash keeps it; this photo is remembered on its
- * reads, which still count as spend without a result (another file or angle of the play)
- */
-export const rememberDuplicatePhoto = async (resultId: number, photoHash: string) => {
-  const { numUpdatedRows } = await db
-    .updateTable('results')
-    .set({ photo_sha256: photoHash })
-    .where('id', '=', resultId)
-    .where('photo_sha256', 'is', null)
-    .executeTakeFirst();
-  if (Number(numUpdatedRows) === 0) {
-    await db
-      .updateTable('photo_reads')
-      .set({ duplicate_result_id: resultId })
-      .where('photo_sha256', '=', photoHash)
-      .execute();
-  }
-};
-
-/**
- * The same play added before: a result of the player on the chart with the same judgements
- * and max combo (a second photo of the same screen)
- */
-export const findSamePlay = (
-  playerId: number,
-  sharedChartId: number,
-  stats: Pick<ManualResult, 'perfect' | 'great' | 'good' | 'bad' | 'miss' | 'combo'>
-) =>
-  db
-    .selectFrom('results')
-    .select('id')
-    .where('player_id', '=', playerId)
-    .where('shared_chart', '=', sharedChartId)
-    .where('perfects', '=', stats.perfect)
-    .where('greats', '=', stats.great)
-    .where('goods', '=', stats.good)
-    .where('bads', '=', stats.bad)
-    .where('misses', '=', stats.miss)
-    .where('max_combo', '=', stats.combo)
-    .executeTakeFirst();
-
 export const addResult = async (userId: number, result: ManualResult) => {
   if (userId !== result.playerId) {
     throw error(403, 'Forbidden: You can only add results for yourself');
@@ -162,17 +102,8 @@ export const addResult = async (userId: number, result: ManualResult) => {
     throw error(400, `Bad Request: Chart not found`);
   }
 
-  if (result.mod === 'VJ') {
-    if (
-      sharedChart.duration !== 'Standard' ||
-      !chartInstance.level ||
-      chartInstance.level < 13 ||
-      chartInstance.label.startsWith('SP') ||
-      chartInstance.label.startsWith('DP') ||
-      chartInstance.label.startsWith('COOP')
-    ) {
-      throw error(400, `Bad Request: Rank Mode can not be used on this chart`);
-    }
+  if (result.mod === 'VJ' && !isRankModeAllowed({ ...chartInstance, ...sharedChart })) {
+    throw error(400, `Bad Request: Rank Mode can not be used on this chart`);
   }
 
   const scoreError = getScoreError(result, chartInstance);

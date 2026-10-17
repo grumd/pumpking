@@ -1,6 +1,7 @@
-import { db } from '@pumpking/database/db';
 import { MIXES } from '@pumpking/utils/mixes';
 import fs from 'fs/promises';
+import { findKnownPhotoHashes } from 'services/results/photos/duplicates';
+import { PHOTO_MIXES } from 'services/results/photos/reader';
 import { recognizePhoto, searchMixCharts } from 'services/results/photos/recognize';
 import { addResultProcedure } from 'trpc/trpc';
 import { base64 } from 'utils/zod';
@@ -10,29 +11,14 @@ export const photoHash = z.string().regex(/^[0-9a-f]{64}$/);
 
 /**
  * Of the photos' SHA-256 hashes, the ones whose result is known: added from the photo, or
- * found when the photo was read before (see rememberDuplicatePhoto). A mutation only so
- * that the hashes go in the body: a batch of them is too long for a URL
+ * found when the photo was read before. A mutation only so that the hashes go in the body: a
+ * batch of them is too long for a URL
  */
 export const checkPhotoHashes = addResultProcedure
   .input(z.object({ hashes: z.array(photoHash).min(1).max(200) }))
-  .mutation(async ({ input }) => {
-    const added = await db
-      .selectFrom('results')
-      .select('photo_sha256')
-      .where('photo_sha256', 'in', input.hashes)
-      .execute();
-    const duplicates = await db
-      .selectFrom('photo_reads')
-      .select('photo_sha256')
-      .distinct()
-      .where('photo_sha256', 'in', input.hashes)
-      .where('duplicate_result_id', 'is not', null)
-      .execute();
-    return [...new Set([...added, ...duplicates].map((row) => row.photo_sha256))];
-  });
+  .mutation(({ input }) => findKnownPhotoHashes(input.hashes));
 
-// The mixes with arcade track names, which the song title is matched against
-const photoMix = z.enum(['XX', 'Phoenix', 'Phoenix2']);
+const photoMix = z.enum(PHOTO_MIXES);
 
 /** Charts of the mix by song name and label, for a photo whose chart wasn't found */
 export const photoCharts = addResultProcedure
