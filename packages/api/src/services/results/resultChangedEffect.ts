@@ -3,7 +3,7 @@ import { db } from '@pumpking/database/db';
 import createDebug from 'debug';
 import { sql } from 'kysely';
 import { refreshPlayerTotalExp } from 'services/players/playerExp';
-import { getSinglePlayerTotalPp, updatePpHistoryIfNeeded } from 'services/players/playersPp';
+import { getSinglePlayerTotalPp, recordStandings } from 'services/players/playersPp';
 import { getResultExp } from 'services/results/exp';
 
 const debug = createDebug('backend-ts:processor:on-result-changed');
@@ -13,9 +13,8 @@ const PASS_GRADES = ['SSS', 'SS', 'S', 'A+', 'B+', 'C+', 'D+', 'F+'];
 /**
  * Recomputes what depends on a player's results on one chart, after an admin edited or
  * deleted one of them: each result's exp (and pass status up to XX, where it follows
- * from the grade), pp on the player's best result only, then the player's totals.
- * Unlike resultAddedEffect, the edited result may have stopped being the best one, so
- * pp is cleared on all of them first. Safe to replay: everything is recomputed
+ * from the grade) and pp, then the player's totals. Safe to replay: everything is
+ * recomputed
  */
 export const recalculatePlayerChart = async (playerId: number, sharedChartId: number) => {
   await db.transaction().execute(async (trx) => {
@@ -35,6 +34,8 @@ export const recalculatePlayerChart = async (playerId: number, sharedChartId: nu
       .where('results.shared_chart', '=', sharedChartId)
       .execute();
 
+    const resultsPp = await calculateResultsPp({ sharedChartId, trx });
+
     for (const result of results) {
       const exp =
         result.score_phoenix != null && result.level != null
@@ -49,30 +50,15 @@ export const recalculatePlayerChart = async (playerId: number, sharedChartId: nu
           : result.is_pass;
       await trx
         .updateTable('results')
-        .set({ exp, is_pass: isPass })
+        .set({ exp, is_pass: isPass, pp: resultsPp.get(result.id) ?? null })
         .where('id', '=', result.id)
         .execute();
-    }
-
-    await trx
-      .updateTable('results')
-      .set({ pp: null })
-      .where('player_id', '=', playerId)
-      .where('shared_chart', '=', sharedChartId)
-      .execute();
-
-    // The best result of every player on the chart; the player's own is among them
-    const bestResultsPp = await calculateResultsPp({ sharedChartId, trx });
-    const best = results.find((result) => bestResultsPp.has(result.id));
-    const pp = best && bestResultsPp.get(best.id);
-    if (best && pp) {
-      await trx.updateTable('results').set({ pp }).where('id', '=', best.id).execute();
     }
 
     const totalPp = await getSinglePlayerTotalPp(playerId, trx);
     await trx.updateTable('players').set({ pp: totalPp }).where('id', '=', playerId).execute();
     await refreshPlayerTotalExp(playerId, trx);
-    await updatePpHistoryIfNeeded(trx);
+    await recordStandings(trx);
 
     await trx
       .updateTable('shared_charts')

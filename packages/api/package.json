@@ -23,7 +23,8 @@
     "test": "cross-env DEBUG=backend-ts:test:* npm run test:run -- --exit",
     "test:trace": "cross-env DEBUG=backend-ts:* npm run test:run -- --exit",
     "test:watch": "cross-env DEBUG=backend-ts:test:* npm run test:run -- --watch --watch-files ./src/**/*",
-    "tournament": "tsx ./scripts/tournament.ts"
+    "tournament": "tsx ./scripts/tournament.ts",
+    "rebuild-pp-history": "tsx ./scripts/rebuildPpHistory.ts"
   },
   "keywords": [],
   "author": "grumd",

@@ -1,8 +1,21 @@
 import { db, type Transaction } from '@pumpking/database/db';
 import { minMixToGetPp } from '@pumpking/utils/currentMix';
-import { sql } from 'kysely';
-import _ from 'lodash/fp';
 
+// A result's full pp. The age of the result only lowers what it adds to the player's
+// total (see services/players/totalPp.ts), not this value
+export const getResultPp = (scorePhoenix: number, chartLevel: number) => {
+  const maxPP = chartLevel ** 2.4 / 13;
+  const scoreRatio = scorePhoenix / 1_000_000;
+  // K is a coefficient from 0 to 1
+  // Growing exponentially from 500k score (0) to 1000k score (1)
+  // 900k score is ~64% of max PP
+  const K = Math.min(1, scoreRatio < 0.5 ? 0 : Math.pow((scoreRatio - 0.5) / 0.5, 2));
+  return K * maxPP;
+};
+
+// pp of every result that gets pp, not only each player's best on a chart: an older best
+// can count for less than a newer result on the same chart. Results of hidden players,
+// co-op charts and old mixes get none
 export const calculateResultsPp = async ({
   sharedChartId,
   resultId,
@@ -13,65 +26,39 @@ export const calculateResultsPp = async ({
   trx?: Transaction;
 } = {}) => {
   let query = (trx ?? db)
-    .with('ranked_results', (_db) => {
-      return _db
-        .selectFrom('results')
-        .innerJoin('chart_instances', 'chart_instances.id', 'results.chart_instance')
-        .innerJoin('shared_charts', 'shared_charts.id', 'results.shared_chart')
-        .innerJoin('players', 'players.id', 'results.player_id')
-        .select([
-          'results.id',
-          'results.score_phoenix',
-          'results.shared_chart',
-          'results.chart_instance',
-          'chart_instances.level',
-          'shared_charts.interpolated_difficulty',
-          sql<number>`row_number() over (partition by results.shared_chart, results.player_id order by ${sql.ref(
-            'score_phoenix'
-          )} desc)`.as('score_rank'),
-        ])
-        .where('players.hidden', '=', 0)
-        .where('score_phoenix', 'is not', null)
-        .where('results.mix', '>=', minMixToGetPp)
-        .where('chart_label', 'not like', 'COOP%');
-    })
-    .selectFrom('ranked_results')
-    .selectAll()
-    .where('score_rank', '=', 1);
+    .selectFrom('results')
+    .innerJoin('chart_instances', 'chart_instances.id', 'results.chart_instance')
+    .innerJoin('shared_charts', 'shared_charts.id', 'results.shared_chart')
+    .innerJoin('players', 'players.id', 'results.player_id')
+    .select([
+      'results.id',
+      'results.score_phoenix',
+      'chart_instances.level',
+      'shared_charts.interpolated_difficulty',
+    ])
+    .where('players.hidden', '=', 0)
+    .where('score_phoenix', 'is not', null)
+    .where('results.mix', '>=', minMixToGetPp)
+    .where('chart_label', 'not like', 'COOP%');
 
   if (sharedChartId) {
-    query = query.where('shared_chart', '=', sharedChartId);
+    query = query.where('results.shared_chart', '=', sharedChartId);
   }
 
   if (resultId) {
-    query = query.where('id', '=', resultId);
+    query = query.where('results.id', '=', resultId);
   }
 
-  const allBestResults = await query.execute();
-
-  const byChartInstance = _.groupBy((res) => res.chart_instance, allBestResults);
+  const results = await query.execute();
 
   const resultPpMap = new Map<number, number | null>();
 
-  for (const chartInstanceId in byChartInstance) {
-    const chartLevel =
-      byChartInstance[chartInstanceId][0].interpolated_difficulty ||
-      byChartInstance[chartInstanceId][0].level;
-    const maxPP = chartLevel && chartLevel ** 2.4 / 13;
-
-    for (const result of byChartInstance[chartInstanceId]) {
-      if (result.score_phoenix && maxPP) {
-        const scoreRatio = result.score_phoenix / 1_000_000;
-        // K is a coefficient from 0 to 1
-        // Growing exponentially from 500k score (0) to 1000k score (1)
-        // 900k score is ~64% of max PP
-        const K = Math.min(1, scoreRatio < 0.5 ? 0 : Math.pow((scoreRatio - 0.5) / 0.5, 2));
-        const pp = K * maxPP;
-        resultPpMap.set(result.id, pp);
-      } else {
-        resultPpMap.set(result.id, null);
-      }
-    }
+  for (const result of results) {
+    const chartLevel = result.interpolated_difficulty || result.level;
+    resultPpMap.set(
+      result.id,
+      result.score_phoenix && chartLevel ? getResultPp(result.score_phoenix, chartLevel) : null
+    );
   }
 
   return resultPpMap;

@@ -1,133 +1,51 @@
+import { getTotalPp, roundPp, utcDay } from './totalPp';
 import { db, type Transaction } from '@pumpking/database/db';
-import { sql } from 'kysely';
-import _ from 'lodash/fp';
 
-type ScoreRecord = {
-  id: number;
-  song: string | null;
-  label: string;
-  diff: number | null;
-  pp: number;
-};
-
-const getPlayerResults = async ({
-  playerId,
-  transaction,
-}: {
-  playerId: number;
-  transaction?: Transaction;
-}) => {
+// The player's results that have pp, for getTotalPp
+export const getPlayerPpResults = async (playerId: number, transaction?: Transaction) => {
   const results = await (transaction ?? db)
-    .with('ranked_results', (_db) => {
-      return _db
-        .selectFrom('results as r')
-        .innerJoin('chart_instances', 'chart_instances.id', 'r.chart_instance')
-        .innerJoin('shared_charts', 'shared_charts.id', 'r.shared_chart')
-        .innerJoin('players', 'players.id', 'r.player_id')
-        .innerJoin('tracks', 'tracks.id', 'chart_instances.track')
-        .select([
-          'r.id as result_id',
-          'r.grade',
-          'r.perfects',
-          'r.greats',
-          'r.goods',
-          'r.bads',
-          'r.misses',
-          'r.pp',
-          'r.player_name',
-          'r.shared_chart as shared_chart_id',
-          'r.player_id',
-          'chart_instances.level',
-          'chart_instances.label',
-          'shared_charts.interpolated_difficulty',
-          'tracks.short_name',
-          'players.nickname',
-          sql<number>`row_number() over (partition by r.shared_chart, r.player_id order by ${sql.ref(
-            'pp'
-          )} desc)`.as('pp_rank'),
-        ])
-        .where('r.player_id', '=', playerId)
-        .where('r.pp', 'is not', null);
-    })
-    .selectFrom('ranked_results')
-    .selectAll()
-    .where('ranked_results.pp_rank', '=', 1)
-    .orderBy('ranked_results.pp', 'desc')
-    .limit(200)
+    .selectFrom('results')
+    .select(['id', 'shared_chart as sharedChartId', 'pp', 'gained'])
+    .where('player_id', '=', playerId)
+    .where('pp', 'is not', null)
+    .$narrowType<{ pp: number }>()
     .execute();
-
-  // Assert that PP is not null because we had a "where" clause
-  return results as ((typeof results)[number] & { pp: number })[];
-};
-
-const getPlayerPpFromResults = (
-  bestResults: {
-    result_id: number;
-    shared_chart_id: number;
-    label: string;
-    interpolated_difficulty: number | null;
-    pp: number;
-    player_name: string;
-    short_name: string | null;
-    nickname: string;
-  }[]
-) => {
-  if (!bestResults || !bestResults.length) {
-    return { nickname: '', pp: 0, bestScores: [] };
-  }
-
-  const player = {
-    nickname: bestResults[0].nickname,
-    pp: 0,
-    bestScores: [] as ScoreRecord[],
-  };
-
-  bestResults.forEach((res, index) => {
-    player.pp += 0.95 ** index * res.pp;
-    if (index < 20) {
-      player.bestScores.push({
-        id: res.result_id,
-        song: res.short_name,
-        label: res.label,
-        diff: res.interpolated_difficulty,
-        pp: res.pp,
-      });
-    }
-  });
-
-  return player;
-};
-
-export const getSinglePlayerPpData = async (playerId: number, transaction?: Transaction) => {
-  const results = await getPlayerResults({ playerId, transaction });
-  const playerData = getPlayerPpFromResults(results);
-  return playerData;
+  return results;
 };
 
 export const getSinglePlayerTotalPp = async (playerId: number, transaction?: Transaction) => {
-  return (await getSinglePlayerPpData(playerId, transaction))?.pp;
-};
-
-export const getPlayersTotalPp = async () => {
-  const playerIds = await db.selectFrom('players').select('id').where('hidden', '=', 0).execute();
-  const players = await Promise.all(playerIds.map(({ id }) => getSinglePlayerPpData(id)));
-  return players;
+  const results = await getPlayerPpResults(playerId, transaction);
+  return roundPp(getTotalPp(results, utcDay(new Date())));
 };
 
 export const getPlayerPpHistory = async (playerId: number) => {
   const history = await db
-    .selectFrom('pp_history')
-    .select(['date', 'pp'])
+    .selectFrom('player_pp_history')
+    .select(['recorded_at as date', 'pp'])
     .where('player_id', '=', playerId)
-    .orderBy('date', 'asc')
+    .orderBy('id', 'asc')
     .execute();
 
   const rankHistory = await db
-    .selectFrom('pp_rank_history')
-    .select(['date', 'rank'])
+    .selectFrom('player_rank_history')
+    .select(['recorded_at as date', 'rank'])
     .where('player_id', '=', playerId)
-    .orderBy('date', 'asc')
+    .orderBy('id', 'asc')
     .execute();
+
+  // Both lines go on to now: the total can be up to 1pp off its last row, and the last
+  // place is the current one while the player is in the ranking
+  const player = await db
+    .selectFrom('players')
+    .select(['pp', 'hidden'])
+    .where('id', '=', playerId)
+    .executeTakeFirst();
+  const lastRank = rankHistory.at(-1);
+  if (player?.pp && !player.hidden && lastRank) {
+    const now = new Date();
+    history.push({ date: now, pp: player.pp });
+    rankHistory.push({ date: now, rank: lastRank.rank });
+  }
 
   return {
     history,
@@ -135,111 +53,73 @@ export const getPlayerPpHistory = async (playerId: number) => {
   };
 };
 
-export const updatePpHistoryIfNeeded = async (trx?: Transaction) => {
-  // TODO: as an optimization we can avoid recalculating pp for all players because usually only one player has new results
-
-  const playerIds = await (trx ?? db)
+// Ranking places of the visible players with pp, by players.pp
+const getCurrentStandings = async (trx: Transaction | typeof db) => {
+  const players = await trx
     .selectFrom('players')
-    .select('id')
-    .where('id', '>', 1)
+    .select(['id', 'pp'])
+    .where('hidden', '=', 0)
+    .where('pp', '>', 0)
+    .orderBy('pp', 'desc')
+    .orderBy('id', 'asc')
+    .$narrowType<{ pp: number }>()
     .execute();
+  return players.map((player, index) => ({ ...player, rank: index + 1 }));
+};
 
-  const latestStats = await (trx ?? db)
-    .selectFrom('pp_history as ph1')
-    .select(['ph1.pp', 'ph1.player_id', 'ph1.date'])
+/**
+ * Appends to the history what changed since its last rows: every player whose place in
+ * the ranking changed, and every total that moved by 1pp or more. Past rows are never
+ * changed. Safe to repeat. Called by the effects consumer only, so the calls never overlap
+ */
+export const recordStandings = async (trx?: Transaction) => {
+  const conn = trx ?? db;
+  const standings = await getCurrentStandings(conn);
+
+  const lastRanks = await conn
+    .selectFrom('player_rank_history as h')
     .innerJoin(
       (eb) =>
         eb
-          .selectFrom('pp_history')
-          .select([(eb) => eb.fn.max('date').as('max_date'), 'player_id'])
+          .selectFrom('player_rank_history')
+          .select((eb) => eb.fn.max('id').as('id'))
           .groupBy('player_id')
-          .as('ph2'),
-      (join) =>
-        join.onRef('ph2.max_date', '=', 'ph1.date').onRef('ph2.player_id', '=', 'ph1.player_id')
+          .as('last'),
+      (join) => join.onRef('last.id', '=', 'h.id')
     )
-    .orderBy('pp', 'desc')
+    .select(['h.player_id', 'h.rank'])
     .execute();
+  const lastPps = await conn
+    .selectFrom('player_pp_history as h')
+    .innerJoin(
+      (eb) =>
+        eb
+          .selectFrom('player_pp_history')
+          .select((eb) => eb.fn.max('id').as('id'))
+          .groupBy('player_id')
+          .as('last'),
+      (join) => join.onRef('last.id', '=', 'h.id')
+    )
+    .select(['h.player_id', 'h.pp'])
+    .execute();
+  const lastRankById = new Map(lastRanks.map((row) => [row.player_id, row.rank]));
+  const lastPpById = new Map(lastPps.map((row) => [row.player_id, row.pp]));
 
-  const latestStatsById: Record<number, { pp: string; place: number; date: Date }> = {};
+  const recordedAt = new Date();
+  const rankRows = standings
+    .filter((player) => lastRankById.get(player.id) !== player.rank)
+    .map((player) => ({ player_id: player.id, recorded_at: recordedAt, rank: player.rank }));
+  const ppRows = standings
+    .filter((player) => {
+      const lastPp = lastPpById.get(player.id);
+      return lastPp === undefined || Math.abs(player.pp - lastPp) >= 1;
+    })
+    .map((player) => ({ player_id: player.id, recorded_at: recordedAt, pp: player.pp }));
 
-  for (let i = 0; i < latestStats.length; i++) {
-    const player = latestStats[i];
-    latestStatsById[player.player_id] = { pp: player.pp, place: i + 1, date: player.date };
+  if (rankRows.length) {
+    await conn.insertInto('player_rank_history').values(rankRows).execute();
   }
-
-  const newStatsById: Record<number, { pp: string; place?: number }> = {};
-
-  for (const { id: playerId } of playerIds) {
-    const results = await (trx ?? db)
-      .with('ranked_results', (_db) => {
-        return _db
-          .selectFrom('results')
-          .select([
-            'player_id',
-            'track_name',
-            'chart_label',
-            'pp',
-            sql<number>`row_number() over (partition by results.shared_chart order by pp desc)`.as(
-              'pp_rank'
-            ),
-          ])
-          .where('player_id', '=', playerId)
-          .where('pp', 'is not', null)
-          .$narrowType<{ pp: number }>()
-          .orderBy('pp', 'desc');
-      })
-      .selectFrom('ranked_results')
-      .selectAll()
-      .where('pp_rank', '=', 1)
-      .orderBy('pp', 'desc')
-      .limit(200)
-      .execute();
-
-    const totalPp = results
-      .reduce((sum, item, index) => {
-        return sum + 0.95 ** index * item.pp;
-      }, 0)
-      .toFixed(2);
-
-    if (!newStatsById[playerId]) newStatsById[playerId] = { pp: totalPp };
-    newStatsById[playerId].pp = totalPp;
-  }
-
-  const playerIdsSorted = Object.keys(newStatsById)
-    .map((key) => Number(key))
-    .sort((a, b) => {
-      return Number(newStatsById[b].pp) - Number(newStatsById[a].pp);
-    });
-
-  for (let i = 0; i < playerIdsSorted.length; i++) {
-    const id = playerIdsSorted[i];
-
-    if (latestStatsById[id]?.place !== i + 1) {
-      await (trx ?? db)
-        .insertInto('pp_rank_history')
-        .values({
-          date: new Date(),
-          player_id: id,
-          rank: i + 1,
-        })
-        .onDuplicateKeyUpdate({
-          rank: i + 1,
-        })
-        .execute();
-    }
-
-    if (latestStatsById[id]?.pp !== newStatsById[id].pp) {
-      await (trx ?? db)
-        .insertInto('pp_history')
-        .values({
-          date: new Date(),
-          player_id: id,
-          pp: newStatsById[id].pp,
-        })
-        .onDuplicateKeyUpdate({
-          pp: newStatsById[id].pp,
-        })
-        .execute();
-    }
+  if (ppRows.length) {
+    await conn.insertInto('player_pp_history').values(ppRows).execute();
   }
 };

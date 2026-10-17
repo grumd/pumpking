@@ -34,7 +34,8 @@ const addResult = (stats = { perfect: 90, great: 5, good: 3, bad: 1, miss: 1, co
         mod: '',
         score: getPhoenixScore(stats),
         ...stats,
-        date: '2020-01-01',
+        // Less than a year old: the result counts fully in the total pp
+        date: new Date(Date.now() - 10 * 86_400_000).toISOString().slice(0, 10),
         isExactDate: true,
         sharedChartId: 3,
         pass: true,
@@ -141,7 +142,7 @@ describe('Events', () => {
       assert.isNotNull((await getPlayer(1)).exp, 'player exp');
     });
 
-    it('works through a backlog when it starts, giving pp only to the best result', async () => {
+    it('works through a backlog when it starts', async () => {
       await addResult({ perfect: 80, great: 20, good: 0, bad: 0, miss: 0, combo: 100 }).expect(200);
       await addResult({ perfect: 100, great: 0, good: 0, bad: 0, miss: 0, combo: 100 }).expect(200);
       await addEvent(db, 'resultAdded', { resultId: 999_999 });
@@ -151,8 +152,8 @@ describe('Events', () => {
 
       await waitFor('all events are processed', async () => (await getCursor('effects')) === 3);
       const [worse, better] = await getPlayerResults(7);
-      assert.isNull(worse.pp, 'the worse result has no pp');
-      assert.isAbove(better.pp!, 0, 'the better result has pp');
+      assert.isAbove(worse.pp!, 0, 'the worse result has pp');
+      assert.isAbove(better.pp!, worse.pp!, 'the better result has more pp');
       assert.strictEqual((await getPlayer(7)).pp, better.pp, 'player pp is the best result pp');
       assert.isNotNull(worse.exp, 'both results have exp');
       assert.isNotNull(better.exp, 'both results have exp');
@@ -328,7 +329,16 @@ describe('Events', () => {
           .orderBy('id')
           .execute(),
         players: await db.selectFrom('players').select(['id', 'pp', 'exp']).orderBy('id').execute(),
-        ppHistory: await db.selectFrom('pp_history').select(['player_id', 'pp']).execute(),
+        ppHistory: await db
+          .selectFrom('player_pp_history')
+          .select(['player_id', 'pp'])
+          .orderBy('id')
+          .execute(),
+        rankHistory: await db
+          .selectFrom('player_rank_history')
+          .select(['player_id', 'rank'])
+          .orderBy('id')
+          .execute(),
       });
       const [seeded] = await getPlayerResults(2);
 

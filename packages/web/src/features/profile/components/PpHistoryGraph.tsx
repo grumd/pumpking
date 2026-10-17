@@ -30,7 +30,7 @@ export const PpHistoryGraph = () => {
     () =>
       data?.history.map((x) => ({
         date: new Date(x.date).getTime(),
-        pp: parseFloat(x.pp),
+        pp: x.pp,
       })),
     [data?.history]
   );
