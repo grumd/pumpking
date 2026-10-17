@@ -27,6 +27,12 @@ export const READER_B: Reader = {
   reasoning: { enabled: false },
 };
 
+// XX only, when A and B don't both pass and agree: breaks the tie
+export const READER_C: Reader = {
+  model: 'openai/gpt-6-luna',
+  reasoning: { enabled: false },
+};
+
 /** What a reader saw on the photo */
 export interface PhotoRead {
   song_title: string | null;

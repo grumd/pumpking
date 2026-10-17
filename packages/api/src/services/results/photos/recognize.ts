@@ -12,6 +12,7 @@ import {
   readPhoto as defaultReadPhoto,
   READER_A,
   READER_B,
+  READER_C,
   type PhotoImage,
   type PhotoRead,
   type ReadPhoto,
@@ -225,6 +226,15 @@ export const recognizePhoto = async (
     results = passes(first.check) ? [first] : [first, await readAndCheck(READER_B)];
   } else {
     results = await Promise.all([readAndCheck(READER_A), readAndCheck(READER_B)]);
+    // A third reader from another vendor, when the two don't both pass and agree
+    if (
+      decide(
+        mixId,
+        results.map((result) => result.check)
+      ).status !== 'confident'
+    ) {
+      results.push(await readAndCheck(READER_C));
+    }
   }
   if (cost > 0) {
     await db
