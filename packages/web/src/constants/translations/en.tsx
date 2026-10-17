@@ -175,13 +175,12 @@ export const en = {
   LEVEL_ACHIEVEMENTS_HINT:
     '* to gain an achievement, you should play ~10% of all charts of that level on a specific grade',
   ACHIEVEMENTS: 'achievements',
-  MOST_PLAYED_CHARTS: 'most played charts',
+  LATEST: 'latest',
+  MOST_PLAYED: 'most played',
   BEST_SCORES: 'best scores',
   PP_BREAKDOWN: 'pp breakdown',
   PP_AGE_FACTOR: (percent: number) => `age ${percent}%`,
   PP_PLACE_WEIGHT: (percent: number) => `weight ${percent}%`,
-  PP_HISTORY: 'pp history',
-  RANK_HISTORY: 'place in ranking',
   PP_AND_RANK_HISTORY: 'pp and place in ranking',
   PLACE_IN_TOP: 'place in top',
   LEVEL: 'level',
@@ -304,7 +303,6 @@ export const en = {
   OCR_SELECTED_AREA: 'Selected area',
 
   // Admin
-  ADMIN_PANEL: 'Admin Panel',
   DELETE_RESULT: 'Delete result',
   DELETE_RESULT_CONFIRM:
     'Are you sure you want to delete this result? This action cannot be undone.',

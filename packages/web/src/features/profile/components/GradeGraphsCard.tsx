@@ -9,6 +9,7 @@ import { useLanguage } from 'utils/context/translation';
 import DoubleSingleGradesGraph from './DoubleSingleGradesGraph';
 import DoubleSingleGraph from './DoubleSingleGraph';
 import GradesGraph from './GradesGraph';
+import classes from './graphs.module.css';
 
 export const GradeGraphsCard = (): JSX.Element => {
   const [value, toggle] = useToggle(['combined', 'separate']);
@@ -22,7 +23,7 @@ export const GradeGraphsCard = (): JSX.Element => {
 
   if (value === 'combined') {
     return (
-      <Card title={lang.GRADES} actions={switchButton}>
+      <Card title={lang.GRADES} actions={switchButton} className={classes.fillCard}>
         <DoubleSingleGradesGraph />
       </Card>
     );
@@ -30,10 +31,10 @@ export const GradeGraphsCard = (): JSX.Element => {
 
   return (
     <Stack gap="sm">
-      <Card flex={1} title={lang.GRADES} actions={switchButton}>
+      <Card flex={1} title={lang.GRADES} actions={switchButton} className={classes.fillCard}>
         <GradesGraph />
       </Card>
-      <Card flex={1}>
+      <Card flex={1} className={classes.fillCard}>
         <DoubleSingleGraph />
       </Card>
     </Stack>

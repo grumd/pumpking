@@ -19,7 +19,7 @@ type LevelBarsGraphProps<Row extends { level: number }, Key extends string> = {
   // Percent; negative values stack under the zero line
   value: (row: Row, key: Key) => number;
   color: (key: Key) => string;
-  // Width / height of the graph
+  // Width / height of the graph, unless a fillCard (graphs.module.css) gives it a height
   aspect: number;
   // Fixed y axis (0-100%). Without it the axis fits the bars, at least 10% each way
   yDomain?: [number, number];
@@ -41,10 +41,17 @@ export const LevelBarsGraph = <Row extends { level: number }, Key extends string
   labels,
   renderTooltip,
 }: LevelBarsGraphProps<Row, Key>) => {
-  const { parentRef, width, tooltipOpen, tooltipData, tooltipLeft, tooltipTop, ...tooltip } =
-    useGraph<Row>();
+  const {
+    parentRef,
+    width,
+    height,
+    tooltipOpen,
+    tooltipData,
+    tooltipLeft,
+    tooltipTop,
+    ...tooltip
+  } = useGraph<Row>({ withHeight: true });
 
-  const height = width / aspect;
   const innerWidth = Math.max(0, width - graphMargin.left - graphMargin.right);
   const innerHeight = Math.max(0, height - graphMargin.top - graphMargin.bottom);
 
@@ -95,9 +102,15 @@ export const LevelBarsGraph = <Row extends { level: number }, Key extends string
   const columnX = (row: Row) => (xScale(row.level) ?? 0) - (xScale.step() - xScale.bandwidth()) / 2;
 
   return (
-    // Axis ticks and the legend in the caption size
-    <Box fz="xs" pos="relative" ref={parentRef}>
-      {width > 0 && (
+    // Axis ticks and the legend in the caption size. The box's CSS sets its height, the svg
+    // fills it
+    <Box
+      fz="xs"
+      ref={parentRef}
+      className={classes.levelBars}
+      style={{ '--graph-aspect': aspect }}
+    >
+      {width > 0 && height > 0 && (
         <svg width={width} height={height} className={classes.svg}>
           <Group.Group left={graphMargin.left} top={graphMargin.top}>
             {tooltipOpen && tooltipData && (

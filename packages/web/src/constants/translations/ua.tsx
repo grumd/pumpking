@@ -168,13 +168,12 @@ export const ua = {
   LEVEL_ACHIEVEMENTS_HINT:
     '* для отримання ачівки треба зіграти близько 10% усіх чартів даного рівня на потрібний грейд',
   ACHIEVEMENTS: 'досягнення',
-  MOST_PLAYED_CHARTS: 'чарти, що часто гралися',
+  LATEST: 'останні',
+  MOST_PLAYED: 'найчастіше грані',
   BEST_SCORES: 'найкращі результати',
   PP_BREAKDOWN: 'склад pp',
   PP_AGE_FACTOR: (percent: number) => `вік ${percent}%`,
   PP_PLACE_WEIGHT: (percent: number) => `вага ${percent}%`,
-  PP_HISTORY: 'історія pp',
-  RANK_HISTORY: 'місце в рейтингу',
   PP_AND_RANK_HISTORY: 'pp і місце в рейтингу',
   PLACE_IN_TOP: 'місце у топі',
   LEVEL: 'рівень',
@@ -276,7 +275,6 @@ export const ua = {
   OCR_SELECTED_AREA: 'Виділена область',
 
   // Admin
-  ADMIN_PANEL: 'Адмін панель',
   DELETE_RESULT: 'Видалити результат',
   DELETE_RESULT_CONFIRM:
     'Ви впевнені, що хочете видалити цей результат? Цю дію неможливо скасувати.',

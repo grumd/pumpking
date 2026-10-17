@@ -1,4 +1,4 @@
-import { ActionIcon, SimpleGrid } from '@mantine/core';
+import { ActionIcon, SimpleGrid, Stack } from '@mantine/core';
 import { FaQuestionCircle } from 'react-icons/fa';
 
 import { Card } from 'components/Card/Card';
@@ -8,13 +8,12 @@ import { PageContainer } from 'components/PageContainer/PageContainer';
 import { useLanguage } from 'utils/context/translation';
 
 import { Achievements } from './components/Achievements/Achievements';
-import { AdminPanel } from './components/AdminPanel/AdminPanel';
 import { ChartLists } from './components/ChartLists/ChartLists';
 import { ExpFaq } from './components/Exp/ExpFaq';
 import { ExpProgress } from './components/Exp/ExpProgress';
 import { GradeGraphsCard } from './components/GradeGraphsCard';
 import { LevelAchievements } from './components/LevelAchievements/LevelAchievements';
-import { PpGraphsCard } from './components/PpGraphsCard';
+import { PpAndRankHistoryGraph } from './components/PpAndRankHistoryGraph';
 import { ProfileHeader } from './components/ProfileHeader';
 import { TournamentCups } from './components/TournamentCups';
 
@@ -23,30 +22,33 @@ const Profile = () => {
   return (
     <PageContainer>
       <ProfileHeader />
-      <AdminPanel />
-      <Card
-        title={lang.EXP}
-        actions={
-          <ModalTrigger
-            title={lang.EXP_FAQ_TITLE}
-            size="lg"
-            renderButton={({ open }) => (
-              <ActionIcon aria-label={lang.EXP_FAQ_TITLE} onClick={open}>
-                <FaQuestionCircle />
-              </ActionIcon>
-            )}
-          >
-            <ExpFaq />
-          </ModalTrigger>
-        }
-      >
-        <ExpProgress />
-      </Card>
-      <TournamentCups />
       <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="sm">
+        <Stack gap="sm">
+          <Card
+            title={lang.EXP}
+            actions={
+              <ModalTrigger
+                title={lang.EXP_FAQ_TITLE}
+                size="lg"
+                renderButton={({ open }) => (
+                  <ActionIcon aria-label={lang.EXP_FAQ_TITLE} onClick={open}>
+                    <FaQuestionCircle />
+                  </ActionIcon>
+                )}
+              >
+                <ExpFaq />
+              </ModalTrigger>
+            }
+          >
+            <ExpProgress />
+          </Card>
+          <Card title={lang.PP_AND_RANK_HISTORY}>
+            <PpAndRankHistoryGraph />
+          </Card>
+        </Stack>
         <GradeGraphsCard />
-        <PpGraphsCard />
       </SimpleGrid>
+      <TournamentCups />
       <LevelAchievements />
       <Achievements />
       <ChartLists />

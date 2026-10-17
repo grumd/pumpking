@@ -168,13 +168,12 @@ export const ru = {
   LEVEL_ACHIEVEMENTS_HINT:
     '* для получения ачивки нужно сыграть около 10% всех чартов данного левела на нужный грейд',
   ACHIEVEMENTS: 'достижения',
-  MOST_PLAYED_CHARTS: 'часто играемые чарты',
+  LATEST: 'последние',
+  MOST_PLAYED: 'часто играемые',
   BEST_SCORES: 'лучшие результаты',
   PP_BREAKDOWN: 'состав pp',
   PP_AGE_FACTOR: (percent: number) => `возраст ${percent}%`,
   PP_PLACE_WEIGHT: (percent: number) => `вес ${percent}%`,
-  PP_HISTORY: 'история pp',
-  RANK_HISTORY: 'место в рейтинге',
   PP_AND_RANK_HISTORY: 'pp и место в рейтинге',
   PLACE_IN_TOP: 'место в топе',
   LEVEL: 'уровень',
@@ -277,7 +276,6 @@ export const ru = {
   OCR_SELECTED_AREA: 'Выделенная область',
 
   // Admin
-  ADMIN_PANEL: 'Админ панель',
   DELETE_RESULT: 'Удалить результат',
   DELETE_RESULT_CONFIRM:
     'Вы уверены, что хотите удалить этот результат? Это действие нельзя отменить.',

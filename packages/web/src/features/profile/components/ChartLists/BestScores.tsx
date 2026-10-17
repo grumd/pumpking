@@ -1,11 +1,10 @@
-import { Anchor, Button, Table, Text, rem } from '@mantine/core';
+import { Anchor, Button, Table, Text } from '@mantine/core';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { MdExpandMore } from 'react-icons/md';
 import { useParams } from 'react-router';
 import { NavLink } from 'react-router-dom';
 
 import { ChartLabel } from 'components/ChartLabel/ChartLabel';
-import { Grade } from 'components/Grade/Grade';
 import Loader from 'components/Loader/Loader';
 
 import { routes } from 'constants/routes';
@@ -14,16 +13,16 @@ import { useLanguage } from 'utils/context/translation';
 import { api } from 'utils/trpc';
 
 import { FadingDate } from './FadingDate';
-
-const pageSize = 20;
+import { ResultScore } from './ResultScore';
+import { bestScoresInput, pageOptions } from './listQueries';
 
 // The player's best result on each chart by its full pp, however old
 export const BestScores = (): JSX.Element => {
   const params = useParams();
   const charts = useInfiniteQuery(
     api.players.highestPpCharts.infiniteQueryOptions(
-      { playerId: params.id ? Number(params.id) : undefined, pageSize },
-      { getNextPageParam: (lastPage) => lastPage.nextCursor, initialCursor: 0 }
+      bestScoresInput(params.id ? Number(params.id) : undefined),
+      pageOptions
     )
   );
   const lang = useLanguage();
@@ -51,14 +50,7 @@ export const BestScores = (): JSX.Element => {
                 <Table.Td data-fit visibleFrom="xs" ta="right" fz="sm">
                   <FadingDate date={new Date(item.date)} />
                 </Table.Td>
-                <Table.Td data-fit>
-                  <Grade
-                    h={rem(18)}
-                    w={rem(44)}
-                    score={item.score ?? 0}
-                    isPass={item.is_pass ?? false}
-                  />
-                </Table.Td>
+                <ResultScore score={item.score} isPass={item.is_pass} />
                 <Table.Td data-fit data-main ta="right">
                   {item.pp?.toFixed(2)}
                   <Text span inherit fw={400} c="dimmed">
