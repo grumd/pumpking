@@ -30,7 +30,7 @@ export const ChartHeader = ({ chart, children = null }: ChartHeaderProps): JSX.E
           lh="xs"
           fw="bold"
           miw={0}
-          truncate
+          className={css.songName}
           component={NavLink}
           to={routes.leaderboard.sharedChart.getPath({ sharedChartId: chart.id })}
         >

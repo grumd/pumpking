@@ -1,15 +1,11 @@
 /* The dense results table of a chart card */
 
-/* Desktop: the same column widths in every card (the <col>s), the name takes the rest. The
-   widths are minimums: the place and score columns grow in a card where a row has places
-   gained or lost, or a score increase */
+/* Desktop: the same column widths in every card (the <col>s), the name and score take the rest.
+   The widths are minimums: the place column grows in a card where a row has places gained or
+   lost. Phones have none, each column is as narrow as its content */
 @mixin larger-than $mantine-breakpoint-md {
   .placeCol {
     width: rem(36px);
-  }
-
-  .scoreCol {
-    width: rem(87px);
   }
 
   .gradeCol {
@@ -33,13 +29,14 @@
   }
 }
 
-.score {
-  white-space: nowrap;
+/* The name truncates instead of widening the table, its cell takes the room the other columns
+   leave */
+.row > td.player {
+  max-width: 0;
 }
 
-/* The column grows to fit the score increase badge and the score */
-.scoreGroup {
-  min-width: max-content;
+.score {
+  white-space: nowrap;
 }
 
 .number {
@@ -149,7 +146,7 @@
   padding: var(--mantine-spacing-xxs) var(--mantine-spacing-xs);
 }
 
-/* Phones: as dense as before, so names keep their room and the 10 columns fit */
+/* Phones: dense, so names keep their room and the columns fit */
 @mixin smaller-than $mantine-breakpoint-md {
   .card {
     padding: var(--mantine-spacing-xs);
@@ -171,33 +168,7 @@
 
   /* Gaps after the score and before the step counts */
   .row > td.grade {
-    padding-inline: var(--mantine-spacing-xxs) var(--mantine-spacing-xs);
-  }
-
-  /* The name takes the room the other columns leave, and a long one truncates instead of
-     widening the table */
-  .row > td.name {
-    max-width: 0;
-  }
-
-  /* The columns right of the score have the same widths in every card, so the right-aligned
-     scores and the step counts line up; the score and the name share the rest. They fit the
-     widest grade, two-digit step counts, four-digit perfects and "11mo"; a longer value
-     widens its own card's column */
-  .gradeCol {
-    width: rem(57px);
-  }
-
-  .stepCol {
-    width: rem(19px);
-  }
-
-  .perfectCol {
-    width: rem(34px);
-  }
-
-  .dateCol {
-    width: rem(45px);
+    padding-inline: var(--mantine-spacing-xxs) var(--mantine-spacing-xxs);
   }
 }
 

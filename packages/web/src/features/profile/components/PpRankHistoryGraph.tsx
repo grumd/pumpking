@@ -1,88 +1,24 @@
-import { Box, Text } from '@mantine/core';
-import { useMemo } from 'react';
 import { useParams } from 'react-router';
-import {
-  CartesianGrid,
-  Line,
-  LineChart,
-  Tooltip as RechartsTooltip,
-  ResponsiveContainer,
-  XAxis,
-  YAxis,
-} from 'recharts';
 
-import { KeyValueList } from 'components/KeyValueList/KeyValueList';
+import { EmptyState } from 'components/EmptyState/EmptyState';
 
-import { usePlayerPpHistory } from '../hooks/usePlayerPpHistory';
-import { GraphTooltip } from './GraphTooltip';
-import { axisProps, tooltipProps } from './graphAxis';
+import { useLanguage } from 'utils/context/translation';
+
+import { usePpHistorySeries } from '../hooks/usePpHistorySeries';
+import { TimeSeriesGraph } from './TimeSeriesGraph';
 
 export const PpRankHistoryGraph = () => {
   const params = useParams();
-  const { data } = usePlayerPpHistory({
-    playerId: params.id ? Number(params.id) : undefined,
-  });
+  const lang = useLanguage();
+  const playerId = params.id ? Number(params.id) : undefined;
+  const series = usePpHistorySeries({ playerId });
 
-  const graphData = useMemo(
-    () =>
-      data?.rankHistory.map((x) => ({
-        date: new Date(x.date).getTime(),
-        rank: x.rank,
-      })),
-    [data?.rankHistory]
-  );
-
-  if (!graphData) {
+  if (!series) {
     return null;
   }
+  if (!series.rank.data.length) {
+    return <EmptyState>{lang.NOTHING_FOUND}</EmptyState>;
+  }
 
-  return (
-    // Axis ticks and the legend in the caption size
-    <Box fz="xs">
-      <ResponsiveContainer aspect={1.6}>
-        <LineChart data={graphData} margin={{ top: 5, bottom: 5, right: 5, left: 0 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="var(--pk-graph-grid)" />
-          <XAxis
-            dataKey="date"
-            {...axisProps}
-            type="number"
-            domain={['dataMin', 'dataMax']}
-            tickFormatter={(value) => new Date(value).toLocaleDateString()}
-          />
-          <YAxis
-            allowDecimals={false}
-            domain={([, dataMax]) => [1, dataMax < 3 ? dataMax + 2 : dataMax + 1]}
-            interval={0}
-            reversed
-            width={48}
-            {...axisProps}
-          />
-          <RechartsTooltip
-            {...tooltipProps}
-            content={({ payload }) => {
-              if (!payload || !payload[0]) {
-                return null;
-              }
-              return (
-                <GraphTooltip>
-                  <Text size="sm" c="dimmed">
-                    {new Date(payload[0].payload.date).toLocaleDateString()}
-                  </Text>
-                  <KeyValueList items={[{ label: 'Place', value: `#${payload[0].value}` }]} />
-                </GraphTooltip>
-              );
-            }}
-          />
-          <Line
-            isAnimationActive={false}
-            type="stepAfter"
-            dataKey="rank"
-            stroke="var(--mantine-color-accent-filled)"
-            strokeWidth={3}
-            dot={false}
-          />
-        </LineChart>
-      </ResponsiveContainer>
-    </Box>
-  );
+  return <TimeSeriesGraph key={playerId} series={[series.rank]} />;
 };

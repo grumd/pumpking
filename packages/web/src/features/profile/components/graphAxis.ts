@@ -1,11 +1,11 @@
-// Props for every recharts XAxis / YAxis on the profile
+import classes from './graphs.module.css';
+
+// Props for every visx axis on the profile
 export const axisProps = {
   stroke: 'var(--pk-graph-axis)',
-  tick: { fill: 'var(--pk-graph-axis)' },
+  tickStroke: 'var(--pk-graph-axis)',
+  tickLabelProps: { className: classes.tick },
 };
 
-// Props for every recharts Tooltip on the profile: above the next card, no animation
-export const tooltipProps = {
-  isAnimationActive: false,
-  wrapperStyle: { zIndex: 'var(--mantine-z-index-popover)' },
-};
+// Room for the y axis labels on the left and the x axis labels at the bottom
+export const graphMargin = { top: 8, right: 6, bottom: 24, left: 48 };

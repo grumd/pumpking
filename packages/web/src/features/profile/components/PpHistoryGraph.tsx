@@ -1,90 +1,24 @@
-import { Box, Text } from '@mantine/core';
-import { useMemo } from 'react';
 import { useParams } from 'react-router';
-import {
-  CartesianGrid,
-  Line,
-  LineChart,
-  Tooltip as RechartsTooltip,
-  ResponsiveContainer,
-  XAxis,
-  YAxis,
-} from 'recharts';
 
-import { KeyValueList } from 'components/KeyValueList/KeyValueList';
+import { EmptyState } from 'components/EmptyState/EmptyState';
 
 import { useLanguage } from 'utils/context/translation';
 
-import { usePlayerPpHistory } from '../hooks/usePlayerPpHistory';
-import { GraphTooltip } from './GraphTooltip';
-import { axisProps, tooltipProps } from './graphAxis';
+import { usePpHistorySeries } from '../hooks/usePpHistorySeries';
+import { TimeSeriesGraph } from './TimeSeriesGraph';
 
 export const PpHistoryGraph = () => {
   const params = useParams();
   const lang = useLanguage();
-  const { data } = usePlayerPpHistory({
-    playerId: params.id ? Number(params.id) : undefined,
-  });
+  const playerId = params.id ? Number(params.id) : undefined;
+  const series = usePpHistorySeries({ playerId });
 
-  const graphData = useMemo(
-    () =>
-      data?.history.map((x) => ({
-        date: new Date(x.date).getTime(),
-        pp: x.pp,
-      })),
-    [data?.history]
-  );
-
-  if (!graphData) {
+  if (!series) {
     return null;
   }
+  if (!series.pp.data.length) {
+    return <EmptyState>{lang.NOTHING_FOUND}</EmptyState>;
+  }
 
-  return (
-    // Axis ticks and the legend in the caption size
-    <Box fz="xs">
-      <ResponsiveContainer aspect={1.6}>
-        <LineChart data={graphData} margin={{ top: 5, bottom: 5, right: 5, left: 0 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="var(--pk-graph-grid)" />
-          <XAxis
-            dataKey="date"
-            {...axisProps}
-            type="number"
-            domain={['dataMin', 'dataMax']}
-            tickFormatter={(value) => new Date(value).toLocaleDateString()}
-          />
-          <YAxis
-            allowDecimals={false}
-            domain={([dataMin, dataMax]) => [Math.max(0, dataMin - 100), dataMax + 100]}
-            tickFormatter={(x) => `${Math.round(x)}`}
-            width={48}
-            {...axisProps}
-          />
-          <RechartsTooltip
-            {...tooltipProps}
-            content={({ payload }) => {
-              if (!payload || !payload[0]) {
-                return null;
-              }
-              return (
-                <GraphTooltip>
-                  <Text size="sm" c="dimmed">
-                    {new Date(payload[0].payload.date).toLocaleDateString()}
-                  </Text>
-                  <KeyValueList items={[{ label: lang.PP, value: payload[0].value }]} />
-                </GraphTooltip>
-              );
-            }}
-          />
-          <Line
-            type="monotone"
-            isAnimationActive={false}
-            dataKey="pp"
-            stroke="var(--mantine-color-accent-filled)"
-            strokeWidth={3}
-            dot={false}
-          />
-        </LineChart>
-      </ResponsiveContainer>
-    </Box>
-  );
+  return <TimeSeriesGraph key={playerId} series={[series.pp]} />;
 };
