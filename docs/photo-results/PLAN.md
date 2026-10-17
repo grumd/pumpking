@@ -7,16 +7,16 @@ Status: research and design done 2026-10-17 · S1–S4 built 2026-10-17, not rel
 Start a new session here: this section says where the work stands and what
 comes next. The rest of the document is the design it follows.
 
-| Step | State |
-|---|---|
-| Research: models, prices, accuracy, checks | Done 2026-10-17 (see "What the research found") |
-| S1 shared code into `database` / `utils` | Done 2026-10-17 |
-| S2 migration: photo hash, OCR cost | Done 2026-10-17 (`20261017100000_add_photo_results`) |
-| S3 API: reader, decision, endpoints | Done 2026-10-17, tests in `photoResults.test.ts` |
-| S4 web: batch page and queue | Done 2026-10-17 (`features/add-results`); not tried with real reads yet |
-| S5 small real-photo check before release | Not started |
+| Step                                        | State                                                                                                                                                                                  |
+| ------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Research: models, prices, accuracy, checks  | Done 2026-10-17 (see "What the research found")                                                                                                                                        |
+| S1 shared code into `database` / `utils`    | Done 2026-10-17                                                                                                                                                                        |
+| S2 migration: photo hash, OCR cost          | Done 2026-10-17 (`20261017100000_add_photo_results`)                                                                                                                                   |
+| S3 API: reader, decision, endpoints         | Done 2026-10-17, tests in `photoResults.test.ts`                                                                                                                                       |
+| S4 web: batch page and queue                | Done 2026-10-17 (`features/add-results`); not tried with real reads yet                                                                                                                |
+| S5 small real-photo check before release    | Not started                                                                                                                                                                            |
 | S6 remove the old crop OCR, drop `openai_*` | Code removed 2026-10-17 with the chart page's "Add result". Left: a held-back migration dropping `players.openai_*` after this ships. **Deadline:** `gpt-5-mini` shuts down 2026-12-11 |
-| Cost limits, single-photo review | Done 2026-10-17 (see "Cost limits", "Single photo") |
+| Cost limits, single-photo review            | Done 2026-10-17 (see "Cost limits", "Single photo")                                                                                                                                    |
 
 Before release: S5, and `OPENROUTER_API_KEY` in prod's `~/pumpking/shared/api.env` (`OPENAI_API_KEY` can go).
 
@@ -62,7 +62,7 @@ Today's flow (pick a chart first, draw a box around the numbers, type the grade,
 - **XX and earlier:** A and B in parallel. Save only when both pass the checks
   and agree on chart, the six counters, score, grade, broken grade and mod. When
   they don't, C = `openai/gpt-6-luna` (a third vendor, `reasoning: { enabled:
-  false }`) reads the photo, and two reads that both pass and agree save it
+false }`) reads the photo, and two reads that both pass and agree save it
   (added 2026-10-17, see "XX: shifted number column and a third reader").
   Otherwise pause on the fields where the reads aren't unanimous, starting from a
   read that passes every check if there is one. Counters that every read agrees on
@@ -116,15 +116,15 @@ phone photos: 1024px 12/14 right, 2048px 14/14, full 12MP 10/14 at 4× the cost
 
 **Models, XX prod set (181) and phone set (14):**
 
-| Model | Price | XX counters + combo right | Phone right | $/photo |
-|---|---|---|---|---|
-| Gemini 3.5 Flash-Lite | 0.30 / 2.50 | 177/181 | 13/14 | 0.00076 |
-| Claude Haiku 5.5 | 0.10 / 0.50 | 177/181 | 13/14 | 0.00055 |
-| Gemini 3.1 Flash-Lite | 0.25 / 1.50 | 174/181 | 13/14 | 0.00057 |
-| gpt-6-luna | 0.10 / 0.50 | 164/181 | 14/14 | 0.00042 |
-| Gemini 2.5 Flash-Lite | 0.10 / 0.40 | 170/181 | 13/14 | 0.00032 |
-| Qwen 3.8 Flash, GLM-5.3 Flash | ~0.15 / 0.5 | 159, 151 | 10, 14 | ~0.0005 |
-| Nemotron 3.5 VL, Mistral Small 4 | | broken (shifted columns, errors) | | |
+| Model                            | Price       | XX counters + combo right        | Phone right | $/photo |
+| -------------------------------- | ----------- | -------------------------------- | ----------- | ------- |
+| Gemini 3.5 Flash-Lite            | 0.30 / 2.50 | 177/181                          | 13/14       | 0.00076 |
+| Claude Haiku 5.5                 | 0.10 / 0.50 | 177/181                          | 13/14       | 0.00055 |
+| Gemini 3.1 Flash-Lite            | 0.25 / 1.50 | 174/181                          | 13/14       | 0.00057 |
+| gpt-6-luna                       | 0.10 / 0.50 | 164/181                          | 14/14       | 0.00042 |
+| Gemini 2.5 Flash-Lite            | 0.10 / 0.40 | 170/181                          | 13/14       | 0.00032 |
+| Qwen 3.8 Flash, GLM-5.3 Flash    | ~0.15 / 0.5 | 159, 151                         | 10, 14      | ~0.0005 |
+| Nemotron 3.5 VL, Mistral Small 4 |             | broken (shifted columns, errors) |             |         |
 
 - Two different models agreeing (XX prod set): Gemini 3.1 FL + 3.5 FL saved
   85% with 0 wrong, Haiku + Gemini 3.5 FL 82% with 0 wrong. A single read let
@@ -144,12 +144,12 @@ phone photos: 1024px 12/14 right, 2048px 14/14, full 12MP 10/14 at 4× the cost
 **What the checks catch** (simulated over 19,856 real Phoenix results, every
 possible misread):
 
-| Misread | Passes score check + exact step count |
-|---|---|
-| 1 wrong digit in a counter (3.4M cases) | 0 |
-| 2 wrong digits in two counters (12.4M cases) | 0 |
-| 1 wrong digit, score check only | 0.03% |
-| 1 wrong digit, step count only (XX) | 14% |
+| Misread                                      | Passes score check + exact step count |
+| -------------------------------------------- | ------------------------------------- |
+| 1 wrong digit in a counter (3.4M cases)      | 0                                     |
+| 2 wrong digits in two counters (12.4M cases) | 0                                     |
+| 1 wrong digit, score check only              | 0.03%                                 |
+| 1 wrong digit, step count only (XX)          | 14%                                   |
 
 So for Phoenix the score check plus an exact step count is the guarantee. For
 XX the exact step count catches any single misread among the five judgements;
@@ -166,11 +166,11 @@ right. The XX counters line now anchors on the calories (the only number with a 
 point, at the bottom) and counts up from it; Phoenix keeps the tested wording. Telling the
 models realistic sizes of the values didn't help: Haiku still wrote a 7-digit max combo.
 
-| 20 XX photos (13 that Gemini + Haiku didn't save, 7 that they did) | Old prompt | New prompt |
-|---|---|---|
-| Fully right: Gemini / Haiku / luna | 13 / 13 / 14 | 13 / 15 / 15 |
-| Gemini + Haiku saved (wrong) | 7 (0) | 9 (0) |
-| With luna as tie-breaker, two reads agree and pass (wrong) | 14 (0) | 14 (0) |
+| 20 XX photos (13 that Gemini + Haiku didn't save, 7 that they did) | Old prompt   | New prompt   |
+| ------------------------------------------------------------------ | ------------ | ------------ |
+| Fully right: Gemini / Haiku / luna                                 | 13 / 13 / 14 | 13 / 15 / 15 |
+| Gemini + Haiku saved (wrong)                                       | 7 (0)        | 9 (0)        |
+| With luna as tie-breaker, two reads agree and pass (wrong)         | 14 (0)       | 14 (0)       |
 
 On all 181 XX photos (old prompt, saved reads, no new calls) luna as a tie-breaker raised the
 saves from 168 to 175 with none wrong, reading 13 photos ($0.0058). The one "wrong" save,
@@ -181,15 +181,27 @@ majority is not safe: on one photo Haiku and luna made the same row-shift misrea
 Phoenix, Phoenix 2), so a small model only reads about its own screen. On 14 photos with a
 known pass (6 XX with 3 failed, 8 Phoenix with 5 failed), pass / fail reads right:
 
-| | Old: "cracked or shattered" | Color only, no cracks | No color, grey / silver-white, usually cracked |
-|---|---|---|---|
-| Phoenix, Gemini / Haiku (from the plate) | 8/8, 8/8 | 8/8, 8/8 | 8/8, 8/8 |
-| XX: Gemini / Haiku / luna | 6/6, 5/6, 3/6 | 6/6, 3/6, 3/6 | 6/6, 4/6, 6/6 |
+|                                          | Old: "cracked or shattered" | Color only, no cracks | No color, grey / silver-white, usually cracked |
+| ---------------------------------------- | --------------------------- | --------------------- | ---------------------------------------------- |
+| Phoenix, Gemini / Haiku (from the plate) | 8/8, 8/8                    | 8/8, 8/8              | 8/8, 8/8                                       |
+| XX: Gemini / Haiku / luna                | 6/6, 5/6, 3/6               | 6/6, 3/6, 3/6         | 6/6, 4/6, 6/6                                  |
 
 In these photos a failed grade is light silver-grey with dark cracks, not dark grey, and a
 color-only description made it worse. Phoenix takes the pass from the plate alone (16/16):
 the models' answers about the grade's color were unreliable, so they aren't asked. A wrong
 "passed" was the only kind of mistake; no read called a passed stage failed.
+
+A wider XX run (2026-10-18): Setsuna Trip D23, an A with very thin cracks, plus 32 photos
+from the 181 (all 17 failed, 15 passed: 5 SSS, 4 SS, 3 S, 3 A+). Wrong reads of the 17 fails:
+
+|                                                                                                                     | Gemini | Haiku | luna |
+| ------------------------------------------------------------------------------------------------------------------- | ------ | ----- | ---- |
+| "usually with dark cracks across it"                                                                                | 3      | 10    | 10   |
+| "... thin dark cracks that can be hard to see. A silver-white letter is a failed stage even when you see no cracks" | 1      | 1     | 7    |
+
+Still no passed stage read as failed (45 reads). With luna the weakest on fails, a tie-break
+could still save a fail as a pass (Gemini and luna "passed", Haiku "failed"): XX reads that
+disagree on pass are now always asked, and luna isn't read for that disagreement.
 
 ## Design
 
@@ -201,7 +213,7 @@ Shared by both mixes, all must hold:
   (ingest's normalization and edit distance; tolerance up to 25% of the name's
   length), then the chart instances of those tracks in the mix whose label
   equals the read label (`D19`) and whose **exact** step count (`min_total_steps
-  = max_total_steps`) equals perfect + great + good + bad + miss. Exactly one
+= max_total_steps`) equals perfect + great + good + bad + miss. Exactly one
   chart, or no match. A step range (e.g. Setsuna Trip D23, 1500–1800) is no
   match.
 - **Step count fallback:** a Phoenix 2 chart without a step count uses the same
@@ -310,10 +322,10 @@ Agreed 2026-10-17. Every paid read is a `photo_reads` row (player, photo hash, c
 read is productive when a result with its hash exists, whether saved automatically or
 typed in after a pause. Before reading, `services/results/photos/limits.ts` checks:
 
-| Limit | Window | Player | Admin |
-|---|---|---|---|
-| Spend on reads with no result | rolling 24 h | $0.03 | $0.30 |
-| All spend | rolling 3 days | $0.50 | $5.00 |
+| Limit                         | Window         | Player | Admin |
+| ----------------------------- | -------------- | ------ | ----- |
+| Spend on reads with no result | rolling 24 h   | $0.03  | $0.30 |
+| All spend                     | rolling 3 days | $0.50  | $5.00 |
 
 A photo found to show a play added before is never read again: its hash goes on that
 result when the result has none (added before this feature or by other means), so its

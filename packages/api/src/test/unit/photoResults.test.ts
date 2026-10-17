@@ -296,6 +296,21 @@ describe('Results from photos', () => {
       );
     });
 
+    it('XX: reads that disagree on pass are asked, whatever the third read says', () => {
+      // Setsuna Trip D23: thin cracks on a silver A, only one reader saw the fail
+      const decision = decide(MIXES.XX, [
+        xx({ stage_failed: false }),
+        xx({ stage_failed: true }),
+        xx({ stage_failed: false }),
+      ]);
+      assert.equal(decision.status, 'needsInput');
+      assert.deepEqual(decision.status === 'needsInput' && decision.fields, ['pass']);
+      assert.equal(
+        decide(MIXES.XX, [xx({ stage_failed: true }), xx({ stage_failed: true })]).status,
+        'confident'
+      );
+    });
+
     // Gargoyle D20: the numbers column a row off its labels, both readers shifted the same way
     const shifted = (read: Partial<PhotoRead> = {}) => xx({ perfect: 50, max_combo: 40, ...read });
 
@@ -507,6 +522,17 @@ describe('Results from photos', () => {
       assert.equal(calls[2], READER_C.model);
       assert.equal(outcome.status === 'saved' && outcome.values.combo, 100);
       assert.closeTo(await getOcrCost(), 0.003, 1e-9);
+    });
+
+    it('XX: no third reader when the two disagree on pass', async () => {
+      const { readPhoto, calls } = stubReader({
+        [READER_A.model]: xxRead({ grade: 'A' }),
+        [READER_B.model]: xxRead({ grade: 'A', stage_failed: true }),
+      });
+      const outcome = await recognizePhoto(input({ mix: 'XX' }), readPhoto);
+      assert.equal(outcome.status, 'needsInput');
+      assert.deepEqual(outcome.status === 'needsInput' && outcome.fields, ['pass']);
+      assert.sameMembers(calls, [READER_A.model, READER_B.model]);
     });
 
     it('a known hash is a duplicate, before anything is read', async () => {
