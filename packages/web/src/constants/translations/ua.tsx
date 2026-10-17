@@ -102,6 +102,7 @@ export const ua = {
   ORIGINAL_SCORE: 'оригінальний скор:',
   ORIGINAL_GRADE: 'оригінальна оцінка:',
   SIGHTREAD: '* сайтрід',
+  NEW_SCORE: 'НОВИЙ',
   MY_BEST_SCORE_WARNING: 'рекорд взято із my best. частина даних недоступна',
   // Other
   BACK_TO_ALL_CHARTS: 'до всіх чартів',

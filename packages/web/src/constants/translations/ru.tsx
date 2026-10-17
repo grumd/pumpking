@@ -102,6 +102,7 @@ export const ru = {
   ORIGINAL_SCORE: 'оригинальный скор:',
   ORIGINAL_GRADE: 'оригинальная оценка:',
   SIGHTREAD: '* сайтрид',
+  NEW_SCORE: 'НОВЫЙ',
   MY_BEST_SCORE_WARNING: 'рекорд взят с my best. часть данных недоступна',
   // Other
   BACK_TO_ALL_CHARTS: 'ко всем чартам',

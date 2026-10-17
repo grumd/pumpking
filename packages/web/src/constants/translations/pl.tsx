@@ -110,6 +110,7 @@ export const pl: BaseTranslation = {
   ORIGINAL_SCORE: 'oryginalny wynik:',
   ORIGINAL_GRADE: 'oryginalna ocena:',
   SIGHTREAD: '* sightread',
+  NEW_SCORE: 'NOWY',
 
   // Other
   MY_BEST_SCORE_WARNING: 'Dokładna data uzyskania wyniku nie jest znana',

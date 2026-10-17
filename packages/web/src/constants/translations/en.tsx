@@ -108,6 +108,7 @@ export const en = {
   ORIGINAL_SCORE: 'original score:',
   ORIGINAL_GRADE: 'original grade:',
   SIGHTREAD: '* sightread',
+  NEW_SCORE: 'NEW',
 
   // Other
   MY_BEST_SCORE_WARNING: 'Exact date when score was achieved is not known',

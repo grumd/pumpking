@@ -83,7 +83,6 @@ export default function DesignSystem(): JSX.Element {
             strong text
           </Text>
           <Text c="dimmed">dimmed text</Text>
-          <Text c="fresh">fresh result</Text>
           <TextInput label="input" placeholder="placeholder" />
         </Stack>
       </Card>
@@ -311,7 +310,7 @@ export default function DesignSystem(): JSX.Element {
           <Group gap="xs">
             <Badge color="green">Live</Badge>
             <Badge color="gray">Ended</Badge>
-            <Badge color="orange" size="xs">
+            <Badge color="orange" variant="light" size="xs">
               HJ
             </Badge>
             <Badge color="gold" size="xs">

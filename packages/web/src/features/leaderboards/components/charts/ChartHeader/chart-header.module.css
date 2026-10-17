@@ -11,3 +11,10 @@
 .header {
   row-gap: var(--mantine-spacing-xxs);
 }
+
+/* Phones: the chart card reaches the screen edges, the header keeps a gap from them */
+@mixin smaller-than $mantine-breakpoint-sm {
+  .header {
+    padding-inline: var(--mantine-spacing-xxs);
+  }
+}
