@@ -1,8 +1,8 @@
+import { createRegistrationToken } from './googleLogin';
 import { db } from '@pumpking/database/db';
 import createDebug from 'debug';
 import { StatusError } from 'utils/errors';
 import { generateSessionId } from 'utils/session';
-import { createRegistrationToken } from './googleLogin';
 
 const debug = createDebug('backend-ts:auth');
 
@@ -25,7 +25,10 @@ interface DiscordUser {
   verified?: boolean;
 }
 
-async function exchangeCodeForToken(code: string, redirectUri: string): Promise<DiscordTokenResponse> {
+async function exchangeCodeForToken(
+  code: string,
+  redirectUri: string
+): Promise<DiscordTokenResponse> {
   if (!DISCORD_CLIENT_ID || !DISCORD_CLIENT_SECRET) {
     throw new StatusError(500, 'Discord OAuth is not configured');
   }
@@ -77,7 +80,10 @@ export async function loginWithDiscordCode(
   const discordUser = await getDiscordUser(tokenData.access_token);
 
   if (!discordUser.email) {
-    throw new StatusError(400, 'No email associated with Discord account. Please use an account with a verified email.');
+    throw new StatusError(
+      400,
+      'No email associated with Discord account. Please use an account with a verified email.'
+    );
   }
 
   if (!discordUser.verified) {
@@ -144,7 +150,10 @@ export async function getDiscordRegistrationToken(
   const discordUser = await getDiscordUser(tokenData.access_token);
 
   if (!discordUser.email) {
-    throw new StatusError(400, 'No email associated with Discord account. Please use an account with a verified email.');
+    throw new StatusError(
+      400,
+      'No email associated with Discord account. Please use an account with a verified email.'
+    );
   }
 
   if (!discordUser.verified) {

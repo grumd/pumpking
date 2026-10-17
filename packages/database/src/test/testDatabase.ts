@@ -1,11 +1,10 @@
-import { exec, type ExecException } from 'child_process';
-
-import createDebug from 'debug';
-const debug = createDebug('backend-ts:test:database-setup');
-
 import { db } from '../db';
 import { requireEnv } from '../env';
 import { createMigrator, migrateToLatest } from '../migrator';
+import { exec, type ExecException } from 'child_process';
+import createDebug from 'debug';
+
+const debug = createDebug('backend-ts:test:database-setup');
 
 const runCommand = (command: string): Promise<string> => {
   return new Promise((res, rej) => {

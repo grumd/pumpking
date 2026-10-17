@@ -1,7 +1,6 @@
+import type { FileField } from './fileUpload';
 import type * as express from 'express';
 import type * as core from 'express-serve-static-core';
-
-import type { FileField } from './fileUpload';
 
 declare module 'express' {
   interface Request<

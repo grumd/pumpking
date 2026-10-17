@@ -24,8 +24,8 @@ import { appColors, gradeColorVar, gradeColors, highlightColors, pageWidths } fr
 import { Card } from 'components/Card/Card';
 import { ChartLabel } from 'components/ChartLabel/ChartLabel';
 import { EmptyState } from 'components/EmptyState/EmptyState';
-import { Grade, type GradeVariant } from 'components/Grade/Grade';
 import { ErrorAlert } from 'components/ErrorAlert/ErrorAlert';
+import { Grade, type GradeVariant } from 'components/Grade/Grade';
 import { KeyValueList } from 'components/KeyValueList/KeyValueList';
 import Loader from 'components/Loader/Loader';
 import { PageContainer } from 'components/PageContainer/PageContainer';

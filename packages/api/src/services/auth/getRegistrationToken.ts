@@ -1,8 +1,8 @@
+import { createRegistrationToken } from './googleLogin';
 import { db } from '@pumpking/database/db';
 import createDebug from 'debug';
 import { OAuth2Client } from 'google-auth-library';
 import { StatusError } from 'utils/errors';
-import { createRegistrationToken } from './googleLogin';
 
 const debug = createDebug('backend-ts:auth');
 

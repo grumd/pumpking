@@ -1,7 +1,6 @@
-import minimist from 'minimist';
-import { NO_MIGRATIONS } from 'kysely';
-
 import { db, migrator } from './db';
+import { NO_MIGRATIONS } from 'kysely';
+import minimist from 'minimist';
 
 async function rollback() {
   const args = minimist(process.argv.slice(2));

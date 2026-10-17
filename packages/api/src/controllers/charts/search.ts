@@ -1,6 +1,5 @@
-import _ from 'lodash/fp';
 import type { Response, Request, NextFunction } from 'express';
-
+import _ from 'lodash/fp';
 import { searchCharts } from 'services/charts/chartsSearch';
 
 export const searchChartsController = async (

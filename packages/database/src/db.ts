@@ -1,7 +1,7 @@
-import { createPool } from 'mysql2';
-import { Kysely, MysqlDialect, Transaction as ITransaction } from 'kysely';
 import type { DB } from './database';
 import { requireEnv } from './env';
+import { Kysely, MysqlDialect, Transaction as ITransaction } from 'kysely';
+import { createPool } from 'mysql2';
 
 const dialect = new MysqlDialect({
   // Created on the first query, so a missing variable fails there with a clear error

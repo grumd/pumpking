@@ -1,5 +1,16 @@
 import { Box, Text } from '@mantine/core';
-import { Axis, Brush, ClipPath, Curve, Event, Gradient, Grid, Group, Scale, Shape } from '@visx/visx';
+import {
+  Axis,
+  Brush,
+  ClipPath,
+  Curve,
+  Event,
+  Gradient,
+  Grid,
+  Group,
+  Scale,
+  Shape,
+} from '@visx/visx';
 import { type PointerEvent, type ReactNode, useId, useMemo, useState } from 'react';
 
 import { KeyValueList } from 'components/KeyValueList/KeyValueList';

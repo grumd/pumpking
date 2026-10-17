@@ -1,6 +1,6 @@
 import { spawn } from 'child_process';
-import ffmpegStatic from 'ffmpeg-static';
 import concat from 'concat-stream';
+import ffmpegStatic from 'ffmpeg-static';
 
 export const getFirstFrameFromMp4 = (
   filePath: string,

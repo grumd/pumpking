@@ -38,7 +38,9 @@ const GradesGraph = () => {
 
   const getPercent = (root: Root, key: (typeof gradeKeys)[number]) => {
     const type = keyType(key);
-    return ((type === 'D' ? -100 : 100) * (root.byTypeGrade[key] ?? 0)) / root.totalChartsByType[type];
+    return (
+      ((type === 'D' ? -100 : 100) * (root.byTypeGrade[key] ?? 0)) / root.totalChartsByType[type]
+    );
   };
 
   const renderTooltip = (root: Root) => {

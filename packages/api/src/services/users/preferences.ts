@@ -1,5 +1,5 @@
-import { db } from '@pumpking/database/db';
 import { PlayerPreferencesJson } from '@pumpking/database/database';
+import { db } from '@pumpking/database/db';
 
 export const updatePreferences = async (
   userId: number,

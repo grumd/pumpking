@@ -1,7 +1,6 @@
-import Validator from 'validatorjs';
-import type { Response, Request, NextFunction } from 'express';
-
 import { StatusError } from './errors';
+import type { Response, Request, NextFunction } from 'express';
+import Validator from 'validatorjs';
 
 export function error<T>(status: number, message: string, data?: T): StatusError<T> {
   return new StatusError<T>(status, message, data);

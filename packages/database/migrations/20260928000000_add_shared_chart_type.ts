@@ -28,9 +28,7 @@ export async function up(db: Kysely<any>): Promise<void> {
   }
 
   // Nullable first so the ALTER works on non-empty tables, then backfill and enforce.
-  await sql`ALTER TABLE shared_charts ADD COLUMN type ENUM('S','D','HD','COOP') NULL`.execute(
-    db
-  );
+  await sql`ALTER TABLE shared_charts ADD COLUMN type ENUM('S','D','HD','COOP') NULL`.execute(db);
   // Latest-mix label -> type. The experimental pre-Prime families resolve to the
   // modern family the way prod does: HD-x/CZ-x/NL-x(a) -> S, FS-x(a)/NM-x(a) -> D,
   // Dp/Sp keep their family, and the (xN) co-op placeholders are COOP.
