@@ -60,8 +60,13 @@ Today's flow (pick a chart first, draw a box around the numbers, type the grade,
   passes, save. If both fail, pause and show the fields where A and B differ; if
   they agree on everything and still fail, show all seven numbers.
 - **XX and earlier:** A and B in parallel. Save only when both pass the checks
-  and agree on chart, the six counters, score, grade, broken grade and mod.
-  Otherwise pause on the fields where they differ.
+  and agree on chart, the six counters, score, grade, broken grade and mod. When
+  they don't, C = `openai/gpt-6-luna` (a third vendor, `reasoning: { enabled:
+  false }`) reads the photo, and two reads that both pass and agree save it
+  (added 2026-10-17, see "XX: shifted number column and a third reader").
+  Otherwise pause on the fields where the reads aren't unanimous, starting from a
+  read that passes every check if there is one. Counters that every read agrees on
+  but that miss a known step count are asked too.
 - **Song and chart are always detected**, never picked by the user up front. No
   unique song + chart whose exact step count equals the counters' total means
   the photo goes to manual input (chart picker plus the doubtful fields).
