@@ -66,7 +66,13 @@ Today's flow (pick a chart first, draw a box around the numbers, type the grade,
   (added 2026-10-17, see "XX: shifted number column and a third reader").
   Otherwise pause on the fields where the reads aren't unanimous, starting from a
   read that passes every check if there is one. Counters that every read agrees on
-  but that miss a known step count are asked too.
+  but that miss a known step count are asked too. Two reads that differ in one
+  judgement only also save, when one of them matches the chart's exact step count:
+  with the other four agreed, only one value fits (a "1" read as a "7"). On the 181
+  XX photos this takes Gemini + Haiku from 168 to 172 saves and, with luna, from 175
+  to 177 (luna read 9 times instead of 13), none wrong. Charts are compared by title
+  and label, so a read whose counters miss the step count doesn't make the chart
+  look disputed.
 - **Song and chart are always detected**, never picked by the user up front. No
   unique song + chart whose exact step count equals the counters' total means
   the photo goes to manual input (chart picker plus the doubtful fields).

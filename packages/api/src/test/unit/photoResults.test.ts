@@ -303,13 +303,33 @@ describe('Results from photos', () => {
       const decision = decide(MIXES.XX, [shifted(), shifted({ max_combo: 45 }), xx()]);
       assert.equal(decision.status, 'needsInput');
       if (decision.status !== 'needsInput') return;
-      assert.deepEqual(decision.fields, ['chart', 'perfect', 'combo']);
+      // All three reads point to the same chart by title and label: it isn't asked
+      assert.deepEqual(decision.fields, ['perfect', 'combo']);
       assert.equal(decision.values?.perfect, 95);
       assert.equal(decision.chart?.sharedChartId, 1);
       assert.deepEqual(
         decision.readValues.map((values) => values.combo),
         [40, 45, 100]
       );
+    });
+
+    it('XX: one judgement the reads differ on is settled by the step count', () => {
+      // District 1 D17: a "1" read as a "7" makes 6 steps too many
+      const decision = decide(MIXES.XX, [xx({ great: 11 }), xx()]);
+      assert.equal(decision.status, 'confident');
+      assert.equal(decision.status === 'confident' && decision.values.great, 5);
+      // Also against the majority: two reads with the "7" and one with the "1"
+      assert.equal(
+        decide(MIXES.XX, [xx({ great: 11 }), xx({ great: 11 }), xx()]).status,
+        'confident'
+      );
+    });
+
+    it('XX: the step count settles nothing when the reads differ in more than one field', () => {
+      // Combo and score have no arithmetic to settle them
+      assert.equal(decide(MIXES.XX, [xx({ great: 11, max_combo: 99 }), xx()]).status, 'needsInput');
+      // Two misread judgements could cancel out
+      assert.equal(decide(MIXES.XX, [xx({ great: 11, good: 1 }), xx()]).status, 'needsInput');
     });
 
     it('XX: reads that disagree on max combo, grade or mod are asked about', () => {
@@ -453,6 +473,17 @@ describe('Results from photos', () => {
       if (outcome.status !== 'saved') return;
       // A pass A is stored as A+
       assert.equal((await getResult(outcome.resultId)).grade, 'A+');
+    });
+
+    it('XX: no third reader when the step count settles the read', async () => {
+      const { readPhoto, calls } = stubReader({
+        [READER_A.model]: xxRead({ grade: 'A', great: 11 }),
+        [READER_B.model]: xxRead({ grade: 'A' }),
+      });
+      const outcome = await recognizePhoto(input({ mix: 'XX' }), readPhoto);
+      assert.equal(outcome.status, 'saved');
+      assert.equal(outcome.status === 'saved' && outcome.values.great, 5);
+      assert.sameMembers(calls, [READER_A.model, READER_B.model]);
     });
 
     it('XX: a third reader breaks the tie when the two disagree', async () => {
