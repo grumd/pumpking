@@ -2,12 +2,9 @@ import { ActionIcon, Box, Table } from '@mantine/core';
 import { useAtomValue } from 'jotai';
 import _ from 'lodash/fp';
 import { Fragment, memo, useState } from 'react';
-import { FaGlobeAmericas, FaPlusCircle } from 'react-icons/fa';
-import { NavLink } from 'react-router-dom';
+import { FaGlobeAmericas } from 'react-icons/fa';
 
 import { Card } from 'components/Card/Card';
-
-import { routes } from 'constants/routes';
 
 import { filterAtom } from 'features/leaderboards/hooks/useFilter';
 import { useHighlightedPlayerIds } from 'features/leaderboards/hooks/useHighlightedPlayerIds';
@@ -43,7 +40,6 @@ const Chart = memo(function _Chart({ chart }: { chart: ChartApiOutput }) {
   const lang = useLanguage();
   const user = useUser().data;
   const currentPlayerId = user?.id;
-  const canAddResults = user?.can_add_results_manually;
   const filter = useAtomValue(filterAtom);
   const highlightedPlayerIds = useHighlightedPlayerIds();
   const rowSizes = useRowSizes();
@@ -127,17 +123,6 @@ const Chart = memo(function _Chart({ chart }: { chart: ChartApiOutput }) {
     // No padding props: the CSS module sets it, smaller on phones
     <Card className={css.card} p={undefined}>
       <ChartHeader chart={chart}>
-        {canAddResults && (
-          <ActionIcon
-            aria-label={lang.ADD_RESULT}
-            component={NavLink}
-            to={routes.leaderboard.sharedChart.addResult.getPath({
-              sharedChartId: String(chart.id),
-            })}
-          >
-            <FaPlusCircle />
-          </ActionIcon>
-        )}
         {hiddenResultsCount > 0 && (
           <ActionIcon aria-label={lang.SHOW_ALL} onClick={() => setShowHidden(!showHidden)}>
             <FaGlobeAmericas />
