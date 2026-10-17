@@ -81,7 +81,8 @@ const integer = { type: 'integer' };
 const schema = (millionScoring: boolean) => {
   const properties: Record<string, object> = {
     song_title: { type: ['string', 'null'] },
-    chart_type: { type: ['string', 'null'], enum: ['S', 'D', 'COOP', null] },
+    // Anthropic rejects an enum on a type list such as ['string', 'null']
+    chart_type: { anyOf: [{ type: 'string', enum: ['S', 'D', 'COOP'] }, { type: 'null' }] },
     level: { type: ['integer', 'null'] },
     perfect: integer,
     great: integer,
