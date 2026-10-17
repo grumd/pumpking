@@ -19,6 +19,10 @@ const rankDomain = (values: number[]): [number, number] => {
   return [Math.max(top + 2, Math.max(...values) + 1), top];
 };
 
+// Whole numbers only: a place is one, and pp shows no fractions
+const wholeTicks = (scale: Parameters<TimeSeries['yTicks']>[0]) =>
+  scale.ticks(4).filter((x) => Number.isInteger(x));
+
 // The player's pp and ranking place over time, as the series of one graph (null while loading)
 export const usePpHistorySeries = ({ playerId }: { playerId: number | undefined }) => {
   const lang = useLanguage();
@@ -35,7 +39,7 @@ export const usePpHistorySeries = ({ playerId }: { playerId: number | undefined 
       curve: 'smooth',
       area: true,
       yDomain: ppDomain,
-      yTicks: (scale) => scale.ticks(4),
+      yTicks: wholeTicks,
       formatValue: (value) => value,
     };
     const rank: TimeSeries = {
@@ -46,8 +50,7 @@ export const usePpHistorySeries = ({ playerId }: { playerId: number | undefined 
       // Two fills on one graph would muddy each other
       area: false,
       yDomain: rankDomain,
-      // Whole places only
-      yTicks: (scale) => scale.ticks(4).filter((x) => Number.isInteger(x)),
+      yTicks: wholeTicks,
       formatValue: (value) => `#${value}`,
     };
     return { pp, rank };
