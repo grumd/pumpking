@@ -111,6 +111,15 @@ describe('Results from photos', () => {
         MIXES.Phoenix2
       );
       assert.deepEqual(unknownPlate.problems, ['pass']);
+      // Cut off at the edge of the screen: only one plate name fits
+      const cutOff = checkRead(
+        phoenixRead({ plate_text: 'TIMATE GAME' }),
+        [chart()],
+        MIXES.Phoenix2
+      );
+      assert.deepEqual(cutOff.problems, []);
+      const tooShort = checkRead(phoenixRead({ plate_text: 'GAME' }), [chart()], MIXES.Phoenix2);
+      assert.deepEqual(tooShort.problems, ['pass']);
 
       const fail = checkRead(phoenixRead({ plate_text: null }), [chart()], MIXES.Phoenix2);
       assert.deepEqual(fail.problems, []);

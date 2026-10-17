@@ -92,9 +92,17 @@ export const exactStepCount = (chart: ChartCandidate): number | null => {
 
 const normalizeBadge = (badge: string) => badge.toUpperCase().replace(/\s+/g, '');
 
+// A plate cut off at the edge of the screen ("ARVELOUS GAME") still counts when only one
+// plate name contains what is visible
 const plateFromText = (text: string): Plate | undefined => {
   const normalized = text.toUpperCase().replace(/\s+/g, ' ').trim();
-  return (Object.keys(PLATE_NAMES) as Plate[]).find((plate) => PLATE_NAMES[plate] === normalized);
+  const plates = Object.keys(PLATE_NAMES) as Plate[];
+  const exact = plates.find((plate) => PLATE_NAMES[plate] === normalized);
+  if (exact || normalized.length < 5) {
+    return exact;
+  }
+  const containing = plates.filter((plate) => PLATE_NAMES[plate].includes(normalized));
+  return containing.length === 1 ? containing[0] : undefined;
 };
 
 const readValues = (read: PhotoRead, millionScoring: boolean): PhotoValues => {
