@@ -21,6 +21,9 @@ export interface EventPayloads {
   // The tournaments job created a tournament (it is Live from then on) or ended one
   tournamentStarted: { tournamentId: number };
   tournamentEnded: { tournamentId: number };
+  // A player was refused a photo read for going over a cost limit (once per limit and
+  // window). `retryAt` is an ISO time
+  photoLimitReached: { playerId: number; limit: 'unproductive' | 'total'; retryAt: string };
 }
 
 export type EventType = keyof EventPayloads;
