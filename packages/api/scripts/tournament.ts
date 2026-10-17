@@ -1,10 +1,10 @@
 import '../src/envconfig';
-import { db } from '@pumpking/database/db';
 import {
   createTournament,
   currentSiteMonth,
   endTournaments,
 } from '../src/services/tournaments/lifecycle';
+import { db } from '@pumpking/database/db';
 
 // npm run tournament -- create [YYYY-MM]   create the month's tournament (default: current month)
 // npm run tournament -- end                end every Live tournament past its end date

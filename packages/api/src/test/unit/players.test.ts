@@ -1,7 +1,7 @@
 // import createDebug from 'debug';
 // const debug = createDebug('backend-ts:test:players');
-import { assert } from 'chai';
 import { db } from '@pumpking/database/db';
+import { assert } from 'chai';
 import { getPlayersStats } from 'services/players/players';
 import { req } from 'test/helpers';
 import { output, trpcQuery } from 'test/helpers/trpc';
@@ -84,9 +84,7 @@ describe('Players', () => {
       ),
     ];
     assert.isFalse(types.includes('COOP'), 'no COOP entries in the grade stats');
-    const level0 = res.body.totalCounts.filter(
-      (t: { level: number | null }) => t.level === 0
-    );
+    const level0 = res.body.totalCounts.filter((t: { level: number | null }) => t.level === 0);
     assert.isEmpty(level0, 'the level-0 COOP chart is not counted');
   });
 

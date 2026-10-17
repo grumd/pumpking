@@ -1,7 +1,5 @@
 import type { Response, Request, NextFunction } from 'express';
-
 import { getScreenshotPath } from 'services/results/getScreenshot';
-
 import { getFirstFrameFromMp4 } from 'utils/mp4';
 
 export const screenshotController = async (

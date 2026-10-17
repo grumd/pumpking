@@ -1,9 +1,8 @@
-import { Router } from 'express';
-
-import ResultsRouter from './results';
-import PlayersRouter from './players';
-import ChartsRouter from './charts';
 import AdminRouter from './admin';
+import ChartsRouter from './charts';
+import PlayersRouter from './players';
+import ResultsRouter from './results';
+import { Router } from 'express';
 
 const router = Router();
 

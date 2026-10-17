@@ -1,7 +1,6 @@
+import { requireEnv } from '../src/env';
 import { execFileSync } from 'child_process';
 import path from 'path';
-
-import { requireEnv } from '../src/env';
 
 // Introspects the dev DB from packages/database/.env. database.ts is hand-patched where
 // marked HAND-PATCHED: review the diff and re-apply those blocks after a regen
