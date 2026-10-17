@@ -80,6 +80,9 @@ const capturePointer = (event: PointerEvent<SVGGElement>) => {
   }
 };
 
+// A value tick as it is: visx's default pads every label to the precision of 10 ticks ("2.0")
+const formatValueTick = (value: { valueOf(): number }) => Number(value).toLocaleString();
+
 type TooltipData = { date: number; points: Array<TimePoint | undefined> };
 
 /**
@@ -248,6 +251,7 @@ export const TimeSeriesGraph = ({
               <Axis.AxisLeft
                 scale={yScales[0]}
                 tickValues={yTicks[0]}
+                tickFormat={formatValueTick}
                 hideAxisLine
                 hideTicks
                 {...valueAxisProps}
@@ -259,6 +263,7 @@ export const TimeSeriesGraph = ({
                   left={innerWidth}
                   scale={yScales[1]}
                   tickValues={yTicks[1]}
+                  tickFormat={formatValueTick}
                   hideAxisLine
                   hideTicks
                   {...valueAxisProps}
