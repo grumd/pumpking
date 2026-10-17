@@ -301,6 +301,12 @@ typed in after a pause. Before reading, `services/results/photos/limits.ts` chec
 | Spend on reads with no result | rolling 24 h | $0.03 | $0.30 |
 | All spend | rolling 3 days | $0.50 | $5.00 |
 
+A photo found to show a play added before is never read again: its hash goes on that
+result when the result has none (added before this feature or by other means), so its
+reads count as productive; when the result already has another photo's hash, the photo is
+remembered in `photo_reads.duplicate_result_id` and its reads still count as spend without
+a result. Running the same batch again reads none of these photos.
+
 Over a limit, the photo is `limited` with the time the oldest spend leaves the window
 enough to be under it again; the web says when the player can upload more, and offers
 "Enter by hand" (free, still with the photo). The first refusal of a limit within its
