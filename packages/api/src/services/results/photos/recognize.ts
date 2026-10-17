@@ -14,13 +14,14 @@ import {
   READER_B,
   READER_C,
   type PhotoImage,
+  type PhotoMix,
   type PhotoRead,
   type ReadPhoto,
   type Reader,
 } from './reader';
 import { db } from '@pumpking/database/db';
 import { findChartInstances, findTracks } from '@pumpking/database/tracks';
-import { isMillionScoringMix, MIXES, type MixName } from '@pumpking/utils/mixes';
+import { isMillionScoringMix, MIXES } from '@pumpking/utils/mixes';
 import createDebug from 'debug';
 import { sql } from 'kysely';
 import {
@@ -47,7 +48,7 @@ export interface PhotoInput {
   isAdmin: boolean;
   // Off for a single photo: it is read and checked, then the user confirms it
   autoSave: boolean;
-  mix: MixName;
+  mix: PhotoMix;
   // The photo sent to the readers (2048px), and the copy that is stored with the result
   image: PhotoImage;
   screenshotPath: string;
@@ -209,7 +210,7 @@ export const recognizePhoto = async (
   // A reader that fails (after its retry) or answers with invalid JSON reads nothing
   const readAndCheck = async (reader: Reader) => {
     try {
-      const result = await readPhoto(reader, input.image, { millionScoring });
+      const result = await readPhoto(reader, input.image, input.mix);
       cost += result.cost;
       await addPhotoRead(input.playerId, input.hash, result.cost);
       if (!result.read) {
