@@ -49,7 +49,35 @@ interface ManualResult {
   isExactDate: boolean;
   sharedChartId: number;
   pass: boolean;
+  // SHA-256 of the photo the result was read from (results/photos)
+  photoHash?: string;
 }
+
+/** The result added from this photo, if there is one */
+export const findPhotoResult = (photoHash: string) =>
+  db.selectFrom('results').select('id').where('photo_sha256', '=', photoHash).executeTakeFirst();
+
+/**
+ * The same play added before: a result of the player on the chart with the same judgements
+ * and max combo (a second photo of the same screen)
+ */
+export const findSamePlay = (
+  playerId: number,
+  sharedChartId: number,
+  stats: Pick<ManualResult, 'perfect' | 'great' | 'good' | 'bad' | 'miss' | 'combo'>
+) =>
+  db
+    .selectFrom('results')
+    .select('id')
+    .where('player_id', '=', playerId)
+    .where('shared_chart', '=', sharedChartId)
+    .where('perfects', '=', stats.perfect)
+    .where('greats', '=', stats.great)
+    .where('goods', '=', stats.good)
+    .where('bads', '=', stats.bad)
+    .where('misses', '=', stats.miss)
+    .where('max_combo', '=', stats.combo)
+    .executeTakeFirst();
 
 export const addResult = async (userId: number, result: ManualResult) => {
   if (userId !== result.playerId) {
@@ -110,6 +138,13 @@ export const addResult = async (userId: number, result: ManualResult) => {
   const scoreError = getScoreError(result, chartInstance);
   if (scoreError) {
     throw error(400, `Bad Request: ${scoreError}`);
+  }
+
+  if (result.photoHash && (await findPhotoResult(result.photoHash))) {
+    throw error(409, 'Conflict: This photo was already added');
+  }
+  if (await findSamePlay(result.playerId, result.sharedChartId, result)) {
+    throw error(409, 'Conflict: This result was already added');
   }
 
   // Score is valid, add it to the database
@@ -182,6 +217,7 @@ export const addResult = async (userId: number, result: ManualResult) => {
         is_new_best_score: !maxScoreResult || result.score > (maxScoreResult.maxScore ?? 0) ? 1 : 0,
         is_manual_input: 1,
         is_pass: result.pass ? 1 : 0,
+        photo_sha256: result.photoHash ?? null,
       })
       .executeTakeFirst();
 
@@ -195,6 +231,7 @@ export const addResult = async (userId: number, result: ManualResult) => {
   });
 
   debug('Manually added a new result id ', resultId);
+  return resultId;
 };
 
 const getScoreError = (

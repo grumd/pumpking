@@ -1,3 +1,4 @@
+import { photoHash } from './photos';
 import { MIX_NAMES } from '@pumpking/utils/mixes';
 import { addResult } from 'services/results/addResult';
 import { addResultProcedure } from 'trpc/trpc';
@@ -27,15 +28,18 @@ export const addResultMutation = addResultProcedure
       isExactDate: z.boolean(),
       sharedChartId: z.number(),
       pass: z.boolean(),
+      // When the result was read from a photo (recognizePhotoMutation)
+      photoHash: photoHash.optional(),
     })
   )
   .mutation(async ({ ctx, input }) => {
     if (!ctx.user) {
       throw new Error('Not logged in');
     }
-    await addResult(ctx.user.id, {
+    const resultId = await addResult(ctx.user.id, {
       ...input,
       screenshotTempPath: input.screenshot.filePath,
     });
     await input.screenshot.dispose();
+    return { resultId };
   });
