@@ -148,6 +148,24 @@ Do **not** auto-fix a failed read by changing one digit until the checks pass:
 on one photo that changed max combo to fit a misread score (max combo barely
 moves the Phoenix score).
 
+**XX: shifted number column and a third reader** (2026-10-17, after the build). On XX the
+numbers column is often a whole row off its labels. On such a photo (Gargoyle D20) Gemini
+and Haiku both paired numbers by row and agreed on five wrong counters; `gpt-6-luna` read it
+right. The XX counters line now anchors on the calories (the only number with a decimal
+point, at the bottom) and counts up from it; Phoenix keeps the tested wording. Telling the
+models realistic sizes of the values didn't help: Haiku still wrote a 7-digit max combo.
+
+| 20 XX photos (13 that Gemini + Haiku didn't save, 7 that they did) | Old prompt | New prompt |
+|---|---|---|
+| Fully right: Gemini / Haiku / luna | 13 / 13 / 14 | 13 / 15 / 15 |
+| Gemini + Haiku saved (wrong) | 7 (0) | 9 (0) |
+| With luna as tie-breaker, two reads agree and pass (wrong) | 14 (0) | 14 (0) |
+
+On all 181 XX photos (old prompt, saved reads, no new calls) luna as a tie-breaker raised the
+saves from 168 to 175 with none wrong, reading 13 photos ($0.0058). The one "wrong" save,
+result 215339, is a prod typo: the photo shows 2151600, prod has 2125600. A field-by-field
+majority is not safe: on one photo Haiku and luna made the same row-shift misread.
+
 ## Design
 
 ### Checks for a read
