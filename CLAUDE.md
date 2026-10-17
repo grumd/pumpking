@@ -85,6 +85,8 @@ APP_PORT=3001
 SCREENSHOT_BASE_FOLDER=~/screenshots
 # Optional, where ingest runs (this is the default)
 INGEST_URL=http://127.0.0.1:3002
+# Reads results from photos (docs/photo-results/PLAN.md), never print it
+OPENROUTER_API_KEY=
 ```
 
 **Ingest** (`packages/ingest/.env`, optional `APP_PORT`):
