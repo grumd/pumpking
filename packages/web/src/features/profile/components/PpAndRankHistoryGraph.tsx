@@ -12,7 +12,7 @@ export const PpAndRankHistoryGraph = () => {
   const params = useParams();
   const lang = useLanguage();
   const playerId = params.id ? Number(params.id) : undefined;
-  const series = usePpHistorySeries({ playerId, rankColor: 'var(--pk-graph-second)' });
+  const series = usePpHistorySeries({ playerId });
 
   if (!series) {
     return null;
@@ -25,8 +25,7 @@ export const PpAndRankHistoryGraph = () => {
   return (
     <TimeSeriesGraph
       key={playerId}
-      // Taller than one line's graph: two lines, and as tall as the grades next to it
-      aspect={0.9}
+      aspect={1.6}
       series={pp.data.length && rank.data.length ? [pp, rank] : [pp.data.length ? pp : rank]}
     />
   );

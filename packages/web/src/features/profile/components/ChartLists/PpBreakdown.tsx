@@ -14,8 +14,7 @@ import { useLanguage } from 'utils/context/translation';
 import { api } from 'utils/trpc';
 
 import { FadingDate } from './FadingDate';
-
-const pageSize = 20;
+import { pageOptions, ppBreakdownInput } from './listQueries';
 
 // The charts that make up the total pp, by how much each one adds after the age factor
 // and the weight of its place
@@ -23,8 +22,8 @@ export const PpBreakdown = (): JSX.Element => {
   const params = useParams();
   const charts = useInfiniteQuery(
     api.players.ppBreakdown.infiniteQueryOptions(
-      { playerId: params.id ? Number(params.id) : undefined, pageSize },
-      { getNextPageParam: (lastPage) => lastPage.nextCursor, initialCursor: 0 }
+      ppBreakdownInput(params.id ? Number(params.id) : undefined),
+      pageOptions
     )
   );
   const lang = useLanguage();

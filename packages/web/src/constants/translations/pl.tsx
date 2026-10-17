@@ -178,13 +178,12 @@ export const pl: BaseTranslation = {
   LEVEL_ACHIEVEMENTS_HINT:
     '* aby zdobyć osiągnięcie, musisz zagrać ~10% wszystkich czartów danego poziomu na określoną ocenę',
   ACHIEVEMENTS: 'osiągnięcia',
-  MOST_PLAYED_CHARTS: 'najczęściej grane czarty',
+  LATEST: 'ostatnie',
+  MOST_PLAYED: 'najczęściej grane',
   BEST_SCORES: 'najlepsze wyniki',
   PP_BREAKDOWN: 'skład pp',
   PP_AGE_FACTOR: (percent: number) => `wiek ${percent}%`,
   PP_PLACE_WEIGHT: (percent: number) => `waga ${percent}%`,
-  PP_HISTORY: 'historia pp',
-  RANK_HISTORY: 'miejsce w rankingu',
   PP_AND_RANK_HISTORY: 'pp i miejsce w rankingu',
   PLACE_IN_TOP: 'miejsce w top',
   LEVEL: 'poziom',
@@ -285,7 +284,6 @@ export const pl: BaseTranslation = {
   OCR_SELECTED_AREA: 'Zaznaczony obszar',
 
   // Admin
-  ADMIN_PANEL: 'Panel Admina',
   DELETE_RESULT: 'Usuń wynik',
   DELETE_RESULT_CONFIRM: 'Czy na pewno chcesz usunąć ten wynik? Tej akcji nie można cofnąć.',
   ENABLED: 'Włączone',

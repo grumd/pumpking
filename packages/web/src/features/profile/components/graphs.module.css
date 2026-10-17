@@ -25,6 +25,34 @@
   touch-action: pan-y;
 }
 
+/* A level bars graph: as high as its aspect ratio makes it. The svg is out of the flow, so the
+   box's height never depends on what the graph drew */
+.levelBars {
+  position: relative;
+  aspect-ratio: var(--graph-aspect);
+
+  & .svg {
+    position: absolute;
+    top: 0;
+    left: 0;
+  }
+}
+
+/* A card that takes its height from the column next to it (the profile's grades, from sm up,
+   where the grid stretches it): its level bars graph fills the height left under the title */
+@mixin larger-than $mantine-breakpoint-sm {
+  .fillCard {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .fillCard .levelBars {
+    flex: 1 1 0;
+    min-height: rem(120px);
+    aspect-ratio: auto;
+  }
+}
+
 /* Next to the point, the padding away from it. Above the next card, never in the pointer's way */
 .tooltip {
   position: absolute;

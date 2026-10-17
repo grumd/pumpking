@@ -19,17 +19,8 @@ const rankDomain = (values: number[]): [number, number] => {
   return [Math.max(top + 2, Math.max(...values) + 1), top];
 };
 
-/**
- * The player's pp and ranking place over time, as graph series (null while loading).
- * `rankColor`: the place line's color, the accent unless it shares a graph with pp
- */
-export const usePpHistorySeries = ({
-  playerId,
-  rankColor = 'var(--mantine-color-accent-filled)',
-}: {
-  playerId: number | undefined;
-  rankColor?: string;
-}) => {
+// The player's pp and ranking place over time, as the series of one graph (null while loading)
+export const usePpHistorySeries = ({ playerId }: { playerId: number | undefined }) => {
   const lang = useLanguage();
   const { data } = usePlayerPpHistory({ playerId });
 
@@ -49,16 +40,16 @@ export const usePpHistorySeries = ({
     };
     const rank: TimeSeries = {
       label: lang.PLACE,
-      color: rankColor,
+      color: 'var(--pk-graph-second)',
       data: data.rankHistory.map((x) => ({ date: new Date(x.date).getTime(), value: x.rank })),
       curve: 'step',
       // Two fills on one graph would muddy each other
-      area: rankColor === pp.color,
+      area: false,
       yDomain: rankDomain,
       // Whole places only
       yTicks: (scale) => scale.ticks(4).filter((x) => Number.isInteger(x)),
       formatValue: (value) => `#${value}`,
     };
     return { pp, rank };
-  }, [data, lang, rankColor]);
+  }, [data, lang]);
 };

@@ -14,14 +14,14 @@ import { useLanguage } from 'utils/context/translation';
 import { getLongTimeAgo } from 'utils/timeAgo';
 import { api } from 'utils/trpc';
 
-const pageSize = 10;
+import { mostPlayedInput, pageOptions } from './listQueries';
 
 export const MostPlayedCharts = (): JSX.Element => {
   const params = useParams();
   const charts = useInfiniteQuery(
     api.players.mostPlayed.infiniteQueryOptions(
-      { playerId: params.id ? Number(params.id) : undefined, pageSize },
-      { getNextPageParam: (lastPage) => lastPage.nextCursor, initialCursor: 0 }
+      mostPlayedInput(params.id ? Number(params.id) : undefined),
+      pageOptions
     )
   );
   const lang = useLanguage();

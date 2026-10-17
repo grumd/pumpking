@@ -84,7 +84,7 @@ const GradesGraph = () => {
       keys={gradeKeys}
       value={getPercent}
       color={(key) => gradeColorVar(keyGrade(key))}
-      aspect={0.74}
+      aspect={1.15}
       labels={{ above: lang.SINGLES, below: lang.DOUBLES }}
       renderTooltip={renderTooltip}
     />

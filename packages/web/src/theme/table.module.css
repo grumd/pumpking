@@ -43,6 +43,8 @@
 
   & .td {
     background: var(--pk-surface-2);
+    /* A name with a very long word wraps instead of pushing the table off a phone screen */
+    overflow-wrap: anywhere;
   }
 
   & .td:first-child {
