@@ -1,6 +1,7 @@
 import { EVENTS_CONSUMER } from '../platform/platform';
 import { splitMessage } from '../platform/telegram';
 import type { Plugin } from '../platform/types';
+import { photoLimitsPlugin } from '../plugins/photoLimits';
 import { rivalsPlugin } from '../plugins/rivals';
 import { tournamentsPlugin } from '../plugins/tournaments';
 import {
@@ -126,6 +127,31 @@ describe('Bot platform', () => {
       assert.deepEqual(
         sent.map((message) => message.chatId),
         [1001, 1002]
+      );
+    });
+
+    it('tells the admins when a player reaches a photo limit', async () => {
+      await addPlayer({ id: 1, nickname: 'Admin', telegramId: 1001 });
+      await addPlayer({ id: 2, nickname: 'Player', telegramId: 1002 });
+      await addPlayer({ id: 3, nickname: 'Uploader <3>' });
+      await db.updateTable('players').set({ is_admin: 1 }).where('id', '=', 1).execute();
+      await addEvent(db, 'photoLimitReached', {
+        playerId: 3,
+        limit: 'unproductive',
+        retryAt: '2026-10-18T14:05:00.000Z',
+      });
+      const { platform, sent } = createTestPlatform([photoLimitsPlugin]);
+
+      await platform.processEvents();
+      assert.deepEqual(
+        sent.map((message) => message.chatId),
+        [1001, ADMIN_ID]
+      );
+      assert.equal(
+        sent[0].html,
+        '⚠️  <b>Uploader &lt;3&gt;</b> reached a photo reading limit: too many photos without a ' +
+          'result in 24 hours. They can upload again after 2026-10-18 14:05 UTC.\n' +
+          'https://pumpking.top/#/profiles/3'
       );
     });
 
