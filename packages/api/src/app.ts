@@ -41,7 +41,8 @@ export const app = express();
 process.env.NODE_ENV === 'development' && jsdocSwagger(app)(options);
 const isTest = process.env.NODE_ENV === 'test';
 !isTest && app.use(logger('tiny'));
-app.use(bodyParser.json({ limit: '2mb' }));
+// A photo for the readers (2048px JPEG) and its stored copy, in base64
+app.use(bodyParser.json({ limit: '4mb' }));
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(formData.parse());
 // app.use(formData.stream());

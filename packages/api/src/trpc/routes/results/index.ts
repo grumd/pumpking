@@ -1,8 +1,10 @@
 import { addResultMutation } from './addResult';
-import { recognizeScoreMutation } from './recognizeScore';
+import { checkPhotoHashes, photoCharts, recognizePhotoMutation } from './photos';
 import { router } from 'trpc/trpc';
 
 export const results = router({
   addResultMutation,
-  recognizeScoreMutation,
+  checkPhotoHashes,
+  recognizePhotoMutation,
+  photoCharts,
 });
