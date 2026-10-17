@@ -1,5 +1,6 @@
 import { UnrecognizedResult } from './errors';
 import type { ResultData } from './types';
+import type { Judgements } from '@pumpking/utils/grades';
 
 type StatField =
   | 'score_increase'
@@ -41,6 +42,15 @@ export const getStepStats = (data: ResultData): StepStats | null => {
     ? { perfects, greats, goods, bads, misses }
     : null;
 };
+
+// The judgements as the utils name them
+export const toJudgements = (steps: StepStats): Judgements => ({
+  perfect: steps.perfects,
+  great: steps.greats,
+  good: steps.goods,
+  bad: steps.bads,
+  miss: steps.misses,
+});
 
 export const totalSteps = (steps: StepStats) =>
   steps.perfects + steps.greats + steps.goods + steps.bads + steps.misses;
