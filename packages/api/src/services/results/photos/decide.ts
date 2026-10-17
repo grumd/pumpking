@@ -66,6 +66,8 @@ export interface ReadCheck {
   chartGuess: ChartCandidate | null;
   // The fields to ask for if this read is used; none when every check holds
   problems: Field[];
+  // The judgements don't add up to the step count of the chart the title points to
+  stepsMismatch: boolean;
 }
 
 export type Decision =
@@ -118,13 +120,14 @@ const checkChart = (values: PhotoValues, candidates: ChartCandidate[]) => {
   const fitting = candidates.filter((chart) => exactStepCount(chart) === steps);
   const chart = fitting.length === 1 ? fitting[0] : null;
   const chartGuess = !chart && candidates.length === 1 ? candidates[0] : null;
+  // A known step count that differs points to a misread judgement
+  const stepsMismatch =
+    fitting.length === 0 && candidates.some((candidate) => exactStepCount(candidate) != null);
   let problems: Field[] = [];
   if (!chart) {
-    // A known step count that differs points to a misread judgement
-    const countKnown = fitting.length === 0 && candidates.some((c) => exactStepCount(c) != null);
-    problems = countKnown ? ['chart', ...JUDGEMENT_FIELDS] : ['chart'];
+    problems = stepsMismatch ? ['chart', ...JUDGEMENT_FIELDS] : ['chart'];
   }
-  return { chart, chartGuess, problems };
+  return { chart, chartGuess, problems, stepsMismatch };
 };
 
 const checkMillionStats = (read: PhotoRead, values: PhotoValues, mixId: number): Field[] => {
@@ -179,7 +182,7 @@ export const checkRead = (
 ): ReadCheck => {
   const millionScoring = isMillionScoringMix(mixId);
   const values = readValues(read, millionScoring);
-  const { chart, chartGuess, problems } = checkChart(values, candidates);
+  const { chart, chartGuess, problems, stepsMismatch } = checkChart(values, candidates);
 
   if (values.combo > values.perfect + values.great) {
     problems.push(...NUMBER_FIELDS);
@@ -191,7 +194,7 @@ export const checkRead = (
   }
   problems.push(...checkMod(read, values, chart ?? chartGuess));
 
-  return { values, chart, chartGuess, problems: unique(problems) };
+  return { values, chart, chartGuess, problems: unique(problems), stepsMismatch };
 };
 
 const unique = (fields: Field[]) => ALL_FIELDS.filter((field) => fields.includes(field));
@@ -213,14 +216,23 @@ const needsInput = (checks: (ReadCheck | null)[]): Decision => {
     return { status: 'needsInput', chart: null, values: null, readValues: [], fields: ALL_FIELDS };
   }
 
+  // A read that passes every check is the best start, even when no other read agrees
+  const start = valid.find(passes) ?? valid[0];
   const chart =
+    start.chart ??
     valid.find((check) => check.chart)?.chart ??
     valid.find((check) => check.chartGuess)?.chartGuess ??
     null;
-  const differing = valid.length > 1 ? differingFields(valid[0], valid[1]) : [];
-  // Where the readers differ is where the misread is. When they agree (or only one read
-  // the photo), the failed checks say what to ask for
+  // Where the reads aren't unanimous is where the misread is. When they agree (or only one
+  // read the photo), the failed checks say what to ask for
+  const differing = unique(valid.slice(1).flatMap((check) => differingFields(valid[0], check)));
   let fields = differing.length > 0 ? differing : unique(valid.flatMap((c) => c.problems));
+  // Judgements that every read agrees on but that don't add up to the chart's step count
+  // are misread all the same: they are never shown as certain
+  const judgementsAgree = !JUDGEMENT_FIELDS.some((field) => differing.includes(field));
+  if (judgementsAgree && valid.every((check) => check.stepsMismatch)) {
+    fields = unique([...fields, ...JUDGEMENT_FIELDS]);
+  }
   if (!valid.some((check) => check.chart) && !fields.includes('chart')) {
     fields = unique([...fields, 'chart']);
   }
@@ -230,7 +242,7 @@ const needsInput = (checks: (ReadCheck | null)[]): Decision => {
   return {
     status: 'needsInput',
     chart,
-    values: valid[0].values,
+    values: start.values,
     readValues: valid.map((check) => check.values),
     fields,
   };
@@ -239,7 +251,8 @@ const needsInput = (checks: (ReadCheck | null)[]): Decision => {
 /**
  * The decision for a mix, from the checked reads in the order they were made (null for a
  * reader that failed). Phoenix and later: the first read that passes every check is
- * saved. XX and earlier: both reads must pass and agree on everything
+ * saved. XX and earlier: two reads that both pass and agree on everything; the third
+ * read, made only when the first two don't, breaks the tie
  */
 export const decide = (mixId: number, checks: (ReadCheck | null)[]): Decision => {
   if (isMillionScoringMix(mixId)) {
@@ -250,9 +263,16 @@ export const decide = (mixId: number, checks: (ReadCheck | null)[]): Decision =>
     return needsInput(checks);
   }
 
-  const [a, b] = checks;
-  if (passes(a) && passes(b) && differingFields(a, b).length === 0) {
-    return { status: 'confident', chart: a.chart, values: a.values };
+  const [a = null, b = null, c = null] = checks;
+  const pairs = [
+    [a, b],
+    [a, c],
+    [b, c],
+  ];
+  for (const [x, y] of pairs) {
+    if (passes(x) && passes(y) && differingFields(x, y).length === 0) {
+      return { status: 'confident', chart: x.chart, values: x.values };
+    }
   }
   return needsInput(checks);
 };

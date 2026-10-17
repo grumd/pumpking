@@ -12,7 +12,13 @@ import {
   NUMBER_FIELDS,
   type ChartCandidate,
 } from 'services/results/photos/decide';
-import { READER_A, READER_B, type PhotoRead, type ReadPhoto } from 'services/results/photos/reader';
+import {
+  READER_A,
+  READER_B,
+  READER_C,
+  type PhotoRead,
+  type ReadPhoto,
+} from 'services/results/photos/reader';
 import { recognizePhoto, type PhotoInput } from 'services/results/photos/recognize';
 import { applyEffects } from 'test/helpers';
 import { addResultsSession } from 'test/helpers/sessions';
@@ -269,6 +275,43 @@ describe('Results from photos', () => {
       assert.equal(decide(MIXES.XX, [xx(), null]).status, 'needsInput');
     });
 
+    it('XX: a third read that agrees with one of the two saves', () => {
+      const decision = decide(MIXES.XX, [xx(), xx({ max_combo: 99 }), xx()]);
+      assert.equal(decision.status, 'confident');
+      assert.equal(decision.status === 'confident' && decision.values.combo, 100);
+      // Agreeing with a read that fails isn't enough
+      assert.equal(
+        decide(MIXES.XX, [xx({ score: 120_050 }), xx({ max_combo: 99 }), xx({ score: 120_050 })])
+          .status,
+        'needsInput'
+      );
+    });
+
+    // Gargoyle D20: the numbers column a row off its labels, both readers shifted the same way
+    const shifted = (read: Partial<PhotoRead> = {}) => xx({ perfect: 50, max_combo: 40, ...read });
+
+    it('XX: counters the reads agree on but that miss the step count are asked too', () => {
+      const decision = decide(MIXES.XX, [shifted(), shifted({ max_combo: 45, score: 130_000 })]);
+      assert.equal(decision.status, 'needsInput');
+      assert.deepEqual(decision.status === 'needsInput' && decision.fields, [
+        'chart',
+        ...NUMBER_FIELDS,
+      ]);
+    });
+
+    it('XX: the form starts from a read that passes, and asks where the reads differ', () => {
+      const decision = decide(MIXES.XX, [shifted(), shifted({ max_combo: 45 }), xx()]);
+      assert.equal(decision.status, 'needsInput');
+      if (decision.status !== 'needsInput') return;
+      assert.deepEqual(decision.fields, ['chart', 'perfect', 'combo']);
+      assert.equal(decision.values?.perfect, 95);
+      assert.equal(decision.chart?.sharedChartId, 1);
+      assert.deepEqual(
+        decision.readValues.map((values) => values.combo),
+        [40, 45, 100]
+      );
+    });
+
     it('XX: reads that disagree on max combo, grade or mod are asked about', () => {
       const combo = decide(MIXES.XX, [xx(), xx({ max_combo: 99 })]);
       assert.deepEqual(combo.status === 'needsInput' && combo.fields, ['combo']);
@@ -410,6 +453,20 @@ describe('Results from photos', () => {
       if (outcome.status !== 'saved') return;
       // A pass A is stored as A+
       assert.equal((await getResult(outcome.resultId)).grade, 'A+');
+    });
+
+    it('XX: a third reader breaks the tie when the two disagree', async () => {
+      const { readPhoto, calls } = stubReader({
+        [READER_A.model]: xxRead({ grade: 'A' }),
+        [READER_B.model]: xxRead({ grade: 'A', max_combo: 99 }),
+        [READER_C.model]: xxRead({ grade: 'A' }),
+      });
+      const outcome = await recognizePhoto(input({ mix: 'XX' }), readPhoto);
+      assert.equal(outcome.status, 'saved');
+      assert.lengthOf(calls, 3);
+      assert.equal(calls[2], READER_C.model);
+      assert.equal(outcome.status === 'saved' && outcome.values.combo, 100);
+      assert.closeTo(await getOcrCost(), 0.003, 1e-9);
     });
 
     it('a known hash is a duplicate, before anything is read', async () => {
