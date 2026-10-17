@@ -1,7 +1,6 @@
-import { RootHookObject, AsyncFunc, Context } from 'mocha';
-
-import { initialSeed } from 'test/seeds/initialSeed';
 import { createTestDatabase, deleteTestDatabase } from '@pumpking/database/test/testDatabase';
+import { RootHookObject, AsyncFunc, Context } from 'mocha';
+import { initialSeed } from 'test/seeds/initialSeed';
 
 const beforeAll: AsyncFunc = async function (this: Context) {
   this.timeout(30000);

@@ -1,6 +1,6 @@
+import { MigrationProvider } from './MigrationProvider';
 import { Migrator, type Kysely } from 'kysely';
 import path from 'path';
-import { MigrationProvider } from './MigrationProvider';
 
 export const createMigrator = (db: Kysely<any>) =>
   new Migrator({

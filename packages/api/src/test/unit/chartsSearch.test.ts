@@ -151,7 +151,10 @@ describe('Charts search (Phoenix scoring only)', () => {
         .executeTakeFirstOrThrow();
 
       const items = await searchCharts({ limit: 10, offset: 0 });
-      assert.deepEqual(items.map((chart) => chart.id), [1, 6]);
+      assert.deepEqual(
+        items.map((chart) => chart.id),
+        [1, 6]
+      );
     });
   });
 

@@ -104,12 +104,7 @@ export const LevelBarsGraph = <Row extends { level: number }, Key extends string
   return (
     // Axis ticks and the legend in the caption size. The box's CSS sets its height, the svg
     // fills it
-    <Box
-      fz="xs"
-      ref={parentRef}
-      className={classes.levelBars}
-      style={{ '--graph-aspect': aspect }}
-    >
+    <Box fz="xs" ref={parentRef} className={classes.levelBars} style={{ '--graph-aspect': aspect }}>
       {width > 0 && height > 0 && (
         <svg width={width} height={height} className={classes.svg}>
           <Group.Group left={graphMargin.left} top={graphMargin.top}>
@@ -177,7 +172,12 @@ export const LevelBarsGraph = <Row extends { level: number }, Key extends string
         </svg>
       )}
       {tooltipOpen && tooltipData && tooltipLeft !== undefined && tooltipTop !== undefined && (
-        <GraphTooltipAt x={tooltipLeft} y={tooltipTop} flipX={tooltipLeft > width / 2} flipY={false}>
+        <GraphTooltipAt
+          x={tooltipLeft}
+          y={tooltipTop}
+          flipX={tooltipLeft > width / 2}
+          flipY={false}
+        >
           {renderTooltip(tooltipData)}
         </GraphTooltipAt>
       )}

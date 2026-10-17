@@ -1,9 +1,9 @@
-import crypto from 'crypto';
-import { mix as currentMix } from '@pumpking/utils/currentMix';
+import { verifyRegistrationToken } from './googleLogin';
 import { db } from '@pumpking/database/db';
+import { mix as currentMix } from '@pumpking/utils/currentMix';
+import crypto from 'crypto';
 import createDebug from 'debug';
 import { StatusError } from 'utils/errors';
-import { verifyRegistrationToken } from './googleLogin';
 
 const debug = createDebug('backend-ts:auth');
 
