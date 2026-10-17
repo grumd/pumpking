@@ -31,6 +31,7 @@ export const appColors = {
   // Accents
   accent: '#88d3ff',
   fresh: '#afe488',
+  mine: '#e4cd88', // '#88e4d8',
   discord: '#5865f2',
 } as const;
 
@@ -86,11 +87,6 @@ export const darkScheme = {
   graphAxis: '#8c8c8c',
   graphGrid: '#4a4a4a',
   graphReference: '#bbbbbb',
-  tintPerfect: 'rgba(0, 255, 255, 0.05)',
-  tintGreat: 'rgba(0, 255, 0, 0.05)',
-  tintGood: 'rgba(255, 255, 0, 0.05)',
-  tintBad: 'rgba(255, 0, 255, 0.05)',
-  tintMiss: 'rgba(255, 0, 0, 0.05)',
   glowBronze: 'rgba(0, 0, 0, 0.13)',
   glowSilver: 'rgba(255, 255, 255, 0.33)',
   glowGold: '#ffd700',

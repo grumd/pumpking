@@ -19,3 +19,7 @@
 .value {
   margin: 0;
 }
+
+.list[data-no-wrap] {
+  white-space: nowrap;
+}

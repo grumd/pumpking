@@ -1,63 +1,89 @@
-/* The dense results table of a chart card. Widths keep the columns aligned between cards
-   (they are about the old pixel widths on desktop, where the root font is 18px) */
+/* The dense results table of a chart card */
 
-.place {
-  width: rem(29px);
+/* Desktop: the same column widths in every card (the <col>s), the name takes the rest */
+@mixin larger-than $mantine-breakpoint-md {
+  .table {
+    table-layout: fixed;
+  }
+
+  .placeCol {
+    width: rem(36px);
+  }
+
+  .scoreCol {
+    width: rem(87px);
+  }
+
+  .gradeCol {
+    width: rem(57px);
+  }
+
+  .stepCol {
+    width: rem(44px);
+  }
+
+  .perfectCol {
+    width: rem(53px);
+  }
+
+  .comboCol {
+    width: rem(48px);
+  }
+
+  .dateCol {
+    width: rem(62px);
+  }
 }
 
 .score {
-  width: rem(80px);
   white-space: nowrap;
-}
-
-.grade {
-  width: rem(43px);
-}
-
-.number {
-  width: rem(48px);
-}
-
-.perfect {
-  width: rem(59px);
-  background: var(--pk-tint-perfect);
-}
-
-.combo {
-  width: rem(46px);
 }
 
 .name {
   font-size: var(--mantine-font-size-sm);
 }
 
+.number {
+  font-size: var(--mantine-font-size-sm);
+
+  &[data-zero] {
+    color: var(--mantine-color-dimmed);
+  }
+}
+
 .date {
-  width: rem(40px);
   white-space: nowrap;
   font-size: var(--mantine-font-size-xs);
-  color: var(--mantine-color-dimmed);
+}
+
+/* A gap between the grade and the step counts */
+.row > td.grade {
+  padding-inline-end: var(--mantine-spacing-sm);
+}
+
+/* The step counts: regular text with a hint of their judgement's color (zeros stay dimmed) */
+.number {
+  color: color-mix(in srgb, var(--pk-judgement) 55%, var(--mantine-color-text));
 }
 
 .miss {
-  background: var(--pk-tint-miss);
+  --pk-judgement: var(--mantine-color-miss-text);
 }
 
 .bad {
-  background: var(--pk-tint-bad);
+  --pk-judgement: var(--mantine-color-bad-text);
 }
 
 .good {
-  background: var(--pk-tint-good);
+  --pk-judgement: var(--mantine-color-good-text);
 }
 
 .great {
-  background: var(--pk-tint-great);
+  --pk-judgement: var(--mantine-color-great-text);
 }
 
-/* The current player's place */
-.currentPlace {
-  color: var(--pk-text-strong);
-  font-weight: 700;
+.perfect {
+  --pk-judgement: var(--mantine-color-perfect-text);
 }
 
 /* A highlighted player: the row sets --pk-highlight */
@@ -66,11 +92,18 @@
   outline: rem(1px) solid color-mix(in srgb, var(--pk-highlight) 63%, transparent);
 }
 
-.row[data-bold] .name {
+.row[data-highlighted] .name {
   font-weight: 700;
 }
 
-/* The latest result on the chart */
+/* The logged-in player's result, and the latest result on the chart (it wins when both) */
+.row[data-mine] .name,
+.row[data-mine] .name a,
+.row[data-mine] .score,
+.row[data-mine] .date {
+  color: var(--mantine-color-mine-filled);
+}
+
 .row[data-latest] .name,
 .row[data-latest] .name a,
 .row[data-latest] .score,
@@ -78,6 +111,7 @@
   color: var(--mantine-color-fresh-filled);
 }
 
+.row[data-mine] .date,
 .row[data-latest] .date {
   font-weight: 600;
 }
@@ -110,7 +144,7 @@
 }
 
 .resultsCard {
-  padding: var(--mantine-spacing-xs);
+  padding: var(--mantine-spacing-xxs) var(--mantine-spacing-xs);
 }
 
 /* Phones: as dense as before, so names keep their room and the 10 columns fit */
@@ -133,8 +167,14 @@
     padding-inline: var(--mantine-spacing-xxs);
   }
 
+  /* Gaps after the score and before the step counts */
+  .row > td.grade {
+    padding-inline: var(--mantine-spacing-xxs) var(--mantine-spacing-xs);
+  }
+
   .name {
     width: 33%;
+    font-size: var(--mantine-font-size-md);
   }
 
   .score {
@@ -143,17 +183,6 @@
 
   .grade {
     width: 3%;
-  }
-
-  .number,
-  .perfect,
-  .combo,
-  .date {
-    width: auto;
-  }
-
-  .number {
-    font-size: var(--mantine-font-size-sm);
   }
 }
 
