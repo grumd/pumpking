@@ -14,7 +14,7 @@ import { RootRedirect } from 'features/login/RootRedirect';
 import { useUser } from 'hooks/useUser';
 
 const LazyAdmin = React.lazy(() => import('../admin/Admin'));
-const LazyAddResult = React.lazy(() => import('../leaderboards/components/add-result/AddResult'));
+const LazyAddResults = React.lazy(() => import('../add-results/AddResults'));
 const LazySingleChartLeaderboard = React.lazy(
   () => import('../leaderboards/LeaderboardsSingleChart')
 );
@@ -73,7 +73,7 @@ function Root() {
             path={routes.leaderboard.sharedChart.path}
             element={<LazySingleChartLeaderboard />}
           />
-          <Route path={routes.leaderboard.sharedChart.addResult.path} element={<LazyAddResult />} />
+          <Route path={routes.addResults.path} element={<LazyAddResults />} />
           <Route path={routes.ranking.path + '/*'} element={<LazyRanking />} />
           <Route path={routes.profile.path} element={<LazyProfileNew />} />
           <Route path={routes.songs.path} element={<LazySongsTop />} />

@@ -13,15 +13,13 @@ export const routes = {
       path: `/leaderboard/chart/:sharedChartId`,
       getPath: (params: { sharedChartId: number | string }) =>
         `/leaderboard/chart/${params.sharedChartId}`,
-      addResult: {
-        path: `/leaderboard/chart/:sharedChartId/add-result`,
-        getPath: (params: { sharedChartId: number | string }) =>
-          `/leaderboard/chart/${params.sharedChartId}/add-result`,
-      },
     },
   },
   songs: {
     path: `/songs`,
+  },
+  addResults: {
+    path: `/add-results`,
   },
   ranking: {
     path: `/ranking`,
