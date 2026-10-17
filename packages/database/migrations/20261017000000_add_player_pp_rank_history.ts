@@ -2,10 +2,10 @@ import { Kysely, sql } from 'kysely';
 
 /**
  * The history of players' total pp and places in the ranking, replacing pp_history and
- * pp_rank_history (one row per day, dropped later). A row is added whenever a place
- * changes, so a place held for a few minutes is kept, and when the total moves by 1pp or
- * more. Rows are only appended: ids are in time order. Filled by the API's
- * `npm run rebuild-pp-history`
+ * pp_rank_history (one row per day, dropped by 20261017131617_drop_pp_history). A row is
+ * added whenever a place changes, so a place held for a few minutes is kept, and when the
+ * total moves by 1pp or more. Rows are only appended: ids are in time order. Filled by
+ * the API's `npm run rebuild-pp-history`
  */
 export async function up(db: Kysely<any>): Promise<void> {
   await db.schema
