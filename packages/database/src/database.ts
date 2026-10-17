@@ -200,18 +200,6 @@ export interface Players {
   openai_cost: Decimal | null;
 }
 
-export interface PpHistory {
-  date: Date;
-  player_id: number;
-  pp: Decimal;
-}
-
-export interface PpRankHistory {
-  date: Date;
-  player_id: number;
-  rank: number;
-}
-
 export interface Purgatory {
   id: Generated<number>;
   screen_file: string | null;
@@ -425,8 +413,6 @@ export interface DB {
   player_pp_history: PlayerPpHistory;
   player_rank_history: PlayerRankHistory;
   players: Players;
-  pp_history: PpHistory;
-  pp_rank_history: PpRankHistory;
   purgatory: Purgatory;
   results: Results;
   sessions: Sessions;
