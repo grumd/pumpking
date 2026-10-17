@@ -52,15 +52,15 @@ interface FormValues extends Record<NumberField, string> {
 const isWholeNumber = (value: string) => /^\d+$/.test(value.trim());
 
 interface PhotoFormProps {
-  item: QueueItem;
-  needsInput: NeedsInput;
+  item: QueueItem & { needsInput: NeedsInput };
   onSubmit: (chart: PhotoChart, values: PhotoValues) => Promise<void>;
   onSkip: () => void;
 }
 
 /** A photo that couldn't be saved as read: the fields in doubt, filled in by the user */
-export const PhotoForm = ({ item, needsInput, onSubmit, onSkip }: PhotoFormProps) => {
+export const PhotoForm = ({ item, onSubmit, onSkip }: PhotoFormProps) => {
   const lang = useLanguage();
+  const { needsInput } = item;
   const read = needsInput.values;
   // A single photo shows every field, to confirm
   const [showAll, setShowAll] = useState(item.review);
@@ -108,6 +108,16 @@ export const PhotoForm = ({ item, needsInput, onSubmit, onSkip }: PhotoFormProps
     { value: 'HJ', label: 'HJ' },
   ];
   const modLabel = (mod: string) => modOptions.find((option) => option.value === mod)?.label;
+  // A value as the form shows it: yes / no for pass, the mod's name
+  const valueLabel = (field: PhotoField, value: string | number | boolean) => {
+    if (typeof value === 'boolean') {
+      return value ? lang.YES : lang.NO;
+    }
+    if (field === 'mod') {
+      return modLabel(String(value));
+    }
+    return value;
+  };
   const gradeOptions = item.mix === 'XX' ? XX_GRADES : phoenixGradeOrder;
 
   // What each reader read, when they differ: a tap fills it in
@@ -128,13 +138,7 @@ export const PhotoForm = ({ item, needsInput, onSubmit, onSkip }: PhotoFormProps
               form.setFieldValue(field, typeof option === 'boolean' ? option : String(option))
             }
           >
-            {typeof option === 'boolean'
-              ? option
-                ? lang.YES
-                : lang.NO
-              : field === 'mod'
-              ? modLabel(String(option))
-              : option}
+            {valueLabel(field, option)}
           </Button>
         ))}
       </Group>
@@ -168,10 +172,10 @@ export const PhotoForm = ({ item, needsInput, onSubmit, onSkip }: PhotoFormProps
           };
         }
         if (field === 'pass') {
-          return { label: lang.PASS, value: values.pass ? lang.YES : lang.NO };
+          return { label: lang.PASS, value: valueLabel(field, values.pass) };
         }
         if (field === 'mod') {
-          return { label: lang.JUDGE_RANK, value: modLabel(values.mod) };
+          return { label: lang.JUDGE_RANK, value: valueLabel(field, values.mod) };
         }
         if (field === 'grade') {
           return { label: lang.GRADE, value: values.grade };

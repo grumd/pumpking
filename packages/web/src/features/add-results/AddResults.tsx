@@ -12,7 +12,7 @@ import { useLanguage } from 'utils/context/translation';
 
 import { PhotoForm } from './PhotoForm';
 import { PhotoList } from './PhotoList';
-import { PHOTO_MIXES, type PhotoMix, usePhotoQueue } from './usePhotoQueue';
+import { type NeedsInput, type PhotoMix, type QueueItem, usePhotoQueue } from './usePhotoQueue';
 
 const MIX_OPTIONS: { value: PhotoMix; label: string }[] = [
   { value: 'Phoenix2', label: 'Phoenix 2' },
@@ -21,7 +21,7 @@ const MIX_OPTIONS: { value: PhotoMix; label: string }[] = [
 ];
 
 const isPhotoMix = (mix: string | null | undefined): mix is PhotoMix =>
-  PHOTO_MIXES.includes(mix as PhotoMix);
+  MIX_OPTIONS.some((option) => option.value === mix);
 
 /**
  * Results from photos of their screens: song, chart and stats are read from each photo and
@@ -30,7 +30,7 @@ const isPhotoMix = (mix: string | null | undefined): mix is PhotoMix =>
 const AddResults = () => {
   const lang = useLanguage();
   const user = useUser();
-  // Shared with the chart page's "add result", which can also have older mixes
+  // The key of the old "add result" page, which also had older mixes
   const [storedMix, setStoredMix] = useLocalStorage<string | null>({
     key: 'addResult_lastMix',
     defaultValue: null,
@@ -38,7 +38,10 @@ const AddResults = () => {
   const mix: PhotoMix = isPhotoMix(storedMix) ? storedMix : 'Phoenix2';
   const resetFiles = useRef<() => void>(null);
   const queue = usePhotoQueue();
-  const current = queue.items.find((item) => item.status === 'needsInput');
+  const current = queue.items.find(
+    (item): item is QueueItem & { needsInput: NeedsInput } =>
+      item.status === 'needsInput' && !!item.needsInput
+  );
 
   if (!user.data) {
     return null;
@@ -88,11 +91,10 @@ const AddResults = () => {
           )}
         </Stack>
       </Card>
-      {current?.needsInput && (
+      {current && (
         <PhotoForm
           key={current.id}
           item={current}
-          needsInput={current.needsInput}
           onSubmit={(chart, values) => queue.submit(current, chart, values)}
           onSkip={() => queue.skip(current)}
         />

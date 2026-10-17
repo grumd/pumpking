@@ -315,3 +315,10 @@ export const decide = (mixId: number, checks: (ReadCheck | null)[]): Decision =>
   }
   return needsInput(checks);
 };
+
+/**
+ * XX: whether the third reader is asked after the first two. Not when the two decide, and
+ * not when they disagree on pass: the player is asked whatever a third read says
+ */
+export const needsTiebreaker = (mixId: number, [a, b]: (ReadCheck | null)[]) =>
+  decide(mixId, [a, b]).status !== 'confident' && !(a && b && a.values.pass !== b.values.pass);

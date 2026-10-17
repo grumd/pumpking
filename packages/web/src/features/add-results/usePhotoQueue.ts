@@ -1,4 +1,4 @@
-import type { ApiOutputs } from '@/api/trpc/router';
+import type { ApiInputs, ApiOutputs } from '@/api/trpc/router';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { TRPCClientError } from '@trpc/client';
 import { useCallback, useEffect, useRef, useState } from 'react';
@@ -11,13 +11,12 @@ import { type PreparedPhoto, hashFile, preparePhoto } from './preparePhoto';
 
 type Outcome = ApiOutputs['results']['recognizePhotoMutation'];
 export type NeedsInput = Extract<Outcome, { status: 'needsInput' }>;
+type Limited = Extract<Outcome, { status: 'limited' }>;
 export type PhotoField = NeedsInput['fields'][number];
 export type PhotoValues = NonNullable<NeedsInput['values']>;
 export type PhotoChart = NonNullable<NeedsInput['chart']>;
 
-// The mixes with arcade track names, which the song title is matched against
-export const PHOTO_MIXES = ['Phoenix2', 'Phoenix', 'XX'] as const;
-export type PhotoMix = (typeof PHOTO_MIXES)[number];
+export type PhotoMix = ApiInputs['results']['recognizePhotoMutation']['mix'];
 
 export const ALL_FIELDS: PhotoField[] = ['chart', 'perfect', 'great', 'good', 'bad', 'miss', 'combo', 'score', 'grade', 'pass', 'mod']; // prettier-ignore
 
@@ -46,7 +45,7 @@ export interface QueueItem {
   saved?: { chart: PhotoChart; score: number };
   error?: string;
   // Over a cost limit: which one, and when the player can upload again
-  limited?: { limit: 'unproductive' | 'total'; retryAt: Date };
+  limited?: Pick<Limited, 'limit' | 'retryAt'>;
   // Cancelled while it was being read: only a saved result is kept
   cancelled?: boolean;
 }
@@ -62,6 +61,9 @@ export const isDone = (item: QueueItem) =>
   item.status === 'saved' || item.status === 'duplicate' || item.status === 'skipped';
 
 const errorText = (e: unknown) => (e instanceof Error ? e.message : String(e));
+
+// What a skipped photo keeps: the photo and the reads are let go
+const SKIPPED = { status: 'skipped', prepared: undefined, needsInput: undefined } as const;
 
 const isConflict = (e: unknown) => e instanceof TRPCClientError && e.data?.httpStatus === 409;
 
@@ -82,19 +84,25 @@ export const usePhotoQueue = () => {
   const addResult = useMutation(api.results.addResultMutation.mutationOptions());
 
   const update = useCallback((id: number, change: Partial<QueueItem>) => {
-    setItems((current) =>
-      current.map((item) => {
-        if (item.id !== id) {
-          return item;
-        }
-        const kept = change.status === 'saved' || change.status === 'duplicate';
-        if (item.cancelled && change.status && !kept) {
-          return { ...item, status: 'skipped', prepared: undefined, needsInput: undefined };
-        }
-        return { ...item, ...change };
-      })
-    );
+    setItems((current) => current.map((item) => (item.id === id ? { ...item, ...change } : item)));
   }, []);
+
+  // The end of a read. A photo cancelled while it was read is skipped, unless its result
+  // was saved or was already there
+  const finishRead = useCallback(
+    (id: number, change: Partial<QueueItem> & { status: PhotoStatus }) => {
+      const kept = change.status === 'saved' || change.status === 'duplicate';
+      setItems((current) =>
+        current.map((item) => {
+          if (item.id !== id) {
+            return item;
+          }
+          return item.cancelled && !kept ? { ...item, ...SKIPPED } : { ...item, ...change };
+        })
+      );
+    },
+    []
+  );
 
   const invalidateCharts = useCallback(() => {
     queryClient.invalidateQueries(api.charts.chart.queryFilter());
@@ -144,7 +152,8 @@ export const usePhotoQueue = () => {
   );
 
   const read = useCallback(
-    async ({ hash, ...item }: QueueItem) => {
+    async (item: QueueItem) => {
+      const { hash } = item;
       // A photo waits for its turn only once it's hashed
       if (!hash) {
         return;
@@ -154,7 +163,7 @@ export const usePhotoQueue = () => {
       try {
         prepared ??= await preparePhoto(item.file);
       } catch (e) {
-        update(item.id, { status: 'failed', error: errorText(e) });
+        finishRead(item.id, { status: 'failed', error: errorText(e) });
         return;
       }
       try {
@@ -168,28 +177,28 @@ export const usePhotoQueue = () => {
           autoSave: !item.review,
         });
         if (outcome.status === 'saved') {
-          update(item.id, {
+          finishRead(item.id, {
             status: 'saved',
             prepared: undefined,
             saved: { chart: outcome.chart, score: outcome.values.score },
           });
           invalidateCharts();
         } else if (outcome.status === 'duplicate') {
-          update(item.id, { status: 'duplicate', prepared: undefined });
+          finishRead(item.id, { status: 'duplicate', prepared: undefined });
         } else if (outcome.status === 'limited') {
-          update(item.id, {
+          finishRead(item.id, {
             status: 'limited',
             prepared,
             limited: { limit: outcome.limit, retryAt: outcome.retryAt },
           });
         } else {
-          update(item.id, { status: 'needsInput', prepared, needsInput: outcome });
+          finishRead(item.id, { status: 'needsInput', prepared, needsInput: outcome });
         }
       } catch (e) {
-        update(item.id, { status: 'failed', prepared, error: errorText(e) });
+        finishRead(item.id, { status: 'failed', prepared, error: errorText(e) });
       }
     },
-    [recognize, update, invalidateCharts]
+    [recognize, update, finishRead, invalidateCharts]
   );
 
   // The next photo is read when nothing is in progress or waiting for the user
@@ -238,11 +247,7 @@ export const usePhotoQueue = () => {
     [addResult, update, user.data, invalidateCharts]
   );
 
-  const skip = useCallback(
-    (item: QueueItem) =>
-      update(item.id, { status: 'skipped', prepared: undefined, needsInput: undefined }),
-    [update]
-  );
+  const skip = useCallback((item: QueueItem) => update(item.id, SKIPPED), [update]);
 
   const retry = useCallback(
     (item: QueueItem) => {
@@ -282,7 +287,7 @@ export const usePhotoQueue = () => {
         if (item.status === 'reading') {
           return { ...item, cancelled: true };
         }
-        return { ...item, status: 'skipped', prepared: undefined, needsInput: undefined };
+        return { ...item, ...SKIPPED };
       })
     );
   }, []);

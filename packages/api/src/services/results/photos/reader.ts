@@ -5,7 +5,7 @@ import { error } from 'utils';
 
 /**
  * Reads a photo of a result screen with a vision model on OpenRouter (see
- * docs/photo-results/PLAN.md). Two readers from two vendors, so the second one doesn't
+ * docs/photo-results/PLAN.md). Each reader is from another vendor, so the next one doesn't
  * repeat the first one's mistake
  */
 
@@ -54,7 +54,8 @@ export interface PhotoRead {
 }
 
 // The mixes with arcade track names, which the song title is matched against
-export type PhotoMix = 'XX' | 'Phoenix' | 'Phoenix2';
+export const PHOTO_MIXES = ['XX', 'Phoenix', 'Phoenix2'] as const;
+export type PhotoMix = (typeof PHOTO_MIXES)[number];
 
 export interface ReadResult {
   // null when the answer wasn't valid JSON
