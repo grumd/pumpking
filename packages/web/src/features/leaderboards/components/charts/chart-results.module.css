@@ -1,11 +1,9 @@
 /* The dense results table of a chart card */
 
-/* Desktop: the same column widths in every card (the <col>s), the name takes the rest */
+/* Desktop: the same column widths in every card (the <col>s), the name takes the rest. The
+   widths are minimums: the place and score columns grow in a card where a row has places
+   gained or lost, or a score increase */
 @mixin larger-than $mantine-breakpoint-md {
-  .table {
-    table-layout: fixed;
-  }
-
   .placeCol {
     width: rem(36px);
   }
@@ -39,8 +37,9 @@
   white-space: nowrap;
 }
 
-.name {
-  font-size: var(--mantine-font-size-sm);
+/* The column grows to fit the score increase badge and the score */
+.scoreGroup {
+  min-width: max-content;
 }
 
 .number {
@@ -53,7 +52,6 @@
 
 .date {
   white-space: nowrap;
-  font-size: var(--mantine-font-size-xs);
 }
 
 /* A gap between the grade and the step counts */
@@ -96,24 +94,28 @@
   font-weight: 700;
 }
 
-/* The logged-in player's result, and the latest result on the chart (it wins when both) */
-.row[data-mine] .name,
-.row[data-mine] .name a,
-.row[data-mine] .score,
-.row[data-mine] .date {
-  color: var(--mantine-color-mine-filled);
+/* The logged-in player's result, and the latest result on the chart (it wins when both).
+   A muted background over the stripes; on a highlighted player's row it replaces the
+   highlight's background, the outline stays */
+.row[data-mine] {
+  background: color-mix(in srgb, var(--mantine-color-mine-filled) 20%, transparent);
 }
 
-.row[data-latest] .name,
-.row[data-latest] .name a,
-.row[data-latest] .score,
-.row[data-latest] .date {
-  color: var(--mantine-color-fresh-filled);
+.row[data-latest] {
+  background: color-mix(in srgb, var(--mantine-color-latest-filled) 18%, transparent);
 }
 
-.row[data-mine] .date,
-.row[data-latest] .date {
-  font-weight: 600;
+/* White name, score and date on the tinted rows (the name link is anchor gray elsewhere) */
+.row:is([data-mine], [data-latest]) :is(.name, .name a, .score, .date) {
+  color: var(--pk-text-strong);
+}
+
+/* Places gained or lost: an arrow and a number */
+.change {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: rem(2px);
 }
 
 /* The buttons take the cell's text */
@@ -164,7 +166,7 @@
 
   /* Step counts: room on both sides so the numbers don't run together */
   .row > td.number {
-    padding-inline: var(--mantine-spacing-xxs);
+    padding-inline: calc(var(--mantine-spacing-xxs) / 2);
   }
 
   /* Gaps after the score and before the step counts */
@@ -172,22 +174,47 @@
     padding-inline: var(--mantine-spacing-xxs) var(--mantine-spacing-xs);
   }
 
-  .name {
-    width: 33%;
-    font-size: var(--mantine-font-size-md);
+  /* The name takes the room the other columns leave, and a long one truncates instead of
+     widening the table */
+  .row > td.name {
+    max-width: 0;
   }
 
-  .score {
-    width: 10%;
+  /* The columns right of the score have the same widths in every card, so the right-aligned
+     scores and the step counts line up; the score and the name share the rest. They fit the
+     widest grade, two-digit step counts, four-digit perfects and "11mo"; a longer value
+     widens its own card's column */
+  .gradeCol {
+    width: rem(57px);
   }
 
-  .grade {
-    width: 3%;
+  .stepCol {
+    width: rem(19px);
+  }
+
+  .perfectCol {
+    width: rem(34px);
+  }
+
+  .dateCol {
+    width: rem(45px);
   }
 }
 
-/* The step counts were 10.4px on phones */
 @mixin smaller-than $mantine-breakpoint-sm {
+  /* The card reaches the screen edges (over the page's side padding), the results get the room */
+  .card {
+    margin-inline: calc(-1 * var(--mantine-spacing-xs));
+    padding-inline: var(--mantine-spacing-xxs);
+    border-radius: 0;
+  }
+
+  /* A gap between the date and the screen edge */
+  .row > td.date {
+    padding-inline-end: var(--mantine-spacing-xxs);
+  }
+
+  /* The step counts were 10.4px on phones */
   .number {
     font-size: var(--mantine-font-size-xs);
   }

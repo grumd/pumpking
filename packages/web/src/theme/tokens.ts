@@ -19,7 +19,7 @@ export const appColors = {
   mix27: '#2a434e99',
   mix28: '#2a4e4399',
   // Step judgements
-  perfect: '#29d7ff',
+  perfect: '#6dd0e6',
   great: '#21d021',
   good: '#dede3a',
   bad: '#f278fc',
@@ -31,7 +31,9 @@ export const appColors = {
   // Accents
   accent: '#88d3ff',
   fresh: '#afe488',
-  mine: '#e4cd88', // '#88e4d8',
+  latest: '#e4cd88',
+  mine: '#88dae4',
+  dropped: '#ecacac',
   discord: '#5865f2',
 } as const;
 

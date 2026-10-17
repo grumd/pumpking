@@ -1,4 +1,4 @@
-import { ActionIcon, Table } from '@mantine/core';
+import { ActionIcon, Box, Table } from '@mantine/core';
 import { useAtomValue } from 'jotai';
 import _ from 'lodash/fp';
 import { Fragment, memo, useState } from 'react';
@@ -21,21 +21,22 @@ import { ChartHeader } from './ChartHeader/ChartHeader';
 import Result from './Result';
 import { ResultsCollapser } from './ResultsCollapser';
 import css from './chart-results.module.css';
+import { useRowSizes } from './useRowSizes';
 
-// The table's columns. On desktop their widths are the same in every chart card, and the name
-// takes the rest. Hidden on phones: place and combo
-const columns = [
-  css.placeCol,
-  undefined, // name
-  css.scoreCol,
-  css.gradeCol,
-  css.stepCol, // miss
-  css.stepCol, // bad
-  css.stepCol, // good
-  css.stepCol, // great
-  css.perfectCol,
-  css.comboCol,
-  css.dateCol,
+// The table's columns. Their widths are the same in every chart card, and the name takes the
+// rest. Place and combo are desktop only, like their cells
+const columns: Array<{ className?: string; visibleFrom?: 'md' }> = [
+  { className: css.placeCol, visibleFrom: 'md' },
+  {}, // name
+  { className: css.scoreCol },
+  { className: css.gradeCol },
+  { className: css.stepCol }, // miss
+  { className: css.stepCol }, // bad
+  { className: css.stepCol }, // good
+  { className: css.stepCol }, // great
+  { className: css.perfectCol },
+  { className: css.comboCol, visibleFrom: 'md' },
+  { className: css.dateCol },
 ];
 
 const Chart = memo(function _Chart({ chart }: { chart: ChartApiOutput }) {
@@ -45,6 +46,7 @@ const Chart = memo(function _Chart({ chart }: { chart: ChartApiOutput }) {
   const canAddResults = user?.can_add_results_manually;
   const filter = useAtomValue(filterAtom);
   const highlightedPlayerIds = useHighlightedPlayerIds();
+  const rowSizes = useRowSizes();
   const [showHidden, setShowHidden] = useState(false);
 
   const hiddenResultsCount = chart.results.reduce((sum, res) => (res.isHidden ? sum + 1 : sum), 0);
@@ -88,8 +90,13 @@ const Chart = memo(function _Chart({ chart }: { chart: ChartApiOutput }) {
       const isAfterHighlighted = array
         .slice(index - highlightRange, index)
         .some((r) => r.isImportant);
+      // Places lost to an improved latest result above
+      const placesLost = array
+        .slice(0, index)
+        .filter((r, rIndex) => rIndex + r.placeDifference >= index).length;
       return {
         ...res,
+        placesLost,
         isCollapsible: !res.isImportant && !isBeforeHighlighted && !isAfterHighlighted,
       };
     });
@@ -145,11 +152,10 @@ const Chart = memo(function _Chart({ chart }: { chart: ChartApiOutput }) {
             verticalSpacing={0}
             horizontalSpacing="xxs"
             fz="md"
-            className={css.table}
           >
             <colgroup>
-              {columns.map((className, index) => (
-                <col key={index} className={className} />
+              {columns.map((column, index) => (
+                <Box component="col" key={index} {...column} />
               ))}
             </colgroup>
             <Table.Tbody>
@@ -157,7 +163,7 @@ const Chart = memo(function _Chart({ chart }: { chart: ChartApiOutput }) {
                 const groupResults = group.results.map((res) => {
                   return (
                     <Fragment key={res.id}>
-                      <Result chart={chart} result={res} />
+                      <Result chart={chart} result={res} sizes={rowSizes} />
                     </Fragment>
                   );
                 });

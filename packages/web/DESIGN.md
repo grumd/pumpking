@@ -84,11 +84,13 @@ The theme is **dark only** today. Every color that depends on the scheme is a CS
 | Judgement | `perfect` `great` `good` `bad` `miss` | text (`c="perfect"`) and fills |
 | Medal | `gold` `silver` `bronze` | text, icons, fills. "Gold" is this one color everywhere (cups, trophy links, exp numbers, the exp bar) |
 | Accent | `accent` | graph lines, progress, the achievement ring, focus ring |
-| Fresh | `fresh` | text of the latest result on a chart |
-| Mine | `mine` | text of the logged-in player's result on a chart (`fresh` wins when it's also the latest) |
+| Fresh | `fresh` | on the latest result's row: places gained (text, about 4.3:1 on that row), "NEW" / the score increase (light `Badge`) |
+| Latest | `latest` | muted background of the latest result's row on a chart (`color-mix` 20%) |
+| Mine | `mine` | muted background of the logged-in player's row on a chart (`color-mix` 20%; `latest` wins when it's also the latest) |
+| Dropped | `dropped` | text: places lost to the latest result on a chart (5.1:1 on the stripe; about 3.3:1 on a tinted row) |
 | Brand | `discord` | the Discord sign-in `Button` only (it has a real hover shade) |
 
-Generic states use Mantine's palette names, nothing else: `red` (errors, delete, "unread"), `green` (success, live), `yellow` (warnings), `blue` (info), `orange` (the HJ mod badge), `grape` (a filter is active; admin-only flags), `teal` (switches, "on"), `gray` (neutral status: ended, hidden), `cyan` / `pink` only where they already mean something in admin. As filled `Badge`/`Button`/`Alert` colors and `c=` on text.
+Generic states use Mantine's palette names, nothing else: `red` (errors, delete, "unread"), `green` (success, live), `yellow` (warnings), `blue` (info), `orange` (the HJ mod badge, `variant="light"` so it stays quiet in the results), `grape` (a filter is active; admin-only flags), `teal` (switches, "on"), `gray` (neutral status: ended, hidden), `cyan` / `pink` only where they already mean something in admin. As filled `Badge`/`Button`/`Alert` colors and `c=` on text.
 
 Chart type colors are kept from the old design. White text on `double` and `coop` is under AA; see "Known gaps".
 
@@ -160,7 +162,8 @@ A surface with an optional title: the "section" of a page.
 - `level?: 1 | 2`: `1` on the page (surface-1, padding `sm`), `2` for a card or row inside a card (surface-2, padding `xs`).
 - Takes the `Paper` props (`component`, `flex`, `p`, `mb`...).
 - Use for any group of content on a page. A card with its own header (the leaderboard chart card) has no `title`, so no underline.
-- The one padding exception: the leaderboard's dense results table uses smaller card paddings below `md` (level 1 `xs`, level 2 `xxs 0`) so its 10 columns fit a phone. They are in `chart-results.module.css`, not responsive `p` props, which would add a `<style>` tag per card in the virtualized list. Don't copy it elsewhere.
+- The one padding exception: the leaderboard's dense results table uses smaller card paddings below `md` (level 1 `xs`, level 2 `xxs 0`) so its 10 columns fit a phone. Below `sm` the chart cards also reach the screen edges, square, with `xxs` side padding (and another `xxs` inside the header and after the date): the page's side padding left the results too little room. They are in `chart-results.module.css`, not responsive `p` props, which would add a `<style>` tag per card in the virtualized list. Don't copy it elsewhere.
+- For the same reason the results rows' text, badge and grade sizes (larger on phones, where the narrow step counts leave room) are plain props: `useRowSizes` (`leaderboards/components/charts/useRowSizes.ts`) picks the phone or desktop set with Mantine's `useMatches`, once per chart card.
 - Don't nest a level-1 card in another level-1 card. Don't use Mantine's `Card` or `Paper` directly for sections.
 - In admin drawers, groups of fields use the admin-local `Section` (a dimmed heading without a surface), not `Card`.
 
@@ -274,7 +277,7 @@ The migration keeps the old look. These are the places that changed on purpose, 
 
 | Where | Change | Why |
 |---|---|---|
-| All pages | One page width (`PageContainer`), full width up to it, with side padding on phones | Widths were 800–1485px depending on the page; the content edge jumped between nav items; the leaderboard touched the screen edges on phones; tables made tournaments and admin wider than a 375px screen |
+| All pages | One page width (`PageContainer`), full width up to it, with side padding on phones | Widths were 800–1485px depending on the page; the content edge jumped between nav items; tables made tournaments and admin wider than a 375px screen |
 | All pages | Nunito everywhere, with real 600/700 weights | Inputs and titles used the system font, and bold was synthesized from the 400 weight |
 | All pages | Muted text `#828282` → `#b3b3b3`; placeholders `#696969` → `#969696` | Secondary text failed WCAG AA on every card surface (2.6–3.5:1), placeholders were 2.5:1 |
 | All pages | Visible keyboard focus ring (accent) on all controls | The default outline was dark gray on dark gray (1.2:1) |
@@ -287,6 +290,7 @@ The migration keeps the old look. These are the places that changed on purpose, 
 | Leaderboard | The score that opens the result details is a button, and focus moves into the popover | The popover could only be opened with a mouse or touch, and its links were out of keyboard reach |
 | Leaderboard | "Show N more" is a real button with a focus ring | It had `all: unset`, so keyboard users couldn't see it |
 | Leaderboard | Combo column hidden below `md`, together with its popover fallback | Between 768 and 900px the combo was shown nowhere |
+| Leaderboard | Chart cards reach the screen edges below `sm` | With the page and card side padding, names and scores had about 40px less room than before the redesign |
 | Leaderboard | The charts filter popover fits the screen and works from the keyboard | It overflowed a 375px screen, and Tab skipped its controls |
 | Leaderboard | Player filters and sorting inputs stack on phones | Three player selects were ~115px wide each, the sort select was cut off, and opening sorting pushed "charts filter" off the screen |
 | Leaderboard, profile | Date tooltips and achievement descriptions open on keyboard focus and on press-and-hold | They were hover only |
