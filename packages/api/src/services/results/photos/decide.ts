@@ -109,8 +109,8 @@ const readValues = (read: PhotoRead, millionScoring: boolean): PhotoValues => {
     combo: read.max_combo,
     score: read.score,
     grade: read.grade.trim().toUpperCase(),
-    // A pass on Phoenix has a plate under the grade; before it, a fail has a broken grade
-    pass: millionScoring ? read.plate_text != null : !read.grade_broken,
+    // A pass on Phoenix has a plate under the grade; before it, only the grade's color tells
+    pass: millionScoring ? read.plate_text != null : !read.stage_failed,
     mod: rank ? 'VJ' : badges.includes('HJ') ? 'HJ' : '',
   };
 };
@@ -142,8 +142,7 @@ const checkMillionStats = (read: PhotoRead, values: PhotoValues, mixId: number):
   }
   // The plate also says whether the stage was passed: a fail has none
   const plate = read.plate_text == null ? null : plateFromText(read.plate_text);
-  const brokenPass = read.grade_broken && values.pass;
-  if (plate === undefined || brokenPass || plate !== calcPlate(values, values.pass)) {
+  if (plate === undefined || plate !== calcPlate(values, values.pass)) {
     problems.push('pass');
   }
   return problems;
