@@ -22,6 +22,22 @@ import Result from './Result';
 import { ResultsCollapser } from './ResultsCollapser';
 import css from './chart-results.module.css';
 
+// The table's columns. On desktop their widths are the same in every chart card, and the name
+// takes the rest. Hidden on phones: place and combo
+const columns = [
+  css.placeCol,
+  undefined, // name
+  css.scoreCol,
+  css.gradeCol,
+  css.stepCol, // miss
+  css.stepCol, // bad
+  css.stepCol, // good
+  css.stepCol, // great
+  css.perfectCol,
+  css.comboCol,
+  css.dateCol,
+];
+
 const Chart = memo(function _Chart({ chart }: { chart: ChartApiOutput }) {
   const lang = useLanguage();
   const user = useUser().data;
@@ -129,7 +145,13 @@ const Chart = memo(function _Chart({ chart }: { chart: ChartApiOutput }) {
             verticalSpacing={0}
             horizontalSpacing="xxs"
             fz="md"
+            className={css.table}
           >
+            <colgroup>
+              {columns.map((className, index) => (
+                <col key={index} className={className} />
+              ))}
+            </colgroup>
             <Table.Tbody>
               {resultGroups.map((group) => {
                 const groupResults = group.results.map((res) => {
@@ -144,6 +166,7 @@ const Chart = memo(function _Chart({ chart }: { chart: ChartApiOutput }) {
                     <ResultsCollapser
                       key={`group-${group.results[0].id}`}
                       count={groupResults.length}
+                      colSpan={columns.length}
                     >
                       {groupResults}
                     </ResultsCollapser>

@@ -16,7 +16,9 @@ import {
 import { useAtomValue } from 'jotai';
 import { FaAngleDoubleUp, FaExclamationTriangle, FaTrash, FaTrophy } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
+import { mixColor } from 'theme/tokens';
 
+import { ChartLabel } from 'components/ChartLabel/ChartLabel';
 import { Flag } from 'components/Flag/Flag';
 import { Grade } from 'components/Grade/Grade';
 import { KeyValueList } from 'components/KeyValueList/KeyValueList';
@@ -31,10 +33,10 @@ import { filterAtom } from 'features/leaderboards/hooks/useFilter';
 import { useUser } from 'hooks/useUser';
 
 import { translation, useLanguage } from 'utils/context/translation';
+import { Mixes, isMixNumber } from 'utils/scoring/grades';
 import { getShortTimeAgo } from 'utils/timeAgo';
 
 import type { ChartApiOutput } from '../../hooks/useChartsQuery';
-import { MixPlate } from './MixPlate';
 import css from './chart-results.module.css';
 
 // The step count columns, left to right, with their place in result.stats
@@ -57,11 +59,11 @@ export type ResultExtended = ChartApiOutput['results'][number] & {
 
 const DEBUG = import.meta.env.VITE_DEBUG_RESULTS === 'true';
 
-// A score with its last three digits smaller: 997,612
+// A score with its last three digits smaller: 1,000,000
 const Score = ({ score }: { score: number }) => {
   return (
     <>
-      {Math.floor(score / 1000)}
+      {Math.floor(score / 1000).toLocaleString('en-US')}
       <Text span fz="xs">
         ,{`${score % 1000}`.padStart(3, '0')}
       </Text>
@@ -128,6 +130,9 @@ const Result = ({ result, chart }: { result: ResultExtended; chart: ChartApiOutp
     }
   };
 
+  // The chart on the result's mix, when it's an earlier mix than the chart's latest
+  const originalChart = chart.otherChartInstances.find((instance) => instance.mix === result.mix);
+
   const playerRoute =
     result.playerId == null ? null : routes.profile.getPath({ id: result.playerId });
 
@@ -138,20 +143,16 @@ const Result = ({ result, chart }: { result: ResultExtended; chart: ChartApiOutp
       key={result.id}
       className={css.row}
       data-latest={result.isLatestScore || undefined}
+      data-mine={isCurrentPlayer || undefined}
       data-highlighted={isHighlighted || undefined}
-      data-bold={isHighlighted || isCurrentPlayer || undefined}
       // Read by the module only on highlighted rows
       style={{ '--pk-highlight': `var(--pk-highlight-${result.highlightIndex})` }}
     >
-      <Table.Td className={css.place} visibleFrom="md">
-        {isCurrentPlayer ? (
-          <span className={css.currentPlace}>#{place}</span>
-        ) : (
-          <Place place={place} />
-        )}
+      <Table.Td visibleFrom="md">
+        <Place place={place} />
       </Table.Td>
       <Table.Td className={css.name}>
-        <Group gap="xxs" align="center">
+        <Group gap="xxs" align="center" wrap="nowrap">
           {result.region ? <Flag region={result.region} size="sm" /> : null}
           <Text inherit flex="1 1 0" miw={rem(48)} truncate>
             {playerRoute ? (
@@ -170,7 +171,7 @@ const Result = ({ result, chart }: { result: ResultExtended; chart: ChartApiOutp
           {(DEBUG || (isSortedByPp && isHighlighted)) && (
             <span> {result.pp && `${result.pp}pp`}</span>
           )}
-          <Group gap="xxs" ml="auto" wrap="nowrap">
+          <Group gap="xxs" ml="auto" wrap="nowrap" flex="none">
             {result.countsForTournament && (
               <Tooltip label={lang.TOURNAMENT_RESULT}>
                 <UnstyledButton display="flex" aria-label={lang.TOURNAMENT_RESULT}>
@@ -190,22 +191,35 @@ const Result = ({ result, chart }: { result: ResultExtended; chart: ChartApiOutp
                 R
               </Badge>
             )}
-            <MixPlate mix={result.mix} />
           </Group>
         </Group>
       </Table.Td>
       <Table.Td className={css.score} ta="right">
-        <Popover withArrow width={200} position="top" trapFocus>
+        {/* As wide as the longest row, the notes below wrap */}
+        <Popover withArrow width="min-content" position="top" trapFocus>
           <Popover.Target>
             <UnstyledButton className={css.scoreButton}>
               <Score score={result.score} />
             </UnstyledButton>
           </Popover.Target>
-          <Popover.Dropdown p="sm">
+          <Popover.Dropdown p="sm" miw={rem(200)}>
             <ResultScreenshotLink resultId={result.id} />
 
             <KeyValueList
+              noWrap
               items={[
+                originalChart &&
+                  isMixNumber(originalChart.mix) && {
+                    label: lang.ORIGINAL_CHART,
+                    value: (
+                      <Group gap="xxs" wrap="nowrap">
+                        <Badge size="sm" color={mixColor(originalChart.mix)}>
+                          {Mixes[originalChart.mix]}
+                        </Badge>
+                        <ChartLabel label={originalChart.label} />
+                      </Group>
+                    ),
+                  },
                 DEBUG && { label: 'result id:', value: result.id },
                 DEBUG && { label: 'player id:', value: result.playerId },
                 result.originalScore != null &&
@@ -213,19 +227,17 @@ const Result = ({ result, chart }: { result: ResultExtended; chart: ChartApiOutp
                     label: lang.ORIGINAL_SCORE,
                     value: <Score score={result.originalScore} />,
                   },
-                result.grade != null && { label: lang.ORIGINAL_GRADE, value: result.grade },
-                {
-                  label: `${lang.PLAYER}:`,
-                  value: playerRoute ? (
-                    <Anchor component={Link} to={playerRoute} inherit>
-                      {result.playerName}
-                      {result.playerNameArcade ? ` (${result.playerNameArcade})` : null}
-                    </Anchor>
-                  ) : (
-                    `${result.playerName}${
-                      result.playerNameArcade ? ` (${result.playerNameArcade})` : ''
-                    }`
-                  ),
+                !!originalChart &&
+                  result.grade != null && { label: lang.ORIGINAL_GRADE, value: result.grade },
+                result.isExactGainedDate &&
+                  result.combo != null && {
+                    label: `${lang.MAX_COMBO}:`,
+                    value: `${result.combo}x`,
+                    hiddenFrom: 'md',
+                  },
+                !!result.playerNameArcade && {
+                  label: `${lang.AM_PASS}:`,
+                  value: result.playerNameArcade,
                 },
                 !!result.exp && {
                   label: (
@@ -253,12 +265,6 @@ const Result = ({ result, chart }: { result: ResultExtended; chart: ChartApiOutp
                 },
                 result.isExactGainedDate &&
                   !!result.mods && { label: `${lang.MODS}:`, value: result.mods },
-                result.isExactGainedDate &&
-                  result.combo != null && {
-                    label: `${lang.COMBO}:`,
-                    value: result.combo,
-                    hiddenFrom: 'md',
-                  },
               ]}
             />
 
@@ -316,11 +322,16 @@ const Result = ({ result, chart }: { result: ResultExtended; chart: ChartApiOutp
         </Center>
       </Table.Td>
       {stepColumns.map(({ index, className }) => (
-        <Table.Td key={index} className={`${css.number} ${className}`} ta="right">
+        <Table.Td
+          key={index}
+          className={`${css.number} ${className}`}
+          ta="right"
+          data-zero={result.stats[index] === 0 || undefined}
+        >
           {result.stats[index]}
         </Table.Td>
       ))}
-      <Table.Td className={css.combo} visibleFrom="md" ta="right" fz="sm">
+      <Table.Td visibleFrom="md" ta="right" fz="sm">
         {result.combo != null && `${result.combo}x`}
       </Table.Td>
       <Table.Td className={css.date} ta="right">

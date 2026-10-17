@@ -42,12 +42,6 @@ export const cssVariablesResolver: CSSVariablesResolver = () => {
       '--pk-graph-grid': darkScheme.graphGrid,
       '--pk-graph-reference': darkScheme.graphReference,
 
-      '--pk-tint-perfect': darkScheme.tintPerfect,
-      '--pk-tint-great': darkScheme.tintGreat,
-      '--pk-tint-good': darkScheme.tintGood,
-      '--pk-tint-bad': darkScheme.tintBad,
-      '--pk-tint-miss': darkScheme.tintMiss,
-
       '--pk-glow-bronze': darkScheme.glowBronze,
       '--pk-glow-silver': darkScheme.glowSilver,
       '--pk-glow-gold': darkScheme.glowGold,

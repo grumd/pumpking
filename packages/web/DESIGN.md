@@ -73,8 +73,6 @@ The theme is **dark only** today. Every color that depends on the scheme is a CS
 
 **Glows** (the exp rank icons and the exp bar): `--pk-glow-bronze`, `--pk-glow-silver`, `--pk-glow-gold`, `--pk-glow-green`, `--pk-glow-purple`. Use them in `filter: drop-shadow(0 0 rem(3px) var(--pk-glow-gold))` or `box-shadow: 0 0 rem(4px) var(--pk-glow-gold)`. These are the only shadows allowed besides Mantine's `shadow` prop.
 
-**Step judgement tints** (faint column backgrounds in result tables): `--pk-tint-perfect`, `--pk-tint-great`, `--pk-tint-good`, `--pk-tint-bad`, `--pk-tint-miss`.
-
 **Highlighted players**: 25 colors `--pk-highlight-0` … `--pk-highlight-24`. A row gets its color with `style={{ '--pk-highlight': `var(--pk-highlight-${index})` }}`, and its CSS module uses `color-mix(in srgb, var(--pk-highlight) 23%, transparent)` for the background and `color-mix(in srgb, var(--pk-highlight) 63%, transparent)` for the outline.
 
 **App colors** are registered as Mantine colors (`tokens.ts` `appColors`). Each is a single shade, so Mantine's light/outline variants and `-text` shades all equal the base color. That decides where each group may be used:
@@ -87,6 +85,7 @@ The theme is **dark only** today. Every color that depends on the scheme is a CS
 | Medal | `gold` `silver` `bronze` | text, icons, fills. "Gold" is this one color everywhere (cups, trophy links, exp numbers, the exp bar) |
 | Accent | `accent` | graph lines, progress, the achievement ring, focus ring |
 | Fresh | `fresh` | text of the latest result on a chart |
+| Mine | `mine` | text of the logged-in player's result on a chart (`fresh` wins when it's also the latest) |
 | Brand | `discord` | the Discord sign-in `Button` only (it has a real hover shade) |
 
 Generic states use Mantine's palette names, nothing else: `red` (errors, delete, "unread"), `green` (success, live), `yellow` (warnings), `blue` (info), `orange` (the HJ mod badge), `grape` (a filter is active; admin-only flags), `teal` (switches, "on"), `gray` (neutral status: ended, hidden), `cyan` / `pink` only where they already mean something in admin. As filled `Badge`/`Button`/`Alert` colors and `c=` on text.
@@ -177,6 +176,7 @@ A label over a value.
 A two-column `dl`: dimmed labels on the left, values on the right.
 
 - `items: Array<{ label: ReactNode; value: ReactNode; hiddenFrom?: MantineBreakpoint } | false | null | undefined>` (falsy items are skipped; `hiddenFrom` hides the row from that breakpoint up, e.g. a value a table column shows there).
+- `noWrap?: boolean`: each row on one line. In a `Popover width="min-content"` the dropdown then grows to fit the rows, and notes under the list wrap at that width (the leaderboard result details).
 - Use for the details of one thing in a popover, modal or tooltip: result details, a confirm dialog, a graph tooltip. A graph tooltip on the profile is `<GraphTooltip><KeyValueList items={...} /></GraphTooltip>` (`features/profile/components/GraphTooltip.tsx`: a bordered surface-1 `Paper`), with `{...tooltipProps}` (`graphAxis.ts`) on recharts' `Tooltip`, which keeps it above the next card.
 - Use `Stat` instead when the values are few and should stand out.
 
@@ -240,7 +240,7 @@ Don't wrap these; configure them through the theme.
 | Need | Use |
 |---|---|
 | A data table (tournaments, admin lists) | `Table` inside `Table.ScrollContainer minWidth={...}`, so phones scroll it instead of squeezing the page |
-| A dense table of results | `Table striped` + the feature's CSS module for column widths and tints |
+| A dense table of results | `Table striped` + the feature's CSS module for column widths and judgement colors |
 | A list of rows with columns (ranking, top tracks, best scores) | `Table variant="rows"`: each row is a surface-2 tile with rounded ends, hover surface-3. On phones hide secondary columns with `visibleFrom="md"` instead of scrolling |
 | A column as narrow as its content (place, numbers, icons, a switch) | `Table.Td` / `Table.Th` with `data-fit`; the other columns share the rest |
 | The main number of a row (pp, play count) | `Table.Td` with `data-main` (bold, `--pk-text-strong`) |
