@@ -86,7 +86,7 @@ ${CHART_LINE}
 - perfect, great, good, bad, miss, max_combo: the numbers on the right form one column of 8. Find the calories first: the only number with a decimal point, at the bottom of the column. Counting up from it, the numbers are: total score, max combo, miss, bad, good, great, perfect. So the topmost number is perfect, even when it sits level with the song title. Ignore which label a number is beside: the column is often a whole row off its labels. The counters have leading zeroes; the calories are never used
 - score: the total score as an integer, without separators
 - grade: the big grade letter in the middle: F, D, C, B, A, S, SS or SSS
-- stage_failed: true if the stage was failed: the grade letter has no color, it is grey or silver-white, usually with dark cracks across it. A passed grade letter is colored, e.g. a blue A or B, a gold S
+- stage_failed: true if the stage was failed: the grade letter has no color, it is grey or silver-white, usually with thin dark cracks across it that can be hard to see. A silver-white letter is a failed stage even when you see no cracks. A passed grade letter is colored, e.g. a blue A or B, a gold S
 - mod_badges: every small square badge along the side of the result panel, as written (e.g. "AV 620", "BGA DARK", "HJ", "VJ")`;
 
 // Phoenix and Phoenix 2 screens look alike; each prompt names only its own mix
