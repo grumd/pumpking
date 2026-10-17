@@ -1,4 +1,5 @@
 import { createEventConsumer } from '@pumpking/database/events';
+import { recordStandings } from 'services/players/playersPp';
 import { resultAddedEffect } from 'services/results/resultAddedEffect';
 import { resultChangedEffect } from 'services/results/resultChangedEffect';
 
@@ -11,6 +12,9 @@ export const effectsConsumer = createEventConsumer('effects', async (event) => {
       break;
     case 'resultChanged':
       await resultChangedEffect(event.payload);
+      break;
+    case 'ppRecalculated':
+      await recordStandings();
       break;
   }
 });

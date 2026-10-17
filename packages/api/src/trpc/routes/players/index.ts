@@ -4,6 +4,7 @@ import { highestPpCharts } from './highestPpCharts';
 import { list } from './list';
 import { mostPlayed } from './mostPlayedCharts';
 import { pp } from './pp';
+import { ppBreakdown } from './ppBreakdown';
 import { stats } from './stats';
 import { router } from 'trpc/trpc';
 
@@ -15,4 +16,5 @@ export const players = router({
   achievements,
   mostPlayed,
   highestPpCharts,
+  ppBreakdown,
 });

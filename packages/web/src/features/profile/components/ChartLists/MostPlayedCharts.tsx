@@ -5,7 +5,6 @@ import { MdExpandMore } from 'react-icons/md';
 import { useParams } from 'react-router';
 import { NavLink } from 'react-router-dom';
 
-import { Card } from 'components/Card/Card';
 import { ChartLabel } from 'components/ChartLabel/ChartLabel';
 import Loader from 'components/Loader/Loader';
 
@@ -28,7 +27,7 @@ export const MostPlayedCharts = (): JSX.Element => {
   const lang = useLanguage();
 
   return (
-    <Card title={lang.MOST_PLAYED_CHARTS}>
+    <>
       <Table variant="rows">
         <Table.Tbody>
           {charts.data?.pages.flatMap((page) =>
@@ -68,6 +67,6 @@ export const MostPlayedCharts = (): JSX.Element => {
           {lang.SHOW_MORE}
         </Button>
       )}
-    </Card>
+    </>
   );
 };

@@ -7,7 +7,6 @@ export const getPlayerHighestPpCharts = async (
 ): Promise<
   Array<{
     pp: number;
-    weight: number;
     date: Date; // seems like api actually returns string :(
     shared_chart: number;
     full_name: string;
@@ -35,19 +34,22 @@ export const getPlayerHighestPpCharts = async (
       )
     )
     .innerJoin('tracks as t', 't.id', 'sc.track')
-    .innerJoin(
-      (eb) =>
-        eb
-          .selectFrom('results')
-          .select(({ fn }) => ['player_id', 'shared_chart', fn.max('pp').as('best_pp')])
-          .groupBy(['shared_chart', 'player_id'])
-          .where('pp', 'is not', null)
-          .as('max_pp_results'),
-      (join) =>
-        join
-          .onRef('max_pp_results.player_id', '=', 'r.player_id')
-          .onRef('max_pp_results.shared_chart', '=', 'r.shared_chart')
-          .onRef('max_pp_results.best_pp', '=', `r.pp`)
+    .where('r.pp', 'is not', null)
+    // One result per chart: the one with the most pp, the earliest of equal ones
+    .where(({ not, exists }) =>
+      not(
+        exists(
+          db
+            .selectFrom('results as b')
+            .select('b.id')
+            .where('b.player_id', '=', sql.ref('r.player_id'))
+            .where('b.shared_chart', '=', sql.ref('r.shared_chart'))
+            .where('b.pp', '>=', sql.ref('r.pp'))
+            .where(({ or, cmpr }) =>
+              or([cmpr('b.pp', '>', sql.ref('r.pp')), cmpr('b.id', '<', sql.ref('r.id'))])
+            )
+        )
+      )
     )
     .select([
       'pp',
@@ -70,10 +72,9 @@ export const getPlayerHighestPpCharts = async (
   const timeEnd = performance.now();
   console.log('query time:', timeEnd - timeStart, 'ms');
 
-  return result.map((row, index) => ({
+  return result.map((row) => ({
     ...row,
     date: new Date(row.date),
-    weight: 0.95 ** (index + params.offset),
     is_pass: row.is_pass === 1,
   }));
 };

@@ -147,7 +147,7 @@ describe('Admin results', () => {
     assert.equal(result.rank_mode, 0);
   });
 
-  it('moves pp to the new best result when the best one is lowered', async () => {
+  it('recalculates pp when the best result is lowered', async () => {
     const lower = await insertPhoenixResult(4, 950000);
     const best = await insertPhoenixResult(4, 990000);
     await applyEffects();
@@ -161,8 +161,7 @@ describe('Admin results', () => {
     await applyEffects();
     const lowered = await getResult(best);
     const newBest = await getResult(lower);
-    assert.isNull(lowered.pp, 'the lowered result is no longer the best one');
-    assert.isNotNull(newBest.pp);
+    assert.isBelow(lowered.pp!, newBest.pp!, 'the lowered result has less pp');
     const player = await db
       .selectFrom('players')
       .select('pp')

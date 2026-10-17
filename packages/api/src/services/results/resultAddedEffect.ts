@@ -5,7 +5,7 @@ import createDebug from 'debug';
 import { sql } from 'kysely';
 import _ from 'lodash/fp';
 import { refreshPlayerTotalExp } from 'services/players/playerExp';
-import { getSinglePlayerTotalPp, updatePpHistoryIfNeeded } from 'services/players/playersPp';
+import { getSinglePlayerTotalPp, recordStandings } from 'services/players/playersPp';
 import { getResultExp } from 'services/results/exp';
 import { error } from 'utils';
 
@@ -108,6 +108,21 @@ export const resultAddedEffect = async (resultId: number) => {
       await refreshPlayerTotalExp(playerId, trx);
     }
 
+    // Every result gets pp, not only a new best: a newer result can add more to the total
+    // than an older best on the same chart (see services/players/totalPp.ts)
+    const pp = (await calculateResultsPp({ resultId, trx })).get(resultId);
+    if (pp) {
+      await trx.updateTable('results').set({ pp }).where('id', '=', resultId).executeTakeFirst();
+      const totalPp = await getSinglePlayerTotalPp(playerId, trx);
+      await trx
+        .updateTable('players')
+        .set({ pp: totalPp })
+        .where('id', '=', playerId)
+        .executeTakeFirst();
+
+      await recordStandings(trx);
+    }
+
     const firstTopScore = await trx
       .selectFrom('results')
       .select(['id', 'score_phoenix'])
@@ -121,21 +136,6 @@ export const resultAddedEffect = async (resultId: number) => {
     if (firstTopScore && firstTopScore.id === resultId) {
       // This score is the new best score
       sharedChartIsChanged = true;
-
-      const resultsPp = await calculateResultsPp({ sharedChartId, resultId, trx });
-      const pp = resultsPp.get(resultId);
-
-      if (pp) {
-        await trx.updateTable('results').set({ pp }).where('id', '=', resultId).executeTakeFirst();
-        const totalPp = await getSinglePlayerTotalPp(playerId, trx);
-        await trx
-          .updateTable('players')
-          .set({ pp: totalPp })
-          .where('id', '=', playerId)
-          .executeTakeFirst();
-
-        await updatePpHistoryIfNeeded(trx);
-      }
     }
 
     if (sharedChartIsChanged) {

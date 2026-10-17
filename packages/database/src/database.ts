@@ -152,6 +152,20 @@ export interface PlayerNotices {
   read_at: Date | null;
 }
 
+export interface PlayerPpHistory {
+  id: Generated<number>;
+  player_id: number;
+  recorded_at: Date;
+  pp: number;
+}
+
+export interface PlayerRankHistory {
+  id: Generated<number>;
+  player_id: number;
+  recorded_at: Date;
+  rank: number;
+}
+
 // HAND-PATCHED: the shape behind players.preferences (see
 // services/users/preferences.ts); codegen types that column as plain Json.
 export interface PlayerPreferencesJson {
@@ -408,6 +422,8 @@ export interface DB {
   mixes: Mixes;
   operators: Operators;
   player_notices: PlayerNotices;
+  player_pp_history: PlayerPpHistory;
+  player_rank_history: PlayerRankHistory;
   players: Players;
   pp_history: PpHistory;
   pp_rank_history: PpRankHistory;

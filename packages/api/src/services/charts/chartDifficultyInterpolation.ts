@@ -1,4 +1,5 @@
 import { db } from '@pumpking/database/db';
+import { addEvent } from '@pumpking/database/events';
 import createDebug from 'debug';
 import { sql } from 'kysely';
 import _ from 'lodash/fp';
@@ -220,9 +221,9 @@ export const updateChartsInterpolatedDifficulty = async (): Promise<number> => {
   return sharedChartsUpdated;
 };
 
-export const updateChartsDifficulty = async () => {
-  await updateChartsInterpolatedDifficulty();
-
+// Every result's pp from the current chart difficulties, then every player's total with
+// today's age factors
+export const updateAllPp = async () => {
   const allResultsPp = await calculateResultsPp();
   const idPpPairs = Array.from(allResultsPp.entries()).map(([id, pp]) => ({ id, pp }));
 
@@ -262,4 +263,11 @@ export const updateChartsDifficulty = async () => {
   }, Promise.resolve());
 
   debug('Updated players total pp successfully');
+};
+
+export const updateChartsDifficulty = async () => {
+  await updateChartsInterpolatedDifficulty();
+  await updateAllPp();
+  // The effects job records the places and totals that changed
+  await addEvent(db, 'ppRecalculated', {});
 };

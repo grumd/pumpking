@@ -6,6 +6,9 @@ import path from 'path';
 import { applyEffects, req } from 'test/helpers';
 import { addResultsSession } from 'test/helpers/sessions';
 
+// A date whose results count fully in the total pp (less than a year old)
+const recentDate = new Date(Date.now() - 10 * 86_400_000).toISOString().slice(0, 10);
+
 describe('Add new result manually', () => {
   it('error 401 when user is not authorized', async () => {
     await req().post('/results/add-result').expect(401);
@@ -141,7 +144,7 @@ describe('Add new result manually', () => {
     assert.isNotEmpty(res.body, 'has a response');
   });
 
-  it('pp is not calculated if its not a new top score', async () => {
+  it('every result gets pp, and a recent one counts for more than an old best', async () => {
     await req()
       .post('/results/add-result')
       .set('session', addResultsSession)
@@ -172,31 +175,17 @@ describe('Add new result manually', () => {
         .orderBy('id', 'desc')
         .executeTakeFirst();
 
-    assert.isAbove((await getLatestResult())?.pp ?? -1, 0, `results's pp is above 0`);
-
-    await req()
-      .post('/results/add-result')
-      .set('session', addResultsSession)
-      .field('playerId', 7)
-      .field('grade', 'SSS')
-      .field('mix', 'XX')
-      .field('mod', '')
-      .field('score', 1000000)
-      .field('perfect', 100)
-      .field('great', 0)
-      .field('good', 0)
-      .field('bad', 0)
-      .field('miss', 0)
-      .field('combo', 100)
-      .field('date', '2020-01-02')
-      .field('isExactDate', true)
-      .field('sharedChartId', 1)
-      .field('pass', true)
-      .attach('screenshot', path.join(__dirname, '../files/test.jpg'))
-      .expect(200);
-    await applyEffects();
-
-    assert.isNull((await getLatestResult())?.pp, `new results's pp is null`);
+    const oldBest = await getLatestResult();
+    const getPlayerPp = async () =>
+      (await db.selectFrom('players').select('pp').where('id', '=', 7).executeTakeFirstOrThrow())
+        .pp;
+    assert.isAbove(oldBest?.pp ?? -1, 0, `results's pp is above 0`);
+    assert.closeTo(
+      (await getPlayerPp()) ?? -1,
+      (oldBest?.pp ?? 0) * 0.25,
+      0.01,
+      'a result over 5 years old adds 25% of its pp'
+    );
 
     await req()
       .post('/results/add-result')
@@ -212,7 +201,7 @@ describe('Add new result manually', () => {
       .field('bad', 0)
       .field('miss', 0)
       .field('combo', 100)
-      .field('date', '2020-01-03')
+      .field('date', recentDate)
       .field('isExactDate', true)
       .field('sharedChartId', 1)
       .field('pass', true)
@@ -220,7 +209,14 @@ describe('Add new result manually', () => {
       .expect(200);
     await applyEffects();
 
-    assert.isNull((await getLatestResult())?.pp, `new results's pp is null`);
+    const recent = await getLatestResult();
+    assert.isAbove(recent?.pp ?? -1, 0, `a result that isn't the best gets pp too`);
+    assert.isBelow(recent?.pp ?? -1, oldBest?.pp ?? -1, 'a lower score has less pp');
+    assert.strictEqual(
+      await getPlayerPp(),
+      recent?.pp,
+      'the recent result counts instead of the old best'
+    );
   });
 
   it('exp is calculated', async () => {
@@ -347,7 +343,7 @@ describe('Add new result manually', () => {
       .field('bad', 0)
       .field('miss', 5)
       .field('combo', 50)
-      .field('date', '2020-01-01')
+      .field('date', recentDate)
       .field('isExactDate', true)
       .field('sharedChartId', 1)
       .field('pass', true)
@@ -383,7 +379,7 @@ describe('Add new result manually', () => {
       .field('bad', 0)
       .field('miss', 0)
       .field('combo', 100)
-      .field('date', '2020-01-01')
+      .field('date', recentDate)
       .field('isExactDate', true)
       .field('sharedChartId', 1)
       .field('pass', true)
@@ -447,7 +443,7 @@ describe('Add new result manually', () => {
       .field('bad', 1)
       .field('miss', 0)
       .field('combo', 50)
-      .field('date', '2020-01-01')
+      .field('date', recentDate)
       .field('isExactDate', true)
       .field('sharedChartId', 2)
       .field('pass', true)

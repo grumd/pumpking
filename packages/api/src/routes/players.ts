@@ -3,7 +3,6 @@ import {
   getPlayersAllController,
   getPlayerGradesController,
   getPlayerPpHistoryController,
-  updatePpHistory,
   getPlayerAchievementsController,
   updateExpTotal,
 } from 'controllers/players';
@@ -47,8 +46,6 @@ router.get('/:playerId/grades', getPlayerGradesController);
 router.get('/:playerId/pp-history', getPlayerPpHistoryController);
 
 router.get('/:playerId/achievements', getPlayerAchievementsController);
-
-router.get('/update-pp', updatePpHistory);
 
 router.get('/update-exp', updateExpTotal);
 
