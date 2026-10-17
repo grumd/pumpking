@@ -232,12 +232,12 @@ export const recognizePhoto = async (
     results = passes(first.check) ? [first] : [first, await readAndCheck(READER_B)];
   } else {
     results = await Promise.all([readAndCheck(READER_A), readAndCheck(READER_B)]);
-    // A third reader from another vendor, when the two don't both pass and agree
+    const [a, b] = results.map((result) => result.check);
+    // A third reader from another vendor, when the two don't both pass and agree. Reads
+    // that disagree on pass are asked whatever it says
     if (
-      decide(
-        mixId,
-        results.map((result) => result.check)
-      ).status !== 'confident'
+      decide(mixId, [a, b]).status !== 'confident' &&
+      !(a && b && a.values.pass !== b.values.pass)
     ) {
       results.push(await readAndCheck(READER_C));
     }

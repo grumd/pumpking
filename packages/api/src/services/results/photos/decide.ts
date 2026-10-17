@@ -281,7 +281,7 @@ const needsInput = (checks: (ReadCheck | null)[]): Decision => {
  * reader that failed). Phoenix and later: the first read that passes every check is
  * saved. XX and earlier: two reads that both pass and agree on everything, or that differ
  * in one judgement which the step count settles; the third read, made only when the first
- * two don't, breaks the tie
+ * two don't, breaks the tie. Reads that disagree on pass always ask
  */
 export const decide = (mixId: number, checks: (ReadCheck | null)[]): Decision => {
   if (isMillionScoringMix(mixId)) {
@@ -292,6 +292,12 @@ export const decide = (mixId: number, checks: (ReadCheck | null)[]): Decision =>
     return needsInput(checks);
   }
 
+  // Models often miss the thin cracks of a failed grade, and almost never see cracks on a
+  // passed one: reads that disagree on pass are never outvoted, the player says
+  const valid = checks.filter((check) => check != null);
+  if (valid.some((check) => check.values.pass !== valid[0].values.pass)) {
+    return needsInput(checks);
+  }
   const [a = null, b = null, c = null] = checks;
   const pairs = [
     [a, b],
