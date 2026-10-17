@@ -24,6 +24,7 @@ import { appColors, gradeColorVar, gradeColors, highlightColors, pageWidths } fr
 import { Card } from 'components/Card/Card';
 import { ChartLabel } from 'components/ChartLabel/ChartLabel';
 import { EmptyState } from 'components/EmptyState/EmptyState';
+import { Grade, type GradeVariant } from 'components/Grade/Grade';
 import { ErrorAlert } from 'components/ErrorAlert/ErrorAlert';
 import { KeyValueList } from 'components/KeyValueList/KeyValueList';
 import Loader from 'components/Loader/Loader';
@@ -48,6 +49,7 @@ const surfaces = ['page', 'sunken', '1', '2', 'stripe', '3'];
 const states = ['red', 'green', 'yellow', 'blue', 'orange', 'grape', 'teal', 'gray'];
 const spacings = ['xxs', 'xs', 'sm', 'md', 'lg', 'xl'];
 const fontSizes = ['xs', 'sm', 'md', 'lg', 'xl', 'xxl'];
+const gradeVariants: GradeVariant[] = ['original', 'flat'];
 const labels = ['S21', 'SP3', 'D18', 'DP5', 'HD20', 'COOP2'];
 
 const rows = [
@@ -118,6 +120,32 @@ export default function DesignSystem(): JSX.Element {
               <Swatch key={index} name={`${index}`} color={`var(--pk-highlight-${index})`} />
             ))}
           </Group>
+        </Stack>
+      </Card>
+
+      <Card title="Grade variants">
+        <Stack gap="md">
+          {gradeVariants.map((variant) => (
+            <Stack key={variant} gap="xxs">
+              <Text size="sm" c="dimmed">
+                {variant}
+              </Text>
+              {[true, false].map((isPass) => (
+                <Group key={String(isPass)} gap="xs">
+                  {Object.keys(gradeColors).map((grade) => (
+                    <Grade
+                      key={grade}
+                      w="auto"
+                      h="1rem"
+                      grade={grade as keyof typeof gradeColors}
+                      isPass={isPass}
+                      variant={variant}
+                    />
+                  ))}
+                </Group>
+              ))}
+            </Stack>
+          ))}
         </Stack>
       </Card>
 
