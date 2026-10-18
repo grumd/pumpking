@@ -171,23 +171,20 @@ export const searchMixCharts = async (mixId: number, search: string): Promise<Ph
     return [];
   }
   // The typed % and _ are matched as themselves
-  const pattern = `%${words.map((word) => word.replace(/[\\%_]/g, '\\$&')).join('%')}%`;
+  const escape = (word: string) => word.replace(/[\\%_]/g, '\\$&');
+  const pattern = `%${words.map(escape).join('%')}%`;
+  const chartName = sql<string>`concat(lower(tracks.full_name), ' ', lower(chart_instances.label))`;
   const rows = await db
     .selectFrom('chart_instances')
     .innerJoin('shared_charts', 'shared_charts.id', 'chart_instances.shared_chart')
     .innerJoin('tracks', 'tracks.id', 'shared_charts.track')
     .select(['chart_instances.shared_chart', 'tracks.full_name', 'chart_instances.label'])
     .where('chart_instances.mix', '=', mixId)
-    .where(
-      ({ fn, ref, val }) =>
-        fn('concat', [
-          fn('lower', [ref('tracks.full_name')]),
-          val(' '),
-          fn('lower', [ref('chart_instances.label')]),
-        ]),
-      'like',
-      pattern
-    )
+    .where(chartName, 'like', pattern)
+    // The closest matches first: "n d16" matches every D16 of a song with an n in its name,
+    // and the song N would be past the limit
+    .orderBy(sql`${chartName} = ${words.join(' ')}`, 'desc')
+    .orderBy(sql`lower(tracks.full_name) like ${`${escape(words[0])}%`}`, 'desc')
     .orderBy('tracks.full_name')
     .orderBy('chart_instances.level')
     .limit(20)

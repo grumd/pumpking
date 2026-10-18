@@ -865,6 +865,54 @@ describe('Results from photos', () => {
       assert.deepEqual(output(found), [{ sharedChartId: 4, songName: 'Track 1', label: 'HD18' }]);
     });
 
+    it('photoCharts puts the exact match first, then the songs starting with the first word', async () => {
+      const songs = ['Anna', 'N', 'Nemesis'];
+      await db
+        .insertInto('tracks')
+        .values(
+          songs.map((name, index) => ({
+            id: 101 + index,
+            external_id: `${101 + index}`,
+            full_name: name,
+            short_name: name,
+            duration: 'Standard' as const,
+          }))
+        )
+        .execute();
+      await db
+        .insertInto('shared_charts')
+        .values(
+          songs.map((_, index) => ({
+            id: 101 + index,
+            track: 101 + index,
+            index_in_track: 1,
+            type: 'D' as const,
+          }))
+        )
+        .execute();
+      await db
+        .insertInto('chart_instances')
+        .values(
+          songs.map((_, index) => ({
+            track: 101 + index,
+            shared_chart: 101 + index,
+            mix: MIXES.Phoenix2,
+            label: 'D16',
+            level: 16,
+          }))
+        )
+        .execute();
+      const found = await trpcQuery(
+        'results.photoCharts',
+        { mix: 'Phoenix2', search: 'N  D16' },
+        addResultsSession
+      ).expect(200);
+      assert.deepEqual(
+        output(found).map((chart: { songName: string }) => chart.songName),
+        ['N', 'Nemesis', 'Anna']
+      );
+    });
+
     it('submitting a play added before gives that result the photo hash', async () => {
       const { insertId } = await db
         .insertInto('results')
