@@ -40,12 +40,12 @@ The theme is **dark only** today. Every color that depends on the scheme is a CS
 
 | Token | Value | Use |
 |---|---|---|
-| `--pk-surface-page` | `#242424` | page background (set on `body`) |
-| `--pk-surface-sunken` | `#1f1f1f` | wells inside a card: media previews, code |
-| `--pk-surface-1` | `#2e2e2e` | a level-1 `Card` on the page; popovers, menus (theme default); graph tooltips |
-| `--pk-surface-2` | `#3b3b3b` | a level-2 `Card` or row inside a card; the rows of `Table variant="rows"` |
-| `--pk-surface-stripe` | `#444444` | every other row of a `striped` table |
-| `--pk-surface-3` | `#424242` | hover on a surface-2 row; the selected/"me" row |
+| `--pk-surface-page` | `#1e1e1e` | page background (set on `body`) |
+| `--pk-surface-sunken` | `#191919` | wells inside a card: media previews, code |
+| `--pk-surface-1` | `#282828` | a level-1 `Card` on the page; popovers, menus (theme default); graph tooltips |
+| `--pk-surface-2` | `#353535` | a level-2 `Card` or row inside a card; the rows of `Table variant="rows"` |
+| `--pk-surface-stripe` | `#3e3e3e` | every other row of a `striped` table |
+| `--pk-surface-3` | `#3c3c3c` | hover on a surface-2 row; the selected/"me" row |
 
 **Text and lines**:
 
@@ -55,7 +55,7 @@ The theme is **dark only** today. Every color that depends on the scheme is a CS
 | `--pk-text-strong` | `#ffffff` | emphasis: active nav link, the main number in a row |
 | `--mantine-color-dimmed` (`c="dimmed"`) | `#b3b3b3` | secondary text: labels, dates, ranks. The only muted level; meets WCAG AA (4.5:1) on every surface above |
 | `--mantine-color-placeholder` | `#969696` | input placeholders (AA on inputs) |
-| `--pk-border` | `#424242` | dividers, the top bar line, the card title underline |
+| `--pk-border` | `#3c3c3c` | dividers, the top bar line, the card title underline |
 | `--pk-focus-ring` | accent | keyboard focus outline. The theme applies it to every Mantine control (`focusClassName`) and `global.css` to other focusable elements; don't set it yourself |
 | `--pk-progress-track` | `#777777` | the empty part of a `Progress` bar (theme default) |
 | `--pk-opacity-hidden` | `0.35` | a row the user chose to hide but still sees (ranking "show all") |
@@ -86,10 +86,10 @@ The theme is **dark only** today. Every color that depends on the scheme is a CS
 | Judgement | `perfect` `great` `good` `bad` `miss` | text (`c="perfect"`) and fills |
 | Medal | `gold` `silver` `bronze` | text, icons, fills. "Gold" is this one color everywhere (cups, trophy links, exp numbers, the exp bar) |
 | Accent | `accent` | graph lines, progress, the achievement ring, focus ring |
-| Fresh | `fresh` | on the latest result's row: places gained (text, 4.6:1 on that row), "NEW" / the score increase (light `Badge`) |
-| Latest | `latest` | muted background of the latest result's row on a chart (`color-mix` 22%) |
+| Fresh | `fresh` | on the latest result's row: places gained (text, 5.2:1 on that row), "NEW" / the score increase (light `Badge`) |
+| Latest | `latest` | muted background of the latest result's row on a chart (`color-mix` 20%) |
 | Mine | `mine` | muted background of the logged-in player's row on a chart (`color-mix` 20%; `latest` wins when it's also the latest) |
-| Dropped | `dropped` | text: places lost to the latest result on a chart (5.1:1 on the stripe; about 3.3:1 on a tinted row) |
+| Dropped | `dropped` | text: places lost to the latest result on a chart (5.6:1 on the stripe; about 3.3:1 on a tinted row) |
 | Brand | `discord` | the Discord sign-in `Button` only (it has a real hover shade) |
 
 Generic states use Mantine's palette names, nothing else: `red` (errors, delete, "unread"), `green` (success, live), `yellow` (warnings), `blue` (info), `orange` (the HJ mod badge, `variant="light"` so it stays quiet in the results), `grape` (a filter is active; admin-only flags), `teal` (switches, "on"), `gray` (neutral status: ended, hidden), `cyan` / `pink` only where they already mean something in admin. As filled `Badge`/`Button`/`Alert` colors and `c=` on text.
