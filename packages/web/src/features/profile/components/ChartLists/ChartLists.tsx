@@ -50,7 +50,8 @@ const usePrefetchOtherTabs = (playerId: number | undefined) => {
   }, [isFetching, latestLoaded, playerId, queryClient]);
 };
 
-// The player's charts: latest results, best scores, what makes up the total pp, most played
+// The player's charts: latest results, what makes up the total pp (current best), best
+// scores by full pp (all-time best), most played
 export const ChartLists = (): JSX.Element => {
   const lang = useLanguage();
   const params = useParams();
@@ -62,18 +63,18 @@ export const ChartLists = (): JSX.Element => {
       <Tabs variant="pills" defaultValue="latest" keepMounted={false}>
         <Tabs.List mb="xs">
           <Tabs.Tab value="latest">{lang.LATEST}</Tabs.Tab>
-          <Tabs.Tab value="best">{lang.BEST_SCORES}</Tabs.Tab>
-          <Tabs.Tab value="breakdown">{lang.PP_BREAKDOWN}</Tabs.Tab>
+          <Tabs.Tab value="current">{lang.CURRENT_BEST}</Tabs.Tab>
+          <Tabs.Tab value="allTime">{lang.ALL_TIME_BEST}</Tabs.Tab>
           <Tabs.Tab value="played">{lang.MOST_PLAYED}</Tabs.Tab>
         </Tabs.List>
         <Tabs.Panel value="latest">
           <LatestResults />
         </Tabs.Panel>
-        <Tabs.Panel value="best">
-          <BestScores />
-        </Tabs.Panel>
-        <Tabs.Panel value="breakdown">
+        <Tabs.Panel value="current">
           <PpBreakdown />
+        </Tabs.Panel>
+        <Tabs.Panel value="allTime">
+          <BestScores />
         </Tabs.Panel>
         <Tabs.Panel value="played">
           <MostPlayedCharts />

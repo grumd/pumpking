@@ -1,23 +1,21 @@
-import { Anchor, Button, Table, Text, rem } from '@mantine/core';
+import { Button, Table, Text, rem } from '@mantine/core';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { MdExpandMore } from 'react-icons/md';
 import { useParams } from 'react-router';
-import { NavLink } from 'react-router-dom';
 
-import { ChartLabel } from 'components/ChartLabel/ChartLabel';
 import { Grade } from 'components/Grade/Grade';
 import Loader from 'components/Loader/Loader';
-
-import { routes } from 'constants/routes';
 
 import { useLanguage } from 'utils/context/translation';
 import { api } from 'utils/trpc';
 
+import { ChartCells } from './ChartCells';
 import { FadingDate } from './FadingDate';
+import { PpSummary } from './PpSummary';
 import { pageOptions, ppBreakdownInput } from './listQueries';
 
-// The charts that make up the total pp, by how much each one adds after the age factor
-// and the weight of its place
+// Current best: the charts that make up the total pp, by how much each one adds after the
+// age factor and the weight of its place
 export const PpBreakdown = (): JSX.Element => {
   const params = useParams();
   const charts = useInfiniteQuery(
@@ -30,24 +28,18 @@ export const PpBreakdown = (): JSX.Element => {
 
   return (
     <>
+      <PpSummary label={lang.PP_WITH_DECAY} totalPp={charts.data?.pages[0]?.totalPp} />
       <Table variant="rows">
         <Table.Tbody>
           {charts.data?.pages.flatMap((page) =>
             page.items.map((item) => (
               <Table.Tr key={item.shared_chart}>
-                <Table.Td data-fit>
-                  <ChartLabel label={item.label} />
-                </Table.Td>
-                <Table.Td>
-                  <Anchor
-                    component={NavLink}
-                    to={routes.leaderboard.sharedChart.getPath({
-                      sharedChartId: item.shared_chart,
-                    })}
-                  >
-                    {item.full_name}
-                  </Anchor>
-                </Table.Td>
+                <ChartCells
+                  sharedChartId={item.shared_chart}
+                  label={item.label}
+                  difficulty={item.difficulty}
+                  name={item.full_name}
+                />
                 <Table.Td data-fit visibleFrom="sm" ta="right" fz="sm">
                   <FadingDate date={new Date(item.date)} />
                 </Table.Td>
