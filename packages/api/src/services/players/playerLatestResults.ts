@@ -1,9 +1,12 @@
 import { Transaction, db } from '@pumpking/database/db';
 import { sql } from 'kysely';
 
-// The player's results, newest first, without hidden ones
+// The player's results, newest first, without hidden ones. With `onlyBests`, only the results
+// that were a new best score on their chart when played: no earlier result of the player on
+// that chart has the same or a higher score. Other players see only these, so they can't
+// follow every play
 export const getPlayerLatestResults = async (
-  params: { playerId?: number; limit: number; offset: number },
+  params: { playerId?: number; onlyBests: boolean; limit: number; offset: number },
   trx?: Transaction
 ): Promise<
   Array<{
@@ -21,7 +24,7 @@ export const getPlayerLatestResults = async (
     throw new Error('playerId is required');
   }
 
-  const rows = await (trx ?? db)
+  let query = (trx ?? db)
     .selectFrom('results as r')
     .innerJoin('shared_charts as sc', 'r.shared_chart', 'sc.id')
     .innerJoin('chart_instances as ci', (join) =>
@@ -46,7 +49,33 @@ export const getPlayerLatestResults = async (
       'r.shared_chart',
     ])
     .where('r.player_id', '=', params.playerId)
-    .where('r.is_hidden', '=', 0)
+    .where('r.is_hidden', '=', 0);
+
+  if (params.onlyBests) {
+    query = query.where('r.score_phoenix', 'is not', null).where(({ not, exists, selectFrom }) =>
+      not(
+        exists(
+          selectFrom('results as b')
+            .select('b.id')
+            .where('b.player_id', '=', sql.ref('r.player_id'))
+            .where('b.shared_chart', '=', sql.ref('r.shared_chart'))
+            .where('b.is_hidden', '=', 0)
+            .where('b.score_phoenix', '>=', sql.ref('r.score_phoenix'))
+            .where(({ or, and, cmpr }) =>
+              or([
+                cmpr('b.gained', '<', sql.ref('r.gained')),
+                and([
+                  cmpr('b.gained', '=', sql.ref('r.gained')),
+                  cmpr('b.id', '<', sql.ref('r.id')),
+                ]),
+              ])
+            )
+        )
+      )
+    );
+  }
+
+  const rows = await query
     .orderBy('r.gained', 'desc')
     .orderBy('r.id', 'desc')
     .limit(params.limit)
