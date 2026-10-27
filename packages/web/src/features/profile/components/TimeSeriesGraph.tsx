@@ -127,6 +127,7 @@ export const TimeSeriesGraph = ({
   const innerWidth = Math.max(0, width - margin.left - margin.right);
   const mainHeight = height - brushGap - brushHeight - brushAxisHeight;
   const innerHeight = Math.max(0, mainHeight - margin.top - margin.bottom);
+  const brushTop = mainHeight + brushGap;
 
   // The points in the range, and one on each side so the lines reach the edges
   const visible = useMemo(
@@ -322,7 +323,7 @@ export const TimeSeriesGraph = ({
               onPointerLeave={hideOnLeave}
             />
           </Group.Group>
-          <Group.Group left={margin.left} top={mainHeight + brushGap}>
+          <Group.Group left={margin.left} top={brushTop}>
             <rect width={innerWidth} height={brushHeight} fill="var(--pk-graph-cursor)" />
             {series.map((one, index) => (
               <Group.Group key={index}>
@@ -362,6 +363,9 @@ export const TimeSeriesGraph = ({
                 yScale={brushYScales[0]}
                 width={innerWidth}
                 height={brushHeight}
+                // Where the brush is in the svg: a new range starts at the pointer's svg
+                // position minus this
+                margin={{ left: margin.left, top: brushTop }}
                 handleSize={10}
                 brushDirection="horizontal"
                 resizeTriggerAreas={['left', 'right']}
