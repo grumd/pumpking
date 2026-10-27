@@ -1,5 +1,17 @@
 import type { ApiOutputs } from '@/api/trpc/router';
-import { Anchor, Badge, Group, Select, Stack, Table, Tabs, Text, Title, rem } from '@mantine/core';
+import {
+  Anchor,
+  Badge,
+  Button,
+  Group,
+  Select,
+  Stack,
+  Table,
+  Tabs,
+  Text,
+  Title,
+  rem,
+} from '@mantine/core';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
 import { NavLink } from 'react-router-dom';
@@ -28,8 +40,8 @@ type Bracket = Tournament['brackets'][number];
 
 const formatScore = (score: number) => score.toLocaleString('en-US');
 
-const skillRange = (bracket: Bracket, unrated: string) => {
-  if (bracket.minSkill === null) return `${unrated}, < ${bracket.maxSkill}`;
+const skillRange = (bracket: Bracket) => {
+  if (bracket.minSkill === null) return `≤ ${bracket.maxSkill - 1}`;
   if (bracket.maxSkill >= 28) return `${bracket.minSkill}+`;
   return `${bracket.minSkill}–${bracket.maxSkill - 1}`;
 };
@@ -43,8 +55,7 @@ const BracketView = ({ bracket, playerId }: { bracket: Bracket; playerId?: numbe
         title={lang.TOURNAMENT_POOL}
         actions={
           <Text size="sm" c="dimmed">
-            {lang.SKILL}: {skillRange(bracket, lang.UNRATED)} · {bracket.playerCount}{' '}
-            {lang.TOURNAMENT_PLAYERS}
+            {lang.SKILL}: {skillRange(bracket)} · {bracket.playerCount} {lang.TOURNAMENT_PLAYERS}
           </Text>
         }
       >
@@ -165,7 +176,11 @@ const PlayerSummary = ({ tournament, playerId }: { tournament: Tournament; playe
   const bracket = tournament.brackets.find((b) => b.id === playerBracket?.bracketId);
 
   if (!playerBracket || !bracket) {
-    return <Text>{lang.TOURNAMENT_NOT_PARTICIPATING}</Text>;
+    return (
+      <Text>
+        {tournament.state === 'Live' ? lang.TOURNAMENT_PICK_BRACKET : lang.TOURNAMENT_NO_RESULTS}
+      </Text>
+    );
   }
 
   const entry = bracket.leaderboard.find((e) => e.playerId === playerId);
@@ -186,12 +201,39 @@ const PlayerSummary = ({ tournament, playerId }: { tournament: Tournament; playe
   );
 };
 
+// Joins the selected bracket, or moves the player to it, while the tournament is Live.
+const JoinButton = ({ tournament, bracketId }: { tournament: Tournament; bracketId: number }) => {
+  const lang = useLanguage();
+  const queryClient = useQueryClient();
+  const join = useMutation(
+    api.tournaments.join.mutationOptions({
+      onSuccess: () => queryClient.invalidateQueries(api.tournaments.get.queryFilter()),
+    })
+  );
+  const bracket = tournament.brackets.find((b) => b.id === bracketId);
+  const current = tournament.playerBracket?.bracketId;
+
+  if (tournament.state !== 'Live' || !bracket?.canJoin || bracket.id === current) {
+    return null;
+  }
+
+  return (
+    <Button size="xs" loading={join.isPending} onClick={() => join.mutate({ bracketId })}>
+      {current === undefined
+        ? lang.TOURNAMENT_JOIN(bracket.code)
+        : lang.TOURNAMENT_SWITCH(bracket.code)}
+    </Button>
+  );
+};
+
 const TournamentView = ({ tournament }: { tournament: Tournament }) => {
   const lang = useLanguage();
   const { data: user } = useUser();
   const isLive = tournament.state === 'Live';
   const lastMinute = new Date(tournament.endDate.getTime() - 60 * 1000);
-  const defaultBracket = tournament.playerBracket?.bracketId ?? tournament.brackets[0]?.id;
+  const [selected, setSelected] = useState(
+    String(tournament.playerBracket?.bracketId ?? tournament.brackets[0]?.id)
+  );
 
   return (
     <Stack gap="sm">
@@ -207,18 +249,21 @@ const TournamentView = ({ tournament }: { tournament: Tournament }) => {
             {tournament.startDate.toLocaleDateString(undefined, { dateStyle: 'medium' })} –{' '}
             {lastMinute.toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' })}
           </Text>
-          <PlayerSummary tournament={tournament} playerId={user?.id} />
+          {user && <PlayerSummary tournament={tournament} playerId={user.id} />}
         </Stack>
       </Card>
 
-      <Tabs key={tournament.id} variant="pills" defaultValue={String(defaultBracket)}>
-        <Tabs.List>
-          {tournament.brackets.map((bracket) => (
-            <Tabs.Tab key={bracket.id} value={String(bracket.id)}>
-              {lang.TOURNAMENT_BRACKET(bracket.code)}
-            </Tabs.Tab>
-          ))}
-        </Tabs.List>
+      <Tabs variant="pills" value={selected} onChange={(value) => value && setSelected(value)}>
+        <Group justify="space-between" gap="xs">
+          <Tabs.List>
+            {tournament.brackets.map((bracket) => (
+              <Tabs.Tab key={bracket.id} value={String(bracket.id)}>
+                {lang.TOURNAMENT_BRACKET(bracket.code)}
+              </Tabs.Tab>
+            ))}
+          </Tabs.List>
+          {user && <JoinButton tournament={tournament} bracketId={Number(selected)} />}
+        </Group>
         {tournament.brackets.map((bracket) => (
           <Tabs.Panel key={bracket.id} value={String(bracket.id)}>
             <BracketView bracket={bracket} playerId={user?.id} />
@@ -255,7 +300,7 @@ export default function Tournaments(): JSX.Element {
 
   return (
     <PageContainer>
-      {list.data && list.data.length > 1 && (
+      {list.data && list.data.length > 0 && (
         <Select
           aria-label={lang.TOURNAMENT_SELECT}
           w={rem(220)}
@@ -270,7 +315,7 @@ export default function Tournaments(): JSX.Element {
       )}
       {tournament.isLoading && <Loader />}
       {tournament.data === null && <EmptyState>{lang.TOURNAMENT_NONE}</EmptyState>}
-      {tournament.data && <TournamentView tournament={tournament.data} />}
+      {tournament.data && <TournamentView key={tournament.data.id} tournament={tournament.data} />}
     </PageContainer>
   );
 }
