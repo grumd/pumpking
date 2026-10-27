@@ -1,5 +1,6 @@
+import contentDisposition from 'content-disposition';
 import type { Response, Request, NextFunction } from 'express';
-import { getScreenshotPath } from 'services/results/getScreenshot';
+import { getScreenshot } from 'services/results/getScreenshot';
 import { getFirstFrameFromMp4 } from 'utils/mp4';
 
 export const screenshotController = async (
@@ -9,9 +10,12 @@ export const screenshotController = async (
 ) => {
   try {
     const resultId = parseInt(request.params.resultId, 10);
-    const filePath = await getScreenshotPath(resultId);
+    const { filePath, fileName, isVideo } = await getScreenshot(resultId);
 
-    if (filePath.endsWith('.mp4')) {
+    // Inline, so the browser still shows the image, but saving it uses this name
+    const disposition = contentDisposition(fileName, { type: 'inline' });
+
+    if (isVideo) {
       getFirstFrameFromMp4(filePath, (buffer, err) => {
         if (err) {
           next(err);
@@ -19,14 +23,19 @@ export const screenshotController = async (
           next(new Error('Extracting image from mp4 failed, empty buffer'));
         } else {
           response.writeHead(200, {
-            'Content-Type': 'image/jpg',
+            'Content-Type': 'image/jpeg',
             'Content-Length': buffer.length,
+            'Content-Disposition': disposition,
           });
           response.end(buffer);
         }
       });
     } else {
-      response.sendFile(filePath);
+      response.sendFile(
+        filePath,
+        { headers: { 'Content-Disposition': disposition } },
+        (error) => error && next(error)
+      );
     }
   } catch (error) {
     next(error);
