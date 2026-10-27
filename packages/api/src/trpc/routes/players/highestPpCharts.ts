@@ -13,14 +13,13 @@ export const highestPpCharts = publicProcedure
   .query(async ({ ctx, input }) => {
     const { cursor, pageSize = 20, playerId } = input;
     const offset = cursor ?? 0;
-    const { items, total, totalPp } = await getPlayerHighestPpCharts({
+    const { items, total } = await getPlayerHighestPpCharts({
       playerId: playerId ?? ctx.user?.id,
       limit: pageSize,
       offset,
     });
     return {
       items,
-      totalPp,
       nextCursor: offset + pageSize < total ? offset + pageSize : null,
     };
   });

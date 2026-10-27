@@ -1,12 +1,11 @@
 import { getPlayerPpResults } from './playersPp';
-import { getTotalPpWithoutAge, ppAgeFactor, roundPp, utcDay } from './totalPp';
+import { ppAgeFactor, utcDay } from './totalPp';
 import { Transaction, db } from '@pumpking/database/db';
 import { sql } from 'kysely';
 
 /**
  * The player's best result on each chart by its full pp, however old: a page of them, with
- * the chart's difficulty and the result's age factor, the number of charts, and the total
- * pp if no result lost pp with age
+ * the chart's difficulty and the result's age factor, and the number of charts
  */
 export const getPlayerHighestPpCharts = async (
   params: { playerId?: number; limit: number; offset: number },
@@ -25,7 +24,6 @@ export const getPlayerHighestPpCharts = async (
     ageFactor: number;
   }>;
   total: number;
-  totalPp: number;
 }> => {
   if (!params.playerId) {
     throw new Error('playerId is required');
@@ -101,6 +99,5 @@ export const getPlayerHighestPpCharts = async (
   return {
     items,
     total: new Set(ppResults.map((result) => result.sharedChartId)).size,
-    totalPp: roundPp(getTotalPpWithoutAge(ppResults)),
   };
 };

@@ -1,12 +1,12 @@
 import { getPlayerPpResults } from './playersPp';
-import { getCountedCharts, ppAgeFactor, roundPp, utcDay } from './totalPp';
+import { getCountedCharts, ppAgeFactor, utcDay } from './totalPp';
 import { db } from '@pumpking/database/db';
 import { sql } from 'kysely';
 
 /**
  * The charts that make up the player's total pp, by how much each one adds: its counted
  * result (the most pp after the age factor), the chart's difficulty, the age factor and the
- * weight of its place. With the number of charts and the total they add up to
+ * weight of its place. With the number of charts
  */
 export const getPlayerPpBreakdown = async (params: {
   playerId?: number;
@@ -19,10 +19,9 @@ export const getPlayerPpBreakdown = async (params: {
 
   const today = utcDay(new Date());
   const counted = getCountedCharts(await getPlayerPpResults(params.playerId), today);
-  const totalPp = roundPp(counted.reduce((sum, chart) => sum + chart.pp * chart.weight, 0));
   const page = counted.slice(params.offset, params.offset + params.limit);
   if (!page.length) {
-    return { items: [], total: counted.length, totalPp };
+    return { items: [], total: counted.length };
   }
 
   const details = await db
@@ -79,5 +78,5 @@ export const getPlayerPpBreakdown = async (params: {
     ];
   });
 
-  return { items, total: counted.length, totalPp };
+  return { items, total: counted.length };
 };
