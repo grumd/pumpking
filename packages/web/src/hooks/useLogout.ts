@@ -6,17 +6,20 @@ import { api } from 'utils/trpc';
 export const useLogout = () => {
   const queryClient = useQueryClient();
 
+  const onLoggedOut = () => {
+    cookies.erase('session');
+    queryClient.invalidateQueries(api.user.current.queryFilter());
+    // The own profile's latest results show every play, others get only the bests
+    void queryClient.resetQueries(api.players.latestResults.pathFilter());
+  };
+
   const logoutMutation = useMutation(
     api.auth.logout.mutationOptions({
-      onSuccess: () => {
-        cookies.erase('session');
-        queryClient.invalidateQueries(api.user.current.queryFilter());
-      },
+      onSuccess: onLoggedOut,
       onError: (err) => {
         console.error('Logout error:', err);
         // Still clear the cookie on error since we want to log out regardless
-        cookies.erase('session');
-        queryClient.invalidateQueries(api.user.current.queryFilter());
+        onLoggedOut();
       },
     })
   );

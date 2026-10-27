@@ -5,6 +5,8 @@ import { useParams } from 'react-router';
 
 import { Card } from 'components/Card/Card';
 
+import { useUser } from 'hooks/useUser';
+
 import { useLanguage } from 'utils/context/translation';
 import { api } from 'utils/trpc';
 
@@ -50,19 +52,23 @@ const usePrefetchOtherTabs = (playerId: number | undefined) => {
   }, [isFetching, latestLoaded, playerId, queryClient]);
 };
 
-// The player's charts: latest results, what makes up the total pp (current best), best
-// scores by full pp (all-time best), most played
+// The player's charts: latest results (only the new bests on someone else's profile), what
+// makes up the total pp (current best), best scores by full pp (all-time best), most played
 export const ChartLists = (): JSX.Element => {
   const lang = useLanguage();
   const params = useParams();
-  usePrefetchOtherTabs(params.id ? Number(params.id) : undefined);
+  const user = useUser();
+  const playerId = params.id ? Number(params.id) : undefined;
+  usePrefetchOtherTabs(playerId);
+  // The API gives only the latest bests on someone else's profile
+  const isOwnProfile = playerId === undefined || playerId === user.data?.id;
 
   return (
     <Card>
       {/* Only the open tab is mounted; the others are prefetched */}
       <Tabs variant="pills" defaultValue="latest" keepMounted={false}>
         <Tabs.List mb="xs">
-          <Tabs.Tab value="latest">{lang.LATEST}</Tabs.Tab>
+          <Tabs.Tab value="latest">{isOwnProfile ? lang.LATEST : lang.LATEST_BEST}</Tabs.Tab>
           <Tabs.Tab value="current">{lang.CURRENT_BEST}</Tabs.Tab>
           <Tabs.Tab value="allTime">{lang.ALL_TIME_BEST}</Tabs.Tab>
           <Tabs.Tab value="played">{lang.MOST_PLAYED}</Tabs.Tab>
