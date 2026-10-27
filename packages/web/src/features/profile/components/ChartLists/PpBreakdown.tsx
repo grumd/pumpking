@@ -1,16 +1,20 @@
-import { Button, Table, Text, rem } from '@mantine/core';
+import { Anchor, Button, Table, rem } from '@mantine/core';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { MdExpandMore } from 'react-icons/md';
 import { useParams } from 'react-router';
+import { NavLink } from 'react-router-dom';
 
+import { ChartLabel } from 'components/ChartLabel/ChartLabel';
 import { Grade } from 'components/Grade/Grade';
 import Loader from 'components/Loader/Loader';
+
+import { routes } from 'constants/routes';
 
 import { useLanguage } from 'utils/context/translation';
 import { api } from 'utils/trpc';
 
-import { ChartCells } from './ChartCells';
 import { FadingDate } from './FadingDate';
+import { PpButton } from './PpButton';
 import { pageOptions, ppBreakdownInput } from './listQueries';
 
 // Current best: the charts that make up the total pp, by how much each one adds after the
@@ -29,38 +33,46 @@ export const PpBreakdown = (): JSX.Element => {
     <>
       <Table variant="rows">
         <Table.Tbody>
-          {charts.data?.pages.flatMap((page) =>
-            page.items.map((item) => (
+          {charts.data?.pages
+            .flatMap((page) => page.items)
+            .map((item, index) => (
               <Table.Tr key={item.shared_chart}>
-                <ChartCells
-                  sharedChartId={item.shared_chart}
-                  label={item.label}
-                  difficulty={item.difficulty}
-                  name={item.full_name}
-                />
+                <Table.Td data-fit>
+                  <ChartLabel label={item.label} />
+                </Table.Td>
+                <Table.Td>
+                  <Anchor
+                    component={NavLink}
+                    to={routes.leaderboard.sharedChart.getPath({
+                      sharedChartId: item.shared_chart,
+                    })}
+                  >
+                    {item.full_name}
+                  </Anchor>
+                </Table.Td>
                 <Table.Td data-fit visibleFrom="sm" ta="right" fz="sm">
                   <FadingDate date={new Date(item.date)} />
                 </Table.Td>
                 <Table.Td data-fit visibleFrom="xs" ta="right" fz="sm" c="dimmed">
                   {item.pp.toFixed(2)}pp
                 </Table.Td>
-                <Table.Td data-fit visibleFrom="sm" ta="right" fz="xs" lh="xs" c="dimmed">
-                  <div>{lang.PP_AGE_FACTOR(Math.round(item.ageFactor * 100))}</div>
-                  <div>{lang.PP_PLACE_WEIGHT(Math.round(item.weight * 100))}</div>
-                </Table.Td>
                 <Table.Td data-fit>
                   <Grade h={rem(18)} w={rem(44)} score={item.score ?? 0} isPass={item.is_pass} />
                 </Table.Td>
                 <Table.Td data-fit data-main ta="right">
-                  {item.contribution.toFixed(2)}
-                  <Text span inherit fw={400} c="dimmed">
-                    {' '}
-                    pp
-                  </Text>
+                  <PpButton
+                    shown="contribution"
+                    pp={item.pp}
+                    steps={item.ppSteps}
+                    score={item.score}
+                    date={new Date(item.date)}
+                    ageFactor={item.ageFactor}
+                    place={index + 1}
+                    weight={item.weight}
+                  />
                 </Table.Td>
               </Table.Tr>
-            ))
-          )}
+            ))}
         </Table.Tbody>
       </Table>
       {charts.isFetchingNextPage ? (
