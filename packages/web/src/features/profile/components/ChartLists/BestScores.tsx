@@ -10,7 +10,6 @@ import { api } from 'utils/trpc';
 
 import { ChartCells } from './ChartCells';
 import { FadingDate } from './FadingDate';
-import { PpSummary } from './PpSummary';
 import { ResultScore } from './ResultScore';
 import { bestScoresInput, pageOptions } from './listQueries';
 
@@ -28,7 +27,6 @@ export const BestScores = (): JSX.Element => {
 
   return (
     <>
-      <PpSummary label={lang.PP_WITHOUT_DECAY} totalPp={charts.data?.pages[0]?.totalPp} />
       <Table variant="rows">
         <Table.Tbody>
           {charts.data?.pages.flatMap((page) =>

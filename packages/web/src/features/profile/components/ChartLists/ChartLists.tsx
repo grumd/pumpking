@@ -1,4 +1,4 @@
-import { Tabs } from '@mantine/core';
+import { Group, Tabs } from '@mantine/core';
 import { useIsFetching, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useRef } from 'react';
 import { useParams } from 'react-router';
@@ -12,6 +12,7 @@ import { BestScores } from './BestScores';
 import { LatestResults } from './LatestResults';
 import { MostPlayedCharts } from './MostPlayedCharts';
 import { PpBreakdown } from './PpBreakdown';
+import { PpInfo } from './PpInfo';
 import {
   bestScoresInput,
   latestResultsInput,
@@ -61,12 +62,16 @@ export const ChartLists = (): JSX.Element => {
     <Card>
       {/* Only the open tab is mounted; the others are prefetched */}
       <Tabs variant="pills" defaultValue="latest" keepMounted={false}>
-        <Tabs.List mb="xs">
-          <Tabs.Tab value="latest">{lang.LATEST}</Tabs.Tab>
-          <Tabs.Tab value="current">{lang.CURRENT_BEST}</Tabs.Tab>
-          <Tabs.Tab value="allTime">{lang.ALL_TIME_BEST}</Tabs.Tab>
-          <Tabs.Tab value="played">{lang.MOST_PLAYED}</Tabs.Tab>
-        </Tabs.List>
+        <Group mb="xs" gap="xxs" align="start" wrap="nowrap">
+          <Tabs.List flex={1}>
+            <Tabs.Tab value="latest">{lang.LATEST}</Tabs.Tab>
+            <Tabs.Tab value="current">{lang.CURRENT_BEST}</Tabs.Tab>
+            <Tabs.Tab value="allTime">{lang.ALL_TIME_BEST}</Tabs.Tab>
+            <Tabs.Tab value="played">{lang.MOST_PLAYED}</Tabs.Tab>
+          </Tabs.List>
+          {/* Always there, so the tabs don't move when it would appear */}
+          <PpInfo />
+        </Group>
         <Tabs.Panel value="latest">
           <LatestResults />
         </Tabs.Panel>
