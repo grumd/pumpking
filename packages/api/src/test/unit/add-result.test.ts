@@ -1,4 +1,5 @@
 import { db } from '@pumpking/database/db';
+import { MIXES } from '@pumpking/utils/mixes';
 import { getPhoenixScore } from '@pumpking/utils/phoenixScore';
 import { assert } from 'chai';
 import fs from 'fs';
@@ -586,7 +587,7 @@ describe('Add a new Phoenix 2 result (mix 28) via tRPC', () => {
     'data:image/jpeg;base64,' +
     fs.readFileSync(path.join(__dirname, '../files/test.jpg')).toString('base64');
   const stats = { perfect: 90, great: 5, good: 3, bad: 1, miss: 1, combo: 95 };
-  const score = getPhoenixScore(stats);
+  const score = getPhoenixScore(stats, MIXES.Phoenix2);
 
   const postPhoenix2Result = (overrides: Record<string, unknown> = {}) =>
     req()
@@ -633,6 +634,21 @@ describe('Add a new Phoenix 2 result (mix 28) via tRPC', () => {
       getErrorMessage(res),
       new RegExp(`Score ${score + 100} doesn't match expected score ${score}`)
     );
+  });
+
+  it('takes the score the arcade shows, one below the exact score for some stats', async () => {
+    // Exactly 948,955, but Phoenix 2 computes it in floating point and shows 948,954
+    const belowStats = { perfect: 94, great: 0, good: 3, bad: 3, miss: 0, combo: 94 };
+    const exact = await postPhoenix2Result({ ...belowStats, score: 948_955 }).expect(400);
+    assert.match(
+      getErrorMessage(exact),
+      /Score 948955 doesn't match expected score 948954 \(calculated from result stats\)/
+    );
+
+    await postPhoenix2Result({ ...belowStats, score: 948_954 }).expect(200);
+    const result = (await getLatestResult())!;
+    assert.strictEqual(result.score, 948_954);
+    assert.strictEqual(result.score_phoenix, 948_954);
   });
 
   it('adds the result with mix 28 and the given grade', async () => {

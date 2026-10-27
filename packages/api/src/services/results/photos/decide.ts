@@ -139,7 +139,7 @@ const checkChart = (values: PhotoValues, candidates: ChartCandidate[]) => {
 };
 
 const checkMillionStats = (read: PhotoRead, values: PhotoValues, mixId: number): Field[] => {
-  if (values.score !== getPhoenixScore(values)) {
+  if (values.score !== getPhoenixScore(values, mixId)) {
     return [...NUMBER_FIELDS];
   }
   // A score that the judgements confirm gives the grade, which models often misread: AAA+

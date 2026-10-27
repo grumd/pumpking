@@ -5,6 +5,7 @@ import {
   deleteOldEvents,
   type Event,
 } from '@pumpking/database/events';
+import { MIXES } from '@pumpking/utils/mixes';
 import { getPhoenixScore } from '@pumpking/utils/phoenixScore';
 import { assert } from 'chai';
 import fs from 'fs';
@@ -32,7 +33,7 @@ const addResult = (stats = { perfect: 90, great: 5, good: 3, bad: 1, miss: 1, co
         grade: 'S+',
         mix: 'Phoenix2',
         mod: '',
-        score: getPhoenixScore(stats),
+        score: getPhoenixScore(stats, MIXES.Phoenix2),
         ...stats,
         // Less than a year old: the result counts fully in the total pp
         date: new Date(Date.now() - 10 * 86_400_000).toISOString().slice(0, 10),
@@ -170,7 +171,10 @@ describe('Events', () => {
       ]);
       assert.strictEqual(
         result.score_phoenix,
-        getPhoenixScore({ perfect: 90, great: 5, good: 3, bad: 1, miss: 1, combo: 95 }),
+        getPhoenixScore(
+          { perfect: 90, great: 5, good: 3, bad: 1, miss: 1, combo: 95 },
+          MIXES.Phoenix2
+        ),
         'score_phoenix is stored with the result'
       );
       assert.isNull(result.pp, 'no pp before the effects job runs');

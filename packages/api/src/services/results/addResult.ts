@@ -168,14 +168,17 @@ export const addResult = async (userId: number, result: ManualResult) => {
         score_xx: result.score,
         // Written here, not left to the effect, so the leaderboard can rank the result
         // before the effects job gets to it
-        score_phoenix: getPhoenixScore({
-          perfect: result.perfect,
-          great: result.great,
-          good: result.good,
-          bad: result.bad,
-          miss: result.miss,
-          combo: result.combo,
-        }),
+        score_phoenix: getPhoenixScore(
+          {
+            perfect: result.perfect,
+            great: result.great,
+            good: result.good,
+            bad: result.bad,
+            miss: result.miss,
+            combo: result.combo,
+          },
+          MIXES[result.mix]
+        ),
         misses: result.miss,
         bads: result.bad,
         goods: result.good,
@@ -248,7 +251,10 @@ const getScoreError = (
 
   // ONLY PHOENIX AND LATER CHECKS
   if (MIXES[result.mix] >= MIXES.Phoenix) {
-    const expectedScore = getPhoenixScore({ perfect, great, good, bad, miss, combo });
+    const expectedScore = getPhoenixScore(
+      { perfect, great, good, bad, miss, combo },
+      MIXES[result.mix]
+    );
     if (score !== expectedScore) {
       return `Score ${score} doesn't match expected score ${expectedScore} (calculated from result stats)`;
     }

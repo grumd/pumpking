@@ -231,14 +231,17 @@ export const updateResult = async (resultId: number, edit: ResultEdit) => {
       misses != null &&
       max_combo != null
     ) {
-      changes.score_phoenix = getPhoenixScore({
-        perfect: perfects,
-        great: greats,
-        good: goods,
-        bad: bads,
-        miss: misses,
-        combo: max_combo,
-      });
+      changes.score_phoenix = getPhoenixScore(
+        {
+          perfect: perfects,
+          great: greats,
+          good: goods,
+          bad: bads,
+          miss: misses,
+          combo: max_combo,
+        },
+        result.mix
+      );
     }
   }
 
