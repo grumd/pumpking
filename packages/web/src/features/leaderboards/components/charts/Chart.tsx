@@ -1,4 +1,4 @@
-import { ActionIcon, Box, Table } from '@mantine/core';
+import { ActionIcon, Box, Table, useMatches } from '@mantine/core';
 import { useAtomValue } from 'jotai';
 import _ from 'lodash/fp';
 import { Fragment, memo, useState } from 'react';
@@ -43,6 +43,8 @@ const Chart = memo(function _Chart({ chart }: { chart: ChartApiOutput }) {
   const filter = useAtomValue(filterAtom);
   const highlightedPlayerIds = useHighlightedPlayerIds();
   const rowSizes = useRowSizes();
+  // How many places around a highlighted result stay open: phones have room for fewer rows
+  const highlightRange = useMatches({ base: 1, md: 2 }, { getInitialValueInEffect: false });
   const [showHidden, setShowHidden] = useState(false);
 
   const hiddenResultsCount = chart.results.reduce((sum, res) => (res.isHidden ? sum + 1 : sum), 0);
@@ -78,8 +80,7 @@ const Chart = memo(function _Chart({ chart }: { chart: ChartApiOutput }) {
       };
     })
     .map((res, index, array) => {
-      // Collapse results that are not within 2 places of a highlighted result
-      const highlightRange = 2;
+      // Collapse results that are not within highlightRange places of a highlighted result
       const isBeforeHighlighted = array
         .slice(index + 1, index + 1 + highlightRange)
         .some((r) => r.isImportant);
