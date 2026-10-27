@@ -232,6 +232,52 @@ describe('Result submissions', () => {
     );
   });
 
+  it('check the score as the arcade computes it, one below the exact score for some stats', async () => {
+    const reason = async (mixName: string, result: Record<string, unknown>) => {
+      const res = await validate(
+        screen({
+          mix_name: mixName,
+          result: { ...phoenixResult(), ...result, score_increase: null },
+        })
+      );
+      return res.body.validation[0].reason ?? 'valid';
+    };
+    // Real results: Phoenix #303067 (exactly 967,823) and Phoenix 2 #302569 (973,629)
+    const phoenix = {
+      score: 967_822,
+      grade: 'AAA+',
+      plate: 'MG',
+      perfects: 479,
+      greats: 10,
+      goods: 0,
+      bads: 7,
+      misses: 4,
+      max_combo: 128,
+    };
+    const phoenix2 = {
+      player_name: 'alice #1235',
+      score: 973_628,
+      grade: 'S',
+      plate: 'TG',
+      perfects: 963,
+      greats: 19,
+      goods: 7,
+      bads: 4,
+      misses: 7,
+      max_combo: 462,
+    };
+    assert.equal(await reason('Phoenix', phoenix), 'valid');
+    assert.equal(
+      await reason('Phoenix', { ...phoenix, score: 967_823 }),
+      'Invalid score 967,823 for specified stats, should be ~ 967,822'
+    );
+    assert.equal(await reason('Phoenix2', phoenix2), 'valid');
+    assert.equal(
+      await reason('Phoenix2', { ...phoenix2, score: 973_629 }),
+      'Invalid score 973,629 for specified stats, should be ~ 973,628'
+    );
+  });
+
   it('check the number of steps against the chart, give or take one', async () => {
     const setSteps = (min: number, max: number) =>
       db
