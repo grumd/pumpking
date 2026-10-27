@@ -2,10 +2,11 @@ import { getPlayerPpResults } from './playersPp';
 import { ppAgeFactor, utcDay } from './totalPp';
 import { Transaction, db } from '@pumpking/database/db';
 import { sql } from 'kysely';
+import { type PpSteps, getPpSteps } from 'services/results/resultsPp';
 
 /**
  * The player's best result on each chart by its full pp, however old: a page of them, with
- * the chart's difficulty and the result's age factor, and the number of charts
+ * the steps to the pp and the result's age factor, and the number of charts
  */
 export const getPlayerHighestPpCharts = async (
   params: { playerId?: number; limit: number; offset: number },
@@ -17,7 +18,7 @@ export const getPlayerHighestPpCharts = async (
     shared_chart: number;
     full_name: string;
     label: string;
-    difficulty: number | null;
+    ppSteps: PpSteps | null;
     grade: string | null;
     score: number | null;
     is_pass: boolean;
@@ -42,6 +43,8 @@ export const getPlayerHighestPpCharts = async (
           .limit(1)
       )
     )
+    // The result's own chart instance, whose level pp falls back to
+    .innerJoin('chart_instances as ri', 'ri.id', 'r.chart_instance')
     .innerJoin('tracks as t', 't.id', 'sc.track')
     .where('r.pp', 'is not', null)
     // One result per chart: the one with the most pp, the earliest of equal ones
@@ -68,7 +71,8 @@ export const getPlayerHighestPpCharts = async (
       'r.is_pass',
       't.full_name',
       'ci.label',
-      'sc.interpolated_difficulty as difficulty',
+      'sc.interpolated_difficulty',
+      'ri.level',
       'r.shared_chart',
     ])
     .where('r.player_id', '=', params.playerId)
@@ -87,10 +91,12 @@ export const getPlayerHighestPpCharts = async (
 
   const today = utcDay(new Date());
   const items = rows.map((row) => {
+    const { interpolated_difficulty, level, ...rest } = row;
     const date = new Date(row.date);
     return {
-      ...row,
+      ...rest,
       date,
+      ppSteps: getPpSteps({ score: row.score, interpolated_difficulty, level }),
       is_pass: row.is_pass === 1,
       ageFactor: ppAgeFactor(today - utcDay(date)),
     };
