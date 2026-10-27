@@ -160,4 +160,68 @@ describe('Players', () => {
     );
     assert.isNull(lastPage.nextCursor, 'a short page is the last one');
   });
+
+  describe('pp lists', () => {
+    const daysAgo = (days: number) => new Date(Date.now() - days * 86_400_000);
+
+    // Chart 1: an old 100pp result. Chart 3 (rated 20.4): a recent 60pp result
+    const insertPpResults = async () => {
+      await db
+        .updateTable('shared_charts')
+        .set({ interpolated_difficulty: 20.4 })
+        .where('id', '=', 3)
+        .execute();
+      await db
+        .insertInto('results')
+        .values([
+          { ...getResultDefaults({ playerId: 1 }), pp: 100, gained: daysAgo(365 * 6) },
+          { ...getResultDefaults({ playerId: 1 }), pp: 40, gained: daysAgo(10) },
+          {
+            ...getResultDefaults({ playerId: 1 }),
+            pp: 60,
+            gained: daysAgo(10),
+            shared_chart: 3,
+            chart_instance: 3,
+          },
+        ])
+        .execute();
+    };
+
+    it('lists all-time best by full pp, with the age factor, difficulty and total', async () => {
+      await insertPpResults();
+
+      const { items, totalPp, nextCursor } = output(
+        await trpcQuery('players.highestPpCharts', { playerId: 1, pageSize: 1 }).expect(200)
+      );
+      assert.lengthOf(items, 1);
+      assert.include(items[0], { shared_chart: 1, pp: 100, ageFactor: 0.25, difficulty: null });
+      assert.closeTo(totalPp, 100 + 0.95 * 60, 0.01, 'the total without the age factor');
+      assert.equal(nextCursor, 1, 'one more chart to show');
+
+      const lastPage = output(
+        await trpcQuery('players.highestPpCharts', { playerId: 1, pageSize: 2 }).expect(200)
+      );
+      assert.include(lastPage.items[1], { shared_chart: 3, ageFactor: 1, difficulty: 20.4 });
+      assert.isNull(lastPage.nextCursor, 'every chart is listed');
+    });
+
+    it('lists current best with the difficulty and the total after the age factor', async () => {
+      await insertPpResults();
+
+      const { items, totalPp } = output(
+        await trpcQuery('players.ppBreakdown', { playerId: 1, pageSize: 20 }).expect(200)
+      );
+      assert.deepEqual(
+        items.map((x: { shared_chart: number; difficulty: number | null }) => [
+          x.shared_chart,
+          x.difficulty,
+        ]),
+        [
+          [3, 20.4],
+          [1, null],
+        ]
+      );
+      assert.closeTo(totalPp, 60 + 0.95 * 40, 0.01, 'the recent 40pp beats 25% of the old 100pp');
+    });
+  });
 });

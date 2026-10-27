@@ -1,21 +1,32 @@
+import { getPlayerPpResults } from './playersPp';
+import { getTotalPpWithoutAge, ppAgeFactor, roundPp, utcDay } from './totalPp';
 import { Transaction, db } from '@pumpking/database/db';
 import { sql } from 'kysely';
 
+/**
+ * The player's best result on each chart by its full pp, however old: a page of them, with
+ * the chart's difficulty and the result's age factor, the number of charts, and the total
+ * pp if no result lost pp with age
+ */
 export const getPlayerHighestPpCharts = async (
   params: { playerId?: number; limit: number; offset: number },
   trx?: Transaction
-): Promise<
-  Array<{
+): Promise<{
+  items: Array<{
     pp: number;
     date: Date; // seems like api actually returns string :(
     shared_chart: number;
     full_name: string;
     label: string;
+    difficulty: number | null;
     grade: string | null;
     score: number | null;
     is_pass: boolean;
-  }>
-> => {
+    ageFactor: number;
+  }>;
+  total: number;
+  totalPp: number;
+}> => {
   if (!params.playerId) {
     throw new Error('playerId is required');
   }
@@ -59,6 +70,7 @@ export const getPlayerHighestPpCharts = async (
       'r.is_pass',
       't.full_name',
       'ci.label',
+      'sc.interpolated_difficulty as difficulty',
       'r.shared_chart',
     ])
     .where('r.player_id', '=', params.playerId)
@@ -68,13 +80,27 @@ export const getPlayerHighestPpCharts = async (
     .$narrowType<{ pp: number }>();
 
   const timeStart = performance.now();
-  const result = await query.execute();
+  const [rows, ppResults] = await Promise.all([
+    query.execute(),
+    getPlayerPpResults(params.playerId, trx),
+  ]);
   const timeEnd = performance.now();
   console.log('query time:', timeEnd - timeStart, 'ms');
 
-  return result.map((row) => ({
-    ...row,
-    date: new Date(row.date),
-    is_pass: row.is_pass === 1,
-  }));
+  const today = utcDay(new Date());
+  const items = rows.map((row) => {
+    const date = new Date(row.date);
+    return {
+      ...row,
+      date,
+      is_pass: row.is_pass === 1,
+      ageFactor: ppAgeFactor(today - utcDay(date)),
+    };
+  });
+
+  return {
+    items,
+    total: new Set(ppResults.map((result) => result.sharedChartId)).size,
+    totalPp: roundPp(getTotalPpWithoutAge(ppResults)),
+  };
 };

@@ -63,6 +63,15 @@ export const getTotalFromChartPp = (chartPp: Map<number, number>) =>
 export const getTotalPp = (results: PpResult[], day: number) =>
   getTotalFromChartPp(getChartPp(results, day));
 
+// The total if results kept their full pp: each chart's best pp, weighted by place
+export const getTotalPpWithoutAge = (results: PpResult[]) => {
+  const chartPp = new Map<number, number>();
+  for (const { sharedChartId, pp } of results) {
+    chartPp.set(sharedChartId, Math.max(pp, chartPp.get(sharedChartId) ?? 0));
+  }
+  return getTotalFromChartPp(chartPp);
+};
+
 // The charts that count in the total, the most first: each one's counted result, its pp
 // after the age factor, and the weight of its place
 export const getCountedCharts = <T extends PpResult>(results: T[], day: number) =>

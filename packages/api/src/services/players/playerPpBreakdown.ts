@@ -1,11 +1,12 @@
 import { getPlayerPpResults } from './playersPp';
-import { getCountedCharts, ppAgeFactor, utcDay } from './totalPp';
+import { getCountedCharts, ppAgeFactor, roundPp, utcDay } from './totalPp';
 import { db } from '@pumpking/database/db';
 import { sql } from 'kysely';
 
 /**
  * The charts that make up the player's total pp, by how much each one adds: its counted
- * result (the most pp after the age factor), the age factor and the weight of its place
+ * result (the most pp after the age factor), the chart's difficulty, the age factor and the
+ * weight of its place. With the number of charts and the total they add up to
  */
 export const getPlayerPpBreakdown = async (params: {
   playerId?: number;
@@ -18,9 +19,10 @@ export const getPlayerPpBreakdown = async (params: {
 
   const today = utcDay(new Date());
   const counted = getCountedCharts(await getPlayerPpResults(params.playerId), today);
+  const totalPp = roundPp(counted.reduce((sum, chart) => sum + chart.pp * chart.weight, 0));
   const page = counted.slice(params.offset, params.offset + params.limit);
   if (!page.length) {
-    return { items: [], total: counted.length };
+    return { items: [], total: counted.length, totalPp };
   }
 
   const details = await db
@@ -37,7 +39,15 @@ export const getPlayerPpBreakdown = async (params: {
       )
     )
     .innerJoin('tracks as t', 't.id', 'sc.track')
-    .select(['r.id', 'r.grade', 'r.score_phoenix as score', 'r.is_pass', 't.full_name', 'ci.label'])
+    .select([
+      'r.id',
+      'r.grade',
+      'r.score_phoenix as score',
+      'r.is_pass',
+      't.full_name',
+      'ci.label',
+      'sc.interpolated_difficulty as difficulty',
+    ])
     .where(
       'r.id',
       'in',
@@ -56,6 +66,7 @@ export const getPlayerPpBreakdown = async (params: {
         shared_chart: result.sharedChartId,
         full_name: row.full_name,
         label: row.label,
+        difficulty: row.difficulty,
         grade: row.grade,
         score: row.score,
         is_pass: row.is_pass === 1,
@@ -68,5 +79,5 @@ export const getPlayerPpBreakdown = async (params: {
     ];
   });
 
-  return { items, total: counted.length };
+  return { items, total: counted.length, totalPp };
 };
