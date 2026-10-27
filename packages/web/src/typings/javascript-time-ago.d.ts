@@ -22,7 +22,8 @@ declare module 'javascript-time-ago' {
     formatNumber(number: number): string;
     formatValue(value: Date | number, unit: TimeUnit, localeData: Duration): string;
     getFormatter(flavor: DefaultFormats): RTFFormatter;
-    getLocaleData(format?: Formats): Duration; // Defaults to "long"
+    // The first flavour the locale has, "long" when none
+    getLocaleData(flavour?: Formats | Formats[]): { flavour: Formats; localeData: Duration };
     getRule(value: Date | number, unit: TimeUnit, localeData: Duration): string;
 
     static addLocale(localeData: Locale): void;

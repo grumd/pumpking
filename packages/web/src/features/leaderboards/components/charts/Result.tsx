@@ -399,7 +399,7 @@ const Result = ({
       <Table.Td className={css.date} ta="right" fz={sizes.date} data-fit>
         <Tooltip label={tooltipFormatter(lang, result)}>
           <UnstyledButton className={css.dateButton}>
-            {getShortTimeAgo(lang, new Date(result.gained))}
+            {getShortTimeAgo(new Date(result.gained))}
             {result.isExactGainedDate ? '' : '?'}
           </UnstyledButton>
         </Tooltip>
