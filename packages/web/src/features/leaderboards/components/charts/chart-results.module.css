@@ -99,7 +99,7 @@
 }
 
 .row[data-latest] {
-  background: color-mix(in srgb, var(--mantine-color-latest-filled) 22%, transparent);
+  background: color-mix(in srgb, var(--mantine-color-latest-filled) 20%, transparent);
 }
 
 /* White name, score and date on the tinted rows (the name link is anchor gray elsewhere) */
