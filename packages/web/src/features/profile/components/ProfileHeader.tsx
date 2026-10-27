@@ -42,7 +42,7 @@ export const ProfileHeader = (): JSX.Element => {
       <Group gap="lg">
         <Stat size="lg" label={lang.PLAYER} value={currentPlayer.nickname} />
         <Stat size="lg" label={lang.RANK} value={`#${currentPlayerIndex + 1}`} />
-        <Stat size="lg" label={lang.PP_WITH_DECAY} value={currentPlayer.pp} />
+        <Stat size="lg" label={lang.PP} value={currentPlayer.pp} />
         {currentPlayer.last_result_date && (
           <Stat
             size="lg"

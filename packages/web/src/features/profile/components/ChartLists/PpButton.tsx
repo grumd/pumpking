@@ -32,8 +32,8 @@ interface PpButtonProps {
   weight?: number;
 }
 
-// A row's pp as a button that opens the steps to it: from the chart's difficulty and the
-// score to the full pp, then the age and the weight of the place
+// A row's pp as a button that opens the steps to it: the chart's difficulty, its pp for a
+// 1M score, the score's share of it, then the age and the weight of the place
 export const PpButton = ({
   shown,
   pp,
@@ -60,16 +60,8 @@ export const PpButton = ({
           noWrap
           items={[
             steps && { label: lang.PP_STEP_DIFFICULTY, value: short(steps.chartLevel) },
+            steps && { label: lang.PP_STEP_MAX_PP, value: ppText(steps.maxPp) },
             score !== null && { label: lang.PP_STEP_SCORE, value: score.toLocaleString('en-US') },
-            steps && {
-              label: lang.PP_STEP_MAX,
-              value: (
-                <>
-                  {short(steps.chartLevel)}
-                  <sup>2.4</sup> / 13 = {steps.maxPp.toFixed(2)}
-                </>
-              ),
-            },
             steps &&
               score !== null && {
                 label: lang.PP_STEP_SCORE_FACTOR,
@@ -79,7 +71,7 @@ export const PpButton = ({
                     : `((${score / 1_000_000} − 0.5) / 0.5)² = ${percent(steps.scoreFactor)}`,
               },
             {
-              label: lang.PP_STEP_FULL,
+              label: lang.PP_STEP_SCORE_PP,
               value: (
                 <>
                   {steps && `${steps.maxPp.toFixed(2)} × ${percent(steps.scoreFactor)} = `}
