@@ -1,15 +1,15 @@
 import { db } from '@pumpking/database/db';
 import { assert } from 'chai';
-import { TOURNAMENT_BRACKETS } from 'constants/tournaments';
+import { TOURNAMENT_BRACKETS, type BracketCode } from 'constants/tournaments';
 import { sql } from 'kysely';
 import { searchCharts } from 'services/charts/chartsSearch';
 import { getPlayersStats } from 'services/players/players';
 import { poolChartIds } from 'services/tournaments/eligibility';
 import { createTournament, endTournaments } from 'services/tournaments/lifecycle';
 import { bracketForSkill, rankLeaderboard, skillLevel } from 'services/tournaments/rules';
-import { getPlayerAwards, getTournament } from 'services/tournaments/tournament';
+import { getPlayerAwards, getTournament, joinBracket } from 'services/tournaments/tournament';
 import { req } from 'test/helpers';
-import { addResultsSession } from 'test/helpers/sessions';
+import { addResultsSession, adminSession } from 'test/helpers/sessions';
 import { getResultDefaults } from 'test/seeds/initialSeed';
 
 const MIXES = [26, 27, 28];
@@ -103,6 +103,23 @@ const getPool = (tournamentId: number) =>
     .where('tc.tournament_id', '=', tournamentId)
     .execute();
 
+const getBracketId = async (tournamentId: number, code: BracketCode) =>
+  (
+    await db
+      .selectFrom('tournament_brackets')
+      .select('id')
+      .where('tournament_id', '=', tournamentId)
+      .where('code', '=', code)
+      .executeTakeFirstOrThrow()
+  ).id;
+
+const join = async (tournamentId: number, code: BracketCode, playerIds: number[]) => {
+  const bracketId = await getBracketId(tournamentId, code);
+  for (const playerId of playerIds) {
+    await joinBracket({ playerId, bracketId });
+  }
+};
+
 const getAssignments = async (tournamentId: number) => {
   const rows = await db
     .selectFrom('tournament_player_brackets as tpb')
@@ -131,8 +148,7 @@ describe('Tournaments', () => {
     });
 
     it('maps skill levels to brackets', () => {
-      const cases: [number | null, string][] = [
-        [null, 'Easy'],
+      const cases: [number, string][] = [
         [1, 'Easy'],
         [13, 'Easy'],
         [14, 'Mid'],
@@ -262,7 +278,7 @@ describe('Tournaments', () => {
       assert.lengthOf(dec, 24);
     });
 
-    it('assigns every visible player a bracket from their 950k+ depth', async () => {
+    it('assigns every visible rated player a bracket from their 950k+ depth', async () => {
       const t = '2026-09-10 12:00:00';
       // High: 5th-highest qualifying level is 17, scored on different mixes
       await addResult(1, chartAt(19, 'S'), 960000, t, { mix: 26 });
@@ -309,9 +325,7 @@ describe('Tournaments', () => {
 
       assert.deepEqual(await getAssignments(id), {
         1: { skill: 17, code: 'High' },
-        2: { skill: null, code: 'Easy' },
-        3: { skill: null, code: 'Easy' },
-        4: { skill: null, code: 'Easy' },
+        // unrated players pick a bracket themselves
         6: { skill: 20, code: 'Top' },
         7: { skill: 14, code: 'Mid' },
       });
@@ -323,6 +337,7 @@ describe('Tournaments', () => {
       }
       await addResult(6, chartAt(21, 'D'), 990000, '2026-09-10 12:00:00');
       const { id } = await createTournament({ year: 2026, month: 10 });
+      await join(id, 'Easy', [1, 2, 3, 4, 7]);
       const easy = (await getPool(id))
         .filter((c) => c.code === 'Easy')
         .map((c) => c.shared_chart_id);
@@ -417,6 +432,7 @@ describe('Tournaments', () => {
 
       beforeEach(async () => {
         tournamentId = (await createTournament({ year: 2026, month: 10 })).id;
+        await join(tournamentId, 'Easy', [1, 2, 3, 4, 7]);
         easy = (await getPool(tournamentId))
           .filter((c) => c.code === 'Easy')
           .map((c) => c.shared_chart_id);
@@ -482,7 +498,6 @@ describe('Tournaments', () => {
             [3, 1, 2870000, 'gold'],
             [4, null, 1980000, null],
             [7, 3, 1800000, 'bronze'],
-            [6, null, 0, null],
             [1, null, 0, null],
           ]
         );
@@ -494,6 +509,7 @@ describe('Tournaments', () => {
 
       it('counts cups on the profile and in the ranking', async () => {
         const next = await createTournament({ year: 2026, month: 11 });
+        await join(next.id, 'Easy', [3]);
         const nextEasy = (await getPool(next.id)).filter((c) => c.code === 'Easy');
         for (const chart of nextEasy.slice(0, 3)) {
           await addResult(3, chart.shared_chart_id, 900000, '2026-11-10 12:00:00');
@@ -522,17 +538,8 @@ describe('Tournaments', () => {
     it('marks pool charts and counting results on the main leaderboard while Live', async () => {
       const { id } = await createTournament({ year: 2026, month: 10 });
       const chart = (await getPool(id)).find((c) => c.code === 'Easy')!.shared_chart_id;
-      const top = await db
-        .selectFrom('tournament_brackets')
-        .select('id')
-        .where('tournament_id', '=', id)
-        .where('code', '=', 'Top')
-        .executeTakeFirstOrThrow();
-      await db
-        .updateTable('tournament_player_brackets')
-        .set({ bracket_id: top.id })
-        .where('player_id', '=', 6)
-        .execute();
+      await join(id, 'Easy', [2, 3]);
+      await join(id, 'Top', [6]);
       await addResult(2, chart, 990000, '2026-10-10 12:00:00');
       // outside the window, and a player from another bracket
       await addResult(3, chart, 995000, '2026-09-30 12:00:00');
@@ -562,7 +569,7 @@ describe('Tournaments', () => {
           .expect(200)
           .then((res) => res.body.result.data.json);
 
-      it('raises a tournament notice per assigned player until they visit', async () => {
+      it('raises a tournament notice per visible player until they visit', async () => {
         const { id } = await createTournament({ year: 2026, month: 10 });
 
         const rows = await db
@@ -597,6 +604,92 @@ describe('Tournaments', () => {
         await createTournament({ year: 2026, month: 10 });
         const res = await req().get('/trpc/notices.unread').expect(200);
         assert.deepEqual(res.body.result.data.json, {});
+      });
+    });
+
+    describe('choosing a bracket', () => {
+      const joinOverTrpc = (bracketId: number, session?: string) => {
+        const request = req().post('/trpc/tournaments.join');
+        return (session ? request.set('session', session) : request).send({
+          json: { bracketId },
+        });
+      };
+
+      it('lets a player join and switch while Live, all their scores count where they are', async () => {
+        const { id } = await createTournament({ year: 2026, month: 10 });
+        const pool = await getPool(id);
+        const chartIn = (code: BracketCode) => pool.find((c) => c.code === code)!.shared_chart_id;
+        const t = '2026-10-10 12:00:00';
+
+        // player 7 is unrated, so in no bracket until they join
+        assert.deepEqual(await getAssignments(id), {});
+        assert.isNull((await getTournament({ tournamentId: id, playerId: 7 }))!.playerBracket);
+
+        await joinOverTrpc(await getBracketId(id, 'Easy'), addResultsSession).expect(200);
+        assert.deepEqual(await getAssignments(id), { 7: { skill: null, code: 'Easy' } });
+
+        await addResult(7, chartIn('Easy'), 990000, t);
+        await addResult(7, chartIn('Mid'), 980000, t);
+        const leaderboard = async (code: BracketCode) => {
+          const tournament = await getTournament({ tournamentId: id });
+          return tournament!.brackets
+            .find((b) => b.code === code)!
+            .leaderboard.map((e) => [e.playerId, e.total]);
+        };
+        assert.deepEqual(await leaderboard('Easy'), [[7, 990000]]);
+        assert.deepEqual(await leaderboard('Mid'), []);
+
+        // the Mid score was set before the switch and still counts
+        await joinOverTrpc(await getBracketId(id, 'Mid'), addResultsSession).expect(200);
+        assert.deepEqual(await getAssignments(id), { 7: { skill: null, code: 'Mid' } });
+        assert.deepEqual(await leaderboard('Easy'), []);
+        assert.deepEqual(await leaderboard('Mid'), [[7, 980000]]);
+      });
+
+      it('lets a rated player move up and back, never below their skill', async () => {
+        // 17, 17, 16, 16, 15 -> Mid
+        for (const level of [15, 16, 17]) {
+          await addResult(6, chartAt(level, 'S'), 990000, '2026-09-10 12:00:00');
+          await addResult(6, chartAt(level, 'D'), 990000, '2026-09-10 12:00:00');
+        }
+        const { id } = await createTournament({ year: 2026, month: 10 });
+        assert.deepEqual(await getAssignments(id), { 6: { skill: 15, code: 'Mid' } });
+        const canJoin = async () =>
+          (await getTournament({ tournamentId: id, playerId: 6 }))!.brackets.map((b) => [
+            b.code,
+            b.canJoin,
+          ]);
+        assert.deepEqual(await canJoin(), [
+          ['Easy', false],
+          ['Mid', true],
+          ['High', true],
+          ['Top', true],
+        ]);
+
+        await joinOverTrpc(await getBracketId(id, 'Easy'), adminSession).expect(403);
+        assert.deepEqual(await getAssignments(id), { 6: { skill: 15, code: 'Mid' } });
+
+        await joinOverTrpc(await getBracketId(id, 'Top'), adminSession).expect(200);
+        assert.deepEqual(await getAssignments(id), { 6: { skill: 15, code: 'Top' } });
+        await joinOverTrpc(await getBracketId(id, 'Mid'), adminSession).expect(200);
+        assert.deepEqual(await getAssignments(id), { 6: { skill: 15, code: 'Mid' } });
+
+        // unrated players can join any bracket
+        assert.isTrue(
+          (await getTournament({ tournamentId: id, playerId: 7 }))!.brackets.every((b) => b.canJoin)
+        );
+      });
+
+      it('needs a login, a known bracket and a Live tournament', async () => {
+        const { id } = await createTournament({ year: 2026, month: 10 });
+        const easy = await getBracketId(id, 'Easy');
+
+        await joinOverTrpc(easy).expect(401);
+        await joinOverTrpc(999999, addResultsSession).expect(404);
+
+        await endTournaments('2026-10-25 00:00:00');
+        await joinOverTrpc(easy, addResultsSession).expect(409);
+        assert.deepEqual(await getAssignments(id), {});
       });
     });
 

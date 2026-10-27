@@ -12,14 +12,17 @@ export const skillLevel = (qualifyingLevels: number[]): number | null => {
   return sorted[SKILL_CHARTS_REQUIRED - 1] ?? null;
 };
 
-export const bracketForSkill = (skill: number | null): BracketCode => {
-  if (skill === null) {
-    return 'Easy';
-  }
+export const bracketForSkill = (skill: number): BracketCode => {
   const bracket =
     TOURNAMENT_BRACKETS.find((b) => skill < b.maxSkill) ?? TOURNAMENT_BRACKETS.at(-1)!;
   return bracket.code;
 };
+
+const bracketIndex = (code: BracketCode) => TOURNAMENT_BRACKETS.findIndex((b) => b.code === code);
+
+// Unrated players can join any bracket, rated ones their skill's bracket or a harder one.
+export const canJoinBracket = (skill: number | null, code: BracketCode) =>
+  skill === null || bracketIndex(code) >= bracketIndex(bracketForSkill(skill));
 
 export type Medal = 'gold' | 'silver' | 'bronze';
 
