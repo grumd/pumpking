@@ -188,6 +188,8 @@ export const pl: BaseTranslation = {
   PP_STEP_SCORE_PP: 'pp za wynik',
   PP_STEP_AGE: (timeAgo: string) => `wiek (${timeAgo})`,
   PP_STEP_PLACE: (place: number) => `miejsce #${place}`,
+  PP_AGE_FACTOR: (percent: number) => `wiek ${percent}%`,
+  PP_PLACE_WEIGHT: (percent: number) => `waga ${percent}%`,
   PP_AND_RANK_HISTORY: 'pp i miejsce w rankingu',
   PLACE_IN_TOP: 'miejsce w top',
   LEVEL: 'poziom',
