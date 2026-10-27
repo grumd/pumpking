@@ -13,14 +13,13 @@ export const ppBreakdown = publicProcedure
   .query(async ({ ctx, input }) => {
     const { cursor, pageSize, playerId } = input;
     const offset = cursor ?? 0;
-    const { items, total, totalPp } = await getPlayerPpBreakdown({
+    const { items, total } = await getPlayerPpBreakdown({
       playerId: playerId ?? ctx.user?.id,
       limit: pageSize,
       offset,
     });
     return {
       items,
-      totalPp,
       nextCursor: offset + pageSize < total ? offset + pageSize : null,
     };
   });

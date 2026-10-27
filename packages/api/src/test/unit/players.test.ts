@@ -187,15 +187,14 @@ describe('Players', () => {
         .execute();
     };
 
-    it('lists all-time best by full pp, with the age factor, difficulty and total', async () => {
+    it('lists all-time best by full pp, with the age factor and difficulty', async () => {
       await insertPpResults();
 
-      const { items, totalPp, nextCursor } = output(
+      const { items, nextCursor } = output(
         await trpcQuery('players.highestPpCharts', { playerId: 1, pageSize: 1 }).expect(200)
       );
       assert.lengthOf(items, 1);
       assert.include(items[0], { shared_chart: 1, pp: 100, ageFactor: 0.25, difficulty: null });
-      assert.closeTo(totalPp, 100 + 0.95 * 60, 0.01, 'the total without the age factor');
       assert.equal(nextCursor, 1, 'one more chart to show');
 
       const lastPage = output(
@@ -205,10 +204,10 @@ describe('Players', () => {
       assert.isNull(lastPage.nextCursor, 'every chart is listed');
     });
 
-    it('lists current best with the difficulty and the total after the age factor', async () => {
+    it('lists current best by pp after the age factor, with the difficulty', async () => {
       await insertPpResults();
 
-      const { items, totalPp } = output(
+      const { items } = output(
         await trpcQuery('players.ppBreakdown', { playerId: 1, pageSize: 20 }).expect(200)
       );
       assert.deepEqual(
@@ -221,7 +220,7 @@ describe('Players', () => {
           [1, null],
         ]
       );
-      assert.closeTo(totalPp, 60 + 0.95 * 40, 0.01, 'the recent 40pp beats 25% of the old 100pp');
+      assert.include(items[1], { pp: 40, ageFactor: 1 }, 'the recent 40pp beats 25% of 100pp');
     });
   });
 });

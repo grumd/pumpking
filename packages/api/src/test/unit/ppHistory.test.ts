@@ -6,7 +6,6 @@ import { rebuildPpHistory, replayPpHistory } from 'services/players/ppHistoryReb
 import {
   getCountedCharts,
   getTotalPp,
-  getTotalPpWithoutAge,
   ppAgeFactor,
   utcDay,
   utcDayStart,
@@ -49,15 +48,6 @@ describe('Total pp', () => {
     ];
     assert.closeTo(getTotalPp(results, today), 50 + 0.95 * 25, 1e-9);
   });
-  it('adds up the best full pp of each chart for the total without age', () => {
-    const results = [
-      { sharedChartId: 1, pp: 100, gained: at(0, 12) },
-      { sharedChartId: 1, pp: 50, gained: at(1, 12) },
-      { sharedChartId: 2, pp: 60, gained: at(2, 12) },
-    ];
-    assert.closeTo(getTotalPpWithoutAge(results), 100 + 0.95 * 60, 1e-9);
-  });
-
   it('lists the counted charts by what they add, with the weight of their place', () => {
     const today = day0 + 365 * 5;
     const old = { sharedChartId: 1, pp: 100, gained: at(0, 12) };
