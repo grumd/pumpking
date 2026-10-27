@@ -1,6 +1,6 @@
 {
-  "about": "Phoenix: from a real Phoenix MG result (#303128), with the score 1 off, which is allowed",
-  "answersFrom": "legacy",
+  "about": "Phoenix: from a real Phoenix MG result (#303128), with the score 1 off. The legacy API allowed it; the score is checked exactly now",
+  "answersFrom": "ingest",
   "steps": [
     {
       "path": "/results/screen/submit",
@@ -34,16 +34,20 @@
       "answer": {
         "updates": [
           {
-            "status": "result added"
+            "status": "added to purgatory",
+            "id": 1,
+            "reason": "Invalid score 975,839 for specified stats, should be ~ 975,838"
           }
         ]
       }
     }
   ],
   "stored": {
-    "results": [
+    "results": [],
+    "purgatory": [
       {
         "id": 1,
+        "reason": "Invalid score 975,839 for specified stats, should be ~ 975,838",
         "screen_file": "moscow-Joki-Joya/2026-09-21/2026-09-21--22-28-20.mp4",
         "recognition_notes": "result",
         "agent": 16,
@@ -62,21 +66,13 @@
         "goods": 5,
         "greats": 26,
         "perfects": 1022,
-        "max_combo": 312,
-        "calories": 57283,
         "grade": "S+",
         "is_pass": 1,
         "plate": "MG",
-        "recognized_player_id": 280,
-        "player_id": 280,
-        "mix": 27,
-        "chart_instance": 21482,
-        "shared_chart": 1247,
-        "score_phoenix": 975839,
-        "is_new_best_score": 0
+        "max_combo": 312,
+        "calories": 57283
       }
     ],
-    "purgatory": [],
     "charts": []
   }
 }

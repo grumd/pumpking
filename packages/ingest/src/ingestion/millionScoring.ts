@@ -1,10 +1,10 @@
 import { DiscardedResult, UnrecognizedResult } from './errors';
 import { formatNumber, pyStr } from './format';
 import { getResultMods } from './mods';
-import { getResultStats, toJudgements, type StepStats } from './stats';
+import { getResultStats, toJudgements } from './stats';
 import type { CheckOptions, ResultData } from './types';
 import { calcPlate, getPhoenixGrade } from '@pumpking/utils/grades';
-import { getUnroundedPhoenixScore } from '@pumpking/utils/phoenixScore';
+import { getPhoenixScore, getUnroundedPhoenixScore } from '@pumpking/utils/phoenixScore';
 
 /**
  * Validation for the million-scoring mixes, Phoenix and later (the legacy
@@ -12,16 +12,15 @@ import { getUnroundedPhoenixScore } from '@pumpking/utils/phoenixScore';
  * recomputed and compared.
  */
 
-const unroundedScore = (steps: StepStats, maxCombo: number) =>
-  getUnroundedPhoenixScore({ ...toJudgements(steps), combo: maxCombo });
-
 /**
  * The phoenix score of a pre-Phoenix result, from its stats (null without them). Rounds
  * up, as the legacy ingestion always did
  */
 export const calcPhoenixScoreFromStats = (data: ResultData): number | null => {
   const { steps, maxCombo } = getResultStats(data);
-  return steps && maxCombo != null ? Math.ceil(unroundedScore(steps, maxCombo)) : null;
+  return steps && maxCombo != null
+    ? Math.ceil(getUnroundedPhoenixScore({ ...toJudgements(steps), combo: maxCombo }))
+    : null;
 };
 
 export const validateMillionStats = (
@@ -51,11 +50,13 @@ export const validateMillionStats = (
     );
   }
 
-  const calculatedScore = unroundedScore(steps, maxCombo);
-  if (!skipScoreCheck && Math.abs(score - calculatedScore) > 1) {
+  // The legacy code allowed the score to be one off. The arcade's score is exact, but
+  // computed in floating point (see getPhoenixScore). The reason keeps the legacy wording
+  const calculatedScore = getPhoenixScore({ ...toJudgements(steps), combo: maxCombo }, mixId);
+  if (!skipScoreCheck && score !== calculatedScore) {
     throw new UnrecognizedResult(
       `Invalid score ${formatNumber(score)} for specified stats, should be ~ ${formatNumber(
-        Math.trunc(calculatedScore)
+        calculatedScore
       )}`
     );
   }
