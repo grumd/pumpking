@@ -88,10 +88,11 @@ false }`) reads the photo, and two reads that both pass and agree save it
   one (418 for 419, ~5 points of Phoenix score). Accepted 2026-10-17.
 - **Grade and pass:**
   - Phoenix: grade = `getPhoenixGrade(score, mixId)` (Phoenix and Phoenix 2
-    have different thresholds below 950,000, so the selected mix matters). The
-    read grade must equal it: a mismatch pauses the photo, as it is a misread or
-    the wrong mix selected (a Phoenix 2 photo uploaded as Phoenix passes every
-    other check). Pass = a plate text is
+    have different thresholds below 950,000, so the selected mix matters). Once
+    the score equals the judgements' score, the grade is taken from it and the
+    read grade is ignored: models misread it (AAA+ draws its A's overlapping and
+    was read as AA+). Changed 2026-10-27; this drops the check that caught the
+    wrong mix selected. Pass = a plate text is
     shown under the grade ("MARVELOUS GAME" ...). The read plate must equal
     `calcPlate(steps, pass)` (from ingest's `millionScoring.ts`), which also
     checks pass / fail. Not tested on photos yet: S5.
@@ -221,8 +222,8 @@ Shared by both mixes, all must hold:
   known; coverage goes from 262 to 4542 of 5465 Phoenix 2 charts in the dev DB).
 - **Combo** ≤ perfect + great, every mix (`addResult` already checks it; no
   Phoenix or Phoenix 2 result in the dev DB breaks it).
-- **Phoenix:** `getPhoenixScore(stats)` equals the read score; the read grade
-  equals `getPhoenixGrade(score, mixId)`; plate check above.
+- **Phoenix:** `getPhoenixScore(stats)` equals the read score (the grade then
+  comes from it); plate check above.
 - **XX:** score is a multiple of 100 and ≥ the lower bound from ingest's
   `comboScoring.ts` (`minScoreForStats`); grade letter in the XX grade list.
 - **Rank mode:** `addResult` already rejects VJ on charts that can't use it; a
@@ -367,7 +368,7 @@ switch that endpoint's model first.
   differing fields, both agree and fail; XX agree, XX disagree on max combo,
   grade or mod; chart matching (fuzzy title, label, exact steps, step range,
   Phoenix 2 fallback, two candidate charts); duplicates (known hash, same play);
-  the Phoenix grade check with a score between the two mixes' thresholds
+  the Phoenix grade from a score between the two mixes' thresholds
   (930,000: AA+ on Phoenix, AA on Phoenix 2) under each mix.
   The reader is stubbed: tests make no paid calls.
 - Real-photo checks are manual and small: a handful of photos and two models
@@ -382,7 +383,8 @@ switch that endpoint's model first.
   mix 27).
 - Phoenix grade reading (AAA+, SS+ ...): if it is often wrong, the grade check
   pauses too many photos; then keep it only for scores under 950,000, where the
-  two mixes' grades differ.
+  two mixes' grades differ. It was: the grade now comes from the score
+  (2026-10-27).
 - The new prompt on the 2P-side (mirrored) layout.
 
 ## Prompt used in the tests
