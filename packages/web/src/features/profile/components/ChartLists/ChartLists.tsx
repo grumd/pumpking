@@ -2,6 +2,7 @@ import { Tabs } from '@mantine/core';
 import { useIsFetching, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useRef } from 'react';
 import { useParams } from 'react-router';
+import { useSearchParams } from 'react-router-dom';
 
 import { Card } from 'components/Card/Card';
 
@@ -62,11 +63,22 @@ export const ChartLists = (): JSX.Element => {
   usePrefetchOtherTabs(playerId);
   // The API gives only the latest bests on someone else's profile
   const isOwnProfile = playerId === undefined || playerId === user.data?.id;
+  // The open tab is in the URL, so going back to the profile opens the same tab, and the
+  // browser can restore the scroll position
+  const [searchParams, setSearchParams] = useSearchParams();
+  const tab = searchParams.get('tab') ?? 'latest';
 
   return (
     <Card>
       {/* Only the open tab is mounted; the others are prefetched */}
-      <Tabs variant="pills" defaultValue="latest" keepMounted={false}>
+      <Tabs
+        variant="pills"
+        value={tab}
+        onChange={(value) =>
+          setSearchParams(value && value !== 'latest' ? { tab: value } : {}, { replace: true })
+        }
+        keepMounted={false}
+      >
         <Tabs.List mb="xs">
           <Tabs.Tab value="latest">{isOwnProfile ? lang.LATEST : lang.LATEST_BEST}</Tabs.Tab>
           <Tabs.Tab value="current">{lang.CURRENT_BEST}</Tabs.Tab>

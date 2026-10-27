@@ -25,9 +25,11 @@
   touch-action: pan-y;
 }
 
-/* A level bars graph: as high as its aspect ratio makes it. The svg is out of the flow, so the
-   box's height never depends on what the graph drew */
-.levelBars {
+/* A level bars or time series graph: as high as its aspect ratio makes it. The svg is out of the
+   flow, so the box's height never depends on what the graph drew, and the box has it before the
+   graph has measured its width: going back to the page, the browser restores its scroll position */
+.levelBars,
+.timeSeries {
   position: relative;
   aspect-ratio: var(--graph-aspect);
 
@@ -36,6 +38,11 @@
     top: 0;
     left: 0;
   }
+}
+
+/* With its brush, a time series graph needs this room even on a narrow screen */
+.timeSeries {
+  min-height: rem(240px);
 }
 
 /* A card that takes its height from the column next to it (the profile's grades, from sm up,
