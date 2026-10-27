@@ -56,6 +56,10 @@ export const PpBreakdown = (): JSX.Element => {
                 <Table.Td data-fit visibleFrom="xs" ta="right" fz="sm" c="dimmed">
                   {item.pp.toFixed(2)}pp
                 </Table.Td>
+                <Table.Td data-fit visibleFrom="sm" ta="right" fz="xs" lh="xs" c="dimmed">
+                  <div>{lang.PP_AGE_FACTOR(Math.round(item.ageFactor * 100))}</div>
+                  <div>{lang.PP_PLACE_WEIGHT(Math.round(item.weight * 100))}</div>
+                </Table.Td>
                 <Table.Td data-fit>
                   <Grade h={rem(18)} w={rem(44)} score={item.score ?? 0} isPass={item.is_pass} />
                 </Table.Td>

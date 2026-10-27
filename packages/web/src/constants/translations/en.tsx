@@ -185,6 +185,8 @@ export const en = {
   PP_STEP_SCORE_PP: 'score pp',
   PP_STEP_AGE: (timeAgo: string) => `age (${timeAgo})`,
   PP_STEP_PLACE: (place: number) => `place #${place}`,
+  PP_AGE_FACTOR: (percent: number) => `age ${percent}%`,
+  PP_PLACE_WEIGHT: (percent: number) => `weight ${percent}%`,
   PP_AND_RANK_HISTORY: 'pp and place in ranking',
   PLACE_IN_TOP: 'place in top',
   LEVEL: 'level',
