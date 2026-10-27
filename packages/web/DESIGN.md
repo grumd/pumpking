@@ -86,8 +86,8 @@ The theme is **dark only** today. Every color that depends on the scheme is a CS
 | Judgement | `perfect` `great` `good` `bad` `miss` | text (`c="perfect"`) and fills |
 | Medal | `gold` `silver` `bronze` | text, icons, fills. "Gold" is this one color everywhere (cups, trophy links, exp numbers, the exp bar) |
 | Accent | `accent` | graph lines, progress, the achievement ring, focus ring |
-| Fresh | `fresh` | on the latest result's row: places gained (text, about 4.3:1 on that row), "NEW" / the score increase (light `Badge`) |
-| Latest | `latest` | muted background of the latest result's row on a chart (`color-mix` 20%) |
+| Fresh | `fresh` | on the latest result's row: places gained (text, 4.6:1 on that row), "NEW" / the score increase (light `Badge`) |
+| Latest | `latest` | muted background of the latest result's row on a chart (`color-mix` 22%) |
 | Mine | `mine` | muted background of the logged-in player's row on a chart (`color-mix` 20%; `latest` wins when it's also the latest) |
 | Dropped | `dropped` | text: places lost to the latest result on a chart (5.1:1 on the stripe; about 3.3:1 on a tinted row) |
 | Brand | `discord` | the Discord sign-in `Button` only (it has a real hover shade) |
