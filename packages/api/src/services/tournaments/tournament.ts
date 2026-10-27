@@ -1,9 +1,10 @@
 import { eligibleResults } from './eligibility';
-import { rankLeaderboard } from './rules';
+import { canJoinBracket, rankLeaderboard } from './rules';
 import { db, type Transaction } from '@pumpking/database/db';
 import { SUPPORTED_MIXES } from '@pumpking/utils/mixes';
 import { sql } from 'kysely';
 import _ from 'lodash/fp';
+import { StatusError } from 'utils/errors';
 
 const tournamentWindow = {
   from: sql.ref<Date>('t.start_date'),
@@ -153,6 +154,7 @@ export const getTournament = async ({
         id: bracket.id,
         code: bracket.code,
         name: bracket.name,
+        canJoin: canJoinBracket(me?.skill_level ?? null, bracket.code),
         minSkill: bracket.min_id === null ? null : Number(bracket.min_id),
         maxSkill: Number(bracket.max_id),
         playerCount: bracketPlayers.length,
@@ -177,6 +179,49 @@ export const getTournament = async ({
     }),
   };
 };
+
+// Puts the player in a bracket of a Live tournament, or moves them to it. Their scores
+// from the whole tournament then count in the new bracket. Rated players can't go below
+// their skill's bracket.
+export const joinBracket = ({ playerId, bracketId }: { playerId: number; bracketId: number }) =>
+  db.transaction().execute(async (trx) => {
+    const bracket = await trx
+      .selectFrom('tournament_brackets as b')
+      .innerJoin('tournaments as t', 't.id', 'b.tournament_id')
+      .select(['b.tournament_id', 'b.code', 't.state'])
+      .where('b.id', '=', bracketId)
+      // waits for the end job, which locks the tournament while it freezes the results
+      .forUpdate()
+      .executeTakeFirst();
+    if (!bracket) {
+      throw new StatusError(404, 'Bracket not found');
+    }
+    if (bracket.state !== 'Live') {
+      throw new StatusError(409, 'The tournament has ended');
+    }
+
+    const current = await trx
+      .selectFrom('tournament_player_brackets')
+      .select('skill_level')
+      .where('tournament_id', '=', bracket.tournament_id)
+      .where('player_id', '=', playerId)
+      .executeTakeFirst();
+    if (!canJoinBracket(current?.skill_level ?? null, bracket.code)) {
+      throw new StatusError(403, 'Your skill is above this bracket');
+    }
+
+    await trx
+      .insertInto('tournament_player_brackets')
+      .values({
+        tournament_id: bracket.tournament_id,
+        bracket_id: bracketId,
+        player_id: playerId,
+        skill_level: null,
+        created_at: new Date(),
+      })
+      .onDuplicateKeyUpdate({ bracket_id: bracketId })
+      .execute();
+  });
 
 export const getPlayerAwards = (playerId: number) =>
   db

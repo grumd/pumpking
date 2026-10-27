@@ -165,12 +165,14 @@ export const createTournament = async ({ year, month }: { year: number; month: n
         .execute();
     }
 
+    // Rated players start in their skill's bracket, unrated ones pick a bracket themselves.
     const skills = await getPlayerSkills(startDate, trx);
-    if (skills.length) {
+    const rated = skills.filter((s): s is { playerId: number; skill: number } => s.skill !== null);
+    if (rated.length) {
       await trx
         .insertInto('tournament_player_brackets')
         .values(
-          skills.map(({ playerId, skill }) => ({
+          rated.map(({ playerId, skill }) => ({
             tournament_id: tournamentId,
             bracket_id: bracketIds.get(bracketForSkill(skill))!,
             player_id: playerId,

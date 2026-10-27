@@ -58,8 +58,8 @@ below for how the old system worked.
 | Pool grouping | By `shared_charts.interpolated_difficulty` (ID), not official `level` — one ID per shared chart, shared by all its mixes |
 | Pool selection | **Fixed ladder** (2 charts per level over 3 levels per bracket, type per bracket) + uniform random *which* chart within `(level, type)`; no popularity ranking, no voting, no approval |
 | Pool size | 6 charts per bracket; **top 3 count** |
-| Player brackets | 4 brackets — Easy (unrated or skill level in [1,14)), Mid [14,17), High [17,20), Top [20,28]. Skill level = the **5th-highest ID level with a 950,000+ chart best** (180-day window, no grades); snapshot at creation |
-| Participation | Automatic: every non-hidden player gets a bracket assignment at creation (no join concept) |
+| Player brackets | 4 brackets — Easy (skill level below 14), Mid [14,17), High [17,20), Top [20,28]. Skill level = the **5th-highest ID level with a 950,000+ chart best** (180-day window, no grades); snapshot at creation |
+| Participation | Rated players get their skill's bracket at creation; unrated players join one themselves; anyone can switch while Live, rated players not below their skill's bracket (changed 2026-10-27, see "Participation") |
 | Metric | Sum of the player's best 3 per-chart `score_phoenix` over the pool |
 | Result eligibility | `score_phoenix IS NOT NULL` + `exact_gain_date = 1` (date is exact, not approximate) + `gained` inside the window + player/result not hidden. **No `mods_list`, no `rank_mode`, no `is_manual_input` filters** |
 | Dates | Naive "site wall-clock" datetimes, compared in SQL only — see "Date and time convention" |
@@ -403,9 +403,17 @@ The pool is public the moment it is created.
 | Both jobs | add a `tournamentStarted` / `tournamentEnded` event in the same transaction; the Telegram bot posts the pools and the podiums from them (its `tournaments` plugin, needs `TOURNAMENTS_CHANNEL_ID`) |
 | 25th → 1st of next month (UI only) | Show the final winners with a "new tournament starts on the 1st" notice; no job needed |
 
-### Participation — no "join"
+### Participation
 
-There is no join concept: the tournament is created, and any counting score on
+**Changed 2026-10-27.** Only rated players get a bracket at creation. Unrated
+players (and players who register mid-month) have no bracket until they pick one
+on the tournament page (`tournaments.join`), and any player can switch brackets
+while the tournament is Live. Rated players can't go below their skill's bracket
+(`canJoinBracket`): they can only move up, and back down to their own bracket.
+Scoring is unchanged: every counting score from the whole window counts in the
+bracket the player is in now, including scores set before a switch. The skill snapshot stays in `skill_level` after a switch.
+
+The original design, kept for the history: there was no join concept: the tournament is created, and any counting score on
 a pool chart counts for a player in that bracket. The bracket assignment is a
 **stored snapshot** (`tournament_player_brackets`): brackets are stable (a
 player can't shift brackets mid-month when old results are deleted or a player
@@ -414,6 +422,7 @@ scan runs once per month instead of per request. Cost: ~170 rows/month.
 
 Players who register or unhide after the snapshot wait for the next tournament
 — no catch-up job. The UI tells them "you join on the 1st" and shows the pool.
+(Superseded: they join from the tournament page now.)
 
 ## Cups and tournament results (post-launch finishing — M7)
 
@@ -704,7 +713,7 @@ New router `tournaments.ts` + service `src/services/tournaments/`:
 | `getLeaderboard` (bracketId, page) | Bracket leaderboard: rank, player, per-chart bests, top-3 total (live query while Live; from `tournament_results` once M7 lands) |
 | `list` | Past tournaments (name, dates, top 3 per bracket) — from `tournament_results` once M7 lands |
 
-No join action, no admin procedures — everything is automatic.
+No admin procedures. (Since 2026-10-27 there is a `join` mutation, see "Participation".)
 
 Web: new `features/tournaments/` (page route `/tournaments`, nav link). The
 route constant `routes.tournaments` and translations already exist; the old
