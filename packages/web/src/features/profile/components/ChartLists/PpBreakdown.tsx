@@ -11,7 +11,6 @@ import { api } from 'utils/trpc';
 
 import { ChartCells } from './ChartCells';
 import { FadingDate } from './FadingDate';
-import { PpSummary } from './PpSummary';
 import { pageOptions, ppBreakdownInput } from './listQueries';
 
 // Current best: the charts that make up the total pp, by how much each one adds after the
@@ -28,7 +27,6 @@ export const PpBreakdown = (): JSX.Element => {
 
   return (
     <>
-      <PpSummary label={lang.PP_WITH_DECAY} totalPp={charts.data?.pages[0]?.totalPp} />
       <Table variant="rows">
         <Table.Tbody>
           {charts.data?.pages.flatMap((page) =>
