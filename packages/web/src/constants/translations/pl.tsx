@@ -178,6 +178,7 @@ export const pl: BaseTranslation = {
     '* aby zdobyć osiągnięcie, musisz zagrać ~10% wszystkich czartów danego poziomu na określoną ocenę',
   ACHIEVEMENTS: 'osiągnięcia',
   LATEST: 'ostatnie',
+  LATEST_BEST: 'ostatnie najlepsze',
   MOST_PLAYED: 'najczęściej grane',
   CURRENT_BEST: 'obecne najlepsze',
   ALL_TIME_BEST: 'najlepsze w historii',
