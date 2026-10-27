@@ -2,10 +2,11 @@ import { getPlayerPpResults } from './playersPp';
 import { getCountedCharts, ppAgeFactor, utcDay } from './totalPp';
 import { db } from '@pumpking/database/db';
 import { sql } from 'kysely';
+import { getPpSteps } from 'services/results/resultsPp';
 
 /**
  * The charts that make up the player's total pp, by how much each one adds: its counted
- * result (the most pp after the age factor), the chart's difficulty, the age factor and the
+ * result (the most pp after the age factor), the steps to its pp, the age factor and the
  * weight of its place. With the number of charts
  */
 export const getPlayerPpBreakdown = async (params: {
@@ -37,6 +38,8 @@ export const getPlayerPpBreakdown = async (params: {
           .limit(1)
       )
     )
+    // The result's own chart instance, whose level pp falls back to
+    .innerJoin('chart_instances as ri', 'ri.id', 'r.chart_instance')
     .innerJoin('tracks as t', 't.id', 'sc.track')
     .select([
       'r.id',
@@ -45,7 +48,8 @@ export const getPlayerPpBreakdown = async (params: {
       'r.is_pass',
       't.full_name',
       'ci.label',
-      'sc.interpolated_difficulty as difficulty',
+      'sc.interpolated_difficulty',
+      'ri.level',
     ])
     .where(
       'r.id',
@@ -65,12 +69,12 @@ export const getPlayerPpBreakdown = async (params: {
         shared_chart: result.sharedChartId,
         full_name: row.full_name,
         label: row.label,
-        difficulty: row.difficulty,
         grade: row.grade,
         score: row.score,
         is_pass: row.is_pass === 1,
         date: result.gained,
         pp: result.pp,
+        ppSteps: getPpSteps(row),
         ageFactor: ppAgeFactor(today - utcDay(result.gained)),
         weight,
         contribution: pp * weight,

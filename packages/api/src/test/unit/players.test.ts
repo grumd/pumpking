@@ -178,6 +178,7 @@ describe('Players', () => {
           { ...getResultDefaults({ playerId: 1 }), pp: 40, gained: daysAgo(10) },
           {
             ...getResultDefaults({ playerId: 1 }),
+            score_phoenix: 950000,
             pp: 60,
             gained: daysAgo(10),
             shared_chart: 3,
@@ -187,40 +188,52 @@ describe('Players', () => {
         .execute();
     };
 
-    it('lists all-time best by full pp, with the age factor and difficulty', async () => {
+    // Chart 1 has no difficulty yet: its pp comes from the instance's level, 20
+    const chart1Steps = { chartLevel: 20, maxPp: 20 ** 2.4 / 13, scoreFactor: 1 };
+    // Chart 3 is rated 20.4, and 950k is ((0.95 - 0.5) / 0.5)² = 81% of its max pp
+    const chart3Steps = { chartLevel: 20.4, maxPp: 20.4 ** 2.4 / 13, scoreFactor: 0.81 };
+    const assertSteps = (
+      steps: { chartLevel: number; maxPp: number; scoreFactor: number; pp: number },
+      expected: { chartLevel: number; maxPp: number; scoreFactor: number }
+    ) => {
+      assert.strictEqual(steps.chartLevel, expected.chartLevel);
+      assert.closeTo(steps.maxPp, expected.maxPp, 1e-9);
+      assert.closeTo(steps.scoreFactor, expected.scoreFactor, 1e-9);
+      assert.closeTo(steps.pp, expected.maxPp * expected.scoreFactor, 1e-9);
+    };
+
+    it('lists all-time best by full pp, with the steps to it and the age factor', async () => {
       await insertPpResults();
 
       const { items, nextCursor } = output(
         await trpcQuery('players.highestPpCharts', { playerId: 1, pageSize: 1 }).expect(200)
       );
       assert.lengthOf(items, 1);
-      assert.include(items[0], { shared_chart: 1, pp: 100, ageFactor: 0.25, difficulty: null });
+      assert.include(items[0], { shared_chart: 1, pp: 100, ageFactor: 0.25 });
+      assertSteps(items[0].ppSteps, chart1Steps);
       assert.equal(nextCursor, 1, 'one more chart to show');
 
       const lastPage = output(
         await trpcQuery('players.highestPpCharts', { playerId: 1, pageSize: 2 }).expect(200)
       );
-      assert.include(lastPage.items[1], { shared_chart: 3, ageFactor: 1, difficulty: 20.4 });
+      assert.include(lastPage.items[1], { shared_chart: 3, ageFactor: 1 });
+      assertSteps(lastPage.items[1].ppSteps, chart3Steps);
       assert.isNull(lastPage.nextCursor, 'every chart is listed');
     });
 
-    it('lists current best by pp after the age factor, with the difficulty', async () => {
+    it('lists current best by pp after the age factor, with the steps to it', async () => {
       await insertPpResults();
 
       const { items } = output(
         await trpcQuery('players.ppBreakdown', { playerId: 1, pageSize: 20 }).expect(200)
       );
       assert.deepEqual(
-        items.map((x: { shared_chart: number; difficulty: number | null }) => [
-          x.shared_chart,
-          x.difficulty,
-        ]),
-        [
-          [3, 20.4],
-          [1, null],
-        ]
+        items.map((x: { shared_chart: number }) => x.shared_chart),
+        [3, 1]
       );
+      assertSteps(items[0].ppSteps, chart3Steps);
       assert.include(items[1], { pp: 40, ageFactor: 1 }, 'the recent 40pp beats 25% of 100pp');
+      assertSteps(items[1].ppSteps, chart1Steps);
     });
   });
 });

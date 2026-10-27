@@ -1,16 +1,29 @@
 import { db, type Transaction } from '@pumpking/database/db';
 import { minMixToGetPp } from '@pumpking/utils/currentMix';
 
-// A result's full pp. The age of the result only lowers what it adds to the player's
-// total (see services/players/totalPp.ts), not this value
-export const getResultPp = (scorePhoenix: number, chartLevel: number) => {
-  const maxPP = chartLevel ** 2.4 / 13;
+// A result's full pp and the steps to it (the profile shows them). The age of the result
+// only lowers what it adds to the player's total (see services/players/totalPp.ts), not this
+export const getResultPpSteps = (scorePhoenix: number, chartLevel: number) => {
+  const maxPp = chartLevel ** 2.4 / 13;
   const scoreRatio = scorePhoenix / 1_000_000;
-  // K is a coefficient from 0 to 1
-  // Growing exponentially from 500k score (0) to 1000k score (1)
-  // 900k score is ~64% of max PP
-  const K = Math.min(1, scoreRatio < 0.5 ? 0 : Math.pow((scoreRatio - 0.5) / 0.5, 2));
-  return K * maxPP;
+  // From 0 to 1: growing exponentially from 500k score (0) to 1000k score (1).
+  // 900k score is ~64% of max pp
+  const scoreFactor = Math.min(1, scoreRatio < 0.5 ? 0 : Math.pow((scoreRatio - 0.5) / 0.5, 2));
+  return { chartLevel, maxPp, scoreFactor, pp: scoreFactor * maxPp };
+};
+
+export type PpSteps = ReturnType<typeof getResultPpSteps>;
+
+// The steps to a result's pp from its Phoenix score, the chart's interpolated difficulty and
+// the level of the result's chart instance (used when the chart has no difficulty yet).
+// Null when it gets no pp
+export const getPpSteps = (row: {
+  score: number | null;
+  interpolated_difficulty: number | null;
+  level: number | null;
+}): PpSteps | null => {
+  const chartLevel = row.interpolated_difficulty || row.level;
+  return row.score && chartLevel ? getResultPpSteps(row.score, chartLevel) : null;
 };
 
 // pp of every result that gets pp, not only each player's best on a chart: an older best
@@ -54,11 +67,8 @@ export const calculateResultsPp = async ({
   const resultPpMap = new Map<number, number | null>();
 
   for (const result of results) {
-    const chartLevel = result.interpolated_difficulty || result.level;
-    resultPpMap.set(
-      result.id,
-      result.score_phoenix && chartLevel ? getResultPp(result.score_phoenix, chartLevel) : null
-    );
+    const steps = getPpSteps({ ...result, score: result.score_phoenix });
+    resultPpMap.set(result.id, steps?.pp ?? null);
   }
 
   return resultPpMap;
