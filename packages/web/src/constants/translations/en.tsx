@@ -220,6 +220,8 @@ export const en = {
   FROM: 'from',
   OR: 'or',
   SCORE_ADDED_MANUALLY: 'score was added manually',
+  ADDED: 'added',
+  PLAYED: 'played',
 
   // achievements
   /* russian:

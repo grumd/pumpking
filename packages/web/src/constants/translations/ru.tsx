@@ -214,6 +214,8 @@ export const ru = {
   FROM: 'с',
   OR: 'или',
   SCORE_ADDED_MANUALLY: 'скор добавлен вручную',
+  ADDED: 'добавлено',
+  PLAYED: 'сыграно',
 
   // achievements
   COMBO_500: '500 комбо',
