@@ -13,34 +13,42 @@ export const getPlayerMostPlayedCharts = async (
     label: string;
   }>
 > => {
-  if (!params.playerId) {
+  const { playerId } = params;
+  if (!playerId) {
     throw new Error('playerId is required');
   }
+  // The page of charts first, from the player's results alone, then the chart names for it
   return await (trx ?? db)
-    .selectFrom('results as r')
-    .innerJoin('shared_charts as sc', 'r.shared_chart', 'sc.id')
+    .selectFrom((eb) =>
+      eb
+        .selectFrom('results')
+        .select([
+          'shared_chart',
+          ({ fn }) => fn.count<number>('id').as('count'),
+          ({ fn }) => fn.max('results.gained').as('latestDate'),
+        ])
+        .where('player_id', '=', playerId)
+        .groupBy('shared_chart')
+        .orderBy('count', 'desc')
+        .orderBy('shared_chart')
+        .limit(params.limit)
+        .offset(params.offset)
+        .as('played')
+    )
+    .innerJoin('shared_charts as sc', 'played.shared_chart', 'sc.id')
     .innerJoin('chart_instances as ci', (join) =>
       join.on('ci.id', '=', (eb) =>
         eb
           .selectFrom('chart_instances')
           .select('id')
-          .where('shared_chart', '=', sql.ref('r.shared_chart'))
+          .where('shared_chart', '=', sql.ref('played.shared_chart'))
           .orderBy('mix', 'desc')
           .limit(1)
       )
     )
     .innerJoin('tracks as t', 't.id', 'sc.track')
-    .select([
-      ({ fn }) => fn.count<number>('r.id').as('count'),
-      ({ fn }) => fn.max('r.gained').as('latestDate'),
-      't.full_name',
-      ({ fn }) => fn.max('ci.label').as('label'),
-      'r.shared_chart',
-    ])
-    .groupBy('r.shared_chart')
-    .where('r.player_id', '=', params.playerId)
-    .orderBy('count', 'desc')
-    .limit(params.limit)
-    .offset(params.offset)
+    .select(['played.count', 'played.latestDate', 't.full_name', 'ci.label', 'played.shared_chart'])
+    .orderBy('played.count', 'desc')
+    .orderBy('played.shared_chart')
     .execute();
 };

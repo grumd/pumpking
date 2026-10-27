@@ -24,35 +24,16 @@ export const getPlayerLatestResults = async (
     throw new Error('playerId is required');
   }
 
-  let query = (trx ?? db)
+  // The page of result ids first, read newest first from the (player_id, gained) index, which
+  // stops after a page. Joining the charts before the limit would join every result
+  let page = (trx ?? db)
     .selectFrom('results as r')
-    .innerJoin('shared_charts as sc', 'r.shared_chart', 'sc.id')
-    .innerJoin('chart_instances as ci', (join) =>
-      join.on('ci.id', '=', (eb) =>
-        eb
-          .selectFrom('chart_instances')
-          .select('id')
-          .where('shared_chart', '=', sql.ref('r.shared_chart'))
-          .orderBy('mix', 'desc')
-          .limit(1)
-      )
-    )
-    .innerJoin('tracks as t', 't.id', 'sc.track')
-    .select([
-      'r.id',
-      'r.gained as date',
-      'r.score_phoenix as score',
-      'r.is_pass',
-      'r.pp',
-      't.full_name',
-      'ci.label',
-      'r.shared_chart',
-    ])
+    .select('r.id')
     .where('r.player_id', '=', params.playerId)
     .where('r.is_hidden', '=', 0);
 
   if (params.onlyBests) {
-    query = query.where('r.score_phoenix', 'is not', null).where(({ not, exists, selectFrom }) =>
+    page = page.where('r.score_phoenix', 'is not', null).where(({ not, exists, selectFrom }) =>
       not(
         exists(
           selectFrom('results as b')
@@ -75,11 +56,40 @@ export const getPlayerLatestResults = async (
     );
   }
 
-  const rows = await query
+  const rows = await (trx ?? db)
+    .selectFrom(
+      page
+        .orderBy('r.gained', 'desc')
+        .orderBy('r.id', 'desc')
+        .limit(params.limit)
+        .offset(params.offset)
+        .as('page')
+    )
+    .innerJoin('results as r', 'r.id', 'page.id')
+    .innerJoin('shared_charts as sc', 'r.shared_chart', 'sc.id')
+    .innerJoin('chart_instances as ci', (join) =>
+      join.on('ci.id', '=', (eb) =>
+        eb
+          .selectFrom('chart_instances')
+          .select('id')
+          .where('shared_chart', '=', sql.ref('r.shared_chart'))
+          .orderBy('mix', 'desc')
+          .limit(1)
+      )
+    )
+    .innerJoin('tracks as t', 't.id', 'sc.track')
+    .select([
+      'r.id',
+      'r.gained as date',
+      'r.score_phoenix as score',
+      'r.is_pass',
+      'r.pp',
+      't.full_name',
+      'ci.label',
+      'r.shared_chart',
+    ])
     .orderBy('r.gained', 'desc')
     .orderBy('r.id', 'desc')
-    .limit(params.limit)
-    .offset(params.offset)
     .execute();
 
   return rows.map((row) => ({

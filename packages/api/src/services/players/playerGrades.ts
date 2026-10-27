@@ -26,57 +26,56 @@ export const getPlayerGradeStats = async (
       .execute()
   ).map(({ mix }) => mix);
 
+  // The grade of the player's best score on each chart
   const gradeStats = await (trx ?? db)
-    .with('ranked_results', (_db) => {
-      return _db
-        .selectFrom('results as r')
-        .innerJoin('shared_charts as sc', 'sc.id', 'r.shared_chart')
-        .leftJoin('chart_instances as latest_ci', (join) =>
-          // take the level from the chart's latest-mix instance ((shared_chart, mix) is unique)
-          join.on('latest_ci.id', '=', (eb) =>
-            eb
-              .selectFrom('chart_instances')
-              .select('id')
-              .where('shared_chart', '=', sql.ref('r.shared_chart'))
-              .orderBy('mix', 'desc')
-              .limit(1)
-          )
-        )
-        .select([
-          'sc.type as type',
-          'latest_ci.level as level',
-          // Phoenix 2 (mix 28) grade formula - the latest one, applied to all mixes
-          sql<number>`case
-            when ${sql.ref('r.score_phoenix')} < 500000 then 15
-            when ${sql.ref('r.score_phoenix')} < 600000 then 14
-            when ${sql.ref('r.score_phoenix')} < 700000 then 13
-            when ${sql.ref('r.score_phoenix')} < 800000 then 12
-            when ${sql.ref('r.score_phoenix')} < 900000 then 11
-            when ${sql.ref('r.score_phoenix')} < 920000 then 10
-            when ${sql.ref('r.score_phoenix')} < 940000 then 9
-            when ${sql.ref('r.score_phoenix')} < 950000 then 8
-            when ${sql.ref('r.score_phoenix')} < 960000 then 7
-            when ${sql.ref('r.score_phoenix')} < 970000 then 6
-            when ${sql.ref('r.score_phoenix')} < 975000 then 5
-            when ${sql.ref('r.score_phoenix')} < 980000 then 4
-            when ${sql.ref('r.score_phoenix')} < 985000 then 3
-            when ${sql.ref('r.score_phoenix')} < 990000 then 2
-            when ${sql.ref('r.score_phoenix')} < 995000 then 1
-            else 0 end`.as('grade_phoenix_order'),
-          sql<number>`row_number() over (partition by r.shared_chart, r.player_id order by ${sql.ref(
-            'r.score_phoenix'
-          )} desc)`.as('score_rank'),
-        ])
-        .where('r.player_id', '=', playerId)
-        .where('r.score_phoenix', 'is not', null)
-        .where('sc.type', 'in', gradeableTypes)
-        .$narrowType<{ type: GradeStatsChartType; level: number }>();
-    })
-    .selectFrom('ranked_results')
-    .select((eb) => ['level', 'type', 'grade_phoenix_order', eb.fn.countAll<number>().as('count')])
-    .where('score_rank', '=', 1)
+    .selectFrom((eb) =>
+      eb
+        .selectFrom('results')
+        .select(['shared_chart', (eb) => eb.fn.max('score_phoenix').as('score')])
+        .where('player_id', '=', playerId)
+        .where('score_phoenix', 'is not', null)
+        .groupBy('shared_chart')
+        .as('best')
+    )
+    .innerJoin('shared_charts as sc', 'sc.id', 'best.shared_chart')
+    .leftJoin('chart_instances as latest_ci', (join) =>
+      // take the level from the chart's latest-mix instance ((shared_chart, mix) is unique)
+      join.on('latest_ci.id', '=', (eb) =>
+        eb
+          .selectFrom('chart_instances')
+          .select('id')
+          .where('shared_chart', '=', sql.ref('best.shared_chart'))
+          .orderBy('mix', 'desc')
+          .limit(1)
+      )
+    )
+    .select((eb) => [
+      'latest_ci.level as level',
+      'sc.type as type',
+      // Phoenix 2 (mix 28) grade formula - the latest one, applied to all mixes
+      sql<number>`case
+        when ${sql.ref('best.score')} < 500000 then 15
+        when ${sql.ref('best.score')} < 600000 then 14
+        when ${sql.ref('best.score')} < 700000 then 13
+        when ${sql.ref('best.score')} < 800000 then 12
+        when ${sql.ref('best.score')} < 900000 then 11
+        when ${sql.ref('best.score')} < 920000 then 10
+        when ${sql.ref('best.score')} < 940000 then 9
+        when ${sql.ref('best.score')} < 950000 then 8
+        when ${sql.ref('best.score')} < 960000 then 7
+        when ${sql.ref('best.score')} < 970000 then 6
+        when ${sql.ref('best.score')} < 975000 then 5
+        when ${sql.ref('best.score')} < 980000 then 4
+        when ${sql.ref('best.score')} < 985000 then 3
+        when ${sql.ref('best.score')} < 990000 then 2
+        when ${sql.ref('best.score')} < 995000 then 1
+        else 0 end`.as('grade_phoenix_order'),
+      eb.fn.countAll<number>().as('count'),
+    ])
+    .where('sc.type', 'in', gradeableTypes)
     .groupBy(['level', 'type', 'grade_phoenix_order'])
     .orderBy('level')
+    .$narrowType<{ type: GradeStatsChartType; level: number }>()
     .execute();
 
   const totalCounts = await (trx ?? db)
