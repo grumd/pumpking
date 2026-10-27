@@ -80,17 +80,19 @@ describe('Results from photos', () => {
       assert.deepInclude(check.values, { score: phoenixScore, grade: 'AA', pass: true, mod: '' });
     });
 
-    it('the grade between the two mixes thresholds follows the selected mix', () => {
-      assert.deepEqual(checkRead(phoenixRead(), [chart()], MIXES.Phoenix2).problems, []);
-      assert.deepEqual(checkRead(phoenixRead(), [chart()], MIXES.Phoenix).problems, ['grade']);
-      assert.deepEqual(
-        checkRead(phoenixRead({ grade: 'AA+' }), [chart()], MIXES.Phoenix).problems,
-        []
-      );
-      assert.deepEqual(
-        checkRead(phoenixRead({ grade: 'AA+' }), [chart()], MIXES.Phoenix2).problems,
-        ['grade']
-      );
+    it('the grade comes from a confirmed score and the selected mix, not from the read', () => {
+      const phoenix2 = checkRead(phoenixRead({ grade: 'AAA+' }), [chart()], MIXES.Phoenix2);
+      assert.deepEqual(phoenix2.problems, []);
+      assert.equal(phoenix2.values.grade, 'AA');
+      const phoenix = checkRead(phoenixRead(), [chart()], MIXES.Phoenix);
+      assert.deepEqual(phoenix.problems, []);
+      assert.equal(phoenix.values.grade, 'AA+');
+    });
+
+    it('the read grade is kept when the score is misread', () => {
+      const check = checkRead(phoenixRead({ score: 900_000 }), [chart()], MIXES.Phoenix2);
+      assert.deepEqual(check.problems, [...NUMBER_FIELDS]);
+      assert.equal(check.values.grade, 'AA');
     });
 
     it('a misread counter fails the score check', () => {

@@ -142,12 +142,10 @@ const checkMillionStats = (read: PhotoRead, values: PhotoValues, mixId: number):
   if (values.score !== getPhoenixScore(values)) {
     return [...NUMBER_FIELDS];
   }
+  // A score that the judgements confirm gives the grade, which models often misread: AAA+
+  // draws its A's overlapping, so it looks like AA+
+  values.grade = getPhoenixGrade(values.score, mixId);
   const problems: Field[] = [];
-  // Phoenix and Phoenix 2 have different grades below 950,000: a wrong grade can also
-  // mean the wrong mix was selected
-  if (values.grade !== getPhoenixGrade(values.score, mixId)) {
-    problems.push('grade');
-  }
   // The plate also says whether the stage was passed: a fail has none
   const plate = read.plate_text == null ? null : plateFromText(read.plate_text);
   if (plate === undefined || plate !== calcPlate(values, values.pass)) {
