@@ -4,9 +4,10 @@ import pl from 'javascript-time-ago/locale/pl';
 import ru from 'javascript-time-ago/locale/ru';
 import convenient from 'javascript-time-ago/modules/gradation/convenient';
 import ua from 'locale/uk';
-import { Temporal, toTemporalInstant } from 'temporal-polyfill';
+import { Temporal } from 'temporal-polyfill';
 
 import { language, translation } from 'utils/context/translation';
+import { formatTimeAgo } from 'utils/daysAgo';
 
 TimeAgo.addLocale(
   {
@@ -27,36 +28,27 @@ const timeAgo = new TimeAgo(
 
 const getTimeAgo = (
   jsDate: Date,
-  timeStyle: FixedFormatStyle,
+  style: FixedFormatStyle,
   labels: { today: string; yesterday: string; yesterdayNight: string }
-) => {
-  const date = toTemporalInstant.bind(jsDate)().toZonedDateTimeISO(Temporal.Now.timeZoneId());
-  const now = Temporal.Now.zonedDateTimeISO(Temporal.Now.timeZoneId());
+) => formatTimeAgo(timeAgo, style, labels, jsDate, Temporal.Now.timeZoneId());
 
-  const dayDiff = date.startOfDay().until(now.startOfDay(), { largestUnit: 'day' }).days;
-
-  return dayDiff === 0
-    ? date.hour < 5
-      ? labels.yesterdayNight
-      : labels.today
-    : dayDiff === 1
-    ? labels.yesterday
-    : timeAgo.format(jsDate, timeStyle);
+const tinyLabel = (days: number) => {
+  const { localeData } = timeAgo.getLocaleData('tiny');
+  return timeAgo.formatValue(-days, 'day', localeData);
 };
 
-export const getShortTimeAgo = (lang: typeof translation, jsDate: Date) => {
-  const timeStyle: FixedFormatStyle = {
-    flavour: 'tiny',
-    gradation: convenient,
-    units: ['day', 'week', 'month'],
-  };
-  // "1d" instead of "yesterday", which is too wide for the leaderboard's date column
-  const oneDayAgo = timeAgo.format(Date.now() - 24 * 60 * 60 * 1000, timeStyle);
-  return getTimeAgo(jsDate, timeStyle, {
-    today: lang.TODAY,
-    yesterday: oneDayAgo,
-    yesterdayNight: oneDayAgo,
-  });
+// For the leaderboard's date column: "0d", "1d" instead of "today", "yesterday", which are too
+// wide
+export const getShortTimeAgo = (jsDate: Date) => {
+  return getTimeAgo(
+    jsDate,
+    {
+      flavour: 'tiny',
+      gradation: convenient,
+      units: ['day', 'week', 'month'],
+    },
+    { today: tinyLabel(0), yesterday: tinyLabel(1), yesterdayNight: tinyLabel(1) }
+  );
 };
 export const getLongTimeAgo = (lang: typeof translation, jsDate: Date) => {
   return getTimeAgo(

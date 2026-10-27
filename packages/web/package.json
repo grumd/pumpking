@@ -10,7 +10,8 @@
     "ts:watch": "tsc --build --watch",
     "build": "tsc --version && tsc --build && vite build",
     "lint": "eslint src --ext ts,tsx --report-unused-disable-directives --max-warnings 0 && stylelint \"src/**/*.css\"",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "node --import tsx --test \"src/**/*.test.ts\""
   },
   "dependencies": {
     "@mantine/core": "^8.3.10",
