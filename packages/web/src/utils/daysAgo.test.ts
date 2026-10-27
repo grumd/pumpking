@@ -69,14 +69,14 @@ describe('formatTimeAgo', () => {
   TimeAgo.addLocale(en);
   const timeAgo = new TimeAgo('en-US');
   const style = { flavour: 'tiny', units: ['day', 'week', 'month'] } as const;
-  const labels = { today: '0d', yesterday: '1d', yesterdayNight: '1d' };
+  const labels = { today: 'today', yesterday: '1d', yesterdayNight: '1d' };
   const format = (date: string) => formatTimeAgo(timeAgo, style, labels, new Date(date), kyiv);
 
   afterEach(() => mock.timers.reset());
 
-  it('shows this evening as 0d and last evening as 1d after midnight', () => {
+  it('shows this evening as today and last evening as 1d after midnight', () => {
     mock.timers.enable({ apis: ['Date'], now: new Date('2026-10-18T02:46:00+03:00') });
-    assert.equal(format('2026-10-17T22:04:00+03:00'), '0d');
+    assert.equal(format('2026-10-17T22:04:00+03:00'), 'today');
     assert.equal(format('2026-10-16T19:25:00+03:00'), '1d');
     assert.equal(format('2026-10-15T19:25:00+03:00'), '2d');
   });
@@ -91,7 +91,7 @@ describe('formatTimeAgo', () => {
 
   it('counts days, then weeks and months', () => {
     mock.timers.enable({ apis: ['Date'], now: new Date('2026-10-17T23:46:00+03:00') });
-    assert.equal(format('2026-10-17T21:52:00+03:00'), '0d');
+    assert.equal(format('2026-10-17T21:52:00+03:00'), 'today');
     assert.equal(format('2026-10-17T01:00:00+03:00'), '1d');
     assert.equal(format('2026-10-16T19:25:00+03:00'), '1d');
     assert.equal(format('2026-10-15T08:00:00+03:00'), '2d');

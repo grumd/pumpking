@@ -32,14 +32,14 @@ const getTimeAgo = (
   labels: { today: string; yesterday: string; yesterdayNight: string }
 ) => formatTimeAgo(timeAgo, style, labels, jsDate, Temporal.Now.timeZoneId());
 
-const tinyLabel = (days: number) => {
+// "1d"
+const oneDayLabel = () => {
   const { localeData } = timeAgo.getLocaleData('tiny');
-  return timeAgo.formatValue(-days, 'day', localeData);
+  return timeAgo.formatValue(-1, 'day', localeData);
 };
 
-// For the leaderboard's date column: "0d", "1d" instead of "today", "yesterday", which are too
-// wide
-export const getShortTimeAgo = (jsDate: Date) => {
+// For the leaderboard's date column: "1d" instead of "yesterday", which is too wide
+export const getShortTimeAgo = (lang: typeof translation, jsDate: Date) => {
   return getTimeAgo(
     jsDate,
     {
@@ -47,7 +47,7 @@ export const getShortTimeAgo = (jsDate: Date) => {
       gradation: convenient,
       units: ['day', 'week', 'month'],
     },
-    { today: tinyLabel(0), yesterday: tinyLabel(1), yesterdayNight: tinyLabel(1) }
+    { today: lang.TODAY, yesterday: oneDayLabel(), yesterdayNight: oneDayLabel() }
   );
 };
 export const getLongTimeAgo = (lang: typeof translation, jsDate: Date) => {
