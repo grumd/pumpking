@@ -28,7 +28,10 @@ import { getResultDefaults } from 'test/seeds/initialSeed';
 
 // 83 perfects and 17 greats on 100 steps: 932,340, AA+ on Phoenix but AA on Phoenix 2
 const phoenixStats = { perfect: 83, great: 17, good: 0, bad: 0, miss: 0, max_combo: 100 };
-const phoenixScore = getPhoenixScore({ ...phoenixStats, combo: phoenixStats.max_combo });
+const phoenixScore = getPhoenixScore(
+  { ...phoenixStats, combo: phoenixStats.max_combo },
+  MIXES.Phoenix2
+);
 
 const phoenixRead = (read: Partial<PhotoRead> = {}): PhotoRead => ({
   song_title: 'TRACK 1',
@@ -599,7 +602,7 @@ describe('Results from photos', () => {
       const other = stubReader({
         [READER_A.model]: phoenixRead({
           max_combo: 90,
-          score: getPhoenixScore({ ...phoenixStats, combo: 90 }),
+          score: getPhoenixScore({ ...phoenixStats, combo: 90 }, MIXES.Phoenix2),
         }),
       });
       assert.notEqual(
@@ -844,7 +847,11 @@ describe('Results from photos', () => {
       );
       const samePhoto = await trpcMutation(
         'results.addResultMutation',
-        { ...addResultInput, combo: 99, score: getPhoenixScore({ ...phoenixStats, combo: 99 }) },
+        {
+          ...addResultInput,
+          combo: 99,
+          score: getPhoenixScore({ ...phoenixStats, combo: 99 }, MIXES.Phoenix2),
+        },
         addResultsSession
       ).expect(409);
       assert.equal(errorMessage(samePhoto), 'Conflict: This photo was already added');

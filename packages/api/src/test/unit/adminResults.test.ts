@@ -1,4 +1,5 @@
 import { db } from '@pumpking/database/db';
+import { MIXES } from '@pumpking/utils/mixes';
 import { getPhoenixScore } from '@pumpking/utils/phoenixScore';
 import { assert } from 'chai';
 import { resultAddedEffect } from 'services/results/resultAddedEffect';
@@ -102,7 +103,7 @@ describe('Admin results', () => {
 
     const result = await getResult(id);
     assert.equal(result.score_xx, 1500000);
-    assert.equal(result.score_phoenix, getPhoenixScore(stats));
+    assert.equal(result.score_phoenix, getPhoenixScore(stats, MIXES.XX));
   });
 
   it('validates the mods and sets rank mode from them', async () => {

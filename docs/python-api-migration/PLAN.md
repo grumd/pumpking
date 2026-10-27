@@ -487,6 +487,8 @@ desktop tool features" is there, apart from the gaps listed at the end.
     request inserting that row. The reason keeps the whole name.
   - A fractional score is "Invalid score '975838.5'": Python stored it, rounded by
     MySQL's INT column.
+  - A Phoenix and later score must be exactly the arcade's score for the stats
+    (`getPhoenixScore`). Python allowed it to be 1 off.
   - A stat that isn't a whole number names its JS type (`'goods' is of type 'string'`),
     where Python named its class (`<class 'str'>`).
   - Report lines print changed values as plain strings (Python printed
@@ -586,6 +588,11 @@ Earlier sections say "core" for what is now `database` + `utils`.
   scores aren't changed. Pre-Phoenix results from ingestion still get the score rounded
   up (as Python did), while the 2024 migrations rounded down: 20 of the dev DB's XX
   rank mode results are rounded up.
+  Later (2026-10): from Phoenix on, the arcade itself computes in floating point and can
+  show one below a whole score, and Phoenix and Phoenix 2 order the operations
+  differently. `getPhoenixScore` takes the mix and follows each order: all 104,086
+  Phoenix and 928 Phoenix 2 results of the dev DB match it (the 3 others are co-op).
+  The API and ingest both require that score exactly; ingest allowed ±1 before.
 - **Ingestion cleanups**: `checkResult` returns an outcome instead of the callers
   catching exceptions, and validation returns the row to store instead of writing onto
   its input; `legacy.ts` → `agentApi.ts`; a screen's parsing is in `screen.ts`; the

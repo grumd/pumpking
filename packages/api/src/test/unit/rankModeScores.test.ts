@@ -1,5 +1,6 @@
 import { MigrationProvider } from '@pumpking/database/MigrationProvider';
 import { db } from '@pumpking/database/db';
+import { MIXES } from '@pumpking/utils/mixes';
 import { getPhoenixScore } from '@pumpking/utils/phoenixScore';
 import { assert } from 'chai';
 import path from 'path';
@@ -12,7 +13,7 @@ import { getResultDefaults } from 'test/seeds/initialSeed';
 // Rank mode (VJ) results get a phoenix score from their stats, like any other result
 describe('Rank mode scores', () => {
   const stats = { perfect: 90, great: 5, good: 3, bad: 1, miss: 1, combo: 95 };
-  const expectedScore = getPhoenixScore(stats);
+  const expectedScore = getPhoenixScore(stats, MIXES.XX);
   // The seeded chart instance 1: XX, S20
   const expectedExp = getResultExp({ score: expectedScore }, { level: 20, label: 'S20' });
 

@@ -73,14 +73,17 @@ export const resultAddedEffect = async (resultId: number) => {
       misses != null &&
       max_combo != null
     ) {
-      const scorePhoenix = getPhoenixScore({
-        perfect: perfects,
-        great: greats,
-        good: goods,
-        bad: bads,
-        miss: misses,
-        combo: max_combo,
-      });
+      const scorePhoenix = getPhoenixScore(
+        {
+          perfect: perfects,
+          great: greats,
+          good: goods,
+          bad: bads,
+          miss: misses,
+          combo: max_combo,
+        },
+        mix
+      );
 
       debug(`Updating score phoenix of result ${resultId} to ${scorePhoenix}`);
 
