@@ -85,7 +85,7 @@ const Chart = memo(function _Chart({ chart }: { chart: ChartApiOutput }) {
         .slice(index + 1, index + 1 + highlightRange)
         .some((r) => r.isImportant);
       const isAfterHighlighted = array
-        .slice(index - highlightRange, index)
+        .slice(Math.max(0, index - highlightRange), index)
         .some((r) => r.isImportant);
       // Places lost to an improved latest result above
       const placesLost = array
