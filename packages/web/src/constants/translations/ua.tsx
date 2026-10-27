@@ -214,6 +214,8 @@ export const ua = {
   FROM: 'з',
   OR: 'або',
   SCORE_ADDED_MANUALLY: 'скор був доданий вручну',
+  ADDED: 'додано',
+  PLAYED: 'зіграно',
 
   // achievements
   COMBO_500: '500 комбо',

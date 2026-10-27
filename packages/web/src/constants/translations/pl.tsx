@@ -223,6 +223,8 @@ export const pl: BaseTranslation = {
   FROM: 'z',
   OR: 'lub',
   SCORE_ADDED_MANUALLY: 'wynik został dodany ręcznie',
+  ADDED: 'dodano',
+  PLAYED: 'zagrano',
 
   // achievements
   COMBO_500: '500 combo',

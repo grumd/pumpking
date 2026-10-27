@@ -109,7 +109,24 @@ const PlaceChange = ({
   return null;
 };
 
-const tooltipFormatter = (lang: typeof translation, result: ResultExtended) => {
+const tooltipFormatter = (
+  lang: typeof translation,
+  result: ResultExtended,
+  showsAddedDate: boolean
+) => {
+  if (showsAddedDate) {
+    return (
+      <Stack gap={0} align="center">
+        <div>
+          * {lang.ADDED} {new Date(result.added).toLocaleDateString()}
+        </div>
+        <div>
+          {lang.PLAYED} {new Date(result.gained).toLocaleDateString()}
+        </div>
+      </Stack>
+    );
+  }
+
   if (result.recognitionType === 'manual') {
     return (
       <Stack gap={0} align="center">
@@ -183,6 +200,12 @@ const Result = ({
     result.playerId == null ? null : routes.profile.getPath({ id: result.playerId });
 
   const place = chart.results.findIndex((res) => res.id === result.id) + 1;
+
+  // The latest result looks new (the tinted row, "NEW"). When it was played days before it was
+  // added, its date column shows when it was added, with a star
+  const playedAgo = getShortTimeAgo(new Date(result.gained));
+  const addedAgo = getShortTimeAgo(new Date(result.added));
+  const showsAddedDate = result.isLatestScore && result.isExactGainedDate && addedAgo !== playedAgo;
 
   // On the latest result: the player's first score here, or how much they improved
   const scoreChange = !result.isLatestScore
@@ -397,9 +420,9 @@ const Result = ({
         {result.combo != null && `${result.combo}x`}
       </Table.Td>
       <Table.Td className={css.date} ta="right" fz={sizes.date} data-fit>
-        <Tooltip label={tooltipFormatter(lang, result)}>
+        <Tooltip label={tooltipFormatter(lang, result, showsAddedDate)}>
           <UnstyledButton className={css.dateButton}>
-            {getShortTimeAgo(new Date(result.gained))}
+            {showsAddedDate ? `${addedAgo}*` : playedAgo}
             {result.isExactGainedDate ? '' : '?'}
           </UnstyledButton>
         </Tooltip>
