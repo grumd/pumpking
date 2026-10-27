@@ -110,8 +110,16 @@ export const TimeSeriesGraph = ({
   aspect?: number;
 }) => {
   const id = useId().replace(/:/g, '');
-  const { parentRef, width, tooltipOpen, tooltipData, tooltipLeft, tooltipTop, ...tooltip } =
-    useGraph<TooltipData>();
+  const {
+    parentRef,
+    width,
+    height,
+    tooltipOpen,
+    tooltipData,
+    tooltipLeft,
+    tooltipTop,
+    ...tooltip
+  } = useGraph<TooltipData>({ withHeight: true });
 
   const first = Math.min(...series.map((one) => one.data[0]?.date ?? Infinity));
   const last = Math.max(...series.map((one) => one.data.at(-1)?.date ?? -Infinity));
@@ -123,7 +131,6 @@ export const TimeSeriesGraph = ({
   ]);
 
   const margin = { ...graphMargin, right: series[1] ? rightAxisWidth : graphMargin.right };
-  const height = Math.max(240, width / aspect);
   const innerWidth = Math.max(0, width - margin.left - margin.right);
   const mainHeight = height - brushGap - brushHeight - brushAxisHeight;
   const innerHeight = Math.max(0, mainHeight - margin.top - margin.bottom);
@@ -210,222 +217,229 @@ export const TimeSeriesGraph = ({
     : axisProps;
 
   return (
-    // Axis ticks in the caption size
-    <Box fz="xs" pos="relative" ref={parentRef}>
-      {width > 0 && (
-        <svg width={width} height={height} className={classes.svg}>
-          {series.map((one, index) => (
-            <Gradient.LinearGradient
-              key={index}
-              id={`${id}-area-${index}`}
-              from={one.color}
-              to={one.color}
-              fromOpacity={0.3}
-              toOpacity={0}
-            />
-          ))}
-          <ClipPath.RectClipPath id={`${id}-clip`} width={innerWidth} height={innerHeight} />
-          <Group.Group left={margin.left} top={margin.top}>
-            <Grid.GridRows
-              scale={yScales[0]}
-              width={innerWidth}
-              tickValues={yTicks[0]}
-              stroke="var(--pk-graph-grid)"
-              strokeDasharray="3 3"
-            />
-            <Group.Group clipPath={`url(#${id}-clip)`}>
-              {series.map((one, index) => (
-                <Group.Group key={index}>
-                  {one.area && (
-                    <Shape.AreaClosed<TimePoint>
+    <>
+      {/* Axis ticks in the caption size. The box's CSS sets its height, the svg fills it */}
+      <Box
+        fz="xs"
+        ref={parentRef}
+        className={classes.timeSeries}
+        style={{ '--graph-aspect': aspect }}
+      >
+        {width > 0 && height > 0 && (
+          <svg width={width} height={height} className={classes.svg}>
+            {series.map((one, index) => (
+              <Gradient.LinearGradient
+                key={index}
+                id={`${id}-area-${index}`}
+                from={one.color}
+                to={one.color}
+                fromOpacity={0.3}
+                toOpacity={0}
+              />
+            ))}
+            <ClipPath.RectClipPath id={`${id}-clip`} width={innerWidth} height={innerHeight} />
+            <Group.Group left={margin.left} top={margin.top}>
+              <Grid.GridRows
+                scale={yScales[0]}
+                width={innerWidth}
+                tickValues={yTicks[0]}
+                stroke="var(--pk-graph-grid)"
+                strokeDasharray="3 3"
+              />
+              <Group.Group clipPath={`url(#${id}-clip)`}>
+                {series.map((one, index) => (
+                  <Group.Group key={index}>
+                    {one.area && (
+                      <Shape.AreaClosed<TimePoint>
+                        data={visible[index]}
+                        x={(point) => xScale(point.date)}
+                        y={(point) => yScales[index](point.value)}
+                        yScale={yScales[index]}
+                        curve={curveOf(one)}
+                        fill={`url(#${id}-area-${index})`}
+                      />
+                    )}
+                    <Shape.LinePath<TimePoint>
                       data={visible[index]}
                       x={(point) => xScale(point.date)}
                       y={(point) => yScales[index](point.value)}
-                      yScale={yScales[index]}
                       curve={curveOf(one)}
-                      fill={`url(#${id}-area-${index})`}
+                      stroke={one.color}
+                      strokeWidth={2.5}
+                      strokeLinejoin="round"
+                      strokeLinecap="round"
                     />
-                  )}
-                  <Shape.LinePath<TimePoint>
-                    data={visible[index]}
-                    x={(point) => xScale(point.date)}
-                    y={(point) => yScales[index](point.value)}
-                    curve={curveOf(one)}
-                    stroke={one.color}
-                    strokeWidth={2.5}
-                    strokeLinejoin="round"
-                    strokeLinecap="round"
-                  />
-                </Group.Group>
-              ))}
-            </Group.Group>
-            <g style={{ '--series-color': series[0].color }}>
-              <Axis.AxisLeft
-                scale={yScales[0]}
-                tickValues={yTicks[0]}
-                tickFormat={formatValueTick}
-                hideAxisLine
-                hideTicks
-                {...valueAxisProps}
-              />
-            </g>
-            {series[1] && (
-              <g style={{ '--series-color': series[1].color }}>
-                <Axis.AxisRight
-                  left={innerWidth}
-                  scale={yScales[1]}
-                  tickValues={yTicks[1]}
+                  </Group.Group>
+                ))}
+              </Group.Group>
+              <g style={{ '--series-color': series[0].color }}>
+                <Axis.AxisLeft
+                  scale={yScales[0]}
+                  tickValues={yTicks[0]}
                   tickFormat={formatValueTick}
                   hideAxisLine
                   hideTicks
                   {...valueAxisProps}
                 />
               </g>
-            )}
-            <Axis.AxisBottom
-              top={innerHeight}
-              scale={xScale}
-              numTicks={Math.max(3, Math.floor(innerWidth / 70))}
-              tickFormat={(date) => formatDateTick(date as Date, span)}
-              hideTicks
-              {...axisProps}
-            />
-            {tooltipOpen && tooltipData && (
-              <>
-                <Shape.Line
-                  from={{ x: xScale(tooltipData.date), y: 0 }}
-                  to={{ x: xScale(tooltipData.date), y: innerHeight }}
-                  stroke="var(--pk-graph-reference)"
-                  strokeDasharray="3 3"
-                />
-                {tooltipData.points.map(
-                  (point, index) =>
-                    point && (
-                      <circle
-                        key={index}
-                        cx={xScale(tooltipData.date)}
-                        cy={yScales[index](point.value)}
-                        r={5}
-                        fill={series[index].color}
-                        stroke="var(--pk-surface-1)"
-                        strokeWidth={2}
-                      />
-                    )
-                )}
-              </>
-            )}
-            <rect
-              width={innerWidth}
-              height={innerHeight}
-              fill="transparent"
-              onPointerDown={showPoint}
-              onPointerMove={showPoint}
-              onPointerLeave={hideOnLeave}
-            />
-          </Group.Group>
-          <Group.Group left={margin.left} top={brushTop}>
-            <rect width={innerWidth} height={brushHeight} fill="var(--pk-graph-cursor)" />
-            {series.map((one, index) => (
-              <Group.Group key={index}>
-                {one.area && (
-                  <Shape.AreaClosed<TimePoint>
+              {series[1] && (
+                <g style={{ '--series-color': series[1].color }}>
+                  <Axis.AxisRight
+                    left={innerWidth}
+                    scale={yScales[1]}
+                    tickValues={yTicks[1]}
+                    tickFormat={formatValueTick}
+                    hideAxisLine
+                    hideTicks
+                    {...valueAxisProps}
+                  />
+                </g>
+              )}
+              <Axis.AxisBottom
+                top={innerHeight}
+                scale={xScale}
+                numTicks={Math.max(3, Math.floor(innerWidth / 70))}
+                tickFormat={(date) => formatDateTick(date as Date, span)}
+                hideTicks
+                {...axisProps}
+              />
+              {tooltipOpen && tooltipData && (
+                <>
+                  <Shape.Line
+                    from={{ x: xScale(tooltipData.date), y: 0 }}
+                    to={{ x: xScale(tooltipData.date), y: innerHeight }}
+                    stroke="var(--pk-graph-reference)"
+                    strokeDasharray="3 3"
+                  />
+                  {tooltipData.points.map(
+                    (point, index) =>
+                      point && (
+                        <circle
+                          key={index}
+                          cx={xScale(tooltipData.date)}
+                          cy={yScales[index](point.value)}
+                          r={5}
+                          fill={series[index].color}
+                          stroke="var(--pk-surface-1)"
+                          strokeWidth={2}
+                        />
+                      )
+                  )}
+                </>
+              )}
+              <rect
+                width={innerWidth}
+                height={innerHeight}
+                fill="transparent"
+                onPointerDown={showPoint}
+                onPointerMove={showPoint}
+                onPointerLeave={hideOnLeave}
+              />
+            </Group.Group>
+            <Group.Group left={margin.left} top={brushTop}>
+              <rect width={innerWidth} height={brushHeight} fill="var(--pk-graph-cursor)" />
+              {series.map((one, index) => (
+                <Group.Group key={index}>
+                  {one.area && (
+                    <Shape.AreaClosed<TimePoint>
+                      data={one.data}
+                      x={(point) => brushXScale(point.date)}
+                      y={(point) => brushYScales[index](point.value)}
+                      yScale={brushYScales[index]}
+                      curve={curveOf(one)}
+                      fill={`url(#${id}-area-${index})`}
+                    />
+                  )}
+                  <Shape.LinePath<TimePoint>
                     data={one.data}
                     x={(point) => brushXScale(point.date)}
                     y={(point) => brushYScales[index](point.value)}
-                    yScale={brushYScales[index]}
                     curve={curveOf(one)}
-                    fill={`url(#${id}-area-${index})`}
+                    stroke={one.color}
+                    strokeOpacity={0.6}
                   />
-                )}
-                <Shape.LinePath<TimePoint>
-                  data={one.data}
-                  x={(point) => brushXScale(point.date)}
-                  y={(point) => brushYScales[index](point.value)}
-                  curve={curveOf(one)}
-                  stroke={one.color}
-                  strokeOpacity={0.6}
+                </Group.Group>
+              ))}
+              <Axis.AxisBottom
+                top={brushHeight}
+                scale={brushXScale}
+                numTicks={Math.max(3, Math.floor(innerWidth / 70))}
+                tickFormat={(date) => formatDateTick(date as Date, fullRange[1] - fullRange[0])}
+                tickLength={4}
+                hideTicks
+                hideAxisLine
+                {...axisProps}
+              />
+              <Group.Group onPointerDownCapture={capturePointer}>
+                <Brush.Brush
+                  xScale={brushXScale}
+                  yScale={brushYScales[0]}
+                  width={innerWidth}
+                  height={brushHeight}
+                  // Where the brush is in the svg: a new range starts at the pointer's svg
+                  // position minus this
+                  margin={{ left: margin.left, top: brushTop }}
+                  handleSize={10}
+                  brushDirection="horizontal"
+                  resizeTriggerAreas={['left', 'right']}
+                  initialBrushPosition={initialBrushPosition}
+                  onChange={onBrushChange}
+                  disableDraggingSelection={false}
+                  selectedBoxStyle={{
+                    fill: accent,
+                    fillOpacity: 0.15,
+                    stroke: accent,
+                    strokeOpacity: 0.8,
+                    strokeWidth: 1,
+                  }}
+                  renderBrushHandle={({ x, height: handleHeight, isBrushActive }) =>
+                    isBrushActive && (
+                      <rect
+                        x={x + 2}
+                        y={handleHeight / 2 - 8}
+                        width={6}
+                        height={16}
+                        rx={2}
+                        fill={accent}
+                      />
+                    )
+                  }
                 />
               </Group.Group>
-            ))}
-            <Axis.AxisBottom
-              top={brushHeight}
-              scale={brushXScale}
-              numTicks={Math.max(3, Math.floor(innerWidth / 70))}
-              tickFormat={(date) => formatDateTick(date as Date, fullRange[1] - fullRange[0])}
-              tickLength={4}
-              hideTicks
-              hideAxisLine
-              {...axisProps}
-            />
-            <Group.Group onPointerDownCapture={capturePointer}>
-              <Brush.Brush
-                xScale={brushXScale}
-                yScale={brushYScales[0]}
-                width={innerWidth}
-                height={brushHeight}
-                // Where the brush is in the svg: a new range starts at the pointer's svg
-                // position minus this
-                margin={{ left: margin.left, top: brushTop }}
-                handleSize={10}
-                brushDirection="horizontal"
-                resizeTriggerAreas={['left', 'right']}
-                initialBrushPosition={initialBrushPosition}
-                onChange={onBrushChange}
-                disableDraggingSelection={false}
-                selectedBoxStyle={{
-                  fill: accent,
-                  fillOpacity: 0.15,
-                  stroke: accent,
-                  strokeOpacity: 0.8,
-                  strokeWidth: 1,
-                }}
-                renderBrushHandle={({ x, height: handleHeight, isBrushActive }) =>
-                  isBrushActive && (
-                    <rect
-                      x={x + 2}
-                      y={handleHeight / 2 - 8}
-                      width={6}
-                      height={16}
-                      rx={2}
-                      fill={accent}
-                    />
-                  )
-                }
-              />
             </Group.Group>
-          </Group.Group>
-        </svg>
-      )}
+          </svg>
+        )}
+        {tooltipOpen && tooltipData && tooltipLeft !== undefined && tooltipTop !== undefined && (
+          <GraphTooltipAt
+            x={tooltipLeft}
+            y={tooltipTop}
+            flipX={tooltipLeft > width / 2}
+            flipY={tooltipTop > mainHeight / 2}
+          >
+            <Text size="sm" c="dimmed">
+              {new Date(tooltipData.date).toLocaleDateString()}
+            </Text>
+            <KeyValueList
+              items={series.map((one, index) => {
+                const point = tooltipData.points[index];
+                return (
+                  point && {
+                    label: series[1] ? (
+                      <SeriesLabel color={one.color}>{one.label}</SeriesLabel>
+                    ) : (
+                      one.label
+                    ),
+                    value: one.formatValue(point.value),
+                  }
+                );
+              })}
+            />
+          </GraphTooltipAt>
+        )}
+      </Box>
       {series[1] && (
         <GraphLegend items={series.map((one) => ({ label: one.label, color: one.color }))} />
       )}
-      {tooltipOpen && tooltipData && tooltipLeft !== undefined && tooltipTop !== undefined && (
-        <GraphTooltipAt
-          x={tooltipLeft}
-          y={tooltipTop}
-          flipX={tooltipLeft > width / 2}
-          flipY={tooltipTop > mainHeight / 2}
-        >
-          <Text size="sm" c="dimmed">
-            {new Date(tooltipData.date).toLocaleDateString()}
-          </Text>
-          <KeyValueList
-            items={series.map((one, index) => {
-              const point = tooltipData.points[index];
-              return (
-                point && {
-                  label: series[1] ? (
-                    <SeriesLabel color={one.color}>{one.label}</SeriesLabel>
-                  ) : (
-                    one.label
-                  ),
-                  value: one.formatValue(point.value),
-                }
-              );
-            })}
-          />
-        </GraphTooltipAt>
-      )}
-    </Box>
+    </>
   );
 };
