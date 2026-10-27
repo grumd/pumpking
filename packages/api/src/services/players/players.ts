@@ -44,16 +44,6 @@ export const getPlayers = async (): Promise<
 export const getPlayersStats = async () => {
   const query = db
     .selectFrom('players')
-    .leftJoin('results as latest_result', (join) =>
-      join.on('latest_result.id', '=', (eb) =>
-        eb
-          .selectFrom('results')
-          .select('id')
-          .where('player_id', '=', sql.ref('players.id'))
-          .orderBy('gained', 'desc')
-          .limit(1)
-      )
-    )
     // latest arcade name (newest mix), one row per player - a plain DISTINCT join here
     // would emit players with names in several mixes once per name
     .leftJoin(
@@ -73,45 +63,30 @@ export const getPlayersStats = async () => {
           .onRef('latest_arcade_name.player_id', '=', 'players.id')
           .on('latest_arcade_name.rn', '=', 1)
     )
-    .leftJoin(
+    // Counted per player from the player's own results, which the (player_id, shared_chart,
+    // score_phoenix) index holds. Grouping all results by player instead reads the table
+    // row by row. One row per chart played is one best result
+    .leftJoinLateral(
       (eb) =>
         eb
           .selectFrom('results')
-          .select(['player_id', ({ fn }) => fn.avg<number>('score_phoenix').as('avg_score')])
-          .groupBy('player_id')
-          .where('score_phoenix', 'is not', null)
-          .as('avg_score'),
-      (join) => join.onRef('avg_score.player_id', '=', 'players.id')
+          .select(({ fn }) => [
+            fn.countAll<number>().as('results_count'),
+            sql<number>`count(distinct shared_chart)`.as('best_results_count'),
+            fn.avg<number | null>('score_phoenix').as('avg_score'),
+          ])
+          .whereRef('player_id', '=', 'players.id')
+          .as('totals'),
+      (join) => join.onTrue()
     )
-    .leftJoin(
+    .leftJoinLateral(
       (eb) =>
         eb
           .selectFrom('results')
-          .select(['player_id', ({ fn }) => fn.count<number>('id').as('results_count')])
-          .groupBy('player_id')
-          .as('results_count'),
-      (join) => join.onRef('results_count.player_id', '=', 'players.id')
-    )
-    .leftJoin(
-      (eb) =>
-        eb
-          .selectFrom((eb2) =>
-            eb2
-              .selectFrom('results as r2')
-              .select([
-                'player_id',
-                'id',
-                sql<number>`row_number() over (partition by r2.shared_chart, r2.player_id order by ${sql.ref(
-                  'r2.score_phoenix'
-                )} desc)`.as('score_rank'),
-              ])
-              .as('ranked_results')
-          )
-          .select(['player_id', ({ fn }) => fn.count<number>('id').as('best_results_count')])
-          .where('score_rank', '=', 1)
-          .groupBy('player_id')
-          .as('best_results_count'),
-      (join) => join.onRef('best_results_count.player_id', '=', 'players.id')
+          .select(({ fn }) => fn.max('gained').as('last_result_date'))
+          .whereRef('player_id', '=', 'players.id')
+          .as('latest_result'),
+      (join) => join.onTrue()
     )
     .leftJoin(
       (eb) =>
@@ -133,11 +108,11 @@ export const getPlayersStats = async () => {
       'players.nickname',
       'players.region',
       'latest_arcade_name.name as arcade_name',
-      'results_count',
-      'best_results_count',
-      'avg_score',
+      'totals.results_count',
+      'totals.best_results_count',
+      'totals.avg_score',
       'players.exp',
-      'latest_result.gained as last_result_date',
+      'latest_result.last_result_date',
       'cups.gold',
       'cups.silver',
       'cups.bronze',

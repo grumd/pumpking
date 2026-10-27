@@ -30,22 +30,12 @@ export const getPlayerHighestPpCharts = async (
     throw new Error('playerId is required');
   }
 
-  const query = (trx ?? db)
+  // The page of results first, from the player's results alone, then the charts for it.
+  // Joining the charts before the limit would join every result
+  const page = (trx ?? db)
     .selectFrom('results as r')
-    .innerJoin('shared_charts as sc', 'r.shared_chart', 'sc.id')
-    .innerJoin('chart_instances as ci', (join) =>
-      join.on('ci.id', '=', (eb) =>
-        eb
-          .selectFrom('chart_instances')
-          .select('id')
-          .where('shared_chart', '=', sql.ref('r.shared_chart'))
-          .orderBy('mix', 'desc')
-          .limit(1)
-      )
-    )
-    // The result's own chart instance, whose level pp falls back to
-    .innerJoin('chart_instances as ri', 'ri.id', 'r.chart_instance')
-    .innerJoin('tracks as t', 't.id', 'sc.track')
+    .select(['r.id', 'r.pp'])
+    .where('r.player_id', '=', params.playerId)
     .where('r.pp', 'is not', null)
     // One result per chart: the one with the most pp, the earliest of equal ones
     .where(({ not, exists }) =>
@@ -63,8 +53,31 @@ export const getPlayerHighestPpCharts = async (
         )
       )
     )
+    .orderBy('r.pp', 'desc')
+    .orderBy('r.id')
+    .limit(params.limit)
+    .offset(params.offset)
+    .as('page');
+
+  const query = (trx ?? db)
+    .selectFrom(page)
+    .innerJoin('results as r', 'r.id', 'page.id')
+    .innerJoin('shared_charts as sc', 'r.shared_chart', 'sc.id')
+    .innerJoin('chart_instances as ci', (join) =>
+      join.on('ci.id', '=', (eb) =>
+        eb
+          .selectFrom('chart_instances')
+          .select('id')
+          .where('shared_chart', '=', sql.ref('r.shared_chart'))
+          .orderBy('mix', 'desc')
+          .limit(1)
+      )
+    )
+    // The result's own chart instance, whose level pp falls back to
+    .innerJoin('chart_instances as ri', 'ri.id', 'r.chart_instance')
+    .innerJoin('tracks as t', 't.id', 'sc.track')
     .select([
-      'pp',
+      'r.pp',
       'r.gained as date',
       'r.grade',
       'r.score_phoenix as score',
@@ -75,19 +88,14 @@ export const getPlayerHighestPpCharts = async (
       'ri.level',
       'r.shared_chart',
     ])
-    .where('r.player_id', '=', params.playerId)
-    .orderBy('pp', 'desc')
-    .limit(params.limit)
-    .offset(params.offset)
+    .orderBy('r.pp', 'desc')
+    .orderBy('r.id')
     .$narrowType<{ pp: number }>();
 
-  const timeStart = performance.now();
   const [rows, ppResults] = await Promise.all([
     query.execute(),
     getPlayerPpResults(params.playerId, trx),
   ]);
-  const timeEnd = performance.now();
-  console.log('query time:', timeEnd - timeStart, 'ms');
 
   const today = utcDay(new Date());
   const items = rows.map((row) => {
