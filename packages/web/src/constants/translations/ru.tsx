@@ -136,10 +136,14 @@ export const ru = {
   TOURNAMENT_NONE: 'Турниров пока нет. Новый начинается 1-го числа каждого месяца.',
   TOURNAMENT_YOUR_BRACKET: 'Ваша группа',
   TOURNAMENT_PLACEMENT: (level: number) => `у вас 5 чартов на 950k+ уровня ${level} или сложнее`,
-  TOURNAMENT_NOT_PARTICIPATING:
-    'Вы не участвуете в этом турнире. Новые игроки попадают в следующий 1-го числа.',
+  TOURNAMENT_PICK_BRACKET: 'Выберите группу, чтобы участвовать.',
+  TOURNAMENT_NO_RESULTS: 'У вас нет результатов в этом турнире.',
   TOURNAMENT_BRACKET: (code: 'Easy' | 'Mid' | 'High' | 'Top') =>
     ({ Easy: 'Лёгкая', Mid: 'Средняя', High: 'Высокая', Top: 'Топ' }[code]),
+  TOURNAMENT_JOIN: (code: 'Easy' | 'Mid' | 'High' | 'Top') =>
+    `Вступить в ${{ Easy: 'Лёгкую', Mid: 'Среднюю', High: 'Высокую', Top: 'Топ' }[code]}`,
+  TOURNAMENT_SWITCH: (code: 'Easy' | 'Mid' | 'High' | 'Top') =>
+    `Перейти в ${{ Easy: 'Лёгкую', Mid: 'Среднюю', High: 'Высокую', Top: 'Топ' }[code]}`,
   TOURNAMENT_PLACE: 'место',
   TOURNAMENT_POOL: 'Чарты',
   TOURNAMENT_LEADERBOARD: 'Таблица результатов',
@@ -150,7 +154,6 @@ export const ru = {
   TOURNAMENT_RESULT: 'Засчитывается в турнир',
   TOURNAMENT_SELECT: 'Турнир',
   SKILL: 'уровень',
-  UNRATED: 'без уровня',
 
   HIDE_UNSELECTED: 'скрыть невыбранных',
   SHOW_ALL: 'показать всех',

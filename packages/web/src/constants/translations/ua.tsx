@@ -136,10 +136,14 @@ export const ua = {
   TOURNAMENT_NONE: 'Турнірів поки немає. Новий починається 1-го числа кожного місяця.',
   TOURNAMENT_YOUR_BRACKET: 'Ваша група',
   TOURNAMENT_PLACEMENT: (level: number) => `у вас 5 чартів на 950k+ рівня ${level} або складніше`,
-  TOURNAMENT_NOT_PARTICIPATING:
-    'Ви не берете участі в цьому турнірі. Нові гравці потрапляють у наступний 1-го числа.',
+  TOURNAMENT_PICK_BRACKET: 'Оберіть групу, щоб узяти участь.',
+  TOURNAMENT_NO_RESULTS: 'У вас немає результатів у цьому турнірі.',
   TOURNAMENT_BRACKET: (code: 'Easy' | 'Mid' | 'High' | 'Top') =>
     ({ Easy: 'Легка', Mid: 'Середня', High: 'Висока', Top: 'Топ' }[code]),
+  TOURNAMENT_JOIN: (code: 'Easy' | 'Mid' | 'High' | 'Top') =>
+    `Вступити в ${{ Easy: 'Легку', Mid: 'Середню', High: 'Високу', Top: 'Топ' }[code]}`,
+  TOURNAMENT_SWITCH: (code: 'Easy' | 'Mid' | 'High' | 'Top') =>
+    `Перейти в ${{ Easy: 'Легку', Mid: 'Середню', High: 'Високу', Top: 'Топ' }[code]}`,
   TOURNAMENT_PLACE: 'місце',
   TOURNAMENT_POOL: 'Чарти',
   TOURNAMENT_LEADERBOARD: 'Таблиця результатів',
@@ -150,7 +154,6 @@ export const ua = {
   TOURNAMENT_RESULT: 'Зараховується в турнір',
   TOURNAMENT_SELECT: 'Турнір',
   SKILL: 'рівень',
-  UNRATED: 'без рівня',
 
   HIDE_UNSELECTED: 'сховати невибраних',
   SHOW_ALL: 'показати всіх',

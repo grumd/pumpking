@@ -143,10 +143,12 @@ export const en = {
   TOURNAMENT_NONE: 'No tournaments yet. A new one starts on the 1st of every month.',
   TOURNAMENT_YOUR_BRACKET: 'Your bracket',
   TOURNAMENT_PLACEMENT: (level: number) => `you have 5 charts at 950k+ on level ${level} or harder`,
-  TOURNAMENT_NOT_PARTICIPATING:
-    'You are not in this tournament. New players join the next one on the 1st.',
+  TOURNAMENT_PICK_BRACKET: 'Pick a bracket to join.',
+  TOURNAMENT_NO_RESULTS: 'You have no results in this tournament.',
   TOURNAMENT_BRACKET: (code: 'Easy' | 'Mid' | 'High' | 'Top') =>
     ({ Easy: 'Easy', Mid: 'Mid', High: 'High', Top: 'Top' }[code]),
+  TOURNAMENT_JOIN: (code: 'Easy' | 'Mid' | 'High' | 'Top') => `Join ${code}`,
+  TOURNAMENT_SWITCH: (code: 'Easy' | 'Mid' | 'High' | 'Top') => `Switch to ${code}`,
   TOURNAMENT_PLACE: 'place',
   TOURNAMENT_POOL: 'Charts',
   TOURNAMENT_LEADERBOARD: 'Leaderboard',
@@ -157,7 +159,6 @@ export const en = {
   TOURNAMENT_RESULT: 'Counts for the tournament',
   TOURNAMENT_SELECT: 'Tournament',
   SKILL: 'skill',
-  UNRATED: 'unrated',
 
   HIDE_UNSELECTED: 'hide unselected',
   SHOW_ALL: 'show all',

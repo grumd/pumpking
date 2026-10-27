@@ -146,10 +146,14 @@ export const pl: BaseTranslation = {
   TOURNAMENT_YOUR_BRACKET: 'Twoja grupa',
   TOURNAMENT_PLACEMENT: (level: number) =>
     `masz 5 chartów z wynikiem 950k+ na poziomie ${level} lub wyższym`,
-  TOURNAMENT_NOT_PARTICIPATING:
-    'Nie bierzesz udziału w tym turnieju. Nowi gracze dołączają do następnego 1. dnia miesiąca.',
+  TOURNAMENT_PICK_BRACKET: 'Wybierz grupę, aby dołączyć.',
+  TOURNAMENT_NO_RESULTS: 'Nie masz wyników w tym turnieju.',
   TOURNAMENT_BRACKET: (code: 'Easy' | 'Mid' | 'High' | 'Top') =>
     ({ Easy: 'Łatwa', Mid: 'Średnia', High: 'Wysoka', Top: 'Top' }[code]),
+  TOURNAMENT_JOIN: (code: 'Easy' | 'Mid' | 'High' | 'Top') =>
+    `Dołącz do ${{ Easy: 'Łatwej', Mid: 'Średniej', High: 'Wysokiej', Top: 'Top' }[code]}`,
+  TOURNAMENT_SWITCH: (code: 'Easy' | 'Mid' | 'High' | 'Top') =>
+    `Przejdź do ${{ Easy: 'Łatwej', Mid: 'Średniej', High: 'Wysokiej', Top: 'Top' }[code]}`,
   TOURNAMENT_PLACE: 'miejsce',
   TOURNAMENT_POOL: 'Charty',
   TOURNAMENT_LEADERBOARD: 'Tabela wyników',
@@ -160,7 +164,6 @@ export const pl: BaseTranslation = {
   TOURNAMENT_RESULT: 'Liczy się do turnieju',
   TOURNAMENT_SELECT: 'Turniej',
   SKILL: 'poziom',
-  UNRATED: 'bez poziomu',
 
   HIDE_UNSELECTED: 'ukryj niezaznaczone',
   SHOW_ALL: 'pokaż wszystko',
