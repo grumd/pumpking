@@ -4,6 +4,7 @@ import { db } from '@pumpking/database/db';
 import { assert } from 'chai';
 import { getPlayersStats } from 'services/players/players';
 import { req } from 'test/helpers';
+import { addResultsSession, adminSession } from 'test/helpers/sessions';
 import { output, trpcQuery } from 'test/helpers/trpc';
 import { getResultDefaults } from 'test/seeds/initialSeed';
 
@@ -133,16 +134,17 @@ describe('Players', () => {
 
   it('lists latest results newest first, without hidden ones', async () => {
     const day = (n: number) => new Date(Date.UTC(2030, 0, n));
+    // Player 6 is the admin the test requests log in as: their own profile
     const insert = (gained: Date, extra: { is_hidden?: number; shared_chart?: number } = {}) =>
       db
         .insertInto('results')
-        .values({ ...getResultDefaults({ playerId: 1 }), gained, ...extra })
+        .values({ ...getResultDefaults({ playerId: 6 }), gained, ...extra })
         .executeTakeFirstOrThrow();
     await insert(day(2), { shared_chart: 3 });
     await insert(day(3), { is_hidden: 1 });
     await insert(day(1));
 
-    const res = await trpcQuery('players.latestResults', { playerId: 1, pageSize: 2 }).expect(200);
+    const res = await trpcQuery('players.latestResults', { playerId: 6, pageSize: 2 }).expect(200);
     const { items, nextCursor } = output(res);
     assert.deepEqual(
       items.map((x: { date: string; shared_chart: number }) => [x.date, x.shared_chart]),
@@ -156,7 +158,7 @@ describe('Players', () => {
     assert.equal(nextCursor, 2, 'a full page has a next one');
 
     const lastPage = output(
-      await trpcQuery('players.latestResults', { playerId: 1, pageSize: 100 }).expect(200)
+      await trpcQuery('players.latestResults', { playerId: 6, pageSize: 100 }).expect(200)
     );
     assert.isNull(lastPage.nextCursor, 'a short page is the last one');
   });
@@ -234,6 +236,67 @@ describe('Players', () => {
       assertSteps(items[0].ppSteps, chart3Steps);
       assert.include(items[1], { pp: 40, ageFactor: 1 }, 'the recent 40pp beats 25% of 100pp');
       assertSteps(items[1].ppSteps, chart1Steps);
+    });
+  });
+
+  describe('latest results of the own profile and of other players', () => {
+    const day = (n: number) => new Date(Date.UTC(2030, 0, n));
+    const ids: Record<string, number> = {};
+
+    // On chart 1 player 6 improves, ties, drops, then beats the old best; on chart 3 the first
+    // play is a best. A hidden higher score doesn't count against later results
+    beforeEach(async () => {
+      const plays: Array<[string, number, number, number, number?]> = [
+        // name, shared chart, day, score, is_hidden
+        ['first', 1, 1, 800000],
+        ['better', 1, 2, 900000],
+        ['hiddenHigher', 1, 3, 990000, 1],
+        ['tie', 1, 4, 900000],
+        ['worse', 1, 5, 850000],
+        ['newBest', 1, 6, 950000],
+        ['otherChart', 3, 7, 700000],
+      ];
+      for (const [name, sharedChart, d, score, isHidden] of plays) {
+        const { insertId } = await db
+          .insertInto('results')
+          .values({
+            ...getResultDefaults({ playerId: 6, score }),
+            shared_chart: sharedChart,
+            gained: day(d),
+            is_hidden: isHidden ?? 0,
+          })
+          .executeTakeFirstOrThrow();
+        ids[name] = Number(insertId);
+      }
+    });
+
+    const latestIds = async (session: string | null, playerId?: number) =>
+      output(
+        await trpcQuery('players.latestResults', { playerId, pageSize: 100 }, session).expect(200)
+      ).items.map((x: { id: number }) => x.id);
+
+    it('shows every result on the own profile', async () => {
+      const all = [ids.otherChart, ids.newBest, ids.worse, ids.tie, ids.better, ids.first];
+      assert.deepEqual(await latestIds(adminSession, 6), all);
+      assert.deepEqual(await latestIds(adminSession), all, 'without playerId it is the own');
+    });
+
+    it('shows only new bests on another player profile', async () => {
+      assert.deepEqual(await latestIds(addResultsSession, 6), [
+        ids.otherChart,
+        ids.newBest,
+        ids.better,
+        ids.first,
+      ]);
+    });
+
+    it('shows only new bests when logged out', async () => {
+      assert.deepEqual(await latestIds(null, 6), [
+        ids.otherChart,
+        ids.newBest,
+        ids.better,
+        ids.first,
+      ]);
     });
   });
 });
