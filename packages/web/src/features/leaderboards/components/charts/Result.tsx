@@ -112,16 +112,16 @@ const PlaceChange = ({
 const tooltipFormatter = (
   lang: typeof translation,
   result: ResultExtended,
-  showsAddedDate: boolean
+  isAddedLater: boolean
 ) => {
-  if (showsAddedDate) {
+  if (isAddedLater) {
     return (
       <Stack gap={0} align="center">
         <div>
-          * {lang.ADDED} {new Date(result.added).toLocaleDateString()}
+          {lang.PLAYED} {new Date(result.gained).toLocaleDateString()}
         </div>
         <div>
-          {lang.PLAYED} {new Date(result.gained).toLocaleDateString()}
+          * {lang.ADDED} {new Date(result.added).toLocaleDateString()}
         </div>
       </Stack>
     );
@@ -202,10 +202,12 @@ const Result = ({
   const place = chart.results.findIndex((res) => res.id === result.id) + 1;
 
   // The latest result looks new (the tinted row, "NEW"). When it was played days before it was
-  // added, its date column shows when it was added, with a star
-  const playedAgo = getShortTimeAgo(new Date(result.gained));
-  const addedAgo = getShortTimeAgo(new Date(result.added));
-  const showsAddedDate = result.isLatestScore && result.isExactGainedDate && addedAgo !== playedAgo;
+  // added, a star on its date tells why an old play is the latest
+  const playedAgo = getShortTimeAgo(lang, new Date(result.gained));
+  const isAddedLater =
+    result.isLatestScore &&
+    result.isExactGainedDate &&
+    getShortTimeAgo(lang, new Date(result.added)) !== playedAgo;
 
   // On the latest result: the player's first score here, or how much they improved
   const scoreChange = !result.isLatestScore
@@ -420,9 +422,10 @@ const Result = ({
         {result.combo != null && `${result.combo}x`}
       </Table.Td>
       <Table.Td className={css.date} ta="right" fz={sizes.date} data-fit>
-        <Tooltip label={tooltipFormatter(lang, result, showsAddedDate)}>
+        <Tooltip label={tooltipFormatter(lang, result, isAddedLater)}>
           <UnstyledButton className={css.dateButton}>
-            {showsAddedDate ? `${addedAgo}*` : playedAgo}
+            {playedAgo}
+            {isAddedLater ? '*' : ''}
             {result.isExactGainedDate ? '' : '?'}
           </UnstyledButton>
         </Tooltip>
