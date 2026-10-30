@@ -228,7 +228,7 @@ const Result = ({
       // Read by the module only on highlighted rows
       style={{ '--pk-highlight': `var(--pk-highlight-${result.highlightIndex})` }}
     >
-      <Table.Td visibleFrom="md" data-fit>
+      <Table.Td visibleFrom="md">
         <Group gap="xxs" wrap="nowrap">
           <Place place={place} />
           <PlaceChange result={result} fz={sizes.change} />
@@ -402,7 +402,7 @@ const Result = ({
           </Group>
         </Group>
       </Table.Td>
-      <Table.Td className={css.grade} data-fit>
+      <Table.Td className={css.grade}>
         <Center>
           <Grade w="auto" h={sizes.grade} score={result.score} isPass={result.passed ?? false} />
         </Center>
@@ -411,17 +411,16 @@ const Result = ({
         <Table.Td
           key={index}
           className={`${css.number} ${className}`}
-          data-fit
           ta="right"
           data-zero={result.stats[index] === 0 || undefined}
         >
           {result.stats[index]}
         </Table.Td>
       ))}
-      <Table.Td visibleFrom="md" ta="right" fz="sm" data-fit>
+      <Table.Td visibleFrom="md" ta="right" fz="sm">
         {result.combo != null && `${result.combo}x`}
       </Table.Td>
-      <Table.Td className={css.date} ta="right" fz={sizes.date} data-fit>
+      <Table.Td className={css.date} ta="right" fz={sizes.date}>
         <Tooltip label={tooltipFormatter(lang, result, isAddedLater)}>
           <UnstyledButton className={css.dateButton}>
             {playedAgo}

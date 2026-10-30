@@ -32,7 +32,7 @@
 /* The name truncates instead of widening the table, its cell takes the room the other columns
    leave */
 .row > td.player {
-  max-width: 0;
+    max-width: 0;
 }
 
 .score {
@@ -154,6 +154,10 @@
 
   .resultsCard {
     padding: var(--mantine-spacing-xxs) 0;
+  }
+
+  .row > td.player {
+    width: 60%;
   }
 
   .row > td {
