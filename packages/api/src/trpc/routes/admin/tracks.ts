@@ -1,8 +1,8 @@
 import { arcadeNames } from './arcadeNames';
 import {
   applyTracklistSync,
+  parseSyncInput,
   previewTracklistSync,
-  tracklistFileSchema,
 } from 'services/admin/tracklistSync';
 import {
   findChartInstanceTrack,
@@ -34,9 +34,9 @@ export const tracks = router({
     .mutation(({ input }) => updateChartInstanceSteps(input.chartInstanceId, input)),
   // Tracklist sync: a preview of the changes a tracklist file makes, then applying them
   previewSync: adminProcedure
-    .input(z.object({ file: tracklistFileSchema }))
+    .input(parseSyncInput)
     .mutation(({ input }) => previewTracklistSync(input.file)),
   applySync: adminProcedure
-    .input(z.object({ file: tracklistFileSchema }))
+    .input(parseSyncInput)
     .mutation(({ input }) => applyTracklistSync(input.file)),
 });
