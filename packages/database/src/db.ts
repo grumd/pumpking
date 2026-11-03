@@ -7,7 +7,6 @@ const dialect = new MysqlDialect({
   // Created on the first query, so a missing variable fails there with a clear error
   pool: async () =>
     createPool({
-      host: '127.0.0.1',
       database: requireEnv(process.env.NODE_ENV === 'test' ? 'DB_DATABASE_TEST' : 'DB_DATABASE'),
       user: requireEnv('DB_USERNAME'),
       password: requireEnv('DB_PASSWORD'),
