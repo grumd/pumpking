@@ -25,7 +25,9 @@ const runCommand = (command: string): Promise<string> => {
 
 const mysql = (query: string) =>
   runCommand(
-    `mysql -u ${requireEnv('DB_USERNAME')} --password=${requireEnv('DB_PASSWORD')} -e "${query}"`
+    `mysql -h 127.0.0.1 -u ${requireEnv('DB_USERNAME')} --password=${requireEnv(
+      'DB_PASSWORD'
+    )} -e "${query}"`
   );
 
 export const createTestDatabase = async () => {

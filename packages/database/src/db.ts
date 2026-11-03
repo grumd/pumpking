@@ -6,6 +6,7 @@ import { createPool } from 'mysql2';
 const dialect = new MysqlDialect({
   pool: async () =>
     createPool({
+      host: '127.0.0.1',
       database: requireEnv(process.env.NODE_ENV === 'test' ? 'DB_DATABASE_TEST' : 'DB_DATABASE'),
       user: requireEnv('DB_USERNAME'),
       password: requireEnv('DB_PASSWORD'),
