@@ -108,7 +108,7 @@ export const TracklistSyncModal = ({ opened, onClose }: TracklistSyncModalProps)
         />
         {readError && <Alert color="red">{readError}</Alert>}
         {preview.error && (
-          <Alert color="red" title="The file doesn't sync as it is">
+          <Alert color="red" title="Sync error">
             <List size="sm">
               {preview.error.message.split('\n').map((line, index) => (
                 <List.Item key={index}>{line}</List.Item>
