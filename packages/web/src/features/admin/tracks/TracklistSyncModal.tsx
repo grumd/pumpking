@@ -107,7 +107,15 @@ export const TracklistSyncModal = ({ opened, onClose }: TracklistSyncModalProps)
           clearable
         />
         {readError && <Alert color="red">{readError}</Alert>}
-        {preview.error && <Alert color="red">{preview.error.message}</Alert>}
+        {preview.error && (
+          <Alert color="red" title="The file doesn't sync as it is">
+            <List size="sm">
+              {preview.error.message.split('\n').map((line, index) => (
+                <List.Item key={index}>{line}</List.Item>
+              ))}
+            </List>
+          </Alert>
+        )}
         {preview.isPending && <Text c="dimmed">Comparing with the database…</Text>}
 
         {result && (

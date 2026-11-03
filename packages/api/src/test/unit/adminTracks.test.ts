@@ -273,5 +273,78 @@ describe('Admin tracks', () => {
         "The tracklist can't be synced: Track #1 '1' isn't in the file"
       );
     });
+
+    it('reads a file that fails validation as one line per problem', async () => {
+      // The card's example: a patch upload whose charts had no type came out as a
+      // raw JSON dump; each problem should read as one line in the form
+      const stranger = {
+        title: 'The Stranger',
+        duration: 'Standard',
+        charts: { 1: {} },
+        instances: {},
+      };
+      const missingType = await trpcMutation('admin.tracks.previewSync', {
+        file: { mixes, tracklist: { '18__The_Stranger': stranger } },
+      });
+      assert.equal(missingType.status, 400);
+      assert.equal(errorMessage(missingType), '18__The_Stranger chart 1: type missing');
+
+      const badType = await trpcMutation('admin.tracks.previewSync', {
+        file: {
+          mixes,
+          tracklist: {
+            '18__The_Stranger': { ...stranger, charts: { 1: { type: 'X' } } },
+          },
+        },
+      });
+      assert.equal(badType.status, 400);
+      assert.equal(
+        errorMessage(badType),
+        "18__The_Stranger chart 1: type 'X', expected S, D, HD, COOP"
+      );
+
+      const missingLabel = await trpcMutation('admin.tracks.previewSync', {
+        file: {
+          mixes,
+          tracklist: {
+            '18__The_Stranger': {
+              ...stranger,
+              charts: { 1: { type: 'S' } },
+              instances: { Phoenix2: { 1: {} } },
+            },
+          },
+        },
+      });
+      assert.equal(missingLabel.status, 400);
+      assert.equal(errorMessage(missingLabel), '18__The_Stranger Phoenix2 chart 1: label missing');
+
+      const missingTitle = await trpcMutation('admin.tracks.previewSync', {
+        file: {
+          mixes,
+          tracklist: {
+            '18__The_Stranger': { duration: 'Standard', charts: {}, instances: {} },
+          },
+        },
+      });
+      assert.equal(missingTitle.status, 400);
+      assert.equal(errorMessage(missingTitle), '18__The_Stranger: title missing');
+
+      const missingCharts = await trpcMutation('admin.tracks.previewSync', {
+        file: {
+          mixes,
+          tracklist: {
+            '18__The_Stranger': { title: 'The Stranger', duration: 'Standard', instances: {} },
+          },
+        },
+      });
+      assert.equal(missingCharts.status, 400);
+      assert.equal(errorMessage(missingCharts), '18__The_Stranger charts: missing');
+
+      const noFileMixes = await trpcMutation('admin.tracks.previewSync', {
+        file: { tracklist: {} },
+      });
+      assert.equal(noFileMixes.status, 400);
+      assert.equal(errorMessage(noFileMixes), 'mixes: missing');
+    });
   });
 });

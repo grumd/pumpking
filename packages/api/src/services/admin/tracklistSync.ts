@@ -1,7 +1,8 @@
 import { db, type Transaction } from '@pumpking/database/db';
 import { ARCADE_NAME_MIXES, MIXES } from '@pumpking/utils/mixes';
+import { TRPCError } from '@trpc/server';
 import { error } from 'utils';
-import { z } from 'zod';
+import { z, type ZodIssue } from 'zod';
 
 /**
  * Syncs the tracklist from a tracklist file into tracks, shared_charts and
@@ -36,6 +37,134 @@ export const tracklistFileSchema = z.object({
 });
 
 export type TracklistFile = z.infer<typeof tracklistFileSchema>;
+
+// The tRPC input for preview/apply: { file: <the tracklist> }
+const syncInput = z.object({ file: tracklistFileSchema });
+
+export type TracklistSyncInput = z.infer<typeof syncInput>;
+
+// Where in the file a problem is, for one readable line: the tRPC input root is
+// `file`, so a zod issue path starts at ['file'] and the rest is the track, chart
+// and instance path. A track's charts are `tracklist[key].charts[index]`, its
+// instances of a chart `tracklist[key].instances[mix][index]`
+interface IssuePlace {
+  loc: string;
+  field: string;
+}
+
+const placeOfIssue = (segs: (string | number)[]): IssuePlace => {
+  if (segs[0] === 'tracklist' && segs.length >= 2) {
+    const key = String(segs[1]);
+    if (segs[2] === 'charts') {
+      if (segs.length === 3) {
+        return { loc: `${key} charts`, field: '' };
+      }
+      const index = String(segs[3]);
+      if (segs.length === 4) {
+        return { loc: `${key} chart ${index}`, field: '' };
+      }
+      return { loc: `${key} chart ${index}`, field: fieldOf(segs, 4) };
+    }
+    if (segs[2] === 'instances') {
+      if (segs.length === 3) {
+        return { loc: `${key} instances`, field: '' };
+      }
+      const mix = String(segs[3]);
+      if (segs.length === 4) {
+        return { loc: `${key} ${mix} instances`, field: '' };
+      }
+      const index = String(segs[4]);
+      if (segs.length === 5) {
+        return { loc: `${key} ${mix} chart ${index}`, field: '' };
+      }
+      return { loc: `${key} ${mix} chart ${index}`, field: fieldOf(segs, 5) };
+    }
+    // A plain track field: title, shortTitle, duration, arcadeID, altID
+    return { loc: key, field: fieldOf(segs, 2) };
+  }
+  if (segs[0] === 'mixes') {
+    return segs.length === 1
+      ? { loc: 'mixes', field: '' }
+      : { loc: `mixes ${fieldOf(segs, 1)}`, field: '' };
+  }
+  if (segs[0] === 'tracklist') {
+    return { loc: 'tracklist', field: '' };
+  }
+  // The file root: the tRPC input's `file`, or a problem with the whole input
+  return { loc: fieldOf(segs, 0) || 'file', field: '' };
+};
+
+const fieldOf = (segs: (string | number)[], start: number): string => segs.slice(start).join('.');
+
+// What's wrong, in words: a chart with no type reads "type missing", not zod's
+// raw issues dump
+const problemOfIssue = (issue: ZodIssue): string => {
+  switch (issue.code) {
+    case 'invalid_type':
+      return issue.received === 'undefined'
+        ? 'missing'
+        : `${issue.received}, expected ${issue.expected}`;
+    case 'invalid_enum_value':
+      return `'${issue.received}', expected ${issue.options.join(', ')}`;
+    case 'unrecognized_keys':
+      return `unrecognized ${issue.keys.join(', ')}`;
+    case 'invalid_string': {
+      const validation = issue.validation;
+      if (typeof validation === 'string') {
+        return `not a valid ${validation}`;
+      }
+      if ('includes' in validation) {
+        return `missing '${validation.includes}'`;
+      }
+      return 'startsWith' in validation
+        ? `doesn't start with '${validation.startsWith}'`
+        : `doesn't end with '${validation.endsWith}'`;
+    }
+    case 'too_small':
+      return `too small (min ${issue.minimum}${issue.inclusive ? '' : ' +'})`;
+    case 'too_big':
+      return `too big (max ${issue.maximum}${issue.inclusive ? '' : ' +'})`;
+    case 'invalid_literal':
+      return `${issue.received}, expected ${JSON.stringify(issue.expected)}`;
+    case 'not_multiple_of':
+      return `not a multiple of ${issue.multipleOf}`;
+    case 'not_finite':
+      return 'not a finite number';
+    case 'invalid_date':
+      return 'invalid date';
+    default:
+      return issue.message;
+  }
+};
+
+// One readable line per file problem, e.g. `18__The_Stranger chart 1: type
+// missing` for a chart with no type
+export const describeIssues = (issues: ZodIssue[]): string =>
+  issues
+    .map((issue) => {
+      const [, ...rest] = issue.path;
+      const { loc, field } = placeOfIssue(rest);
+      const problem = problemOfIssue(issue);
+      return field ? `${loc}: ${field} ${problem}` : `${loc}: ${problem}`;
+    })
+    .join('\n');
+
+// The preview/apply input: the file as the form sends it, with validation
+// failures read as one line per problem
+export const parseSyncInput = (raw: unknown): TracklistSyncInput => {
+  try {
+    return syncInput.parse(raw);
+  } catch (cause) {
+    if (cause instanceof z.ZodError) {
+      throw new TRPCError({
+        code: 'BAD_REQUEST',
+        cause,
+        message: describeIssues(cause.issues),
+      });
+    }
+    throw cause;
+  }
+};
 
 interface LocalTrack {
   key: string;
