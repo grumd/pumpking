@@ -1,4 +1,5 @@
 import { useParams } from 'react-router';
+import { useSearchParams } from 'react-router-dom';
 
 import { EmptyState } from 'components/EmptyState/EmptyState';
 import { ErrorAlert } from 'components/ErrorAlert/ErrorAlert';
@@ -12,13 +13,16 @@ import { useSingleChartQuery } from './hooks/useSingleChartQuery';
 
 const LeaderboardsChartsList = (): JSX.Element => {
   const params = useParams();
+  const [searchParams] = useSearchParams();
+  const focusedPlayerId = Number(searchParams.get('focusedPlayerId')) || undefined;
   const chart = useSingleChartQuery({
     sharedChartId: params.sharedChartId ? Number(params.sharedChartId) : 0,
+    focusedPlayerId,
   });
   const lang = useLanguage();
 
   const chartsList = chart.data?.items.map((chart) => {
-    return <Chart key={chart.id} chart={chart} />;
+    return <Chart key={chart.id} chart={chart} focusedPlayerId={focusedPlayerId} />;
   });
 
   return (

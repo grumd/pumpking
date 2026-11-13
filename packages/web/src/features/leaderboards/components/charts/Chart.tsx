@@ -33,15 +33,29 @@ const columns: Array<{ className?: string; visibleFrom?: 'md' }> = [
   { className: css.dateCol },
 ];
 
-const Chart = memo(function _Chart({ chart }: { chart: ChartApiOutput }) {
+const Chart = memo(function _Chart({
+  chart,
+  focusedPlayerId,
+}: {
+  chart: ChartApiOutput;
+  focusedPlayerId?: number;
+}) {
   const lang = useLanguage();
   const user = useUser().data;
   const currentPlayerId = user?.id;
   const filter = useAtomValue(filterAtom);
-  const highlightedPlayerIds = useHighlightedPlayerIds();
+  const filterHighlightedIds = useHighlightedPlayerIds();
+  const highlightedPlayerIds =
+    focusedPlayerId === undefined || filterHighlightedIds.includes(focusedPlayerId)
+      ? filterHighlightedIds
+      : [focusedPlayerId, ...filterHighlightedIds];
   const rowSizes = useRowSizes();
   const highlightRange = useMatches({ base: 1, md: 2 }, { getInitialValueInEffect: false });
-  const [showHidden, setShowHidden] = useState(false);
+  const [showHidden, setShowHidden] = useState(
+    () =>
+      focusedPlayerId !== undefined &&
+      chart.results.some((res) => res.playerId === focusedPlayerId && res.isHidden)
+  );
 
   const hiddenResultsCount = chart.results.reduce((sum, res) => (res.isHidden ? sum + 1 : sum), 0);
 

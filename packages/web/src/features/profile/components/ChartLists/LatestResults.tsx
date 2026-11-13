@@ -18,11 +18,9 @@ import { latestResultsInput, pageOptions } from './listQueries';
 
 export const LatestResults = (): JSX.Element => {
   const params = useParams();
+  const playerId = params.id ? Number(params.id) : undefined;
   const results = useInfiniteQuery(
-    api.players.latestResults.infiniteQueryOptions(
-      latestResultsInput(params.id ? Number(params.id) : undefined),
-      pageOptions
-    )
+    api.players.latestResults.infiniteQueryOptions(latestResultsInput(playerId), pageOptions)
   );
   const lang = useLanguage();
 
@@ -41,6 +39,7 @@ export const LatestResults = (): JSX.Element => {
                     component={NavLink}
                     to={routes.leaderboard.sharedChart.getPath({
                       sharedChartId: item.shared_chart,
+                      focusedPlayerId: playerId,
                     })}
                   >
                     {item.full_name}

@@ -21,6 +21,7 @@ export interface ChartsSearchParams {
   limit?: number;
   offset?: number;
   sharedChartId?: number;
+  focusedPlayerId?: number;
 }
 
 export interface ResultViewModel {
@@ -86,6 +87,7 @@ export const searchCharts = async (params: ChartsSearchParams) => {
     playersNone,
     playersAll,
     sharedChartId,
+    focusedPlayerId,
   } = params;
 
   if (!mixes.length) {
@@ -118,6 +120,19 @@ export const searchCharts = async (params: ChartsSearchParams) => {
     Object.entries(preferences.playersHiddenStatus)
       .filter(([, hidden]) => hidden)
       .map(([id]) => Number(id));
+
+  let showAllPlayers = false;
+  if (focusedPlayerId && !isCurrentPlayerHidden) {
+    const focusedPlayer = await db
+      .selectFrom('players')
+      .select(['hidden', 'region'])
+      .where('id', '=', focusedPlayerId)
+      .executeTakeFirst();
+    showAllPlayers =
+      focusedPlayer?.hidden === 1 ||
+      !!hiddenPlayerIds?.includes(focusedPlayerId) ||
+      (!!focusedPlayer?.region && !!hiddenRegions?.includes(focusedPlayer.region));
+  }
 
   const bestResult = (column: 'added' | 'pp', index: string) => {
     let subQuery = db
@@ -152,16 +167,16 @@ export const searchCharts = async (params: ChartsSearchParams) => {
         )
       );
 
-    if (!isCurrentPlayerHidden) {
+    if (!isCurrentPlayerHidden && !showAllPlayers) {
       subQuery = subQuery.where('players.hidden', '=', 0);
     }
     if (isCurrentPlayerHidden && currentPlayerId) {
       subQuery = subQuery.where('r.player_id', '=', currentPlayerId);
     }
-    if (hiddenPlayerIds && hiddenPlayerIds.length > 0) {
+    if (hiddenPlayerIds && hiddenPlayerIds.length > 0 && !showAllPlayers) {
       subQuery = subQuery.where('r.player_id', 'not in', hiddenPlayerIds);
     }
-    if (hiddenRegions && hiddenRegions.length > 0) {
+    if (hiddenRegions && hiddenRegions.length > 0 && !showAllPlayers) {
       subQuery = subQuery.where(({ or, cmpr }) =>
         or([cmpr('players.region', 'is', null), cmpr('players.region', 'not in', hiddenRegions)])
       );
@@ -364,6 +379,7 @@ export const searchCharts = async (params: ChartsSearchParams) => {
           'chart_update_date',
           'players.nickname',
           'players.region',
+          'players.hidden as player_hidden',
           'arcade_player_names.name as arcade_nickname',
           `${scoreField} as score`,
           'r.score as original_score',
@@ -379,7 +395,7 @@ export const searchCharts = async (params: ChartsSearchParams) => {
         .where(scoreField, 'is not', null)
         .where('r.mix', 'in', mixes);
 
-      if (!isCurrentPlayerHidden) {
+      if (!isCurrentPlayerHidden && !showAllPlayers) {
         subQuery = subQuery.where('players.hidden', '=', 0);
       }
       if (isCurrentPlayerHidden && currentPlayerId) {
@@ -443,7 +459,8 @@ export const searchCharts = async (params: ChartsSearchParams) => {
 
       const isResultHidden =
         !!(r.player_id && hiddenPlayerIds && hiddenPlayerIds.includes(r.player_id)) ||
-        !!(r.region && hiddenRegions && hiddenRegions.includes(r.region));
+        !!(r.region && hiddenRegions && hiddenRegions.includes(r.region)) ||
+        (r.player_hidden === 1 && r.player_id !== currentPlayerId);
 
       const result: ResultViewModel = {
         id: r.result_id,
