@@ -6,6 +6,7 @@ export const chart = publicProcedure
   .input(
     z.object({
       sharedChartId: z.number(),
+      focusedPlayerId: z.number().optional(),
     })
   )
   .query(async ({ ctx, input }) => {

@@ -19,11 +19,9 @@ import { bestScoresInput, pageOptions } from './listQueries';
 
 export const BestScores = (): JSX.Element => {
   const params = useParams();
+  const playerId = params.id ? Number(params.id) : undefined;
   const charts = useInfiniteQuery(
-    api.players.highestPpCharts.infiniteQueryOptions(
-      bestScoresInput(params.id ? Number(params.id) : undefined),
-      pageOptions
-    )
+    api.players.highestPpCharts.infiniteQueryOptions(bestScoresInput(playerId), pageOptions)
   );
   const lang = useLanguage();
 
@@ -42,6 +40,7 @@ export const BestScores = (): JSX.Element => {
                     component={NavLink}
                     to={routes.leaderboard.sharedChart.getPath({
                       sharedChartId: item.shared_chart,
+                      focusedPlayerId: playerId,
                     })}
                   >
                     {item.full_name}

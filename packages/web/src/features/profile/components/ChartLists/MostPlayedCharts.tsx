@@ -18,11 +18,9 @@ import { mostPlayedInput, pageOptions } from './listQueries';
 
 export const MostPlayedCharts = (): JSX.Element => {
   const params = useParams();
+  const playerId = params.id ? Number(params.id) : undefined;
   const charts = useInfiniteQuery(
-    api.players.mostPlayed.infiniteQueryOptions(
-      mostPlayedInput(params.id ? Number(params.id) : undefined),
-      pageOptions
-    )
+    api.players.mostPlayed.infiniteQueryOptions(mostPlayedInput(playerId), pageOptions)
   );
   const lang = useLanguage();
 
@@ -41,6 +39,7 @@ export const MostPlayedCharts = (): JSX.Element => {
                     component={NavLink}
                     to={routes.leaderboard.sharedChart.getPath({
                       sharedChartId: item.shared_chart,
+                      focusedPlayerId: playerId,
                     })}
                   >
                     {item.full_name}

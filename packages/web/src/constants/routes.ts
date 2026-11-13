@@ -11,8 +11,10 @@ export const routes = {
     path: `/leaderboard`,
     sharedChart: {
       path: `/leaderboard/chart/:sharedChartId`,
-      getPath: (params: { sharedChartId: number | string }) =>
-        `/leaderboard/chart/${params.sharedChartId}`,
+      getPath: (params: { sharedChartId: number | string; focusedPlayerId?: number }) =>
+        `/leaderboard/chart/${params.sharedChartId}${
+          params.focusedPlayerId ? `?focusedPlayerId=${params.focusedPlayerId}` : ''
+        }`,
     },
   },
   songs: {

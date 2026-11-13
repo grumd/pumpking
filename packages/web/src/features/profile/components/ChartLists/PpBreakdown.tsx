@@ -19,11 +19,9 @@ import { pageOptions, ppBreakdownInput } from './listQueries';
 
 export const PpBreakdown = (): JSX.Element => {
   const params = useParams();
+  const playerId = params.id ? Number(params.id) : undefined;
   const charts = useInfiniteQuery(
-    api.players.ppBreakdown.infiniteQueryOptions(
-      ppBreakdownInput(params.id ? Number(params.id) : undefined),
-      pageOptions
-    )
+    api.players.ppBreakdown.infiniteQueryOptions(ppBreakdownInput(playerId), pageOptions)
   );
   const lang = useLanguage();
 
@@ -43,6 +41,7 @@ export const PpBreakdown = (): JSX.Element => {
                     component={NavLink}
                     to={routes.leaderboard.sharedChart.getPath({
                       sharedChartId: item.shared_chart,
+                      focusedPlayerId: playerId,
                     })}
                   >
                     {item.full_name}
