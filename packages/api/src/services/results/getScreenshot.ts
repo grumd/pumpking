@@ -3,13 +3,8 @@ import path from 'path';
 import { getUploadPath } from 'services/uploads/uploadPath';
 import { StatusError } from 'utils/errors';
 
-// Characters that Windows, macOS or Linux don't allow in file names
 const unsafeFileNameChars = /[<>:"/\\|?*\u0000-\u001f\u007f]/g;
 
-/**
- * A file name for saving the screenshot, like "grumd - Repentance D20.jpg".
- * `extension` includes the dot
- */
 export const getScreenshotFileName = (
   parts: { playerName?: string | null; trackName?: string | null; chartLabel?: string | null },
   extension: string
@@ -48,7 +43,6 @@ export const getScreenshot = async (resultId: number) => {
   }
 
   const filePath = getUploadPath(result.agent, result.screen_file);
-  // Videos are sent as their first frame, a jpg
   const isVideo = filePath.endsWith('.mp4');
   const fileName = getScreenshotFileName(
     { playerName: result.nickname, trackName: result.full_name, chartLabel: result.label },

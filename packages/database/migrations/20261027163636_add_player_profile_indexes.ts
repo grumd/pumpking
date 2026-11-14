@@ -1,11 +1,5 @@
 import { Kysely, sql } from 'kysely';
 
-/**
- * The profile reads a player's results newest first (latest results, last time played) and
- * stops after a page. Many queries take the latest-mix instance of a chart by its shared
- * chart, ordered by mix: the shared_chart index gets the mix, so this reads the index alone.
- * Built in place, without locking results for ingestion
- */
 export async function up(db: Kysely<any>): Promise<void> {
   await sql`
     ALTER TABLE results

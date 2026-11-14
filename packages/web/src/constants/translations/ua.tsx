@@ -1,25 +1,21 @@
 import type { BaseTranslation } from './en';
 
 export const ua = {
-  // generic
   NOTHING_FOUND: 'Нічого не знайдено',
   ERROR: 'Помилка',
   SOMETHING_WENT_WRONG: 'Щось пішло не так',
   CLEAR: 'Очистити',
   CLOSE: 'Закрити',
   UNREAD: 'непрочитане',
-  // Main top menu
   LEADERBOARDS: 'лідерборди',
   RANKING: 'ранкінг',
   TOURNAMENTS: 'турніри',
   SONGS: 'треки',
   LOGOUT: 'вийти',
 
-  // Rankings
   ACCURACY: 'точність',
   UPDATE: 'оновити',
 
-  // Leaderboards buttons
   FILTERS: 'фільтри',
   SORTING: 'сортування',
   PRESETS: 'пресети',
@@ -37,14 +33,12 @@ export const ua = {
   SONG_NAME_LABEL: 'назва треку',
   SONG_NAME_PLACEHOLDER: 'назва пісні...',
   PLAYERS_PLACEHOLDER: 'гравці...',
-  // Sorting
   BY_DATE_DESC: 'по даті (від нових до старих)',
   BY_DATE_ASC: 'по даті (від старих до нових)',
   BY_DIFFICULTY_ASC: 'по складності (від легких до складних)',
   BY_DIFFICULTY_DESC: 'по складності (від складних до легких)',
   BY_PP_DESC: 'від кращих результатів (pp)',
   BY_PP_ASC: 'від гірших результатів (pp)',
-  // Presets overlay
   OPEN: 'відкрити',
   OVERWRITE: 'перезаписати',
   DELETE: 'видалити',
@@ -54,7 +48,6 @@ export const ua = {
   EMPTY: 'порожньо',
   SHOW_PRESETS_TABS: 'показувати таби із пресетами',
   PRESET_NAME_PLACEHOLDER: 'назва пресету...',
-  // Leaderboards Filters
   SHOW_CHARTS_PLAYED_BY: 'показувати чарти, які зіграв:',
   EACH_OF_THESE: 'кожен із цих',
   AND_ANY_OF_THESE: 'і хоч один із цих',
@@ -65,12 +58,10 @@ export const ua = {
   RANK_FILTER_SHOW_RANK: 'тільки на ранку',
   RANK_FILTER_SHOW_NORANK: 'тільки без ранку',
   SHOW_HIDDEN_PLAYERS: 'показувати схованих гравців',
-  // Leaderboards Sorting
   SORTING_LABEL: 'сортування:',
   SORTING_PLACEHOLDER: 'оберіть сортування',
   PLAYER_LABEL: 'гравець:',
   EXCLUDE_FROM_COMPARISON: 'не враховувати у порівнянні:',
-  // Sorting options
   NEW_TO_OLD_SCORES: 'від нових скорів',
   NEW_TO_OLD_SCORES_OF_A_PLAYER: 'від нових скорів конкретного гравця',
   SCORE_DIFFERENCE: 'відставанню від інших',
@@ -80,14 +71,11 @@ export const ua = {
   BEST_TO_WORST_BY_PP: 'від кращих результатів (pp)',
   EASY_TO_HARD_CHARTS: 'від легких чартів',
   HARD_TO_EASY_CHARTS: 'від складних чартів',
-  // Rank options
   SHOW_ALL_SCORES: 'показувати усі скори',
   BEST_SCORE: 'один кращий скор кожного гравця (ранк чи ні)',
   RANK_ONLY: 'тільки на ранку',
   ONLY_NO_RANK: 'тілько без ранку',
-  // Results
   SHOW_MORE_RESULTS: (count: number) => `(показати ще ${count})`,
-  // Score details overlay
   PLAYER: 'гравець',
   EXP: 'досвід',
   ELO: 'ело',
@@ -103,21 +91,17 @@ export const ua = {
   SIGHTREAD: '* сайтрід',
   NEW_SCORE: 'НОВИЙ',
   MY_BEST_SCORE_WARNING: 'рекорд взято із my best. частина даних недоступна',
-  // Other
   BACK_TO_ALL_CHARTS: 'до всіх чартів',
   NO_RESULTS: 'нічого не знайдено',
   SHOW_MORE: 'показати більше',
   HIDDEN: 'сховано',
-  // Profile Results by level
   ALL: 'усі',
   DOUBLES: 'дабли',
   SINGLES: 'сінгли',
   UNPLAYED: 'не зіграно',
   BACK_BUTTON: 'назад',
   LEVEL_PLACEHOLDER: 'рівень...',
-  // TODO: WIP, not finished
 
-  // played time ago
   TODAY: 'сьогодні',
   YESTERDAY: 'вчора',
   YESTERDAY_NIGHT: 'вчора вночі',
@@ -127,7 +111,6 @@ export const ua = {
   MONTHS_SHORT: 'міс',
   NEVER: 'ніколи',
 
-  // Tournaments
   START_DATE: 'Початок:',
   END_DATE: 'Закінчення:',
   BRACKETS: 'Групи чартів:',
@@ -218,7 +201,6 @@ export const ua = {
 
   EXP_TITLES_LIST_HEADER: <>Список рівнів та необхідний досвій для їх отримання:</>,
 
-  // score date tooltip
   EXACT_DATE_UNKNOWN: 'точна дата невідома',
   SCORE_WAS_TAKEN: 'скор був взятий',
   DATE_RECORDED: 'дата запису',
@@ -228,7 +210,6 @@ export const ua = {
   ADDED: 'додано',
   PLAYED: 'зіграно',
 
-  // achievements
   COMBO_500: '500 комбо',
   COMBO_1000: '1000 комбо',
   COMBO_2000: '2000 комбо',
@@ -252,7 +233,6 @@ export const ua = {
   WEEK_LONG_TRAINING: 'Старанність',
   WEEK_LONG_TRAINING_DESC: 'Зіграти хоча б один чарт 7 днів поспіль',
 
-  // Add results from photos
   ADD_RESULTS_NAV: 'додати',
   ADD_RESULTS: 'Додати результати',
   PHOTOS: 'Фото',
@@ -286,7 +266,6 @@ export const ua = {
   YES: 'Так',
   NO: 'Ні',
 
-  // Add Result / OCR
   CHART: 'Чарт',
   HEIC_NOT_SUPPORTED:
     'Файли HEIC не підтримуються. Будь ласка, конвертуйте скріншот у JPG або PNG.',
@@ -298,7 +277,6 @@ export const ua = {
   NONE_NORMAL_MODE: 'Немає (звичайний режим)',
   GRADE_REQUIRED: 'Оцінка обовʼязкова',
 
-  // Admin
   DELETE_RESULT: 'Видалити результат',
   DELETE_RESULT_CONFIRM:
     'Ви впевнені, що хочете видалити цей результат? Цю дію неможливо скасувати.',
@@ -307,7 +285,6 @@ export const ua = {
   REGION: 'Регіон',
   ADMIN: 'адмін',
 
-  // Login / Registration
   SIGN_IN_WITH_DISCORD: 'Увійти через Discord',
   SIGN_UP_WITH_DISCORD: 'Реєстрація через Discord',
   CREATE_NEW_ACCOUNT: 'Створити новий акаунт',

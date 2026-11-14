@@ -2,13 +2,6 @@ import type { DB } from './database';
 import { distance } from 'fastest-levenshtein';
 import type { Kysely } from 'kysely';
 
-/**
- * Finding a track and chart by the names the arcade shows, used by ingest for piu-spy's
- * results and by the API for results read from photos.
- */
-
-// Applied in this order, so that minor visual differences in recognized track names
-// don't count (legacy `tracklist.charNormalization`)
 const CHAR_NORMALIZATION: [string, string][] = [
   ['{', '('],
   ['}', ')'],
@@ -47,16 +40,9 @@ export interface TrackMatch {
 }
 
 export interface FindTracksOptions {
-  // The edit distance allowed, as a share of the arcade name's normalized length. Without
-  // it, each name's own `arcade_track_names.name_edist` is used
   relativeTolerance?: number;
 }
 
-/**
- * Tracks whose arcade name on the mix matches the recognized one: those at the smallest
- * edit distance, if within their name's tolerance. Without a match, `almostTracks` are the
- * best guesses for the purgatory reason
- */
 export const findTracks = async (
   db: Kysely<DB>,
   mixId: number,
@@ -105,7 +91,6 @@ export const findTracks = async (
   return { tracks: [], almostTracks };
 };
 
-// A chart instance that a result was matched to
 export interface ChartInstance {
   id: number;
   shared_chart: number;
@@ -114,11 +99,9 @@ export interface ChartInstance {
   level: number | null;
   min_total_steps: number | null;
   max_total_steps: number | null;
-  // tracks.duration
   duration: string | null;
 }
 
-// The chart instances with this label on the mix, on any of the tracks
 export const findChartInstances = async (
   db: Kysely<DB>,
   trackIds: number[],

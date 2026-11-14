@@ -9,16 +9,10 @@ import express, { type ErrorRequestHandler } from 'express';
 
 const debug = createDebug('ingest:app');
 
-/**
- * Result ingestion for piu-spy, compatible with the legacy Python API it replaces: the
- * same paths, headers, multipart field and answers (see agentApi.ts). Only the screen and
- * manual modes are served; the legacy stream and test modes aren't used any more.
- */
 export const app = express();
 
 app.use(express.json({ limit: MAX_UPLOAD_BYTES }));
 
-// Liveness + DB check for deploys
 app.get('/healthz', async (_req, res) => {
   try {
     await pingDb();
@@ -51,9 +45,6 @@ app.post(
   agentRoute((call) => validateResults(call, 'manual'))
 );
 
-// For the API's admin purgatory recheck (body `{ id?, skipScoreCheck? }`): rechecks one row
-// or all of them, optionally without checking the score against the stats.
-// Internal: nginx forwards only piu-spy's paths here
 app.post('/internal/purgatory/recheck', async (req, res) => {
   try {
     const id = req.body?.id;
@@ -68,8 +59,6 @@ app.post('/internal/purgatory/recheck', async (req, res) => {
   }
 });
 
-// express.json's errors: a body that isn't JSON (400) or is too large (413). The routes
-// answer their own errors
 const bodyError: ErrorRequestHandler = (error, _req, res, _next) => {
   res.status(error.status).json({ error: error.message });
 };

@@ -1,18 +1,3 @@
-/**
- * Shadow validation before the ingestion cutover: sends the same result screens to the
- * legacy Python API and to this service, both on their side-effect free
- * `/results/screen/validate`, and prints where the answers differ.
- *
- *   npx tsx scripts/shadowValidate.ts --legacy http://127.0.0.1:5001 --ingest http://127.0.0.1:3002 \
- *     [--from-db 2000 [--mix XX]] [scan.json ...]
- *
- * The screens come from piu-spy's scan JSONs (the uploads, `<agent>/<date>/<time>.json`),
- * and/or with `--from-db N` are rebuilt from the newest N results (of one mix with
- * `--mix`) and every purgatory row, each also sent with a few deliberate mistakes, so that
- * every validation step gets compared. Both services must use the same database.
- *
- * The `report` lines aren't compared: they print the changed datetimes differently.
- */
 import '../src/env';
 import { db } from '@pumpking/database/db';
 import fs from 'fs';
@@ -35,7 +20,6 @@ if (!args.legacy || !args.ingest) {
   process.exit(1);
 }
 
-// piu-spy's conversion of its scan data into a submission (`ConvertedScanDataForBackend`)
 const VALUES: Record<string, string> = {
   score: 'score',
   m: 'misses',
@@ -109,7 +93,6 @@ let agentById = new Map<number, Agent>();
 
 const screensFromScans = (files: string[]): Screen[] =>
   files.flatMap((file) => {
-    // <uploads>/<agent>/<date>/<time>.json, whose screen is the .mp4 next to it
     const parts = file.split('/');
     const agent = agentByName.get(parts[parts.length - 3]);
     if (!agent) {
@@ -129,7 +112,6 @@ const formatNaive = (date: Date) =>
     date.getDate()
   ).padStart(2, '0')} ${date.toTimeString().slice(0, 8)}`;
 
-// Rows of `results` or `purgatory` as the screen that produced them
 const rowScreen = (source: string, row: Json): Screen => {
   const agent = agentById.get(row.agent as number)!;
   const result: Json = {};
@@ -166,14 +148,12 @@ const rowScreen = (source: string, row: Json): Screen => {
       screen_file: String(row.screen_file ?? '').replace(`${agent.name}/`, ''),
       mix_name: row.mix_name,
       track_name: row.track_name,
-      // mysql2 reads the naive datetimes as local time
       gained: formatNaive(row.gained as Date),
       left: { chart_label: row.chart_label, result },
     },
   };
 };
 
-// The same screen with one mistake each, so every validation step gets compared
 const withMistakes = (screen: Screen): Screen[] => {
   const variant = (name: string, change: (result: Json, payload: Json) => void): Screen => {
     const payload = structuredClone(screen.payload);
@@ -241,7 +221,6 @@ const validate = async (baseUrl: string, screen: Screen) => {
     body: JSON.stringify(screen.payload),
   });
   const body = (await response.json()) as Json;
-  // Python's errors are tracebacks: compare their last line
   if (typeof body.error === 'string') {
     body.error = body.error.trim().split('\n').pop();
   }

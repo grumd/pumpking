@@ -2,7 +2,6 @@ import react from '@vitejs/plugin-react-swc';
 import { defineConfig } from 'vite';
 import tsconfigPaths from 'vite-tsconfig-paths';
 
-// https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react(), tsconfigPaths()],
   worker: {
@@ -11,18 +10,14 @@ export default defineConfig({
   server: {
     port: 3000,
     proxy: {
-      // Forward tRPC calls to the API so the web app works same-origin
-      // (e.g. when accessed through a public tunnel like cloudflared).
       '/trpc': {
         target: 'http://localhost:3001',
         changeOrigin: true,
       },
-      // Screenshot links (GET /results/:id/screenshot)
       '/results': {
         target: 'http://localhost:3001',
         changeOrigin: true,
       },
-      // Admin file downloads (GET /admin/files/:source/:id/:kind)
       '/admin/files': {
         target: 'http://localhost:3001',
         changeOrigin: true,

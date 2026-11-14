@@ -17,8 +17,6 @@ import { FadingDate } from './FadingDate';
 import { PpButton } from './PpButton';
 import { pageOptions, ppBreakdownInput } from './listQueries';
 
-// Current best: the charts that make up the total pp, by how much each one adds after the
-// age factor and the weight of its place
 export const PpBreakdown = (): JSX.Element => {
   const params = useParams();
   const charts = useInfiniteQuery(

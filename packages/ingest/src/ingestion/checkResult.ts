@@ -10,7 +10,6 @@ import { findMixId, isMillionScoringMix } from '@pumpking/utils/mixes';
 import { InvalidModsError } from '@pumpking/utils/mods';
 import type { Kysely } from 'kysely';
 
-// UCS (user-created) charts
 const UCS_LABELS = ['S', 'D', 'SP', 'DP', 'S!!', 'D!!'];
 
 const describeTracks = (tracks: TrackMatch[], withEditDistance = false) =>
@@ -66,11 +65,9 @@ const findResultChartInstance = async (db: Kysely<DB>, mixId: number, data: Resu
   return charts[0];
 };
 
-// The number of steps can be one off the chart's, as the legacy code allowed
 const checkNumberOfSteps = (chart: ChartInstance, data: ResultData): number => {
   const steps = getStepStats(data);
   if (!steps) {
-    // Only possible before Phoenix (the legacy code failed the whole request here)
     throw new UnrecognizedResult('Result with no stats');
   }
   const numberOfSteps = totalSteps(steps);
@@ -87,14 +84,6 @@ const checkNumberOfSteps = (chart: ChartInstance, data: ResultData): number => {
   return numberOfSteps;
 };
 
-/**
- * Finds the result's player and chart instance and validates its stats, in the same order
- * as the legacy `validateResult`, so a result fails with the same reason. Throws an
- * UnrecognizedResult, DiscardedResult or InvalidModsError.
- *
- * The recognized track name is always trusted to be close: the legacy stream mode, which
- * guessed the track from the label and the number of steps, isn't ported.
- */
 const validateResult = async (
   db: Kysely<DB>,
   data: ResultData,
@@ -117,8 +106,6 @@ const validateResult = async (
     throw new UnrecognizedResult(`'screen_file' is too long: ${data.screen_file}`);
   }
 
-  // The stats of a million-scoring result say whether every judgement was recognized
-  // well, before the number of steps is compared to the chart's
   const millionScoring = isMillionScoringMix(mixId);
   if (millionScoring) {
     validateMillionStats(mixId, data, options);
@@ -127,7 +114,6 @@ const validateResult = async (
   const chart = await findResultChartInstance(db, mixId, data);
   const steps = checkNumberOfSteps(chart, data);
 
-  // On million-scoring mixes, rank mode comes from piu-spy, not from the mods
   const rankMode = millionScoring ? data.rank_mode : validateComboStats(chart, data);
 
   return {
@@ -141,13 +127,11 @@ const validateResult = async (
       mix: chart.mix,
       chart_instance: chart.id,
       shared_chart: chart.shared_chart,
-      // Rounded up from the stats before Phoenix, as the legacy ingestion always did
       score_phoenix: millionScoring ? data.score : calcPhoenixScoreFromStats(data),
     },
   };
 };
 
-/** What validation decides about a result (see CheckedResult) */
 export const checkResult = async (
   db: Kysely<DB>,
   data: ResultData,

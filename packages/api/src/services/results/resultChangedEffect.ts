@@ -10,12 +10,6 @@ const debug = createDebug('backend-ts:processor:on-result-changed');
 
 const PASS_GRADES = ['SSS', 'SS', 'S', 'A+', 'B+', 'C+', 'D+', 'F+'];
 
-/**
- * Recomputes what depends on a player's results on one chart, after an admin edited or
- * deleted one of them: each result's exp (and pass status up to XX, where it follows
- * from the grade) and pp, then the player's totals. Safe to replay: everything is
- * recomputed
- */
 export const recalculatePlayerChart = async (playerId: number, sharedChartId: number) => {
   await db.transaction().execute(async (trx) => {
     const results = await trx

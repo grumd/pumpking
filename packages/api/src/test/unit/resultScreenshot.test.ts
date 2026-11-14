@@ -23,7 +23,6 @@ describe('Result screenshot', () => {
   before(() => {
     fs.mkdirSync(folder, { recursive: true });
     fs.writeFileSync(path.join(folder, 'screen.jpg'), screen);
-    // A one-frame video, as piu-spy records them
     execFileSync(ffmpegStatic as unknown as string, [
       '-loglevel',
       'error',

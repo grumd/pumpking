@@ -6,15 +6,8 @@ import type { ChartInstance, ResultData } from './types';
 import { COMBO_GRADES, minScoreForStats } from '@pumpking/utils/grades';
 import { getRankMode } from '@pumpking/utils/mods';
 
-/**
- * Validation for the combo-scoring mixes before Phoenix, i.e. XX (the legacy
- * `scoring_combo.py`). The score can't be recomputed there, only checked against a
- * minimum. Returns the result's rank mode (0 / 1), which comes from its mods.
- */
-
 export const validateComboStats = (chart: ChartInstance, data: ResultData): number => {
   const mods = getResultMods(data, { millionScoring: false });
-  // Before Phoenix, rank mode is the VJ mod
   const rankMode = mods ? getRankMode(mods, chart) : false;
 
   const { score, scoreIncrease, maxCombo, steps, grade } = getResultStats(data);

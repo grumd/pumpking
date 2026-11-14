@@ -30,8 +30,6 @@ import { TracklistSyncModal } from './TracklistSyncModal';
 
 const LIMIT = 200;
 
-// All tracks, filtered by name (kept in the URL as ?q=), with their arcade names. A track
-// opens with its charts; a chart can be looked up by its id
 export const TracksTab = (): JSX.Element => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();

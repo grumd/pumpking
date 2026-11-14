@@ -5,8 +5,6 @@ import { error } from 'utils';
 
 const debug = createDebug('backend-ts:service:delete-result');
 
-// Deletes a result. Its player's pp / exp on the chart and totals are recalculated by the
-// effects job, from the resultChanged event stored with the delete
 export const deleteResult = async (resultId: number) => {
   const result = await db
     .selectFrom('results')

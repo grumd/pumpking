@@ -8,11 +8,9 @@ import css from './chart-results.module.css';
 interface ResultsCollapserProps {
   children: React.ReactNode;
   count: number;
-  // All the table's columns: more would add empty columns that take room from the names
   colSpan: number;
 }
 
-// Hides a group of results behind a "show N more" row
 export const ResultsCollapser = ({
   children,
   count,

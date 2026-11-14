@@ -4,44 +4,22 @@ import { MIXES } from '@pumpking/utils/mixes';
 import { sql } from 'kysely';
 import { getLiveTournamentMarks } from 'services/tournaments/tournament';
 
-// import { replaceSqlParams } from 'utils/sql';
-
 export interface ChartsSearchParams {
-  /** Used to filter hidden players/regions from preferences */
-  currentPlayerId?: number; // TODO: make required later
-  /** */
+  currentPlayerId?: number;
   durations?: Array<Tracks['duration']> | undefined;
-  /** */
   minLevel?: number;
-  /** */
   maxLevel?: number;
-  /** Example: ['S', 'D', 'COOP'], etc */
   labels?: string[] | undefined;
-  /** Ids of mixes to include in leaderboards, by default [XX, Phoenix, Phoenix2] */
   mixes?: number[];
-  /** Song name search, can be any text, @example 'matador d22', 'l i a d z' */
   songName?: string;
-  /* Only charts that have ANY of these players */
   playersSome?: number[];
-  /* Only charts that have NONE of these players */
   playersNone?: number[];
-  /* Only charts that have ALL of these players */
   playersAll?: number[];
-  /**
-   * Sort by:
-   * - 'date' - last played date (can be used with sortChartsByPlayers)
-   * - 'difficulty' - chart interpolated difficulty
-   * - 'pp' - highest pp on the chart (can be used with sortChartsByPlayers)
-   */
   sortChartsBy?: 'date' | 'difficulty' | 'pp';
-  /** */
   sortChartsDir?: 'asc' | 'desc';
-  /* When using sorting by 'pp' or 'date', you can specify which players' pp and last played date to use for sorting */
   sortChartsByPlayers?: number[];
-  /** Pagination, use limit + offset together */
   limit?: number;
   offset?: number;
-  /** Shared chart ID for single-chart requests */
   sharedChartId?: number;
 }
 
@@ -57,7 +35,6 @@ export interface ResultViewModel {
   gained: Date;
   stats: [number | null, number | null, number | null, number | null, number | null];
   combo: number | null;
-  /** Raw score from the original scoring system (1.8M scale for XX and earlier), differs from `score` for pre-Phoenix results */
   originalScore: number | null;
   grade: string | null;
   plate: string | null;
@@ -115,7 +92,6 @@ export const searchCharts = async (params: ChartsSearchParams) => {
     return [];
   }
 
-  // Phoenix scoring is the only scoring system used for leaderboards
   const scoreField = 'score_phoenix';
 
   const songNameParts = songName?.split(' ').filter((part) => part.length > 0);
@@ -143,15 +119,10 @@ export const searchCharts = async (params: ChartsSearchParams) => {
       .filter(([, hidden]) => hidden)
       .map(([id]) => Number(id));
 
-  // The results that count for a chart's date and pp: each player's best on the chart in these
-  // mixes (of equal best scores the earliest, so a later tie doesn't move the chart up), from
-  // the players the viewer sees. `column` is read from `index` newest / highest first, and
-  // the first result that counts is the chart's one: its latest best date, or its highest pp
   const bestResult = (column: 'added' | 'pp', index: string) => {
     let subQuery = db
       .selectFrom('results as r')
       .innerJoin('players', 'players.id', 'r.player_id')
-      // Without the hints MySQL reads other indexes of results, and runs several times slower
       .modifyFront(sql.raw(`/*+ INDEX(r ${index}) */`))
       .select(column === 'added' ? 'r.added' : 'r.pp')
       .where('r.shared_chart', '=', sql.ref('latest_mix.shared_chart'))
@@ -187,11 +158,9 @@ export const searchCharts = async (params: ChartsSearchParams) => {
       subQuery = subQuery.where('r.player_id', '=', currentPlayerId);
     }
     if (hiddenPlayerIds && hiddenPlayerIds.length > 0) {
-      // Hidden players are still shown on the chart, but they don't move it up
       subQuery = subQuery.where('r.player_id', 'not in', hiddenPlayerIds);
     }
     if (hiddenRegions && hiddenRegions.length > 0) {
-      // Players without a region are not in a hidden region
       subQuery = subQuery.where(({ or, cmpr }) =>
         or([cmpr('players.region', 'is', null), cmpr('players.region', 'not in', hiddenRegions)])
       );
@@ -200,12 +169,10 @@ export const searchCharts = async (params: ChartsSearchParams) => {
       subQuery = subQuery.where('r.player_id', 'in', sortChartsByPlayers);
     }
 
-    // By shared_chart too, so MySQL reads the index backwards instead of sorting
     return subQuery.orderBy('r.shared_chart', 'desc').orderBy(`r.${column}`, 'desc').limit(1);
   };
 
   const query = db
-    // The chart's instance in the latest of the mixes
     .with('latest_mix', (_db) => {
       let subQuery = _db
         .selectFrom('chart_instances')
@@ -227,7 +194,6 @@ export const searchCharts = async (params: ChartsSearchParams) => {
         )
         .innerJoin('shared_charts as sc', 'sc.id', 'latest_mix.shared_chart')
         .innerJoin('tracks', 'tracks.id', 'sc.track')
-        // Charts without a result that counts are not listed
         .innerJoinLateral(
           () => bestResult('added', 'results_shared_chart_added').as('latest_best'),
           (join) => join.onTrue()
@@ -252,12 +218,7 @@ export const searchCharts = async (params: ChartsSearchParams) => {
           'latest_ci.mix as latest_chart_mix',
         ]);
 
-      /**
-       * Below are filters that filter CHARTS, not results
-       */
-
       if (songNameParts) {
-        // The typed % and _ are matched as themselves
         const escapedParts = songNameParts.map((part) => part.replace(/[\\%_]/g, '\\$&'));
         subQuery = subQuery.where(
           ({ ref, fn, val }) =>
@@ -280,7 +241,7 @@ export const searchCharts = async (params: ChartsSearchParams) => {
       if (minLevel || maxLevel) {
         subQuery = subQuery.where(({ or, and, cmpr }) =>
           or([
-            cmpr('latest_ci.label', 'like', `COOP%`), // coop do not have levels for now
+            cmpr('latest_ci.label', 'like', `COOP%`),
             and([
               cmpr('latest_ci.level', '>=', minLevel ?? 0),
               cmpr('latest_ci.level', '<=', maxLevel ?? 30),
@@ -339,7 +300,6 @@ export const searchCharts = async (params: ChartsSearchParams) => {
         }
       }
 
-      // Charts with the same sort value are ordered by id, so they keep their order from page to page
       return subQuery
         .orderBy(
           sortChartsBy === 'pp'
@@ -405,31 +365,17 @@ export const searchCharts = async (params: ChartsSearchParams) => {
           'arcade_player_names.name as arcade_nickname',
           `${scoreField} as score`,
           'r.score as original_score',
-          // score - LEAD(score, 1) OVER (
-          //   PARTITION BY player_id, shared_chart
-          //   ORDER BY score DESC
-          // ) AS `score_increase_real`
           sql<number>`${sql.ref(scoreField)} - lead(${sql.ref(
             scoreField
           )}, 1) over (partition by r.shared_chart, r.player_id order by ${sql.ref(
             scoreField
           )} desc, r.added asc, r.id asc)`.as('score_increase_real'),
-          // RANK() OVER (
-          //   PARTITION BY player_id, shared_chart
-          //   ORDER BY score DESC
-          // ) AS `score_rank`
-          // Of equal scores the earliest one ranks first, it's the one that was a new best. The
-          // same result is sometimes stored twice in the same second: the first stored has the pp
           sql<number>`row_number() over (partition by r.shared_chart, r.player_id order by ${sql.ref(
             scoreField
           )} desc, r.added asc, r.id asc)`.as('score_rank'),
         ])
         .where(scoreField, 'is not', null)
         .where('r.mix', 'in', mixes);
-
-      /**
-       * Below are filters that filter RESULTS after the list of charts is already decided
-       */
 
       if (!isCurrentPlayerHidden) {
         subQuery = subQuery.where('players.hidden', '=', 0);
@@ -452,17 +398,11 @@ export const searchCharts = async (params: ChartsSearchParams) => {
       sortChartsDir
     )
     .orderBy('shared_chart', sortChartsDir)
-    // Of equal scores, the one that was set first ranks higher
     .orderBy('score', 'desc')
     .orderBy('added', 'asc')
     .orderBy('result_id', 'asc');
 
-  // console.log(replaceSqlParams(query.compile()));
-
-  // const timeStart = performance.now();
   const results = await query.execute();
-  // const timeEnd = performance.now();
-  // console.log('searchCharts query time:', timeEnd - timeStart, 'ms');
 
   const chartsArray: ChartViewModel[] = [];
   const { poolChartIds, countingResultIds } = await getLiveTournamentMarks(

@@ -19,8 +19,6 @@ import {
   yourNextRivalIs,
 } from './texts';
 
-// Who gets told what about a new best result, ported from the legacy bot's rivals.py
-
 export interface Notification {
   recipient: BotPlayer;
   html: string;
@@ -53,8 +51,6 @@ const shouldNotifyPlayer = (
   return false;
 };
 
-// Should the new result's owner hear about this beaten or caught-up result? Wins are
-// shown on all charts, to encourage; a weaker rival only when the result improved
 const shouldMentionLoserOrEqual = (chart: ChartInfo, res: BestResult, beaten: BestResult) => {
   const resultImproved = res.scoreIncrease != null && res.scoreIncrease < res.score;
   return shouldNotifyPlayer(chart, res.player, beaten.player, {
@@ -64,7 +60,6 @@ const shouldMentionLoserOrEqual = (chart: ChartInfo, res: BestResult, beaten: Be
   });
 };
 
-// Should the owner hear about this better result, as their next rival?
 const shouldMentionBetterResult = (chart: ChartInfo, res: BestResult, better: BestResult) =>
   shouldNotifyPlayer(chart, res.player, better.player, {
     limitLevels: false,
@@ -72,7 +67,6 @@ const shouldMentionBetterResult = (chart: ChartInfo, res: BestResult, better: Be
     showWeaker: true,
   });
 
-// Should a rival hear that the new result beat theirs?
 const shouldNotifyAboutLoss = (chart: ChartInfo, res: BestResult, newRes: BestResult) =>
   shouldNotifyPlayer(chart, res.player, newRes.player, {
     limitLevels: true,
@@ -80,7 +74,6 @@ const shouldNotifyAboutLoss = (chart: ChartInfo, res: BestResult, newRes: BestRe
     showWeaker: true,
   });
 
-// Should a rival hear that the new result caught up with theirs?
 const shouldNotifyAboutEqual = (chart: ChartInfo, res: BestResult, newRes: BestResult) =>
   shouldNotifyPlayer(chart, res.player, newRes.player, {
     limitLevels: true,
@@ -88,11 +81,9 @@ const shouldNotifyAboutEqual = (chart: ChartInfo, res: BestResult, newRes: BestR
     showWeaker: true,
   });
 
-// Should a third player's result be listed when a rival hears they were beaten or caught up?
 const shouldMentionOther = (chart: ChartInfo, beatenOrEqual: BestResult, other: BestResult) =>
   shouldNotifyPlayer(chart, beatenOrEqual.player, other.player, {
     limitLevels: false,
-    // a stronger player only with the same or a worse result, a weaker one with the same or better
     showStronger: beatenOrEqual.score >= other.score,
     showWeaker: beatenOrEqual.score <= other.score,
   });
@@ -192,17 +183,11 @@ const beatenOrEqualScoreMessage = (
   return message + list;
 };
 
-/**
- * The messages about a new best result: one to its owner (what it beat, their next rival),
- * and one to each rival whose result it beat or caught up with. `rivalResults` are the
- * other players' best results on the chart, in the same rank mode
- */
 export const rivalsNotifications = (
   chart: ChartInfo,
   newRes: BestResult,
   rivalResults: BestResult[]
 ): Notification[] => {
-  // score_increase is missing for a new result without a pass: then the whole score counts
   const scoreIncrease = newRes.scoreIncrease || newRes.score;
 
   const rivals = [...rivalResults].sort((a, b) => b.score - a.score || b.player.pp - a.player.pp);
@@ -212,11 +197,9 @@ export const rivalsNotifications = (
   const isBeatenOrEqual = (r: BestResult) =>
     newRes.score - scoreIncrease <= r.score && r.score <= newRes.score;
 
-  // the results surpassed right now, and the equal ones
   const beaten = rivals.filter(isBeaten);
   const equal = rivals.filter((r) => r.score === newRes.score);
 
-  // the next better result to tell about
   let closest: BestResult | undefined;
   for (const rivalRes of rivals) {
     if (rivalRes.score > newRes.score && shouldMentionBetterResult(chart, newRes, rivalRes)) {
@@ -255,7 +238,6 @@ export const rivalsNotifications = (
           shouldMentionOther(chart, rivalRes, r))
     );
     resultsOfInterest.push(newRes);
-    // a stable sort: equal scores keep the pp order, with the new result after them
     resultsOfInterest.sort((a, b) => b.score - a.score);
     notifications.push({
       recipient: rivalRes.player,
@@ -266,14 +248,12 @@ export const rivalsNotifications = (
   return notifications;
 };
 
-/** The notifications about a result, if it's its player's best on the chart */
 export const notificationsForResult = async (resultId: number): Promise<Notification[]> => {
   const result = await getResultForNotifications(resultId);
   if (!result) {
     return [];
   }
   const chart = await getChartInfo(result.shared_chart);
-  // no level: co-op, probably
   if (!chart || chart.level == null) {
     return [];
   }
@@ -289,10 +269,6 @@ export const notificationsForResult = async (resultId: number): Promise<Notifica
   );
 };
 
-/**
- * For testing: the notifications about every best result added in the last `minutes`, as
- * `testPlayer` would have got them
- */
 export const replayNotifications = async (
   minutes: number,
   testPlayer: BotPlayer

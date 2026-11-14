@@ -20,7 +20,6 @@ export const listTracks = async () => {
   return tracks.map((track) => ({ ...track, arcadeNames: arcadeNames(track.id) }));
 };
 
-// A track with its arcade names and its charts, each with its instances per mix
 export const getTrack = async (trackId: number) => {
   const track = await db
     .selectFrom('tracks')
@@ -68,7 +67,6 @@ export const getTrack = async (trackId: number) => {
   };
 };
 
-// The track of a chart instance, for looking a chart up by its id
 export const findChartInstanceTrack = async (chartInstanceId: number) => {
   const chartInstance = await db
     .selectFrom('chart_instances')
@@ -84,10 +82,6 @@ export const findChartInstanceTrack = async (chartInstanceId: number) => {
 const CHART_RESULTS_FIRST_PAGE = 200;
 const CHART_RESULTS_PAGE = 500;
 
-/**
- * A chart instance's results, newest first: the newest 200, then with a cursor (the id of
- * the oldest result shown) the next 500 older ones
- */
 export const getChartInstanceResults = async (chartInstanceId: number, cursor?: number | null) => {
   const limit = cursor ? CHART_RESULTS_PAGE : CHART_RESULTS_FIRST_PAGE;
   const chartInstance = await db
@@ -125,7 +119,6 @@ export const getChartInstanceResults = async (chartInstanceId: number, cursor?: 
     .orderBy('results.id', 'desc')
     .limit(limit)
     .execute();
-  // Another page if this one is full (the next one may turn out empty)
   return { rows, nextCursor: rows.length === limit ? rows[rows.length - 1].id : null };
 };
 
@@ -145,10 +138,6 @@ export const saveTrackArcadeNames = async (trackId: number, arcadeNames: ArcadeN
   return { report: report.length ? report : [`Track #${trackId}: nothing changed`] };
 };
 
-/**
- * Sets the range of step counts (the sum of perfects to misses) a chart instance accepts.
- * Ingestion learns it from complete results and rejects results outside it (± 1)
- */
 export const updateChartInstanceSteps = async (
   chartInstanceId: number,
   steps: { minTotalSteps: number | null; maxTotalSteps: number | null }

@@ -1,11 +1,5 @@
 import { Kysely, sql } from 'kysely';
 
-/**
- * M7 of the tournament relaunch (docs/tournaments/PLAN.md): the final results
- * of an ended tournament, written once by the end job. From then on the ended
- * leaderboard is read from here, and cups are counted from `medal`.
- * `charts` freezes the per-chart bests shown on the leaderboard.
- */
 export async function up(db: Kysely<any>): Promise<void> {
   await db.schema
     .createTable('tournament_results')

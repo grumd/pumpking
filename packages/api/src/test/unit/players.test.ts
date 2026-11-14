@@ -1,5 +1,3 @@
-// import createDebug from 'debug';
-// const debug = createDebug('backend-ts:test:players');
 import { db } from '@pumpking/database/db';
 import { assert } from 'chai';
 import { getPlayersStats } from 'services/players/players';
@@ -18,8 +16,6 @@ describe('Players', () => {
     });
   });
 
-  // TODO: calculate pp for all results before calling stats
-  // mocked data doesn't have pp values
   it.skip('has players with stats', async () => {
     const res = await req().get('/players/stats').expect(200);
 
@@ -45,7 +41,6 @@ describe('Players', () => {
   });
 
   it('reads the chart type from shared_charts.type, not the instance type column', async () => {
-    // The seeded S15 instance (chart 6) has a NULL type column; the chart's type is 'S'
     await db
       .insertInto('results')
       .values({
@@ -90,7 +85,6 @@ describe('Players', () => {
   });
 
   it('derives grades with the Phoenix 2 formula for all mixes', async () => {
-    // 930k is AA under the Phoenix 2 formula; the old Phoenix formula would give AA+ there
     await db
       .insertInto('results')
       .values({
@@ -134,7 +128,6 @@ describe('Players', () => {
 
   it('lists latest results newest first, without hidden ones', async () => {
     const day = (n: number) => new Date(Date.UTC(2030, 0, n));
-    // Player 6 is the admin the test requests log in as: their own profile
     const insert = (gained: Date, extra: { is_hidden?: number; shared_chart?: number } = {}) =>
       db
         .insertInto('results')
@@ -166,7 +159,6 @@ describe('Players', () => {
   describe('pp lists', () => {
     const daysAgo = (days: number) => new Date(Date.now() - days * 86_400_000);
 
-    // Chart 1: an old 100pp result. Chart 3 (rated 20.4): a recent 60pp result
     const insertPpResults = async () => {
       await db
         .updateTable('shared_charts')
@@ -190,9 +182,7 @@ describe('Players', () => {
         .execute();
     };
 
-    // Chart 1 has no difficulty yet: its pp comes from the instance's level, 20
     const chart1Steps = { chartLevel: 20, maxPp: 20 ** 2.4 / 13, scoreFactor: 1 };
-    // Chart 3 is rated 20.4, and 950k is ((0.95 - 0.5) / 0.5)² = 81% of its max pp
     const chart3Steps = { chartLevel: 20.4, maxPp: 20.4 ** 2.4 / 13, scoreFactor: 0.81 };
     const assertSteps = (
       steps: { chartLevel: number; maxPp: number; scoreFactor: number; pp: number },
@@ -243,11 +233,8 @@ describe('Players', () => {
     const day = (n: number) => new Date(Date.UTC(2030, 0, n));
     const ids: Record<string, number> = {};
 
-    // On chart 1 player 6 improves, ties, drops, then beats the old best; on chart 3 the first
-    // play is a best. A hidden higher score doesn't count against later results
     beforeEach(async () => {
       const plays: Array<[string, number, number, number, number?]> = [
-        // name, shared chart, day, score, is_hidden
         ['first', 1, 1, 800000],
         ['better', 1, 2, 900000],
         ['hiddenHigher', 1, 3, 990000, 1],

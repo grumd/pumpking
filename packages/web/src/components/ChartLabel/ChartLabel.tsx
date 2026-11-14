@@ -7,9 +7,7 @@ import { chartLabelColor } from './chartLabelColor';
 
 interface ChartLabelProps {
   label: string;
-  // The label that tells the chart type, when `label` doesn't (older mixes' labels like NL-5)
   typeLabel?: string;
-  // Muted: the same label as on the previous mix (admin track detail)
   same?: boolean;
 }
 
@@ -20,7 +18,6 @@ export const ChartLabel = ({ label, typeLabel = label, same = false }: ChartLabe
     return <span>{label}</span>;
   }
 
-  // A label with more than a type and a level (e.g. a misread 'S2O') is shown whole
   const isTypeLevel = `${type}${level}` === label;
 
   return (

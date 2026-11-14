@@ -10,8 +10,6 @@ export const getPlayers = async (): Promise<
     arcade_name: string | null;
   }[]
 > => {
-  // All players, each with their latest arcade name (newest mix) - one row per player.
-  // The arcade_player_names table is per-mix by design, so no new columns per future mix.
   return await db
     .selectFrom('players')
     .leftJoin(
@@ -44,8 +42,6 @@ export const getPlayers = async (): Promise<
 export const getPlayersStats = async () => {
   const query = db
     .selectFrom('players')
-    // latest arcade name (newest mix), one row per player - a plain DISTINCT join here
-    // would emit players with names in several mixes once per name
     .leftJoin(
       (eb) =>
         eb
@@ -63,9 +59,6 @@ export const getPlayersStats = async () => {
           .onRef('latest_arcade_name.player_id', '=', 'players.id')
           .on('latest_arcade_name.rn', '=', 1)
     )
-    // Counted per player from the player's own results, which the (player_id, shared_chart,
-    // score_phoenix) index holds. Grouping all results by player instead reads the table
-    // row by row. One row per chart played is one best result
     .leftJoinLateral(
       (eb) =>
         eb

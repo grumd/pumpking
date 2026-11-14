@@ -1,4 +1,3 @@
-/* Attached to every Mantine Progress by the theme: the empty part of the bar */
 .root {
   background-color: var(--pk-progress-track);
 }

@@ -1,16 +1,13 @@
 import { compressCanvas, getDateFromFile } from './imageUtils';
 
-// The readers do best with 2048px on the long side (docs/photo-results/PLAN.md)
 const READER_IMAGE_SIZE = 2048;
 
-/** SHA-256 of the file as selected, in hex: the same file is never read twice */
 export const hashFile = async (file: File): Promise<string> => {
   const digest = await crypto.subtle.digest('SHA-256', await file.arrayBuffer());
   return Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, '0')).join('');
 };
 
 export interface PreparedPhoto {
-  // A 2048px JPEG for the readers, and the copy stored with the result, as data URLs
   image: string;
   screenshot: string;
   date: Date;
@@ -18,7 +15,6 @@ export interface PreparedPhoto {
 }
 
 export const preparePhoto = async (file: File): Promise<PreparedPhoto> => {
-  // The date is in the original file's EXIF, which resizing drops
   const exifDate = await getDateFromFile(file).catch(() => null);
 
   const bitmap = await createImageBitmap(file);

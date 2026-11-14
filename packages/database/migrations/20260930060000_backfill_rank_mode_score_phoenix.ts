@@ -1,16 +1,5 @@
 import { Kysely, sql } from 'kysely';
 
-/**
- * Rank mode (VJ) results count like any other result now: they get a score_phoenix
- * from their stats, like the Python ingestion and the manual add already store. The
- * 2024 migrations skipped them, so almost all old ones have none (and so no exp, no pp,
- * and no place on the leaderboard).
- *
- * This computes score_phoenix (the formula of scoring/phoenixScore.ts), then the exp of
- * those results (profile/exp.ts) and every player's total exp (services/players/playerExp.ts
- * in the API). pp is left to the nightly chart difficulty job, which recalculates all
- * results' pp and players' total pp.
- */
 export async function up(db: Kysely<any>): Promise<void> {
   await sql`
     UPDATE results
@@ -31,7 +20,6 @@ export async function up(db: Kysely<any>): Promise<void> {
     AND perfects + greats + goods + bads + misses > 0
   `.execute(db);
 
-  // "update .. inner join .. set" is not supported by kysely, using raw sql
   await sql`
     UPDATE results AS r
     INNER JOIN chart_instances AS ci ON ci.id = r.chart_instance
@@ -71,6 +59,4 @@ export async function up(db: Kysely<any>): Promise<void> {
     .execute();
 }
 
-// Not reversible: the few rank mode results that already had a score_phoenix can't be
-// told apart from the ones this filled in
 export async function down(db: Kysely<any>): Promise<void> {}

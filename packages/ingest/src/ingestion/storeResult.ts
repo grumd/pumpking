@@ -5,23 +5,9 @@ import { addEvent } from '@pumpking/database/events';
 import { randomInt } from 'crypto';
 import { type Insertable, type Kysely, sql, type Updateable } from 'kysely';
 
-/**
- * Stores a validated result (the legacy `results_update.py`): adds it, or merges it into
- * the same player's result with the same score on the chart when it's the same play
- * seen again. With `checkOnly` nothing is written, and the status says what would be
- * done. Otherwise run it in a transaction: an added or updated result gets its
- * `resultAdded` event in it, and the effects job applies pp / exp afterwards.
- *
- * Also learns the chart's number of steps from its results, which the validation of later
- * results relies on.
- */
-
 export interface StoreOptions {
-  // piu-spy's manual mode (e.g. an import of the player's profile): merges into the
-  // closest-in-time result with the same score and stats
   isManual: boolean;
   checkOnly: boolean;
-  // Lines saying what changed, sent back to piu-spy / shown to admins
   report: string[];
 }
 
@@ -29,11 +15,8 @@ export interface StoreStatus {
   status: string;
 }
 
-// Two recognitions of the same play can differ by a few seconds, when a different frame
-// of the result screen is picked
 const SAME_PLAY_SECONDS = 10;
 
-// The columns a stored result is compared on; the datetimes as they're stored
 const selectSimilarResults = (db: Kysely<DB>, row: ResultRow) =>
   db
     .selectFrom('results')
@@ -77,7 +60,6 @@ const selectSimilarResults = (db: Kysely<DB>, row: ResultRow) =>
 
 type StoredResult = Awaited<ReturnType<typeof selectSimilarResults>>[number];
 
-// The naive datetime strings are written as they are, so no time zone shifts them
 const asResultColumns = (fields: Partial<ResultRow>) =>
   Object.fromEntries(Object.entries(fields).filter(([, value]) => value !== undefined));
 
@@ -86,7 +68,6 @@ const randomToken = (length: number) => {
   return Array.from({ length }, () => letters[randomInt(letters.length)]).join('');
 };
 
-// The chart's number of steps, as far as its results show it
 const updateChartNumberOfSteps = async (
   db: Kysely<DB>,
   { chart, steps }: ValidResult,
@@ -112,7 +93,6 @@ const updateChartNumberOfSteps = async (
   report.push(`Chart #${chart.id} update: '${pyDict(update)}'`);
 };
 
-// Adds what the new recognition knows to the stored result
 const updateResult = async (
   db: Kysely<DB>,
   valid: ValidResult,
@@ -126,7 +106,6 @@ const updateResult = async (
     )
   ) as Partial<ResultRow>;
 
-  // A new `added` time alone isn't a change
   if (!Object.keys(changes).some((field) => field !== 'added')) {
     return { status: `result #${stored.id} is up-to-date` };
   }
@@ -184,9 +163,6 @@ const addResult = async (
   return { status };
 };
 
-// Manual results (e.g. from a profile import) may lack the grade, so a result with the
-// same score is the same play when the other stats agree. Not the perfects, which the
-// legacy imports from Step It Up didn't have (such results don't pass validation now)
 const MANUAL_MATCHED_FIELDS = ['misses', 'bads', 'goods', 'greats', 'max_combo'] as const;
 
 const updateWithManualResult = async (
@@ -201,8 +177,6 @@ const updateWithManualResult = async (
       Math.abs(naiveSeconds(a.gained) - naiveSeconds(row.gained)) -
       Math.abs(naiveSeconds(b.gained) - naiveSeconds(row.gained))
   );
-  // The legacy code meant to skip the results whose stats differ, but its check never
-  // skipped any (a `continue` of the inner loop)
   const sameStats = byTime.find((stored) =>
     MANUAL_MATCHED_FIELDS.every((field) => stored[field] == null || stored[field] === row[field])
   );
@@ -210,7 +184,6 @@ const updateWithManualResult = async (
     return null;
   }
 
-  // A grade that the manual result lacks, the stored one has
   const merged: ResultRow = { ...row, grade: row.grade === '?' ? sameStats.grade : row.grade };
   return updateResult(db, { ...valid, row: merged }, sameStats, options);
 };
@@ -231,11 +204,9 @@ export const storeResult = async (
     }
   } else if (row.exact_gain_date) {
     for (const stored of similarResults) {
-      // An exact date is better than a date that was only known roughly
       if (!stored.exact_gain_date && gained <= naiveSeconds(stored.gained)) {
         return updateResult(db, valid, stored, options);
       }
-      // The same play recognized again: the later recognition is probably better
       if (
         stored.exact_gain_date &&
         Math.abs(naiveSeconds(stored.gained) - gained) < SAME_PLAY_SECONDS

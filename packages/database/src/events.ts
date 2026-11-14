@@ -2,27 +2,12 @@ import type { DB } from './database';
 import { db } from './db';
 import { type Kysely, sql } from 'kysely';
 
-/**
- * Domain events, stored in the `events` table (see "Events and effects" in
- * docs/python-api-migration/PLAN.md). A producer adds an event in the same transaction
- * as the change it describes. Each consumer reads the events in id order and keeps the
- * id of the last one it processed in `event_cursors`.
- */
-
 export interface EventPayloads {
-  // A result was inserted, or updated by the Python ingestion (it makes the same call
-  // for both)
   resultAdded: { resultId: number };
-  // An admin edited or deleted a result. `playerIds` are the players whose results on the
-  // chart changed: the result's owner, and its previous owner when the edit moved it
   resultChanged: { resultId: number; sharedChartId: number; playerIds: number[] };
-  // The nightly job recalculated every result's pp and every player's total
   ppRecalculated: Record<string, never>;
-  // The tournaments job created a tournament (it is Live from then on) or ended one
   tournamentStarted: { tournamentId: number };
   tournamentEnded: { tournamentId: number };
-  // A player was refused a photo read for going over a cost limit (once per limit and
-  // window). `retryAt` is an ISO time
   photoLimitReached: { playerId: number; limit: 'unproductive' | 'total'; retryAt: string };
 }
 
@@ -32,7 +17,6 @@ export type Event = {
   [T in EventType]: { id: number; type: T; payload: EventPayloads[T] };
 }[EventType];
 
-// Pass the transaction that makes the change, so the event is stored only if it is
 export const addEvent = async <T extends EventType>(
   trx: Kysely<DB>,
   type: T,
@@ -44,8 +28,6 @@ export const addEvent = async <T extends EventType>(
     .execute();
 };
 
-// Deletes the events older than `days` that every consumer has processed, except the
-// ones a consumer skipped (see `event_failures`)
 export const deleteOldEvents = async (days: number) => {
   const oldestCursor = await db
     .selectFrom('event_cursors')
@@ -65,22 +47,10 @@ export const deleteOldEvents = async (days: number) => {
 
 const BATCH_SIZE = 100;
 
-// Event ids come from AUTO_INCREMENT, which hands them out on insert, not on commit: an
-// event can become visible after one with a higher id. So when ids are missing before an
-// event, the consumer waits for them until that event is this old. By then the missing
-// ids belong to inserts that were rolled back.
 const GAP_TIMEOUT_SECONDS = 10;
 
-// A failing event is retried with the next batches, and skipped after this many attempts.
-// A skipped event is recorded in `event_failures`
 const MAX_ATTEMPTS = 5;
 
-/**
- * `handle` gets every event, including types the consumer doesn't care about (and types
- * added by newer code), so it should ignore the ones it doesn't know. It may run more
- * than once for the same event (after a crash, or a failed attempt), so it must be safe
- * to repeat.
- */
 export const createEventConsumer = (consumer: string, handle: (event: Event) => Promise<void>) => {
   const failedAttempts = new Map<number, number>();
 
@@ -105,7 +75,6 @@ export const createEventConsumer = (consumer: string, handle: (event: Event) => 
       .execute();
   };
 
-  // Handles the next events after the cursor, stopping at a gap in the ids or a failure
   const processBatch = async () => {
     const cursor = await db
       .selectFrom('event_cursors')

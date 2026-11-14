@@ -2,10 +2,6 @@ import { Transaction, db } from '@pumpking/database/db';
 import { GradePhoenix, phoenixGradeOrder } from '@pumpking/utils/grades';
 import { sql } from 'kysely';
 
-// Chart type is read from shared_charts.type - the canonical per-chart type
-// (S/D/HD/COOP) maintained by the tracklist update process. COOP charts are
-// excluded from these S/D/HD stats. (chart_instances.type is import-time data
-// that drifted - whole mixes left NULL - so it is not read.)
 export type GradeStatsChartType = 'S' | 'D' | 'HD';
 
 const gradeableTypes: GradeStatsChartType[] = ['S', 'D', 'HD'];
@@ -26,7 +22,6 @@ export const getPlayerGradeStats = async (
       .execute()
   ).map(({ mix }) => mix);
 
-  // The grade of the player's best score on each chart
   const gradeStats = await (trx ?? db)
     .selectFrom((eb) =>
       eb
@@ -39,7 +34,6 @@ export const getPlayerGradeStats = async (
     )
     .innerJoin('shared_charts as sc', 'sc.id', 'best.shared_chart')
     .leftJoin('chart_instances as latest_ci', (join) =>
-      // take the level from the chart's latest-mix instance ((shared_chart, mix) is unique)
       join.on('latest_ci.id', '=', (eb) =>
         eb
           .selectFrom('chart_instances')
@@ -52,7 +46,6 @@ export const getPlayerGradeStats = async (
     .select((eb) => [
       'latest_ci.level as level',
       'sc.type as type',
-      // Phoenix 2 (mix 28) grade formula - the latest one, applied to all mixes
       sql<number>`case
         when ${sql.ref('best.score')} < 500000 then 15
         when ${sql.ref('best.score')} < 600000 then 14
@@ -81,7 +74,6 @@ export const getPlayerGradeStats = async (
   const totalCounts = await (trx ?? db)
     .selectFrom('shared_charts as sc')
     .leftJoin('chart_instances as latest_ci', (join) =>
-      // take the level from the latest mix even if the player only played older mixes
       join.on('latest_ci.id', '=', (eb) =>
         eb
           .selectFrom('chart_instances')
@@ -98,7 +90,6 @@ export const getPlayerGradeStats = async (
     ])
     .where('sc.type', 'in', gradeableTypes)
     .where(({ exists }) =>
-      // but only take shared_charts that exist in the mixes the player played
       exists((eb) =>
         eb
           .selectFrom('chart_instances')

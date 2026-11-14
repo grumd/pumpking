@@ -4,15 +4,11 @@ import { atom, useAtomValue, useSetAtom } from 'jotai';
 
 import { ADMIN_FILE_KEY } from '../hooks/useAdminFile';
 
-// The admin activity log: what each admin action did, as the desktop tool's log panel
-// showed. Kept for the browser session
-
 export interface ActivityEntry {
   id: number;
   at: Date;
   title: string;
   ok: boolean;
-  // The action's report lines, or its error
   lines: string[];
 }
 
@@ -39,11 +35,6 @@ const useLogActivity = () => {
   };
 };
 
-/**
- * A mutation for an admin action: its outcome (the report lines, or the error) goes to
- * the activity log and a notification, and every query is refetched afterwards, since
- * an admin change can show up anywhere (leaderboards, rankings, the admin lists)
- */
 export const useAdminAction = <
   TData extends { report?: string[] },
   TError extends { message: string },
@@ -60,8 +51,6 @@ export const useAdminAction = <
     onSuccess: (...args) => {
       const [data, variables] = args;
       logActivity({ title: title(variables), ok: true, lines: data.report ?? [] });
-      // Except the screen files, which admin changes don't touch (a refetch would restart
-      // the video)
       queryClient.invalidateQueries({ predicate: (query) => query.queryKey[0] !== ADMIN_FILE_KEY });
       options.onSuccess?.(...args);
     },

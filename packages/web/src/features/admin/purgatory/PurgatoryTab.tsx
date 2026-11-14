@@ -17,8 +17,6 @@ import { DetailDrawer } from '../components/DetailDrawer';
 import { formatDate, formatNumber } from '../scoring';
 import { PurgatoryDetail } from './PurgatoryDetail';
 
-// Results ingestion couldn't accept, with the reason. Fix a row (or the arcade names /
-// chart it failed on) and recheck it: a valid row moves to results
 export const PurgatoryTab = (): JSX.Element => {
   const navigate = useNavigate();
   const params = useParams();
@@ -122,7 +120,6 @@ export const PurgatoryTab = (): JSX.Element => {
       )}
 
       <DetailDrawer opened={openId != null} onClose={close} title={`Purgatory #${openId}`} wide>
-        {/* A row that left purgatory closes; one that stays shows its new reason */}
         {openId != null && <PurgatoryDetail key={openId} id={openId} onResolved={close} />}
       </DetailDrawer>
     </Stack>

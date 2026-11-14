@@ -4,13 +4,10 @@ interface DetailDrawerProps {
   opened: boolean;
   onClose: () => void;
   title: React.ReactNode;
-  // Wide for the views that show a screenshot next to the form
   wide?: boolean;
   children: React.ReactNode;
 }
 
-// The panel an admin list opens a row in. Which row is open is in the URL
-// (e.g. #/admin/results/123), so it can be linked to and the back button closes it
 export const DetailDrawer = ({
   opened,
   onClose,

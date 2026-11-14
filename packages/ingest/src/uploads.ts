@@ -8,18 +8,10 @@ import path from 'path';
 
 const debug = createDebug('ingest:uploads');
 
-/**
- * piu-spy's uploads (the legacy `uploads.py`): the result screens (video or image) and
- * the scan JSON, stored as `<uploads root>/<agent name>/<path>`. `results.screen_file` is
- * that path without the root, which the API serves the screenshots from.
- */
-
-// Like the legacy Flask app's request limit
 export const MAX_UPLOAD_BYTES = 512 * 1024;
 
 const ALLOWED_TYPES = ['image/jpeg', 'application/json', 'video/mp4'];
 
-// A path inside the agent's folder, as sent by piu-spy (which may run on Windows)
 const relativeUploadPath = (filePath: string) => {
   const normalized = path.posix.normalize(filePath.replaceAll('\\', '/'));
   if (normalized.startsWith('..') || normalized.startsWith('/')) {
@@ -31,7 +23,6 @@ const relativeUploadPath = (filePath: string) => {
 const fullUploadPath = (agentName: string, filePath: string) =>
   path.join(getUploadsRoot(), agentName, relativeUploadPath(filePath));
 
-// Whether a file is already uploaded, so the agent can skip it
 export const getUploadInfo = async ({ args, agent }: AgentCall) => {
   const filePath = String(requireArg(args, 'path'));
   const info = { path: relativeUploadPath(filePath) };
@@ -51,14 +42,12 @@ interface UploadedFile {
   content: Buffer;
 }
 
-// The multipart request's `file`, or an HTTP status and message
 const readFile = (req: Parameters<RequestHandler>[0]) =>
   new Promise<UploadedFile | { status: number; error: string }>((resolve) => {
     let file: UploadedFile | undefined;
     let tooLarge = false;
     let parser: busboy.Busboy;
     try {
-      // The file name is the path in the agent's folder: keep its folders
       parser = busboy({
         headers: req.headers,
         preservePath: true,

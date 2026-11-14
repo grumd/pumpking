@@ -3,15 +3,9 @@ import { db } from '@pumpking/database/db';
 import { mix as currentMix } from '@pumpking/utils/currentMix';
 import { sql } from 'kysely';
 
-// The data of the rivals notifications: each player's best result on a chart, as the
-// legacy best-results feed (C2) computed it. Scores are phoenix scores; rank mode results
-// compete only with rank mode results
-
 export interface ChartInfo {
-  // The shared chart
   id: number;
   trackName: string;
-  // The label and level on the latest mix
   chartLabel: string;
   level: number | null;
 }
@@ -27,7 +21,6 @@ export interface BestResult {
   addedSecondsAgo: number;
 }
 
-/** The chart as shown on its latest mix; charts that aren't on it are left out */
 export const getChartInfo = async (sharedChartId: number): Promise<ChartInfo | undefined> => {
   const chart = await db
     .selectFrom('shared_charts')
@@ -55,10 +48,6 @@ export const getChartInfo = async (sharedChartId: number): Promise<ChartInfo | u
   );
 };
 
-/**
- * Every visible player's best result on a chart in one rank mode: the highest score, the
- * earliest one of equal scores
- */
 export const getBestResults = async (
   sharedChartId: number,
   rankMode: number
@@ -111,7 +100,6 @@ export const getBestResults = async (
   });
 };
 
-/** The result's rank mode and chart, if it's one the notifications can be about */
 export const getResultForNotifications = async (resultId: number) => {
   return db
     .selectFrom('results')
@@ -120,7 +108,6 @@ export const getResultForNotifications = async (resultId: number) => {
     .executeTakeFirst();
 };
 
-/** The charts with results added in the last `minutes` */
 export const getRecentlyUpdatedCharts = async (minutes: number) => {
   const rows = await db
     .selectFrom('results')

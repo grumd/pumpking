@@ -3,10 +3,6 @@ import { db } from '@pumpking/database/db';
 import crypto from 'crypto';
 import { error } from 'utils';
 
-// Agents are the piu-spy installations at arcades that send results. Each logs in with
-// its name and token (the `agent-name` / `agent-token` headers); uploads go to a folder
-// named after it. Agent #1 is the legacy "super agent" the desktop admin tool logs in as
-
 const TOKEN_LENGTH = 30;
 const TOKEN_ALPHABET = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
 
@@ -30,7 +26,6 @@ const checkName = async (name: string, agentId: number | null) => {
   }
 };
 
-// Without tokens: they're shown one at a time (getAgentToken)
 export const listAgents = async () => {
   return db
     .selectFrom('agents')
@@ -88,7 +83,6 @@ export const updateAgent = async (agentId: number, fields: { name: string; title
   return { report: report.length ? report : [`Agent #${agentId}: nothing changed`] };
 };
 
-// The old token stops working at once: the agent needs the new one in its config
 export const rotateAgentToken = async (agentId: number) => {
   const token = randomToken();
   const { numUpdatedRows } = await db

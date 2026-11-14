@@ -77,7 +77,6 @@ export const arcade_player_names = [
     name: 'ADDRESULTS',
     name_edist: 0,
   },
-  // newer-mix names: the player lists must show the latest arcade name per player
   {
     mix_id: 28,
     player_id: 2,
@@ -92,7 +91,6 @@ export const arcade_player_names = [
   },
 ];
 
-// Agent #1 is the legacy super agent, which the purgatory recheck logs in to Python as
 export const agents = [
   { id: 1, name: 'root', token: 'root-token', title: 'root' },
   { id: 2, name: 'test-arcade', token: 'arcade-token', title: 'Test Arcade' },
@@ -108,15 +106,11 @@ export const tracks = [
   },
 ];
 
-// The chart type lives on shared_charts (the canonical column); chart_instances
-// rows below deliberately carry no meaningful `type` (prod leaves mix 28 rows NULL).
 export const sharedCharts = [
   { id: 1, track: 1, index_in_track: 1, type: 'S' as const },
   { id: 3, track: 1, index_in_track: 2, type: 'S' as const },
   { id: 4, track: 1, index_in_track: 3, type: 'HD' as const },
-  // id 2 is reserved for the legacy add-result tests, which insert it themselves
   { id: 6, track: 1, index_in_track: 4, type: 'S' as const },
-  // co-op chart: must be excluded from the S/D/HD profile grade stats
   { id: 7, track: 1, index_in_track: 5, type: 'COOP' as const },
 ];
 
@@ -133,7 +127,6 @@ export const chartInstances = [
     min_total_steps: 100,
     type: 'S' as const,
   },
-  // Phoenix 2 (mix 28) instance, used by the Phoenix 2 add-result tests
   {
     id: 3,
     track: 1,
@@ -145,8 +138,6 @@ export const chartInstances = [
     min_total_steps: 100,
     type: 'S' as const,
   },
-  // Phoenix 2 (mix 28) half-double instance, used by the HD tests.
-  // No `type` here (prod's mix 28 rows are untyped): the type is shared_charts.type = 'HD'
   {
     id: 4,
     track: 1,
@@ -157,7 +148,6 @@ export const chartInstances = [
     max_total_steps: 100,
     min_total_steps: 100,
   },
-  // S15 with a NULL instance type column - the chart's type comes from shared_charts (chart 6 = 'S')
   {
     id: 5,
     track: 1,
@@ -168,7 +158,6 @@ export const chartInstances = [
     max_total_steps: 100,
     min_total_steps: 100,
   },
-  // Co-op instance (mix 28): level 0, untyped - co-op charts are excluded from the grade stats
   {
     id: 7,
     track: 1,
@@ -256,7 +245,6 @@ export const initialSeed = async () => {
   await db.deleteFrom('arcade_track_names').execute();
   await db.deleteFrom('agent_sessions').execute();
   await db.deleteFrom('agents').execute();
-  // Truncate, not delete: event ids start at 1 again, matching the reset cursors
   await sql`truncate table events`.execute(db);
   await db.deleteFrom('event_cursors').execute();
   await db.deleteFrom('event_failures').execute();

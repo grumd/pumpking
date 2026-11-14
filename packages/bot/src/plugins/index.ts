@@ -8,7 +8,6 @@ import { photoLimitsPlugin } from './photoLimits';
 import { rivalsPlugin } from './rivals';
 import { tournamentsPlugin } from './tournaments';
 
-// The enabled plugins; the optional ones need their settings in packages/bot/.env
 export const createPlugins = (config: BotConfig): Plugin[] => [
   accountPlugin,
   rivalsPlugin,

@@ -29,7 +29,6 @@ describe('Locations', () => {
   it('tells the watchers when the tracked location starts, stalls and resumes', () => {
     const location: Location = { state: status(), stalled: false };
 
-    // restarted after being offline 30 minutes
     assert.deepEqual(
       updateLocation(
         location,
@@ -39,7 +38,6 @@ describe('Locations', () => {
       ['➕  Location <b>arcade</b> started working after 30m 0s']
     );
 
-    // no heartbeat: not stalled yet after 2 minutes, stalled after 6
     const same = status({ startedAt: '2026-10-01 12:30:00', lastUpdatedAt: '2026-10-01 12:31:00' });
     assert.deepEqual(updateLocation(location, same, 'arcade', at('2026-10-01 12:33:00')), []);
     assert.deepEqual(updateLocation(location, same, 'arcade', at('2026-10-01 12:37:00')), [
@@ -105,7 +103,6 @@ describe('Locations', () => {
       await addPlayer({ id: 3, nickname: 'Old' });
       await addResult({ playerId: 1, score: 900_000, agent: 1, gainedMinutesAgo: 30 });
       await addResult({ playerId: 2, score: 900_000, agent: 1 });
-      // too long ago
       await addResult({ playerId: 3, score: 900_000, agent: 1, gainedMinutesAgo: 7 * 60 });
     });
 

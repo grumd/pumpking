@@ -1,8 +1,5 @@
 import { MIXES } from '@pumpking/utils/mixes';
 
-// Grades and plates for the admin forms, as the results store them. Mixes before Phoenix
-// have combo scoring and their own grades; Phoenix on has plates
-
 const toOptions = (values: string[]) => values.map((value) => ({ value, label: value }));
 
 const COMBO_GRADES = [
@@ -45,7 +42,6 @@ export const hasPlates = (mixId: number) => mixId >= MIXES.Phoenix;
 export const gradeOptions = (mixId: number) =>
   toOptions(hasPlates(mixId) ? PHOENIX_GRADES : COMBO_GRADES);
 
-// Purgatory rows have the mix's name only
 export const mixIdByName = (mixName: string): number =>
   (MIXES as Record<string, number>)[mixName] ?? 0;
 

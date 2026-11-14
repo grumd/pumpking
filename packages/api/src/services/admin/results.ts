@@ -13,15 +13,12 @@ const SEARCH_LIMIT = 100;
 
 export interface ResultsSearch {
   resultId?: number;
-  // Matches the score or the phoenix score, like the desktop tool's search
   score?: number;
   playerId?: number;
-  // Part of the track's name
   track?: string;
   chartLabel?: string;
 }
 
-/** The newest results matching all the given filters, up to 100 */
 export const searchResults = async (search: ResultsSearch) => {
   let query = db
     .selectFrom('results')
@@ -162,12 +159,6 @@ export interface ResultEdit {
   notes?: string | null;
 }
 
-/**
- * Edits a result. Changing the mods re-validates them and recomputes rank mode for the
- * chart. The scores stay consistent with ingestion: from Phoenix on the score is also the
- * phoenix score; before it, the phoenix score is recomputed from the stats (and on XX the
- * score is also score_xx). pp / exp follow through a resultChanged event
- */
 export const updateResult = async (resultId: number, edit: ResultEdit) => {
   const result = await getResult(resultId);
 

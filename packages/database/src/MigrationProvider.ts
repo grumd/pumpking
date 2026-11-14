@@ -34,7 +34,6 @@ export class MigrationProvider implements IMigrationProvider {
         (fileName.endsWith('.mts') && !fileName.endsWith('.d.mts'))
       ) {
         const migration = await import(pathToFileURL(path.join(this.folder, fileName)).href);
-        // Handle esModuleInterop export's `default` prop...
         if (isMigration(migration?.default)) {
           migrations[migrationKey] = migration.default;
         } else if (isMigration(migration)) {

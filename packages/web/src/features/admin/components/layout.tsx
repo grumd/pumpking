@@ -1,6 +1,5 @@
 import { Group, Stack, Title } from '@mantine/core';
 
-// A titled group of fields in a detail view
 export const Section = ({
   title,
   aside,

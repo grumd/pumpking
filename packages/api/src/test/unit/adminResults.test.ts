@@ -9,7 +9,6 @@ import { errorMessage, output, trpcMutation, trpcQuery } from 'test/helpers/trpc
 import { getResultDefaults } from 'test/seeds/initialSeed';
 
 describe('Admin results', () => {
-  // The seeded Phoenix 2 chart: shared chart 3, instance 3 (S20, Standard track)
   const insertPhoenixResult = async (playerId: number, score: number) => {
     const { insertId } = await db
       .insertInto('results')
@@ -23,7 +22,6 @@ describe('Admin results', () => {
         mods_list: '',
       })
       .executeTakeFirstOrThrow();
-    // Gets its pp and exp, as a result added by ingestion would
     await resultAddedEffect(Number(insertId));
     return Number(insertId);
   };
@@ -80,7 +78,6 @@ describe('Admin results', () => {
   });
 
   it('edits an XX result: score_xx follows the score, the phoenix score follows the stats', async () => {
-    // Seeded result of player 1: XX, 100 perfects
     const { id } = await db
       .selectFrom('results')
       .select('id')
@@ -107,7 +104,6 @@ describe('Admin results', () => {
   });
 
   it('validates the mods and sets rank mode from them', async () => {
-    // The seeded XX chart: shared chart 1, instance 1 (S20, Standard track)
     const { insertId } = await db
       .insertInto('results')
       .values({ ...getResultDefaults({ playerId: 4, score: 1500000 }), mods_list: '' })
@@ -134,7 +130,6 @@ describe('Admin results', () => {
   it('validates Phoenix mods against the Phoenix list', async () => {
     const id = await insertPhoenixResult(4, 900000);
 
-    // No rank mode mod from Phoenix on, but the arcade's pass options
     const vj = await trpcMutation('admin.results.update', { id, edit: { modsList: 'VJ' } });
     assert.equal(vj.status, 400);
     assert.equal(errorMessage(vj), "Mod 'VJ' is invalid");

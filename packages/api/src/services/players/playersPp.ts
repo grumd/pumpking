@@ -1,7 +1,6 @@
 import { getTotalPp, roundPp, utcDay } from './totalPp';
 import { db, type Transaction } from '@pumpking/database/db';
 
-// The player's results that have pp, for getTotalPp
 export const getPlayerPpResults = async (playerId: number, transaction?: Transaction) => {
   const results = await (transaction ?? db)
     .selectFrom('results')
@@ -33,8 +32,6 @@ export const getPlayerPpHistory = async (playerId: number) => {
     .orderBy('id', 'asc')
     .execute();
 
-  // Both lines go on to now: the total can be up to 1pp off its last row, and the last
-  // place is the current one while the player is in the ranking
   const player = await db
     .selectFrom('players')
     .select(['pp', 'hidden'])
@@ -53,7 +50,6 @@ export const getPlayerPpHistory = async (playerId: number) => {
   };
 };
 
-// Ranking places of the visible players with pp, by players.pp
 const getCurrentStandings = async (trx: Transaction | typeof db) => {
   const players = await trx
     .selectFrom('players')
@@ -67,11 +63,6 @@ const getCurrentStandings = async (trx: Transaction | typeof db) => {
   return players.map((player, index) => ({ ...player, rank: index + 1 }));
 };
 
-/**
- * Appends to the history what changed since its last rows: every player whose place in
- * the ranking changed, and every total that moved by 1pp or more. Past rows are never
- * changed. Safe to repeat. Called by the effects consumer only, so the calls never overlap
- */
 export const recordStandings = async (trx?: Transaction) => {
   const conn = trx ?? db;
   const standings = await getCurrentStandings(conn);

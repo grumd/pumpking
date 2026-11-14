@@ -20,7 +20,6 @@ const playerFields = z.object({
 export const players = router({
   list: adminProcedure.query(() => listPlayers()),
   get: adminProcedure.input(z.object({ id: z.number() })).query(({ input }) => getPlayer(input.id)),
-  // Creates a player without an id
   save: adminProcedure
     .input(z.object({ id: z.number().nullable(), fields: playerFields }))
     .mutation(({ input }) => savePlayer(input.id, input.fields)),

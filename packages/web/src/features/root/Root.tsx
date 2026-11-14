@@ -31,7 +31,6 @@ const pageLoader = (
   </PageContainer>
 );
 
-// The design system reference page, dev only, with or without login
 const designSystemRoute = import.meta.env.DEV ? (
   <Route
     path={routes.designSystem.path}

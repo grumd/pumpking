@@ -11,7 +11,6 @@ type StatField =
   | 'perfects'
   | 'max_combo';
 
-// piu-spy sends JSON, so a stat may arrive as something other than a whole number
 const getStat = (data: ResultData, field: StatField): number | null => {
   const value: unknown = data[field];
   if (value === undefined || value === null) {
@@ -31,7 +30,6 @@ export interface StepStats {
   misses: number;
 }
 
-/** All five judgements, or null when any of them is unknown */
 export const getStepStats = (data: ResultData): StepStats | null => {
   const perfects = getStat(data, 'perfects');
   const greats = getStat(data, 'greats');
@@ -43,7 +41,6 @@ export const getStepStats = (data: ResultData): StepStats | null => {
     : null;
 };
 
-// The judgements as the utils name them
 export const toJudgements = (steps: StepStats): Judgements => ({
   perfect: steps.perfects,
   great: steps.greats,
@@ -55,13 +52,11 @@ export const toJudgements = (steps: StepStats): Judgements => ({
 export const totalSteps = (steps: StepStats) =>
   steps.perfects + steps.greats + steps.goods + steps.bads + steps.misses;
 
-/** A result's stats, checked to be whole numbers (legacy `ResultStats`) */
 export const getResultStats = (data: ResultData) => {
   const score = Number(data.score);
   if (!Number.isInteger(score)) {
     throw new UnrecognizedResult(`Invalid score '${data.score}'`);
   }
-  // Checked in this order, so a result with several wrong stats fails on the same one
   const steps = getStepStats(data);
   return {
     score,

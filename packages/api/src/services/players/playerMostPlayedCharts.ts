@@ -7,7 +7,7 @@ export const getPlayerMostPlayedCharts = async (
 ): Promise<
   Array<{
     count: number;
-    latestDate: Date; // seems like api actually returns string :(
+    latestDate: Date;
     shared_chart: number;
     full_name: string;
     label: string;
@@ -17,7 +17,6 @@ export const getPlayerMostPlayedCharts = async (
   if (!playerId) {
     throw new Error('playerId is required');
   }
-  // The page of charts first, from the player's results alone, then the chart names for it
   return await (trx ?? db)
     .selectFrom((eb) =>
       eb

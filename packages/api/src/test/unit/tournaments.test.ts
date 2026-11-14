@@ -16,8 +16,6 @@ const MIXES = [26, 27, 28];
 const LEVELS = [11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22];
 const PER_SLOT = 4;
 
-// Pool charts: 4 singles and 4 doubles per ID level 11-22, each in all 3 mixes,
-// with an official level that drifts per mix.
 const poolCharts = LEVELS.flatMap((level) =>
   (['S', 'D'] as const).flatMap((type) =>
     Array.from({ length: PER_SLOT }, (_, i) => ({
@@ -35,9 +33,7 @@ const instanceId = (sharedChartId: number, mix: number) => sharedChartId * 100 +
 const seedPool = async () => {
   const charts = [
     ...poolCharts.map((c) => ({ ...c, mixes: MIXES })),
-    // not in every supported mix
     { id: 2001, level: 13, type: 'S' as const, mixes: [26, 27] },
-    // wrong types
     { id: 2002, level: 13, type: 'COOP' as const, mixes: MIXES },
     { id: 2003, level: 13, type: 'HD' as const, mixes: MIXES },
   ];
@@ -274,41 +270,34 @@ describe('Tournaments', () => {
         nov.some((c) => octIds.has(c.shared_chart_id)),
         'November repeats October'
       );
-      // Easy needs 2 of the 4 S11 charts a month, so December has to reuse some
       assert.lengthOf(dec, 24);
     });
 
     it('assigns every visible rated player a bracket from their 950k+ depth', async () => {
       const t = '2026-09-10 12:00:00';
-      // High: 5th-highest qualifying level is 17, scored on different mixes
       await addResult(1, chartAt(19, 'S'), 960000, t, { mix: 26 });
       await addResult(1, chartAt(18, 'D'), 955000, t, { mix: 28 });
       await addResult(1, chartAt(17, 'S'), 999000, t);
       await addResult(1, chartAt(17, 'D'), 950000, t);
       await addResult(1, chartAt(17, 'S', 1), 970000, t);
-      // 5 results but only 4 charts, plus a near miss: unrated
       await addResult(2, chartAt(15, 'S'), 990000, t);
       await addResult(2, chartAt(15, 'S'), 995000, t, { mix: 28 });
       await addResult(2, chartAt(15, 'S', 1), 990000, t);
       await addResult(2, chartAt(15, 'S', 2), 990000, t);
       await addResult(2, chartAt(15, 'S', 3), 990000, t);
       await addResult(2, chartAt(16, 'S'), 949999, t);
-      // the 5th chart has an approximate date: unrated
       for (const i of [0, 1, 2, 3]) {
         await addResult(3, chartAt(12, 'S', i), 980000, t);
       }
       await addResult(3, chartAt(12, 'D'), 980000, t, { exact_gain_date: 0 });
-      // the 5th chart is older than 180 days and the 6th is after the start: unrated
       for (const i of [0, 1, 2, 3]) {
         await addResult(4, chartAt(20, 'S', i), 980000, t);
       }
       await addResult(4, chartAt(20, 'D'), 980000, '2026-04-03 23:59:59');
       await addResult(4, chartAt(20, 'D', 1), 980000, '2026-10-01 00:00:00');
-      // hidden players get no bracket
       for (const i of [0, 1, 2, 3, 4]) {
         await addResult(5, chartAt(21, 'S', i % 4), 990000, t, { mix: 26 + (i % 3) });
       }
-      // HJ and other play options don't matter; 20, 21, 20, 21, 20 -> Top
       await addResult(6, chartAt(20, 'S'), 980000, '2026-04-04 00:00:00', {
         mods_list: 'HJ AV500',
       });
@@ -316,7 +305,6 @@ describe('Tournaments', () => {
       await addResult(6, chartAt(20, 'D'), 980000, t);
       await addResult(6, chartAt(21, 'D'), 980000, t);
       await addResult(6, chartAt(20, 'S', 1), 980000, t, { mods_list: 'M' });
-      // 14, 15, 16, 17, 18 -> Mid
       for (const level of [14, 15, 16, 17, 18]) {
         await addResult(7, chartAt(level, 'D'), 951000, t);
       }
@@ -325,7 +313,6 @@ describe('Tournaments', () => {
 
       assert.deepEqual(await getAssignments(id), {
         1: { skill: 17, code: 'High' },
-        // unrated players pick a bracket themselves
         6: { skill: 20, code: 'Top' },
         7: { skill: 14, code: 'Mid' },
       });
@@ -343,18 +330,15 @@ describe('Tournaments', () => {
         .map((c) => c.shared_chart_id);
       const t = '2026-10-10 12:00:00';
 
-      // player 2: best 3 of 5 = 990k + 980k + 970k, on all three mixes
       await addResult(2, easy[0], 990000, t, { mix: 26, mods_list: 'HJ' });
       await addResult(2, easy[1], 980000, t, { mix: 28 });
       await addResult(2, easy[2], 970000, t);
       await addResult(2, easy[3], 960000, t);
       await addResult(2, easy[4], 950000, t);
-      // not counted: approximate date, hidden result, outside the window
       await addResult(2, easy[0], 999000, t, { exact_gain_date: 0 });
       await addResult(2, easy[1], 999000, t, { is_hidden: 1 });
       await addResult(2, easy[2], 1000000, '2026-09-30 23:59:59');
       await addResult(2, easy[3], 1000000, '2026-10-25 00:00:00');
-      // not counted: no Phoenix score
       await db
         .insertInto('results')
         .values({
@@ -366,14 +350,11 @@ describe('Tournaments', () => {
           score_phoenix: null,
         })
         .execute();
-      // player 3 ties player 2 on the total, with a better single
       await addResult(3, easy[0], 1000000, t);
       await addResult(3, easy[1], 970000, t);
       await addResult(3, easy[2], 970000, t);
-      // player 4: last second of the window counts
       await addResult(4, easy[5], 900000, t);
       await addResult(4, easy[4], 800000, '2026-10-24 23:59:59');
-      // not in Easy
       await addResult(6, easy[0], 1000000, t);
 
       const tournament = await getTournament({ tournamentId: id, playerId: 2 });
@@ -384,9 +365,7 @@ describe('Tournaments', () => {
         [
           [3, 1, 2940000],
           [2, 1, 2940000],
-          // 2 charts: no place
           [4, null, 1700000],
-          // the bracket's players without a score, by nickname
           [7, null, 0],
           [1, null, 0],
         ]
@@ -437,7 +416,6 @@ describe('Tournaments', () => {
           .filter((c) => c.code === 'Easy')
           .map((c) => c.shared_chart_id);
         const t = '2026-10-10 12:00:00';
-        // players 2 and 3 tie for 1st, 4 has only 2 charts, 7 is 3rd
         await addResult(2, easy[0], 990000, t);
         await addResult(2, easy[1], 980000, t);
         await addResult(2, easy[5], 900000, t);
@@ -541,7 +519,6 @@ describe('Tournaments', () => {
       await join(id, 'Easy', [2, 3]);
       await join(id, 'Top', [6]);
       await addResult(2, chart, 990000, '2026-10-10 12:00:00');
-      // outside the window, and a player from another bracket
       await addResult(3, chart, 995000, '2026-09-30 12:00:00');
       await addResult(6, chart, 999000, '2026-10-10 12:00:00');
 
@@ -621,7 +598,6 @@ describe('Tournaments', () => {
         const chartIn = (code: BracketCode) => pool.find((c) => c.code === code)!.shared_chart_id;
         const t = '2026-10-10 12:00:00';
 
-        // player 7 is unrated, so in no bracket until they join
         assert.deepEqual(await getAssignments(id), {});
         assert.isNull((await getTournament({ tournamentId: id, playerId: 7 }))!.playerBracket);
 
@@ -639,7 +615,6 @@ describe('Tournaments', () => {
         assert.deepEqual(await leaderboard('Easy'), [[7, 990000]]);
         assert.deepEqual(await leaderboard('Mid'), []);
 
-        // the Mid score was set before the switch and still counts
         await joinOverTrpc(await getBracketId(id, 'Mid'), addResultsSession).expect(200);
         assert.deepEqual(await getAssignments(id), { 7: { skill: null, code: 'Mid' } });
         assert.deepEqual(await leaderboard('Easy'), []);
@@ -647,7 +622,6 @@ describe('Tournaments', () => {
       });
 
       it('lets a rated player move up and back, never below their skill', async () => {
-        // 17, 17, 16, 16, 15 -> Mid
         for (const level of [15, 16, 17]) {
           await addResult(6, chartAt(level, 'S'), 990000, '2026-09-10 12:00:00');
           await addResult(6, chartAt(level, 'D'), 990000, '2026-09-10 12:00:00');
@@ -674,7 +648,6 @@ describe('Tournaments', () => {
         await joinOverTrpc(await getBracketId(id, 'Mid'), adminSession).expect(200);
         assert.deepEqual(await getAssignments(id), { 6: { skill: 15, code: 'Mid' } });
 
-        // unrated players can join any bracket
         assert.isTrue(
           (await getTournament({ tournamentId: id, playerId: 7 }))!.brackets.every((b) => b.canJoin)
         );

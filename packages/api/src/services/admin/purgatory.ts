@@ -7,10 +7,6 @@ import { error } from 'utils';
 
 const debug = createDebug('backend-ts:services:purgatory');
 
-// Purgatory holds the results that ingestion couldn't match to a player, track or chart,
-// or whose stats failed validation, with the reason. An admin fixes the row (or the
-// arcade names / chart it failed on) and rechecks it
-
 export const listPurgatory = async () => {
   return db
     .selectFrom('purgatory')
@@ -47,7 +43,6 @@ export const getPurgatoryRow = async (id: number) => {
   return row;
 };
 
-// The fields an admin can fix, as in the legacy editAndRecheck
 export interface PurgatoryEdit {
   track_name?: string;
   chart_label?: string;
@@ -88,33 +83,23 @@ export const deletePurgatoryRow = async (id: number) => {
   return { report: [`Purgatory #${id} deleted`] };
 };
 
-// What the recheck did with a row, as ingest answers (packages/ingest, ingestion/purgatory.ts)
 export type RecheckOutcome =
-  // Valid now: moved to results (the status says whether it was added or merged)
   | { id: number; outcome: 'added'; status: string }
   | { id: number; outcome: 'discarded'; reason: string }
   | { id: number; outcome: 'stays'; reason: string; reasonChanged: boolean };
 
 interface RecheckResponse {
   outcomes?: RecheckOutcome[];
-  // The lines of the stored results
   report?: string[];
   error?: string;
 }
 
 export interface RecheckOptions {
-  // Skip the check of the score against the stats, for a score the admin vouches for
   skipScoreCheck?: boolean;
 }
 
-// Ingest runs on the same host
 const ingestUrl = () => process.env.INGEST_URL || 'http://127.0.0.1:3002';
 
-/**
- * Rechecks purgatory rows, all of them or one: rows that are valid now move to results,
- * discarded ones are deleted, the others get their new reason. Ingest does it, so a row
- * is judged exactly as a new result would be
- */
 export const recheckPurgatory = async (id?: number, options: RecheckOptions = {}) => {
   if (id != null) {
     await getPurgatoryRow(id);

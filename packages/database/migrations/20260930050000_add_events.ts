@@ -1,10 +1,5 @@
 import { Kysely, sql } from 'kysely';
 
-/**
- * P3 of the Python API migration (docs/python-api-migration/PLAN.md, "Events and
- * effects"): an outbox of domain events, and one cursor per consumer (the API's effects
- * worker, later the bot) holding the id of the last event it processed.
- */
 export async function up(db: Kysely<any>): Promise<void> {
   await db.schema
     .createTable('events')
@@ -27,7 +22,6 @@ export async function up(db: Kysely<any>): Promise<void> {
     .addColumn('updated_at', sql`datetime(3)`, (col) => col.notNull())
     .execute();
 
-  // Events a consumer gave up on. They're kept when old events are deleted
   await db.schema
     .createTable('event_failures')
     .addColumn('consumer', 'varchar(64)', (col) => col.notNull())

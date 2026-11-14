@@ -1,4 +1,3 @@
-/* Older dates fade out, down to --date-opacity (set per row) */
 .fadingDate {
   opacity: var(--date-opacity);
 }

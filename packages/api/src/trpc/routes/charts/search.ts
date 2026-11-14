@@ -32,7 +32,6 @@ export const search = publicProcedure
     });
     return {
       items,
-      // A page shorter than pageSize is the last one, so the list stops asking for more
       nextCursor: items.length < pageSize ? null : offset + pageSize,
     };
   });

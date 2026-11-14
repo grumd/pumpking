@@ -18,7 +18,6 @@ import request from 'supertest';
 const recheck = (body: object = {}) =>
   request(app).post('/internal/purgatory/recheck').send(body).expect(200);
 
-// A screen result of a player ingestion doesn't know yet: it goes to purgatory
 const addUnknownPlayer = async (result: object = {}) => {
   const res = await post(
     '/results/screen/submit',
@@ -27,7 +26,6 @@ const addUnknownPlayer = async (result: object = {}) => {
   return res.body.updates[0].id as number;
 };
 
-// A naive datetime, written as it is
 const naive = (dateTime: string) => sql<Date>`${dateTime}`;
 
 const learnDave = async (mixId = 27) => {
@@ -43,7 +41,6 @@ describe('Purgatory recheck', () => {
 
   it('moves a row that is valid now to results, keeping when it was added', async () => {
     const id = await addUnknownPlayer();
-    // Added an hour ago
     await db
       .updateTable('purgatory')
       .set({ added: sql`UTC_TIMESTAMP() - INTERVAL 1 HOUR` })
@@ -96,7 +93,6 @@ describe('Purgatory recheck', () => {
   });
 
   it('rechecks rows whose date is only known roughly, and without mods', async () => {
-    // Rows from an import: only the day is known, the play was before its end
     const sameDay = await addUnknownPlayer();
     const dayBefore = await addUnknownPlayer();
     await db
@@ -109,7 +105,6 @@ describe('Purgatory recheck', () => {
       .where('id', '=', dayBefore)
       .execute();
     await learnDave();
-    // The arcade's screen of the play, with its exact time
     await post(
       '/results/screen/submit',
       screen({ result: { ...phoenixResult(), player_name: 'DAVE' } })
@@ -123,7 +118,6 @@ describe('Purgatory recheck', () => {
         outcome: 'added',
         status: `detailed result #${detailed.id} is up-to-date`,
       },
-      // The play the screen shows was after this day: another play
       { id: dayBefore, outcome: 'added', status: 'result added' },
     ]);
     const results = await getResults();
@@ -152,12 +146,10 @@ describe('Purgatory recheck', () => {
       { id, outcome: 'added', status: 'result added' },
     ]);
     const [result] = await getResults();
-    // Validated as an unknown grade, stored as it was
     assert.include(result, { grade: null, mods_list: null, rank_mode: 0, recognized_player_id: 7 });
   });
 
   it("skips a Phoenix score's check against the stats when asked, and only then", async () => {
-    // XX scores, which only have a minimum, are still checked
     const phoenix = await addUnknownPlayer({ score: 991_000, score_increase: 991_000 });
     const res = await post(
       '/results/screen/submit',

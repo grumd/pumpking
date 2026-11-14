@@ -9,12 +9,10 @@ interface PlayerSelectProps {
   onChange: (playerId: number | null) => void;
   placeholder?: string;
   description?: React.ReactNode;
-  // E.g. the player being edited, who can't be their own alias
   excludeId?: number;
   w?: string;
 }
 
-// Picks a player by nickname (all players, hidden ones too)
 export const PlayerSelect = ({
   label,
   value,

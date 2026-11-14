@@ -128,7 +128,6 @@ describe('Rivals notifications', () => {
 
   it('only mentions a beaten weaker player when the result improved', () => {
     const weak = player({ id: 4, nickname: 'Weak', pp: 10 });
-    // no score increase: a new result without a pass, so nothing improved
     const [toAlice] = rivalsNotifications(chart, result(alice, 950_000), [result(weak, 900_000)]);
     assert.notInclude(toAlice.html, 'Weak');
   });

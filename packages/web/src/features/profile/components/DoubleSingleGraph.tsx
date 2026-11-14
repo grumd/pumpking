@@ -27,7 +27,6 @@ const DoubleSingleGraph = () => {
 
   type Root = (typeof graphData)[number];
 
-  // Singles above the zero line, doubles under it
   const getTypePercent = (root: Root, type: (typeof types)[number]) =>
     ((type === 'D' ? -100 : 100) * (root.byType[type] ?? 0)) / (root.totalChartsByType[type] ?? 1);
 

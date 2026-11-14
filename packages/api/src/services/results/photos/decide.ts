@@ -11,32 +11,21 @@ import { isMillionScoringMix } from '@pumpking/utils/mixes';
 import { isRankModeAllowed } from '@pumpking/utils/mods';
 import { getPhoenixScore } from '@pumpking/utils/phoenixScore';
 
-/**
- * Deciding whether a result read from a photo can be saved without asking the user (see
- * docs/photo-results/PLAN.md, "Checks for a read"). Pure: the reads and the charts their
- * titles point to come in, a decision comes out
- */
-
 export type Mod = 'VJ' | 'HJ' | '';
 
-/** A chart instance on the mix that a read's song title and label point to */
 export interface ChartCandidate {
   sharedChartId: number;
   chartInstanceId: number;
   songName: string;
   label: string;
   level: number | null;
-  // tracks.duration
   duration: string | null;
   minTotalSteps: number | null;
   maxTotalSteps: number | null;
-  // Phoenix 2 only: the same shared chart's step counts on Phoenix, for charts whose
-  // Phoenix 2 count isn't known (the two agreed wherever both were known)
   phoenixMinTotalSteps?: number | null;
   phoenixMaxTotalSteps?: number | null;
 }
 
-/** A result's values, as read or as typed in */
 export interface PhotoValues {
   perfect: number;
   great: number;
@@ -50,23 +39,17 @@ export interface PhotoValues {
   mod: Mod;
 }
 
-/** What the user can be asked for */
 export type Field = 'chart' | keyof PhotoValues;
 
 export const JUDGEMENT_FIELDS = ['perfect', 'great', 'good', 'bad', 'miss'] as const;
 export const NUMBER_FIELDS = [...JUDGEMENT_FIELDS, 'combo', 'score'] as const;
 const ALL_FIELDS: Field[] = ['chart', ...NUMBER_FIELDS, 'grade', 'pass', 'mod'];
 
-/** One read, checked */
 export interface ReadCheck {
   values: PhotoValues;
-  // The only chart that fits the read, if there is one
   chart: ChartCandidate | null;
-  // The only chart its title and label point to, when its step count can't confirm it
   chartGuess: ChartCandidate | null;
-  // The fields to ask for if this read is used; none when every check holds
   problems: Field[];
-  // The judgements don't add up to the step count of the chart the title points to
   stepsMismatch: boolean;
 }
 
@@ -74,15 +57,12 @@ export type Decision =
   | { status: 'confident'; chart: ChartCandidate; values: PhotoValues }
   | {
       status: 'needsInput';
-      // The chart to start from, and the values to fill the form with
       chart: ChartCandidate | null;
       values: PhotoValues | null;
-      // What each reader read, to offer when they differ
       readValues: PhotoValues[];
       fields: Field[];
     };
 
-/** The chart's step count when it is exact (a range such as 1500–1800 isn't) */
 export const exactStepCount = (chart: ChartCandidate): number | null => {
   const known = chart.minTotalSteps != null || chart.maxTotalSteps != null;
   const min = known ? chart.minTotalSteps : chart.phoenixMinTotalSteps;
@@ -92,8 +72,6 @@ export const exactStepCount = (chart: ChartCandidate): number | null => {
 
 const normalizeBadge = (badge: string) => badge.toUpperCase().replace(/\s+/g, '');
 
-// A plate cut off at the edge of the screen ("ARVELOUS GAME") still counts when only one
-// plate name contains what is visible
 const plateFromText = (text: string): Plate | undefined => {
   const normalized = text.toUpperCase().replace(/\s+/g, ' ').trim();
   const plates = Object.keys(PLATE_NAMES) as Plate[];
@@ -117,7 +95,6 @@ const readValues = (read: PhotoRead, millionScoring: boolean): PhotoValues => {
     combo: read.max_combo,
     score: read.score,
     grade: read.grade.trim().toUpperCase(),
-    // A pass on Phoenix has a plate under the grade; before it, only the grade's color tells
     pass: millionScoring ? read.plate_text != null : !read.stage_failed,
     mod: rank ? 'VJ' : badges.includes('HJ') ? 'HJ' : '',
   };
@@ -128,7 +105,6 @@ const checkChart = (values: PhotoValues, candidates: ChartCandidate[]) => {
   const fitting = candidates.filter((chart) => exactStepCount(chart) === steps);
   const chart = fitting.length === 1 ? fitting[0] : null;
   const chartGuess = !chart && candidates.length === 1 ? candidates[0] : null;
-  // A known step count that differs points to a misread judgement
   const stepsMismatch =
     fitting.length === 0 && candidates.some((candidate) => exactStepCount(candidate) != null);
   let problems: Field[] = [];
@@ -142,11 +118,8 @@ const checkMillionStats = (read: PhotoRead, values: PhotoValues, mixId: number):
   if (values.score !== getPhoenixScore(values, mixId)) {
     return [...NUMBER_FIELDS];
   }
-  // A score that the judgements confirm gives the grade, which models often misread: AAA+
-  // draws its A's overlapping, so it looks like AA+
   values.grade = getPhoenixGrade(values.score, mixId);
   const problems: Field[] = [];
-  // The plate also says whether the stage was passed: a fail has none
   const plate = read.plate_text == null ? null : plateFromText(read.plate_text);
   if (plate === undefined || plate !== calcPlate(values, values.pass)) {
     problems.push('pass');
@@ -179,7 +152,6 @@ const checkMod = (read: PhotoRead, values: PhotoValues, chart: ChartCandidate | 
   return excluded || (chart && !isRankModeAllowed(chart)) ? ['mod'] : [];
 };
 
-/** Checks one read against the charts its title and label point to */
 export const checkRead = (
   read: PhotoRead,
   candidates: ChartCandidate[],
@@ -204,11 +176,9 @@ export const checkRead = (
 
 const unique = (fields: Field[]) => ALL_FIELDS.filter((field) => fields.includes(field));
 
-/** Whether a read fits exactly one chart and passes every check */
 export const passes = (check: ReadCheck | null): check is ReadCheck & { chart: ChartCandidate } =>
   !!check && !!check.chart && check.problems.length === 0;
 
-// The chart a read points to by title and label, whether or not its step count fits
 const pointedChart = (check: ReadCheck) => (check.chart ?? check.chartGuess)?.chartInstanceId;
 
 const differingFields = (a: ReadCheck, b: ReadCheck): Field[] =>
@@ -216,11 +186,6 @@ const differingFields = (a: ReadCheck, b: ReadCheck): Field[] =>
     field === 'chart' ? pointedChart(a) !== pointedChart(b) : a.values[field] !== b.values[field]
   );
 
-/**
- * XX: a read that passes, and another that agrees with it on everything but one judgement.
- * The other read misses the chart's exact step count, and with the other four judgements
- * agreed only one value fits it, so the step count settles the field ("1" read as "7")
- */
 const settledByStepCount = (checks: (ReadCheck | null)[]) =>
   checks.find(
     (check) =>
@@ -242,19 +207,14 @@ const needsInput = (checks: (ReadCheck | null)[]): Decision => {
     return { status: 'needsInput', chart: null, values: null, readValues: [], fields: ALL_FIELDS };
   }
 
-  // A read that passes every check is the best start, even when no other read agrees
   const start = valid.find(passes) ?? valid[0];
   const chart =
     start.chart ??
     valid.find((check) => check.chart)?.chart ??
     valid.find((check) => check.chartGuess)?.chartGuess ??
     null;
-  // Where the reads aren't unanimous is where the misread is. When they agree (or only one
-  // read the photo), the failed checks say what to ask for
   const differing = unique(valid.slice(1).flatMap((check) => differingFields(valid[0], check)));
   let fields = differing.length > 0 ? differing : unique(valid.flatMap((c) => c.problems));
-  // Judgements that every read agrees on but that don't add up to the chart's step count
-  // are misread all the same: they are never shown as certain
   const judgementsAgree = !JUDGEMENT_FIELDS.some((field) => differing.includes(field));
   if (judgementsAgree && valid.every((check) => check.stepsMismatch)) {
     fields = unique([...fields, ...JUDGEMENT_FIELDS]);
@@ -274,13 +234,6 @@ const needsInput = (checks: (ReadCheck | null)[]): Decision => {
   };
 };
 
-/**
- * The decision for a mix, from the checked reads in the order they were made (null for a
- * reader that failed). Phoenix and later: the first read that passes every check is
- * saved. XX and earlier: two reads that both pass and agree on everything, or that differ
- * in one judgement which the step count settles; the third read, made only when the first
- * two don't, breaks the tie. Reads that disagree on pass always ask
- */
 export const decide = (mixId: number, checks: (ReadCheck | null)[]): Decision => {
   if (isMillionScoringMix(mixId)) {
     const passed = checks.find(passes);
@@ -290,8 +243,6 @@ export const decide = (mixId: number, checks: (ReadCheck | null)[]): Decision =>
     return needsInput(checks);
   }
 
-  // Models often miss the thin cracks of a failed grade, and almost never see cracks on a
-  // passed one: reads that disagree on pass are never outvoted, the player says
   const valid = checks.filter((check) => check != null);
   if (valid.some((check) => check.values.pass !== valid[0].values.pass)) {
     return needsInput(checks);
@@ -314,9 +265,5 @@ export const decide = (mixId: number, checks: (ReadCheck | null)[]): Decision =>
   return needsInput(checks);
 };
 
-/**
- * XX: whether the third reader is asked after the first two. Not when the two decide, and
- * not when they disagree on pass: the player is asked whatever a third read says
- */
 export const needsTiebreaker = (mixId: number, [a, b]: (ReadCheck | null)[]) =>
   decide(mixId, [a, b]).status !== 'confident' && !(a && b && a.values.pass !== b.values.pass);

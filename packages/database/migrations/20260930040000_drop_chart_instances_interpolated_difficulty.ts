@@ -1,20 +1,11 @@
 import { Kysely, sql } from 'kysely';
 
-/**
- * Nothing reads the per-instance copy of the difficulty anymore (the piu-top
- * backend-ts API that did is not deployed), so ID lives only on `shared_charts`.
- */
 export async function up(db: Kysely<any>): Promise<void> {
   await sql`
     ALTER TABLE chart_instances DROP COLUMN interpolated_difficulty
   `.execute(db);
 }
 
-/**
- * Re-prefills from `shared_charts`. Per-chart values come back identical on
- * every mix of the chart - the pre-move state where two instances of one chart
- * disagreed is not recoverable.
- */
 export async function down(db: Kysely<any>): Promise<void> {
   await sql`
     ALTER TABLE chart_instances ADD COLUMN interpolated_difficulty FLOAT(8, 2) NULL

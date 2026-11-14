@@ -1,4 +1,3 @@
-// Design system rules (DESIGN.md, "Styling rules")
 const inlineStyleMessage =
   'No inline styles: use Mantine props, a block or a CSS module (DESIGN.md). `style` may only set --custom-properties.';
 const rawColorMessage = 'No raw colors outside src/theme: use a token (DESIGN.md).';
@@ -62,7 +61,6 @@ module.exports = {
   },
   overrides: [
     {
-      // The tokens live here
       files: ['src/theme/**'],
       rules: {
         'no-restricted-syntax': 'off',

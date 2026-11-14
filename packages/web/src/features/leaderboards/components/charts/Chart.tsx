@@ -20,17 +20,14 @@ import { ResultsCollapser } from './ResultsCollapser';
 import css from './chart-results.module.css';
 import { useRowSizes } from './useRowSizes';
 
-// The table's columns. On desktop their widths are the same in every chart card, so the
-// columns line up, and the name and score take the rest. On phones each is as narrow as its
-// content, so the names keep their room. Place and combo are desktop only, like their cells
 const columns: Array<{ className?: string; visibleFrom?: 'md' }> = [
   { className: css.placeCol, visibleFrom: 'md' },
-  {}, // name and score
+  {},
   { className: css.gradeCol },
-  { className: css.stepCol }, // miss
-  { className: css.stepCol }, // bad
-  { className: css.stepCol }, // good
-  { className: css.stepCol }, // great
+  { className: css.stepCol },
+  { className: css.stepCol },
+  { className: css.stepCol },
+  { className: css.stepCol },
   { className: css.perfectCol },
   { className: css.comboCol, visibleFrom: 'md' },
   { className: css.dateCol },
@@ -43,7 +40,6 @@ const Chart = memo(function _Chart({ chart }: { chart: ChartApiOutput }) {
   const filter = useAtomValue(filterAtom);
   const highlightedPlayerIds = useHighlightedPlayerIds();
   const rowSizes = useRowSizes();
-  // How many places around a highlighted result stay open: phones have room for fewer rows
   const highlightRange = useMatches({ base: 1, md: 2 }, { getInitialValueInEffect: false });
   const [showHidden, setShowHidden] = useState(false);
 
@@ -80,14 +76,12 @@ const Chart = memo(function _Chart({ chart }: { chart: ChartApiOutput }) {
       };
     })
     .map((res, index, array) => {
-      // Collapse results that are not within highlightRange places of a highlighted result
       const isBeforeHighlighted = array
         .slice(index + 1, index + 1 + highlightRange)
         .some((r) => r.isImportant);
       const isAfterHighlighted = array
         .slice(Math.max(0, index - highlightRange), index)
         .some((r) => r.isImportant);
-      // Places lost to an improved latest result above
       const placesLost = array
         .slice(0, index)
         .filter((r, rIndex) => rIndex + r.placeDifference >= index).length;
@@ -118,10 +112,7 @@ const Chart = memo(function _Chart({ chart }: { chart: ChartApiOutput }) {
     []
   );
 
-  // TODO: remove check from sharedCharts when SocketTracker works off results data instead of topPerSong
-
   return (
-    // No padding props: the CSS module sets it, smaller on phones
     <Card className={css.card} p={undefined}>
       <ChartHeader chart={chart}>
         {hiddenResultsCount > 0 && (

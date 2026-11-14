@@ -42,7 +42,6 @@ type PlayerRow = Pick<
   | 'actual_player_id'
 >;
 
-// The flags as booleans
 const toPlayer = (row: PlayerRow) => ({
   id: row.id,
   nickname: row.nickname,
@@ -110,11 +109,6 @@ export interface PlayerFields {
   arcadeNames: ArcadeNames;
 }
 
-/**
- * Creates a player (no id) or saves all of a player's admin fields. Nicknames and arcade
- * names (per mix) must be unique. Hiding or unhiding a player sets hidden_since and bumps
- * last_updated_at of every chart they have results on, as the legacy admin did
- */
 export const savePlayer = async (playerId: number | null, fields: PlayerFields) => {
   const nickname = fields.nickname.trim();
   if (!nickname) {
@@ -182,7 +176,6 @@ export const savePlayer = async (playerId: number | null, fields: PlayerFields) 
   });
 };
 
-// Compared for the report like the DB columns
 const toRow = (player: {
   nickname: string;
   email: string | null;
@@ -243,7 +236,6 @@ const checkUnique = async (playerId: number | null, nickname: string, arcadeName
   }
 };
 
-// Ingestion follows actual_player_id one step only, so an alias can't point at an alias
 const checkAliasTarget = async (playerId: number | null, actualPlayerId: number) => {
   if (actualPlayerId === playerId) {
     throw error(400, "A player can't be an alias of themselves");

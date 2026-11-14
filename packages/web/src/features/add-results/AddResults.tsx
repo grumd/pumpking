@@ -23,14 +23,9 @@ const MIX_OPTIONS: { value: PhotoMix; label: string }[] = [
 const isPhotoMix = (mix: string | null | undefined): mix is PhotoMix =>
   MIX_OPTIONS.some((option) => option.value === mix);
 
-/**
- * Results from photos of their screens: song, chart and stats are read from each photo and
- * saved when they check out; a photo in doubt asks for the fields in doubt
- */
 const AddResults = () => {
   const lang = useLanguage();
   const user = useUser();
-  // The key of the old "add result" page, which also had older mixes
   const [storedMix, setStoredMix] = useLocalStorage<string | null>({
     key: 'addResult_lastMix',
     defaultValue: null,

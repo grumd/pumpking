@@ -1,5 +1,4 @@
 export const en = {
-  // generic
   NOTHING_FOUND: 'Nothing found',
   ERROR: 'Error',
   SOMETHING_WENT_WRONG: 'Something went wrong',
@@ -7,18 +6,15 @@ export const en = {
   CLOSE: 'Close',
   UNREAD: 'unread',
 
-  // menu
   LEADERBOARDS: 'leaderboards',
   RANKING: 'ranking',
   TOURNAMENTS: 'tournaments',
   SONGS: 'songs',
   LOGOUT: 'logout',
 
-  // Rankings
   ACCURACY: 'accuracy',
   UPDATE: 'refresh',
 
-  // Leaderboards buttons
   FILTERS: 'filters',
   SORTING: 'sorting',
   PRESETS: 'presets',
@@ -36,7 +32,6 @@ export const en = {
   SONG_NAME_LABEL: 'song name',
   SONG_NAME_PLACEHOLDER: 'song name...',
   PLAYERS_PLACEHOLDER: 'players...',
-  // Sorting
   BY_DATE_DESC: 'by date (new to old)',
   BY_DATE_ASC: 'by date (old to new)',
   BY_DIFFICULTY_ASC: 'by difficulty (easy to hard)',
@@ -44,7 +39,6 @@ export const en = {
   BY_PP_DESC: 'by pp (big to small)',
   BY_PP_ASC: 'by pp (small to big)',
 
-  // Presets overlay
   OPEN: 'open',
   OVERWRITE: 'overwrite',
   DELETE: 'delete',
@@ -55,7 +49,6 @@ export const en = {
   SHOW_PRESETS_TABS: 'show presets tabs',
   PRESET_NAME_PLACEHOLDER: 'preset name...',
 
-  // Leaderboards Filters
   SHOW_CHARTS_PLAYED_BY: 'show charts played by:',
   EACH_OF_THESE: 'each of these',
   AND_ANY_OF_THESE: 'and any of these',
@@ -67,13 +60,11 @@ export const en = {
   RANK_FILTER_SHOW_NORANK: 'without rank only',
   SHOW_HIDDEN_PLAYERS: 'show hidden players',
 
-  // Leaderboards Sorting
   SORTING_LABEL: 'sorting:',
   SORTING_PLACEHOLDER: 'choose sorting',
   PLAYER_LABEL: 'player:',
   EXCLUDE_FROM_COMPARISON: 'exclude from comparison:',
 
-  // Sorting options
   NEW_TO_OLD_SCORES: 'new to old scores',
   NEW_TO_OLD_SCORES_OF_A_PLAYER: 'new to old scores of a player',
   SCORE_DIFFERENCE: 'score difference',
@@ -84,16 +75,13 @@ export const en = {
   EASY_TO_HARD_CHARTS: 'easy to hard charts',
   HARD_TO_EASY_CHARTS: 'hard to easy charts',
 
-  // Rank options
   SHOW_ALL_SCORES: 'how all scores',
   BEST_SCORE: 'one best score of each player (rank or not)',
   RANK_ONLY: 'rank only',
   ONLY_NO_RANK: 'without rank only',
 
-  // Results
   SHOW_MORE_RESULTS: (count: number) => `(show ${count} more)`,
 
-  // Score details overlay
   PLAYER: 'player',
   EXP: 'exp',
   ELO: 'elo',
@@ -109,14 +97,12 @@ export const en = {
   SIGHTREAD: '* sightread',
   NEW_SCORE: 'NEW',
 
-  // Other
   MY_BEST_SCORE_WARNING: 'Exact date when score was achieved is not known',
   BACK_TO_ALL_CHARTS: 'back to all charts',
   NO_RESULTS: 'no results found',
   SHOW_MORE: 'show more',
   HIDDEN: 'hidden',
 
-  // Profile Results by level
   ALL: 'all',
   DOUBLES: 'doubles',
   SINGLES: 'singles',
@@ -124,7 +110,6 @@ export const en = {
   BACK_BUTTON: 'back',
   LEVEL_PLACEHOLDER: 'level...',
 
-  // played time ago
   TODAY: 'today',
   YESTERDAY: 'yesterday',
   YESTERDAY_NIGHT: 'yesterday at night',
@@ -134,7 +119,6 @@ export const en = {
   MONTHS_SHORT: 'mon',
   NEVER: 'never',
 
-  // Tournaments
   START_DATE: 'Begins:',
   END_DATE: 'Ends:',
   BRACKETS: 'Brackets:',
@@ -222,7 +206,6 @@ export const en = {
   ),
   EXP_TITLES_LIST_HEADER: <>Possible ranks and experience needed to acquire them:</>,
 
-  // score date tooltip
   EXACT_DATE_UNKNOWN: 'exact date unknown',
   SCORE_WAS_TAKEN: 'score was taken',
   DATE_RECORDED: 'date recorded',
@@ -232,30 +215,6 @@ export const en = {
   ADDED: 'added',
   PLAYED: 'played',
 
-  // achievements
-  /* russian:
-    COMBO_500: '500 комбо',
-    COMBO_1000: '1000 комбо',
-    COMBO_2000: '2000 комбо',
-    FINGERING: 'Мастер фингеринга',
-    FINGERING_DESC: 'Сыграть Monkey Fingers, Kimchi Fingers, Monkey Fingers 2, Money Fingers',
-    SIGHTREADER: 'Сайтридер',
-    SIGHTREADER_DESC: 'Получить идеальный скор с первой попытки',
-    EIGHT_BIT: '8-бит',
-    EIGHT_BIT_DESC: 'Сыграть Seize My Day, Tales of Pumpnia и Pumptris (8bit ver.)',
-    LOVE_IS: 'Love is...',
-    LOVE_IS_DESC: 'Сыграть все треки Love is a Danger Zone',
-    SNAIL: 'Улитка',
-    SNAIL_DESC:
-      'Мастер замедлений: сыграть старшие чарты Twist of Fate, Karyawisata, Awakening и Moonlight',
-    BROWN_S: 'Коричневая S',
-    BROWN_S_DESC: 'Получить 0 миссов, но 5+ бэдов',
-    LIFE_BAR: 'Мы выживали как могли',
-    LIFE_BAR_DESC: 'Получить меньше 800.000 скора, но удержать лайфбар',
-    PAD_MISS: 'Падовый мисс',
-    PAD_MISS_DESC:
-      'Когда от идеального скора тебя удерживают только миссы из-за плохого моддинга падов',
-  */
   COMBO_500: '500 combo',
   COMBO_1000: '1000 combo',
   COMBO_2000: '2000 combo',
@@ -279,7 +238,6 @@ export const en = {
   WEEK_LONG_TRAINING: 'Dedication',
   WEEK_LONG_TRAINING_DESC: 'Play at least one chart every day for a week',
 
-  // Add results from photos
   ADD_RESULTS_NAV: 'add results',
   ADD_RESULTS: 'Add results',
   PHOTOS: 'Photos',
@@ -312,7 +270,6 @@ export const en = {
   YES: 'Yes',
   NO: 'No',
 
-  // Add Result / OCR
   CHART: 'Chart',
   HEIC_NOT_SUPPORTED: 'HEIC files are not supported. Please convert your screenshot to JPG or PNG.',
   GRADE: 'Grade',
@@ -323,7 +280,6 @@ export const en = {
   NONE_NORMAL_MODE: 'None (normal mode)',
   GRADE_REQUIRED: 'Grade is required',
 
-  // Admin
   DELETE_RESULT: 'Delete result',
   DELETE_RESULT_CONFIRM:
     'Are you sure you want to delete this result? This action cannot be undone.',
@@ -332,7 +288,6 @@ export const en = {
   REGION: 'Region',
   ADMIN: 'admin',
 
-  // Login / Registration
   SIGN_IN_WITH_DISCORD: 'Sign in with Discord',
   SIGN_UP_WITH_DISCORD: 'Sign up with Discord',
   CREATE_NEW_ACCOUNT: 'Create a new account',
@@ -355,7 +310,6 @@ export const en = {
   VALIDATION_NICKNAME_MIN: 'Nickname must be at least 2 characters',
   VALIDATION_NICKNAME_MAX: 'Nickname must be at most 32 characters',
   VALIDATION_ARCADE_NAME_MAX: 'Arcade name must be at most 20 characters',
-  // Using "any" is totally okay in "satisfies" assertions
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
 } satisfies Record<string, React.ReactNode | ((...args: any[]) => React.ReactNode)>;
 

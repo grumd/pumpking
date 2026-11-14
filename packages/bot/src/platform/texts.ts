@@ -1,11 +1,6 @@
-// Text helpers shared by the plugins, ported from the legacy bot (common.py, texts.py).
-// `lang` is the player's region: RU and UA have their own texts, everything else is English
-
-/** Escapes text for Telegram's HTML parse mode */
 export const wrap = (text: string) =>
   text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
-/** 1234567 -> "1,234,567", like Python's f"{n:,}" */
 export const formatNumber = (n: number) => n.toLocaleString('en-US');
 
 export const pluralEn = (words: [string, string], count: number) =>
@@ -44,7 +39,6 @@ const minutesWord = (lang: string, count: number) => {
   return pluralEn(['minute', 'minutes'], count);
 };
 
-/** "2 hours 5 minutes" / "5 minutes" */
 export const durationText = (lang: string, totalMinutes: number) => {
   const hours = Math.floor(totalMinutes / 60);
   if (hours >= 1) {
@@ -54,7 +48,6 @@ export const durationText = (lang: string, totalMinutes: number) => {
   return `${totalMinutes} ${minutesWord(lang, totalMinutes)}`;
 };
 
-/** "1h 5m" / "5m 3s", for durations in seconds */
 export const printableDuration = (totalSeconds: number) => {
   let minutes = Math.floor(totalSeconds / 60);
   const seconds = totalSeconds % 60;
@@ -74,10 +67,6 @@ export const printableDuration = (totalSeconds: number) => {
   return parts.join(' ');
 };
 
-/**
- * Parses the naive UTC "YYYY-MM-DD HH:MM:SS" strings of the agent activity queries
- * (plugins/locations/activity.ts) into milliseconds
- */
 export const parseUtc = (naive: string) => Date.parse(`${naive.replace(' ', 'T')}Z`);
 
 export const secondsAgo = (naive: string, now = Date.now()) =>

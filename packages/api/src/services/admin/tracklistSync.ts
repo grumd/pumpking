@@ -3,17 +3,6 @@ import { ARCADE_NAME_MIXES, MIXES } from '@pumpking/utils/mixes';
 import { error } from 'utils';
 import { z } from 'zod';
 
-/**
- * Syncs the tracklist from a tracklist file into tracks, shared_charts and
- * chart_instances: adds what's new and updates what changed. Ported from the legacy
- * admin CLI (piu-top `admin/admin_tracklist.py`), which read the same file.
- *
- * The file has `mixes` (keys in mix order: the n-th key is mix id n) and `tracklist`:
- * tracks by key, each with its shared charts (`charts`, by index in the track) and their
- * instances per mix (`instances[mix][index]`). A track's key is its `external_id`; the
- * track may also be known by an `arcadeID` or `altID`s (older keys).
- */
-
 const chartInstanceSchema = z.object({
   label: z.string(),
   level: z.number().int().optional(),
@@ -94,7 +83,6 @@ const planSync = async (file: TracklistFile) => {
   const errors: string[] = [];
   const warnings: string[] = [];
 
-  // Mix ids come from the order of the file's mixes
   const mixNames = Object.keys(file.mixes);
   for (const [name, id] of Object.entries(MIXES)) {
     const index = mixNames.indexOf(name);
@@ -103,7 +91,6 @@ const planSync = async (file: TracklistFile) => {
     }
   }
 
-  // The file's tracks, charts and chart instances, linked to each other
   const tracks = new Map<string, LocalTrack>();
   const sharedCharts = new Map<LocalTrack, Map<number, LocalSharedChart>>();
   const chartInstances = new Map<LocalTrack, Map<string, Map<number, LocalChartInstance>>>();
@@ -167,7 +154,6 @@ const planSync = async (file: TracklistFile) => {
     chartInstances.set(track, instancesByMix);
   }
 
-  // Match the DB's rows to the file's
   const [serverTracks, serverSharedCharts, serverChartInstances] = await Promise.all([
     db
       .selectFrom('tracks')
@@ -208,7 +194,7 @@ const planSync = async (file: TracklistFile) => {
   for (const serverSharedChart of serverSharedCharts) {
     const track = tracksById.get(serverSharedChart.track);
     if (!track) {
-      continue; // its track is already reported
+      continue;
     }
     const sharedChart = sharedCharts.get(track)?.get(serverSharedChart.index_in_track);
     if (!sharedChart) {
@@ -251,8 +237,6 @@ const planSync = async (file: TracklistFile) => {
     }
   }
 
-  // What to add and update, in the order it's applied: each track, its charts, then
-  // their instances mix by mix
   const operations: Operation[] = [];
   for (const track of tracks.values()) {
     const changes = trackChanges.get(track);
@@ -316,7 +300,6 @@ export const applyTracklistSync = async (file: TracklistFile) => {
   return { report: report.length ? report : ['The tracklist is up to date'] };
 };
 
-// The DB id of a row from the file: set when matched, or when an earlier operation added it
 const idOf = (row: { serverId?: number }) => {
   if (row.serverId == null) {
     throw new Error('Tracklist sync: a row was used before it was added');
@@ -384,11 +367,6 @@ const applyOperation = async (trx: Transaction, op: Operation): Promise<string |
   }
 };
 
-/**
- * When a track gets its first chart on a mix, it gets an arcade name there too: the one
- * from the previous mix (tracks are rarely renamed), or else its full name. An admin can
- * fix it afterwards
- */
 const fillTrackArcadeName = async (trx: Transaction, trackId: number, mixId: number) => {
   if (!ARCADE_NAME_MIXES.includes(mixId)) {
     return;

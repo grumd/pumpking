@@ -53,7 +53,6 @@ export const phoenixGradeOrder = [
   GradePhoenix.F,
 ];
 
-// The lowest score of each grade, best first. Phoenix 2 moved the thresholds below AAA
 const PHOENIX_GRADE_THRESHOLDS: Record<number, [number, GradePhoenix][]> = {
   [MIXES.Phoenix]: [
     [995_000, GradePhoenix.SSSP],
@@ -93,7 +92,6 @@ const PHOENIX_GRADE_THRESHOLDS: Record<number, [number, GradePhoenix][]> = {
   ],
 };
 
-/** The grade of a phoenix score on a million-scoring mix (Phoenix 2 by default) */
 export const getPhoenixGrade = (score: number, mixId: number = MIXES.Phoenix2): GradePhoenix => {
   const thresholds = PHOENIX_GRADE_THRESHOLDS[mixId];
   if (!thresholds) {
@@ -102,7 +100,6 @@ export const getPhoenixGrade = (score: number, mixId: number = MIXES.Phoenix2): 
   return thresholds.find(([minScore]) => score >= minScore)![1];
 };
 
-/** The five judgements of a result */
 export interface Judgements {
   perfect: number;
   great: number;
@@ -111,7 +108,6 @@ export interface Judgements {
   miss: number;
 }
 
-/** The plates as results store them, with the text the arcade shows under the grade */
 export const PLATE_NAMES = {
   PG: 'PERFECT GAME',
   UG: 'ULTIMATE GAME',
@@ -125,7 +121,6 @@ export const PLATE_NAMES = {
 
 export type Plate = keyof typeof PLATE_NAMES;
 
-/** The plate of a result on Phoenix and later; a failed stage has none */
 export const calcPlate = (
   { great, good, bad, miss }: Judgements,
   isPass: boolean | null
@@ -157,7 +152,6 @@ export const calcPlate = (
   return 'RG';
 };
 
-/** The grades of the combo-scoring mixes before Phoenix, as results store them */
 export const COMBO_GRADES = [
   '?',
   'F',
@@ -176,13 +170,8 @@ export const COMBO_GRADES = [
   'SSS',
 ];
 
-// Scores were higher on harder charts
 const levelMultiplier = (level: number | null) => (level == null || level <= 10 ? 1 : level / 10);
 
-/**
- * The lowest score possible for these judgements on a combo-scoring mix (XX and earlier).
- * Grade bonuses are left out, so this is a lower bound
- */
 export const minScoreForStats = (
   { perfect, great, good, bad, miss }: Judgements,
   level: number | null

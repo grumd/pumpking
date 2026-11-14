@@ -5,10 +5,6 @@ import { wrap } from '../../platform/texts';
 import type { ChatContext, Plugin } from '../../platform/types';
 import { notificationsForResult, replayNotifications, sendNotifications } from './notifications';
 
-// Rivals: a player hears when they beat or catch up with a rival's best score, and a
-// rival hears when theirs gets beaten. Ported from the legacy bot's rivals.py and
-// rivals_chat_control.py; new results come from `resultAdded` events instead of polling
-
 const RIVALS_LIMIT = 15;
 
 const isAdmin = (ctx: ChatContext) =>
@@ -127,7 +123,6 @@ const setLevels = async (ctx: ChatContext, text: string) => {
   await ctx.reply(`Tracked chart levels are <code>${from}</code> - <code>${to}</code>`);
 };
 
-// Sends the admin what a player would have been told about the last minutes' results
 const testRivals = async (ctx: ChatContext, text: string) => {
   if (!isAdmin(ctx)) {
     await ctx.reply("It's a service command only, sorry");

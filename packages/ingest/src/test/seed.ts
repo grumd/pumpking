@@ -12,7 +12,6 @@ const agents = [
 const players = [
   { id: 1, nickname: 'Alice' },
   { id: 2, nickname: 'Bob' },
-  // An alias account: its results belong to Alice
   { id: 3, nickname: 'Alice Alt', actual_player_id: 1 },
   { id: 4, nickname: 'Spammer', discard_results: 1 },
   { id: 5, nickname: 'Carol' },
@@ -24,11 +23,9 @@ const arcadePlayerNames = [
     { mix_id, player_id: 1, name: 'ALICE', name_edist: 1 },
     { mix_id, player_id: 2, name: 'BOB', name_edist: 0 },
   ]),
-  // Phoenix 2 names have the arcade id in them
   { mix_id: 28, player_id: 1, name: 'ALICE #1234', name_edist: 1 },
   { mix_id: 27, player_id: 3, name: 'ALICEALT', name_edist: 0 },
   { mix_id: 27, player_id: 4, name: 'SPAMMER', name_edist: 0 },
-  // One edit away from both: too close to pick
   { mix_id: 27, player_id: 5, name: 'CAROLA', name_edist: 1 },
   { mix_id: 27, player_id: 6, name: 'CAROLB', name_edist: 1 },
 ];
@@ -69,7 +66,6 @@ const sharedCharts = [
   { id: 3, track: 2, index_in_track: 1, type: 'S' as const },
 ];
 
-// The step counts are learned from results: null until the first one with full stats
 export const CHARTS = {
   xx: { id: 11, shared_chart: 1, mix: 26, label: 'S15', level: 15 },
   phoenix: { id: 12, shared_chart: 1, mix: 27, label: 'S16', level: 16 },
@@ -83,7 +79,6 @@ const chartInstances = Object.values(CHARTS).map((chart) => ({
   track: chart.shared_chart === 3 ? 2 : 1,
 }));
 
-// Empties the tables ingestion uses
 export const clearTables = async (database: Kysely<DB> = db) => {
   await database.deleteFrom('results').execute();
   await database.deleteFrom('purgatory').execute();
@@ -92,7 +87,6 @@ export const clearTables = async (database: Kysely<DB> = db) => {
   await database.deleteFrom('arcade_player_names').execute();
   await database.deleteFrom('arcade_track_names').execute();
   await database.deleteFrom('tracks').execute();
-  // Aliases first: they point to other players
   await database.deleteFrom('players').where('actual_player_id', 'is not', null).execute();
   await database.deleteFrom('players').execute();
   await database.deleteFrom('agent_sessions').execute();

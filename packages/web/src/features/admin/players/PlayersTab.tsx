@@ -16,7 +16,6 @@ import { PlayerDetail } from './PlayerDetail';
 
 const LIMIT = 200;
 
-// All players, filtered by nickname or arcade name (kept in the URL as ?q=)
 export const PlayersTab = (): JSX.Element => {
   const navigate = useNavigate();
   const params = useParams();

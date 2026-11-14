@@ -69,7 +69,6 @@ describe('Admin players', () => {
     assert.equal(sameArcadeName.status, 400);
     assert.equal(errorMessage(sameArcadeName), "Player #2 already has XX arcade name 'DUMMY2'");
 
-    // A player keeps their own names
     const player = output(await trpcQuery('admin.players.get', { id: 2 }).expect(200));
     await trpcMutation('admin.players.save', {
       id: 2,

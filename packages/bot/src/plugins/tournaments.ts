@@ -4,9 +4,6 @@ import { db } from '@pumpking/database/db';
 import { MIX_NAME_BY_ID, SUPPORTED_MIXES } from '@pumpking/utils/mixes';
 import { sql } from 'kysely';
 
-// Posts the monthly tournament to the tournaments channel: each bracket's pool and players
-// when it starts, the podiums when it ends (docs/tournaments/PLAN.md)
-
 const TOURNAMENTS_URL = 'https://pumpking.top/#/tournaments';
 
 const MEDALS = { gold: '🥇', silver: '🥈', bronze: '🥉' } as const;
@@ -20,7 +17,6 @@ const getTournament = (tournamentId: number) =>
     .select([
       'name',
       sql<string>`DATE_FORMAT(start_date, '%Y-%m-%d')`.as('firstDay'),
-      // end_date is exclusive: results count until the day before, 23:59
       sql<string>`DATE_FORMAT(end_date - INTERVAL 1 DAY, '%Y-%m-%d')`.as('lastDay'),
     ])
     .where('id', '=', tournamentId)
@@ -34,7 +30,6 @@ const getBrackets = (tournamentId: number) =>
     .orderBy('id')
     .execute();
 
-/** One message per bracket: its pool (with each mix's label) and its players */
 export const tournamentStartedMessages = async (tournamentId: number) => {
   const tournament = await getTournament(tournamentId);
   const brackets = await getBrackets(tournamentId);
@@ -95,7 +90,6 @@ export const tournamentStartedMessages = async (tournamentId: number) => {
   });
 };
 
-/** The podium of every bracket */
 export const tournamentEndedMessage = async (tournamentId: number) => {
   const tournament = await getTournament(tournamentId);
   const brackets = await getBrackets(tournamentId);

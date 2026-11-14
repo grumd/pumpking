@@ -31,7 +31,6 @@ import { type PurgatoryField, parseReason } from './reason';
 
 interface PurgatoryDetailProps {
   id: number;
-  // The row left purgatory (moved to results, discarded or deleted)
   onResolved: () => void;
 }
 
@@ -234,7 +233,6 @@ const PurgatoryForm = ({ row, onResolved }: { row: Row; onResolved: () => void }
   );
 };
 
-// Opens the chart a step count reason is about, to fix its step range
 const ChartLink = ({ chartInstanceId }: { chartInstanceId: number }) => {
   const chart = useQuery(api.admin.tracks.byChartInstance.queryOptions({ chartInstanceId }));
   return (

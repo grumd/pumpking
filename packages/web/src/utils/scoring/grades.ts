@@ -21,9 +21,5 @@ export const isMixNumber = (mix: number): mix is MixNumbers => {
 
 export { GradePhoenix, PlatePhoenix };
 
-/**
- * Phoenix 2 (mix 28) grade formula - the latest one, applied to all mixes.
- * The original per-result grade is only shown in the result details popup.
- */
 export const getPhoenixGrade = (score?: number | null): GradePhoenix | null =>
   score == null ? null : getMillionScoringGrade(score);

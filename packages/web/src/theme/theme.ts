@@ -29,13 +29,11 @@ import { type AppColor, appColors, discordHover } from './tokens';
 
 const fontFamily = 'Nunito, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
 
-// Each app color is a single shade. Discord's darkest shade is its hover color
 const colors = Object.fromEntries(
   Object.entries(appColors).map(([name, color]) => [name, colorsTuple(color)])
 ) as Record<AppColor, MantineColorsTuple>;
 colors.discord = colorsTuple([...Array(9).fill(appColors.discord), discordHover]);
 
-// Modal and Drawer titles
 const overlayStyles = {
   title: {
     fontWeight: 700,
@@ -106,7 +104,6 @@ export const theme = createTheme({
       styles: overlayStyles,
     }),
     Input: Input.extend({
-      // The focus border in the focus color
       styles: {
         wrapper: {
           '--input-bd-focus': 'var(--pk-focus-ring)',
@@ -146,7 +143,6 @@ export const theme = createTheme({
       styles: {
         dropdown: {
           background: 'var(--pk-surface-1)',
-          // Never wider than the screen
           maxWidth: 'calc(100vw - 2 * var(--mantine-spacing-xs))',
         },
       },
@@ -163,7 +159,6 @@ export const theme = createTheme({
     }),
     Table: Table.extend({
       classNames: tableCss,
-      // Every row list has the same row height
       vars: (_, props) => ({
         table: {
           '--table-vertical-spacing':
@@ -177,7 +172,6 @@ export const theme = createTheme({
     }),
     Tooltip: Tooltip.extend({
       defaultProps: {
-        // focus: keyboard focus. touch: shown while the finger is down (press and hold)
         events: { hover: true, focus: true, touch: true },
       },
     }),

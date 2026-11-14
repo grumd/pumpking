@@ -29,7 +29,6 @@ export const expressRouter = createExpressMiddleware({
   createContext,
 });
 
-// Export router TYPE for use on front-end
 export type AppRouter = typeof appRouter;
 
 export type ApiInputs = inferRouterInputs<AppRouter>;

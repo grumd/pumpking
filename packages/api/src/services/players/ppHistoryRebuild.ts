@@ -17,24 +17,15 @@ type HistoryResult = PpResult & { playerId: number };
 type RankRow = { player_id: number; recorded_at: Date; rank: number };
 type PpRow = { player_id: number; recorded_at: Date; pp: number };
 
-/**
- * Replays the ranking from the first result to `today`, with the results' current pp.
- * Totals change when a result is gained, and at midnight when results get older. Every
- * change of place is a rank row, at the time it happened. A player's total is a pp row at
- * most once a day, when it moved by 1pp or more since their last pp row.
- * `results` are sorted by `gained`
- */
 export const replayPpHistory = (results: HistoryResult[], today: number) => {
   const rankRows: RankRow[] = [];
   const ppRows: PpRow[] = [];
 
   const resultsByPlayer = new Map<number, PpResult[]>();
-  // Each player's pp per chart on the day being replayed
   const chartPpByPlayer = new Map<number, Map<number, number>>();
   const totals = new Map<number, number>();
   const lastRanks = new Map<number, number>();
   const lastPps = new Map<number, number>();
-  // When each player's total last changed, the time of their pp row for the day
   const changedAt = new Map<number, Date>();
 
   const recordRanks = (recordedAt: Date) => {
@@ -49,7 +40,6 @@ export const replayPpHistory = (results: HistoryResult[], today: number) => {
     });
   };
 
-  // Returns whether the total changed
   const updateTotal = (playerId: number, at: Date) => {
     const total = roundPp(getTotalFromChartPp(chartPpByPlayer.get(playerId)!));
     if (total === totals.get(playerId)) {
@@ -65,7 +55,6 @@ export const replayPpHistory = (results: HistoryResult[], today: number) => {
   for (let day = firstDay; day <= today; day++) {
     const dayStart = utcDayStart(day);
 
-    // Results got a day older
     let anyChanged = false;
     for (const [playerId, playerResults] of resultsByPlayer) {
       chartPpByPlayer.set(playerId, getChartPp(playerResults, day));
@@ -81,7 +70,6 @@ export const replayPpHistory = (results: HistoryResult[], today: number) => {
       playerResults.push(result);
       resultsByPlayer.set(result.playerId, playerResults);
 
-      // Only this result's chart can change, the others keep their pp for the day
       const chartPp = chartPpByPlayer.get(result.playerId) ?? new Map<number, number>();
       chartPpByPlayer.set(result.playerId, chartPp);
       const pp = result.pp * ppAgeFactor(day - utcDay(result.gained));
@@ -105,11 +93,6 @@ export const replayPpHistory = (results: HistoryResult[], today: number) => {
   return { rankRows, ppRows };
 };
 
-/**
- * Replaces the whole pp and rank history with a replay of all results. Run once by
- * `npm run rebuild-pp-history`, after every result's pp and player's total are up to date.
- * From then on the effects job only appends to the history (recordStandings)
- */
 export const rebuildPpHistory = async () => {
   const results = await db
     .selectFrom('results')

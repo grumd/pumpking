@@ -1,8 +1,6 @@
 import { ExpressionBuilder, Kysely, sql } from 'kysely';
 
 export async function up(db: Kysely<any>): Promise<void> {
-  // "update .. inner join .. set" is not supported by kysely, using raw sql
-  // NOT COOP
   await sql`
     UPDATE
       results AS r
@@ -17,7 +15,6 @@ export async function up(db: Kysely<any>): Promise<void> {
     AND ci.label NOT LIKE 'COOP%'
   `.execute(db);
 
-  // COOP
   await sql`
     UPDATE
       results AS r

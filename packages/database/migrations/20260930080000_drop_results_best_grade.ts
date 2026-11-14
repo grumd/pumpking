@@ -1,16 +1,9 @@
 import { Kysely, sql } from 'kysely';
 
-/**
- * P4b of the Python API migration (docs/python-api-migration/PLAN.md): nothing has read
- * `results_best_grade` for years, and since P4a nothing writes it.
- */
 export async function up(db: Kysely<any>): Promise<void> {
   await sql`DROP TABLE results_best_grade`.execute(db);
 }
 
-/**
- * Brings the table back empty, in its P4a shape (no foreign keys). Its rows are gone.
- */
 export async function down(db: Kysely<any>): Promise<void> {
   await sql`
     CREATE TABLE results_best_grade (

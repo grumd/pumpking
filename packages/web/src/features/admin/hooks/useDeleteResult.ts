@@ -3,8 +3,6 @@ import { type UseMutationResult, useMutation, useQueryClient } from '@tanstack/r
 
 import { api } from 'utils/trpc';
 
-// Deletes a result from its leaderboard. pp / exp are recalculated by the effects job
-// a moment later, so the leaderboards and ranking are refetched again after that
 export const useDeleteResult = (): UseMutationResult<
   ApiOutputs['admin']['results']['delete'],
   unknown,

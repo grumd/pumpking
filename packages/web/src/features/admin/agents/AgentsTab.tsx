@@ -45,7 +45,6 @@ const TokenCode = ({ token }: { token: string }) => (
   </Group>
 );
 
-// Shown only when asked for, so tokens don't sit on screen
 const AgentToken = ({ agent }: { agent: Agent }) => {
   const queryClient = useQueryClient();
   const [shown, setShown] = useState(false);
@@ -94,7 +93,6 @@ const AgentToken = ({ agent }: { agent: Agent }) => {
 };
 
 interface AgentModalProps {
-  // null creates an agent
   agent: Agent | null;
   onClose: () => void;
 }
@@ -164,11 +162,9 @@ const AgentModal = ({ agent, onClose }: AgentModalProps) => {
   );
 };
 
-// The piu-spy installations that send results from arcades
 export const AgentsTab = (): JSX.Element => {
   const lang = useLanguage();
   const agents = useQuery(api.admin.agents.list.queryOptions());
-  // undefined: closed, null: a new agent
   const [editing, setEditing] = useState<Agent | null | undefined>(undefined);
 
   return (

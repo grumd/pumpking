@@ -15,7 +15,6 @@ type ChartType = 'S' | 'D';
 
 const grades = Object.values(GradePhoenix);
 
-// Singles' grades above the zero line, then doubles' under it, the best grade nearest to it
 const gradeKeys = (['S', 'D'] as const).flatMap((type) =>
   grades.map((grade) => `${type}-${grade}` as const)
 );

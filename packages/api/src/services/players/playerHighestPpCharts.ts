@@ -4,17 +4,13 @@ import { Transaction, db } from '@pumpking/database/db';
 import { sql } from 'kysely';
 import { type PpSteps, getPpSteps } from 'services/results/resultsPp';
 
-/**
- * The player's best result on each chart by its full pp, however old: a page of them, with
- * the steps to the pp and the result's age factor, and the number of charts
- */
 export const getPlayerHighestPpCharts = async (
   params: { playerId?: number; limit: number; offset: number },
   trx?: Transaction
 ): Promise<{
   items: Array<{
     pp: number;
-    date: Date; // seems like api actually returns string :(
+    date: Date;
     shared_chart: number;
     full_name: string;
     label: string;
@@ -30,14 +26,11 @@ export const getPlayerHighestPpCharts = async (
     throw new Error('playerId is required');
   }
 
-  // The page of results first, from the player's results alone, then the charts for it.
-  // Joining the charts before the limit would join every result
   const page = (trx ?? db)
     .selectFrom('results as r')
     .select(['r.id', 'r.pp'])
     .where('r.player_id', '=', params.playerId)
     .where('r.pp', 'is not', null)
-    // One result per chart: the one with the most pp, the earliest of equal ones
     .where(({ not, exists }) =>
       not(
         exists(
@@ -73,7 +66,6 @@ export const getPlayerHighestPpCharts = async (
           .limit(1)
       )
     )
-    // The result's own chart instance, whose level pp falls back to
     .innerJoin('chart_instances as ri', 'ri.id', 'r.chart_instance')
     .innerJoin('tracks as t', 't.id', 'sc.track')
     .select([

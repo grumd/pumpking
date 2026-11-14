@@ -1,29 +1,15 @@
 import { db } from '@pumpking/database/db';
 import { sql } from 'kysely';
 
-/**
- * Who played where recently, from the agents' heartbeat sessions (`agent_sessions`) and
- * their results, for the locations plugin. Ported from the legacy piu-top `logs.py` (C5 / C6
- * in docs/python-api-migration/PLAN.md), with the same shapes.
- *
- * Dates are the naive "YYYY-MM-DD HH:MM:SS" strings the legacy API printed. The session
- * times are UTC; `gained` is compared to UTC too, as it always was.
- */
-
-// Hidden players are shown under this name
 export const UNKNOWN_PLAYER = 'PUMP IT UP';
 
-// Results older than 6 hours don't count as "played recently"
 const recentThreshold = sql<Date>`UTC_TIMESTAMP() - INTERVAL 6 HOUR`;
 
 export interface AgentLastPlayers {
-  // Player name -> when they last scored, newest first
   lastResults: Record<string, string>;
-  // The agent's latest session; missing when it never sent a heartbeat
   agentStatus?: { startedMinsAgo: number; updatedMinsAgo: number };
 }
 
-/** C6: the players who scored on one agent in the last 6 hours, and its uptime */
 export const getAgentLastPlayers = async (agentId: number): Promise<AgentLastPlayers> => {
   const players = await db
     .selectFrom('results')
@@ -73,11 +59,9 @@ export interface AgentStatus {
   title: string;
   startedAt: string;
   lastUpdatedAt: string;
-  // Player name -> when they last scored (last 6 hours)
   players: Record<string, string>;
 }
 
-/** C5: every agent that has sessions, keyed by agent id, with its recent players */
 export const getAgentsStatus = async (): Promise<Record<string, AgentStatus>> => {
   const sessions = await db
     .selectFrom('agent_sessions')

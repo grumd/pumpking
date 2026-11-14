@@ -5,7 +5,6 @@ interface LoginLayoutProps {
   children: React.ReactNode;
 }
 
-// The logged-out screens: the site name over a column centered on the page, no top bar
 export function LoginLayout({ children }: LoginLayoutProps) {
   return (
     <Center component="main" mih="100%" px={pageSidePadding} py="sm">

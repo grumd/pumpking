@@ -1,6 +1,3 @@
-// What a purgatory reason (the legacy validation's message) is about: the fields to
-// highlight, and the chart or player to link to, so the admin can fix it there
-
 export type PurgatoryField =
   | 'player_name'
   | 'track_name'
@@ -40,9 +37,7 @@ export const parseReason = (reason: string) => {
   const player = reason.match(/^Unknown player (.+?) for mix/);
   return {
     fields: rule?.[1] ?? [],
-    // "Number of steps 708 is lesser than chart #20968 min 765 steps"
     chartInstanceId: chart ? Number(chart[1]) : undefined,
-    // "Unknown player ANON for mix Phoenix, closest is NONO with 2 edits"
     playerName: player?.[1],
   };
 };

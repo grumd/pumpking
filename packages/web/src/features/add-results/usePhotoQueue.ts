@@ -35,22 +35,17 @@ export interface QueueItem {
   id: number;
   file: File;
   mix: PhotoMix;
-  // A photo selected on its own: read and checked, but the user confirms it
   review: boolean;
   status: PhotoStatus;
   hash: string | null;
-  // Kept while the photo is in progress or waits for the user
   prepared?: PreparedPhoto;
   needsInput?: NeedsInput;
   saved?: { chart: PhotoChart; score: number };
   error?: string;
-  // Over a cost limit: which one, and when the player can upload again
   limited?: Pick<Limited, 'limit' | 'retryAt'>;
-  // Cancelled while it was being read: only a saved result is kept
   cancelled?: boolean;
 }
 
-// The photos that stop the queue until the user acts
 const isBlocking = (item: QueueItem) =>
   item.status === 'reading' ||
   item.status === 'needsInput' ||
@@ -62,17 +57,12 @@ export const isDone = (item: QueueItem) =>
 
 const errorText = (e: unknown) => (e instanceof Error ? e.message : String(e));
 
-// What a skipped photo keeps: the photo and the reads are let go
 const SKIPPED = { status: 'skipped', prepared: undefined, needsInput: undefined } as const;
 
 const isConflict = (e: unknown) => e instanceof TRPCClientError && e.data?.httpStatus === 409;
 
 let nextId = 1;
 
-/**
- * The photos selected on the "Add results" page, read one at a time. A photo that needs
- * the user's input pauses the queue until it is submitted or skipped
- */
 export const usePhotoQueue = () => {
   const queryClient = useQueryClient();
   const user = useUser();
@@ -87,8 +77,6 @@ export const usePhotoQueue = () => {
     setItems((current) => current.map((item) => (item.id === id ? { ...item, ...change } : item)));
   }, []);
 
-  // The end of a read. A photo cancelled while it was read is skipped, unless its result
-  // was saved or was already there
   const finishRead = useCallback(
     (id: number, change: Partial<QueueItem> & { status: PhotoStatus }) => {
       const kept = change.status === 'saved' || change.status === 'duplicate';
@@ -125,20 +113,16 @@ export const usePhotoQueue = () => {
       for (const item of added) {
         hashes.set(item.id, await hashFile(item.file));
       }
-      // One check for the whole batch, before anything is uploaded. If it fails, the
-      // server still checks each photo before reading it
       const known: (string | null)[] = await checkHashes
         .mutateAsync({ hashes: [...new Set(hashes.values())] })
         .catch(() => []);
 
       setItems((current) => {
-        // A skipped photo can be selected again
         const seen = new Set(
           current.flatMap((item) => (item.hash && item.status !== 'skipped' ? [item.hash] : []))
         );
         return current.map((item) => {
           const hash = hashes.get(item.id);
-          // Cancelled while it was hashed
           if (!hash || item.status !== 'hashing') {
             return item;
           }
@@ -154,7 +138,6 @@ export const usePhotoQueue = () => {
   const read = useCallback(
     async (item: QueueItem) => {
       const { hash } = item;
-      // A photo waits for its turn only once it's hashed
       if (!hash) {
         return;
       }
@@ -201,7 +184,6 @@ export const usePhotoQueue = () => {
     [recognize, update, finishRead, invalidateCharts]
   );
 
-  // The next photo is read when nothing is in progress or waiting for the user
   const blocked = items.some(isBlocking);
   const next = blocked ? undefined : items.find((item) => item.status === 'waiting');
   useEffect(() => {
@@ -211,7 +193,6 @@ export const usePhotoQueue = () => {
     }
   }, [next, read]);
 
-  /** Adds the result as the user filled it in. Throws for the form to show the error */
   const submit = useCallback(
     async (item: QueueItem, chart: PhotoChart, values: PhotoValues) => {
       if (!item.prepared || !user.data) {
@@ -257,7 +238,6 @@ export const usePhotoQueue = () => {
     [update]
   );
 
-  // A photo the readers couldn't read, typed in by hand
   const enterByHand = useCallback(
     (item: QueueItem) =>
       update(item.id, {
@@ -274,10 +254,8 @@ export const usePhotoQueue = () => {
     [update]
   );
 
-  // A new selection waits until every photo of the last one is done
   const busy = items.some((item) => !isDone(item));
 
-  // Skips every photo that isn't done. The one being read finishes: a result it saved stays
   const cancel = useCallback(() => {
     setItems((current) =>
       current.map((item) => {

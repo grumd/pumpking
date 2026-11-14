@@ -4,16 +4,10 @@ import { durationText, parseUtc, printableDuration, secondsAgo, wrap } from '../
 import { callbackData, type ChatContext, type Keyboard, type Plugin } from '../../platform/types';
 import { getAgentLastPlayers, getAgentsStatus, type AgentStatus } from './activity';
 
-// Locations are the arcades running a piu-spy agent. The watchers of one location hear
-// when it starts, stalls or resumes working and when a new player shows up there, and
-// anyone can see who played where recently. Ported from the legacy bot's locations.py
-
 const PLUGIN = 'locations';
 const AGENT_TIMEOUT_MINUTES = 3;
-// A location stalls when its heartbeat has stopped for 5 to 10 minutes
 const STALL_FROM_SECONDS = 5 * 60;
 const STALL_TO_SECONDS = 10 * 60;
-// The dialog lists the locations that worked in the last week
 const DIALOG_MAX_AGE_SECONDS = 7 * 24 * 60 * 60;
 
 export interface Location {
@@ -26,10 +20,6 @@ type Locations = Record<string, Location>;
 const byLang = (lang: string, texts: { RU: string; UA: string; EN: string }) =>
   lang === 'RU' ? texts.RU : lang === 'UA' ? texts.UA : texts.EN;
 
-/**
- * Compares a location's new status with the previous one. Returns the messages for its
- * watchers (only the tracked location has them) and updates `location.stalled`
- */
 export const updateLocation = (
   location: Location,
   state: AgentStatus,
@@ -114,7 +104,6 @@ const keyboard = (locations: Locations, now = Date.now()): Keyboard => [
     })),
 ];
 
-/** Who played at a location in the last hours, and whether it's online */
 export const lastPlayersText = async (agentId: number, title: string, lang: string) => {
   const { lastResults, agentStatus } = await getAgentLastPlayers(agentId);
   const locationStr = `"<i>${wrap(title)}</i>"`;

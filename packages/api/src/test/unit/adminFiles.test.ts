@@ -12,7 +12,6 @@ describe('Admin files', () => {
   const agentFolder = path.resolve(process.env.SCREENSHOT_AGENT_BASE_FOLDER ?? '', 'files-test');
   const webFolder = path.resolve(process.env.SCREENSHOT_BASE_FOLDER ?? '', 'files-test-web');
 
-  // Uploads an agent's screen file and its scan JSON, as piu-spy does
   const writeUpload = (folder: string, name: string) => {
     fs.mkdirSync(path.join(folder, '2026-09-30'), { recursive: true });
     fs.writeFileSync(path.join(folder, '2026-09-30', `${name}.jpg`), screen);
@@ -139,7 +138,6 @@ describe('Admin files', () => {
   });
 
   it("doesn't send files outside the uploads folder", async () => {
-    // A file that exists, one level above the uploads folder
     const outsidePath = path.resolve(process.env.SCREENSHOT_AGENT_BASE_FOLDER ?? '', '..');
     const outsideName = `files-test-outside-${Date.now()}.jpg`;
     fs.writeFileSync(path.join(outsidePath, outsideName), screen);

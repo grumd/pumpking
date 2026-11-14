@@ -1,10 +1,3 @@
-/**
- * Mods (modifiers) of a result, stored as a space-separated `mods_list`. Ported from the
- * legacy piu-top validation (`scoring_combo.py` and `scoring_mln.py`): the same mods are
- * valid and the messages match.
- */
-
-// Mixes before Phoenix (combo scoring)
 const COMBO_MOD_NAMES = [
   'VJ',
   'EW',
@@ -31,8 +24,6 @@ const COMBO_MOD_NAMES = [
   'JR',
 ];
 
-// Phoenix and later (million scoring): no VJ or BGAOFF, but the PASS options, which the
-// arcade shows among the mods
 const MILLION_MOD_NAMES = [
   'EW',
   'RV',
@@ -60,12 +51,10 @@ const MILLION_MOD_NAMES = [
   'PASS_M',
 ];
 
-// Rank mode (VJ) can't be combined with these
 const RANK_MODE_EXCLUDED_MODS = ['HJ', 'BGADARK', 'BGAOFF'];
 
 export class InvalidModsError extends Error {}
 
-// Returns the mod as it's stored (speed mods like `2X` become `2x`)
 const validMod = (mod: string, modNames: string[]): string => {
   if (modNames.includes(mod)) {
     return mod;
@@ -80,10 +69,6 @@ const validMod = (mod: string, modNames: string[]): string => {
   throw new InvalidModsError(`Mod '${mod}' is invalid`);
 };
 
-/**
- * The mods of a `mods_list`; throws an InvalidModsError for an unknown mod. Million
- * scoring mixes (Phoenix and later) have their own list of mods.
- */
 export const parseModsList = (
   modsList: string,
   { millionScoring = false }: { millionScoring?: boolean } = {}
@@ -96,18 +81,15 @@ export const parseModsList = (
 export interface RankModeChart {
   label: string;
   level: number | null;
-  // tracks.duration
   duration: string | null;
 }
 
-// Rank mode exists only on Standard-length, non-performance charts of level 13 and up
 export const isRankModeAllowed = (chart: RankModeChart) =>
   chart.duration === 'Standard' &&
   !/^(SP|DP|COOP)/.test(chart.label) &&
   chart.level != null &&
   chart.level >= 13;
 
-/** Whether the mods mean rank mode; throws an InvalidModsError if the chart can't have it. */
 export const getRankMode = (mods: string[], chart: RankModeChart): boolean => {
   if (!mods.includes('VJ')) {
     return false;

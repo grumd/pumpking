@@ -3,11 +3,9 @@ import { Text } from '@mantine/core';
 interface StatProps {
   label: React.ReactNode;
   value: React.ReactNode;
-  // sm: detail views. lg: page headers
   size?: 'sm' | 'lg';
 }
 
-// A label over a value
 export const Stat = ({ label, value, size = 'sm' }: StatProps): JSX.Element => {
   return (
     <div>

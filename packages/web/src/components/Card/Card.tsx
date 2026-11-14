@@ -4,10 +4,8 @@ import css from './card.module.css';
 
 export interface CardProps extends PaperProps {
   children: React.ReactNode;
-  // 1: a section on the page. 2: a card or row inside a level-1 card
   level?: 1 | 2;
   title?: React.ReactNode;
-  // Icon buttons or a small control, right of the title
   actions?: React.ReactNode;
   component?: 'li' | 'div' | 'section';
 }

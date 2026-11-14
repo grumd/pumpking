@@ -77,7 +77,6 @@ describe('Admin agents', () => {
 });
 
 describe('Admin purgatory', () => {
-  // A Phoenix 2 row on the seeded Track 1 S20 (100 steps): valid once its player is known
   const insertRow = async (fields: { reason: string; player_name?: string; score?: number }) => {
     const { insertId } = await db
       .insertInto('purgatory')
@@ -125,7 +124,6 @@ describe('Admin purgatory', () => {
     assert.lengthOf(await db.selectFrom('purgatory').select('id').execute(), 0);
   });
 
-  // Ingest does the recheck itself (its tests cover it); this stands in for its endpoint
   describe('recheck', () => {
     let server: Server;
     let respond: (body: { id?: number; skipScoreCheck?: boolean }) => object;

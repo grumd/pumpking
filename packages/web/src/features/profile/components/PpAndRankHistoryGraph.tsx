@@ -7,7 +7,6 @@ import { useLanguage } from 'utils/context/translation';
 import { usePpHistorySeries } from '../hooks/usePpHistorySeries';
 import { TimeSeriesGraph } from './TimeSeriesGraph';
 
-// pp (left axis) and the ranking place (right axis) on one graph with one brush
 export const PpAndRankHistoryGraph = () => {
   const params = useParams();
   const lang = useLanguage();

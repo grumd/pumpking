@@ -3,10 +3,6 @@ import { assert } from 'chai';
 import { updateChartsInterpolatedDifficulty } from 'services/charts/chartDifficultyInterpolation';
 import { getResultDefaults } from 'test/seeds/initialSeed';
 
-// Seed: shared chart 1 (S) has instance 1 (mix 26, level 20) with 3 results,
-// shared charts 3/6/7 have instances but no results. No player has > 50 best
-// results, so every chart's interpolated difficulty is its built-in level.
-
 const insertInstance = async (instance: {
   id: number;
   shared_chart: number;
@@ -48,7 +44,6 @@ describe('Shared chart interpolated difficulty', () => {
   });
 
   it('uses results from any mix', async () => {
-    // a result on mix 25 is the only result of shared chart 6
     await insertInstance({ id: 14, shared_chart: 6, mix: 25, label: 'S19', level: 19 });
     await db
       .insertInto('results')

@@ -9,10 +9,6 @@ import {
 } from 'services/charts/chartsSearch';
 import { getResultDefaults } from 'test/seeds/initialSeed';
 
-// Every test builds the charts and results it needs: the seeded results are removed first.
-// Seeded players: 1-4 visible, 5 hidden, 6 admin, 7. Seeded arcade names: every player in
-// mix 26, player 2 in mix 28 (DUMMY2P2), player 3 in mix 27 (DUMMY3P)
-
 const at = (minute: number) => new Date(Date.UTC(2026, 0, 1, 0, minute));
 
 const addChart = async ({
@@ -43,7 +39,6 @@ const addChart = async ({
     .execute();
 };
 
-// A chart with one instance in Phoenix 2
 const addS20 = (id: number, extra: Partial<Parameters<typeof addChart>[0]> = {}) =>
   addChart({ id, instances: [{ mix: 28, label: 'S20', level: 20 }], ...extra });
 
@@ -237,7 +232,6 @@ describe('Charts search cases', () => {
     assert.include(withInterpolated, { difficulty: 20.5, interpolatedDifficulty: 20.5 });
     assert.include(withoutInterpolated, { difficulty: 15, interpolatedDifficulty: null });
 
-    // Sorting by difficulty puts the level in interpolatedDifficulty too
     const [bySort] = await search({ sortChartsBy: 'difficulty', sortChartsDir: 'asc' });
     assert.include(bySort, { id: 102, difficulty: 15, interpolatedDifficulty: 15 });
   });
@@ -314,7 +308,6 @@ describe('Charts search cases', () => {
       await addResult({ player: 2, chart: 101, score: 900000, added: at(1) });
       await addResult({ player: 2, chart: 101, score: 900000, added: at(2) });
       await addResult({ player: 3, chart: 101, score: 900000, added: at(1) });
-      // Played after the best one, and still counted
       await addResult({ player: 4, chart: 101, score: 900000, added: at(1) });
       await addResult({ player: 4, chart: 101, score: 850000, added: at(2) });
 
@@ -363,7 +356,6 @@ describe('Charts search cases', () => {
       const id = await addResult({
         player: 2,
         chart: 101,
-        // An XX-scale score, and its phoenix score
         score: 1950000,
         score_phoenix: 950000,
         added: at(5),
@@ -418,7 +410,6 @@ describe('Charts search cases', () => {
 
     it('maps passed, recognition type, exp and the arcade name', async () => {
       const values: Array<[number, number | null, string, string | null]> = [
-        // player, is_pass, recognition_notes, exp
         [1, 0, 'manual', null],
         [2, null, 'result', '0.00'],
         [3, 1, 'machine_best', '1.00'],
@@ -506,7 +497,6 @@ describe('Charts search cases', () => {
       await addResult({ player: 2, chart: 101, score: 950000, added: at(5) });
       await addResult({ player: 3, chart: 102, score: 900000, added: at(3) });
       await addResult({ player: 2, chart: 103, score: 900000, added: at(4) });
-      // Player 4 has no region
       await addResult({ player: 4, chart: 104, score: 900000, added: at(2) });
 
       const charts = await search({ currentPlayerId: 6 });

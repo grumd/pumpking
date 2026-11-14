@@ -2,8 +2,6 @@ import type { CSSVariablesResolver } from '@mantine/core';
 
 import { darkScheme, gradeColors, gradeVarName, highlightColors } from './tokens';
 
-// The --pk-* variables, plus Mantine variables we override. Values that would differ in a
-// light theme go in `dark` (a light theme adds a `light` block with the same keys)
 export const cssVariablesResolver: CSSVariablesResolver = () => {
   const grades: Record<string, string> = {};
   for (const [grade, color] of Object.entries(gradeColors)) {

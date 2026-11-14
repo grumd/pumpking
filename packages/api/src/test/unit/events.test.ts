@@ -20,7 +20,6 @@ const screenshotDataUrl =
   'data:image/jpeg;base64,' +
   fs.readFileSync(path.join(__dirname, '../files/test.jpg')).toString('base64');
 
-// A manual add through tRPC, as the web does it: player 7 on the Phoenix 2 chart 3
 const addResult = (stats = { perfect: 90, great: 5, good: 3, bad: 1, miss: 1, combo: 95 }) =>
   req()
     .post('/trpc/results.addResultMutation')
@@ -35,7 +34,6 @@ const addResult = (stats = { perfect: 90, great: 5, good: 3, bad: 1, miss: 1, co
         mod: '',
         score: getPhoenixScore(stats, MIXES.Phoenix2),
         ...stats,
-        // Less than a year old: the result counts fully in the total pp
         date: new Date(Date.now() - 10 * 86_400_000).toISOString().slice(0, 10),
         isExactDate: true,
         sharedChartId: 3,
@@ -86,7 +84,6 @@ const insertEvent = (id: number, { secondsAgo = 0, type = 'resultAdded' } = {}) 
     })
     .execute();
 
-// A consumer that records the ids it handles, and fails on the ids in `failingIds`
 const createRecordingConsumer = (failingIds: number[] = []) => {
   const handled: number[] = [];
   const consumer = createEventConsumer('test', async (event: Event) => {
@@ -311,7 +308,6 @@ describe('Events', () => {
 
       await deleteOldEvents(30);
 
-      // 1 and 3 are gone; 2 was skipped, 4 is ahead of the bot's cursor, 5 is recent
       assert.deepEqual(await getEventIds(), [2, 4, 5]);
     });
 
