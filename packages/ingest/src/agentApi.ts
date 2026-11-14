@@ -4,6 +4,15 @@ import type { Request, RequestHandler } from 'express';
 
 const debug = createDebug('ingest:agentApi');
 
+/**
+ * piu-spy's calling conventions, which the legacy Python API set and this service keeps:
+ * - the arguments are the JSON body merged with the query string (GET requests send a
+ *   JSON body too);
+ * - agents authenticate with the `agent-name` / `agent-token` headers;
+ * - every answer is a 200 with a JSON body; an error is `{"error": "<message>"}`;
+ * - lines saying what changed are in the answer's `report`, if there are any.
+ */
+
 export type Args = Record<string, unknown>;
 
 export interface Agent {
@@ -37,6 +46,7 @@ export const getAgent = async (req: Request): Promise<Agent | undefined> => {
     .executeTakeFirst();
 };
 
+// Mandatory arguments, like the legacy `jtools.Extract` (null is a value, missing isn't)
 export const requireArg = <T = unknown>(args: Args, name: string): T => {
   if (!(name in args)) {
     throw new Error(`Expected field '${name}' not found`);
@@ -47,6 +57,7 @@ export const requireArg = <T = unknown>(args: Args, name: string): T => {
 export const errorMessage = (error: unknown) =>
   error instanceof Error ? error.message : String(error);
 
+/** A route for agents; `handle` returns the answer's JSON */
 export const agentRoute =
   (handle: (call: AgentCall) => Promise<object>): RequestHandler =>
   async (req, res) => {

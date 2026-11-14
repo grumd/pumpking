@@ -7,6 +7,7 @@ export async function up(db: Kysely<any>): Promise<void> {
     .addColumn('player_id', 'integer', (col) => col.notNull())
     .addColumn('recorded_at', sql`datetime(3)`, (col) => col.notNull())
     .addColumn('rank', 'integer', (col) => col.notNull())
+    // A table-level constraint: MySQL 8 ignores `references` on a column
     .addForeignKeyConstraint(
       'player_rank_history_player_id_foreign',
       ['player_id'],

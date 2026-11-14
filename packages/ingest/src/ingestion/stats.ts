@@ -11,6 +11,7 @@ type StatField =
   | 'perfects'
   | 'max_combo';
 
+// piu-spy sends JSON, so a stat may arrive as something other than a whole number
 const getStat = (data: ResultData, field: StatField): number | null => {
   const value: unknown = data[field];
   if (value === undefined || value === null) {

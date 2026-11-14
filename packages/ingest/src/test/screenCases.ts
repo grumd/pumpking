@@ -169,6 +169,7 @@ export const readStored = async (catalog: Catalog, database = db): Promise<Store
   charts: await changedCharts(catalog, database),
 });
 
+// Large tables go in in batches, under MySQL's placeholder limit
 const insertRows = async (database: Kysely<DB>, table: keyof DB, rows: object[]) => {
   for (let i = 0; i < rows.length; i += 1000) {
     await database

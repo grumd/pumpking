@@ -1,3 +1,7 @@
+// Text helpers shared by the plugins, ported from the legacy bot (common.py, texts.py).
+// `lang` is the player's region: RU and UA have their own texts, everything else is English
+
+/** Escapes text for Telegram's HTML parse mode */
 export const wrap = (text: string) =>
   text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 

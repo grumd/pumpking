@@ -75,6 +75,8 @@ describe('Agents', () => {
       delete process.env.UPLOADS_ROOT;
     });
 
+    // `filepath` sends the name with its folders, as piu-spy does (form-data cuts
+    // `filename` to the base name)
     const upload = (filePath: string, contentType = 'application/json', content = '{}') => {
       const file = { filepath: filePath, filename: filePath, contentType };
       return request(app)
@@ -110,6 +112,7 @@ describe('Agents', () => {
         info: { path: '2026-09-30/screen.mp4', type: null },
       });
 
+      // From piu-spy on Windows
       const windows = await upload('2026-10-01\\scan.json').expect(200);
       assert.deepEqual(windows.body, { updates: 'File uploaded to <2026-10-01/scan.json>' });
       assert.isTrue(fs.existsSync(path.join(uploadsRoot, 'test-arcade/2026-10-01/scan.json')));

@@ -610,6 +610,7 @@ describe('Add a new Phoenix 2 result (mix 28) via tRPC', () => {
       .orderBy('id', 'desc')
       .executeTakeFirst();
 
+  // tRPC responses are superjson-encoded, the error message lives in `error.json`
   const getErrorMessage = (res: { body: { error: { json: { message: string } } } }) =>
     res.body.error.json.message;
 

@@ -3,10 +3,17 @@ import OpenAI from 'openai';
 import type { ChatCompletionCreateParamsNonStreaming } from 'openai/resources/chat/completions';
 import { error } from 'utils';
 
+/**
+ * Reads a photo of a result screen with a vision model on OpenRouter (see
+ * docs/photo-results/PLAN.md). Each reader is from another vendor, so the next one doesn't
+ * repeat the first one's mistake
+ */
+
 const debug = createDebug('backend-ts:service:photos:reader');
 
 export interface Reader {
   model: string;
+  // OpenRouter's reasoning options: Gemini's reasoning can't be turned off
   reasoning: { effort: 'minimal' } | { enabled: false };
 }
 
@@ -47,6 +54,7 @@ export type PhotoMix = (typeof PHOTO_MIXES)[number];
 
 export interface ReadResult {
   read: PhotoRead | null;
+  // USD, as OpenRouter charged it
   cost: number;
 }
 
@@ -117,6 +125,7 @@ const schema = (mix: PhotoMix) => {
   };
 };
 
+// The request parameters that OpenRouter adds to OpenAI's
 interface OpenRouterParams {
   reasoning: Reader['reasoning'];
   provider: { require_parameters: boolean; data_collection: 'deny' | 'allow' };
@@ -166,6 +175,7 @@ export const readPhoto: ReadPhoto = async (reader, image, mix) => {
   };
 
   const response = await getClient().chat.completions.create(params);
+  // OpenRouter adds the cost in USD to the usage
   const cost = (response.usage as { cost?: number } | undefined)?.cost ?? 0;
   const content = response.choices[0]?.message.content;
   debug('%s read the photo for $%d: %s', reader.model, cost, content);

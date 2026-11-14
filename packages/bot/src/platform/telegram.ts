@@ -2,7 +2,9 @@ import type { Platform } from './platform';
 import type { ChatContext, Keyboard, Sender } from './types';
 import { GrammyError, type Api, type Bot, type Context } from 'grammy';
 
+// Telegram's limit is 4096 characters; longer messages are split at line breaks
 const MAX_MESSAGE_LENGTH = 4000;
+// Telegram allows about 30 messages a second overall
 const SEND_INTERVAL_MS = 50;
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -29,6 +31,7 @@ export const splitMessage = (html: string): string[] => {
   return parts;
 };
 
+/** Sends one message at a time, waiting when Telegram says too many were sent */
 export const createTelegramSender = (api: Api): Sender => {
   let queue = Promise.resolve();
 
@@ -54,6 +57,7 @@ export const createTelegramSender = (api: Api): Sender => {
         await sleep(SEND_INTERVAL_MS);
       }
     } catch (error) {
+      // e.g. the user blocked the bot: nothing to do about it
       console.error(`Bot: error sending a message to ${chatId}`, error);
     }
   };
@@ -88,6 +92,7 @@ const chatContext = (platform: Platform, ctx: Context, text: string): ChatContex
             reply_markup: replyMarkup(keyboard),
           });
         } catch (error) {
+          // Pressing the same button again changes nothing, which Telegram calls an error
           if (!(error instanceof GrammyError && error.description.includes('not modified'))) {
             throw error;
           }
@@ -99,6 +104,7 @@ const chatContext = (platform: Platform, ctx: Context, text: string): ChatContex
   };
 };
 
+/** Connects the platform to Telegram and starts long polling */
 export const startTelegram = (telegram: Bot, platform: Platform) => {
   for (const command of platform.commands) {
     telegram.command(command.command, async (ctx) => {
@@ -117,6 +123,7 @@ export const startTelegram = (telegram: Bot, platform: Platform) => {
     }
   });
 
+  // After the commands, so that it only gets the other messages
   telegram.on('message:text', async (ctx) => {
     const chat = chatContext(platform, ctx, ctx.message.text);
     if (chat) {

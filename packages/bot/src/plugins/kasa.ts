@@ -3,6 +3,10 @@ import { printableDuration, wrap } from '../platform/texts';
 import type { Plugin } from '../platform/types';
 import { randomUUID } from 'crypto';
 
+// Tells the admin when a TP-Link Kasa plug (the heater at the tracked location) turns on
+// or off, through TP-Link's cloud API. Ported from the legacy bot's kasa.py, which used
+// the `tplinkcloud` package: a device that answers is working, one that's offline isn't
+
 const CLOUD_URL = 'https://wap.tplinkcloud.com';
 const MIN_CHANGE_SECONDS = 5 * 60;
 
