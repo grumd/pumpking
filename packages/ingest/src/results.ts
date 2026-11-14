@@ -8,13 +8,6 @@ import createDebug from 'debug';
 
 const debug = createDebug('ingest:results');
 
-/**
- * piu-spy's result submissions (the legacy `results.py`), one result screen each.
- *
- * Modes: `screen` (piu-spy's capture of the arcade's screen) sends unrecognized results
- * to purgatory; `manual` (e.g. an import of a player's profile) rejects them, and merges
- * a result into the same play if it was already recognized from the screen.
- */
 export type SubmitMode = 'screen' | 'manual';
 
 export const submitResults = async (call: AgentCall, mode: SubmitMode) => {
@@ -49,7 +42,6 @@ export const submitResults = async (call: AgentCall, mode: SubmitMode) => {
   return { updates };
 };
 
-// What submitting would do, without writing anything
 export const validateResults = async (call: AgentCall, mode: SubmitMode) => {
   const isManual = mode === 'manual';
   const validation: object[] = [];

@@ -1,14 +1,5 @@
 import { db } from '@pumpking/database/db';
 
-/**
- * Photos and plays that were added before (docs/photo-results/PLAN.md): a photo is never
- * read twice, and a second photo of the same play isn't added again
- */
-
-/**
- * The result this photo shows, if it is known: the result added from it, or the play it
- * turned out to show when it was read before
- */
 export const findPhotoResult = async (photoHash: string) => {
   const added = await db
     .selectFrom('results')
@@ -27,7 +18,6 @@ export const findPhotoResult = async (photoHash: string) => {
   return read?.duplicate_result_id == null ? undefined : { id: read.duplicate_result_id };
 };
 
-/** Of the photos' hashes, the ones whose result is known (see findPhotoResult) */
 export const findKnownPhotoHashes = async (photoHashes: string[]) => {
   const added = await db
     .selectFrom('results')
@@ -44,12 +34,6 @@ export const findKnownPhotoHashes = async (photoHashes: string[]) => {
   return [...new Set([...added, ...duplicates].map((row) => row.photo_sha256))];
 };
 
-/**
- * A photo of a play added before is never read again: its hash goes on that result when the
- * result has none (an older result, or one added by other means), and the reads count as
- * productive. A result with another photo's hash keeps it; this photo is remembered on its
- * reads, which still count as spend without a result (another file or angle of the play)
- */
 export const rememberDuplicatePhoto = async (resultId: number, photoHash: string) => {
   const { numUpdatedRows } = await db
     .updateTable('results')
@@ -75,10 +59,6 @@ export interface PlayStats {
   combo: number;
 }
 
-/**
- * The same play added before: a result of the player on the chart with the same judgements
- * and max combo (a second photo of the same screen)
- */
 export const findSamePlay = (playerId: number, sharedChartId: number, stats: PlayStats) =>
   db
     .selectFrom('results')

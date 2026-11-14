@@ -19,7 +19,6 @@ export function DiscordCallback() {
   const redirectTo = params.redirectTo === 'register' ? 'register' : 'login';
   const code = params.code;
 
-  // Pass code to hook - registration query runs automatically when code is provided
   const discord = useDiscordLogin({ redirectTo, code });
 
   const backLink = redirectTo === 'register' ? routes.register.path : '/';
@@ -36,7 +35,6 @@ export function DiscordCallback() {
     );
   }
 
-  // Registration flow completed - show registration form
   if (redirectTo === 'register' && discord.data) {
     return (
       <RegistrationForm

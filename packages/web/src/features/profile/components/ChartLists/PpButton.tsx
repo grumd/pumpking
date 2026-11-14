@@ -6,12 +6,10 @@ import { KeyValueList } from 'components/KeyValueList/KeyValueList';
 import { useLanguage } from 'utils/context/translation';
 import { getLongTimeAgo } from 'utils/timeAgo';
 
-// Up to 2 decimals, without trailing zeros: 20.4, 91.29
 const short = (value: number) => String(Number(value.toFixed(2)));
 const percent = (factor: number) => `${short(factor * 100)}%`;
 const ppText = (pp: number) => `${pp.toFixed(2)} pp`;
 
-// The number the row shows, bold in the steps
 const Shown = ({ children }: { children: React.ReactNode }) => (
   <Text span inherit fw={700}>
     {children}
@@ -19,10 +17,7 @@ const Shown = ({ children }: { children: React.ReactNode }) => (
 );
 
 interface PpButtonProps {
-  // What the row shows: the result's full pp (all-time best), or what it adds to the
-  // total after its age and the weight of its place (current best)
   shown: 'full' | 'contribution';
-  // The result's full pp
   pp: number;
   steps: PpSteps | null;
   score: number | null;
@@ -32,8 +27,6 @@ interface PpButtonProps {
   weight?: number;
 }
 
-// A row's pp as a button that opens the steps to it: the chart's difficulty, its pp for a
-// 1M score, the score's share of it, then the age and the weight of the place
 export const PpButton = ({
   shown,
   pp,

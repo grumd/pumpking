@@ -12,7 +12,6 @@ import {
 import { assert } from 'chai';
 import request from 'supertest';
 
-// Real result screens, answered and stored as the legacy Python API did (screens/README.md)
 describe('Real screens', () => {
   const catalog = readCatalog();
 

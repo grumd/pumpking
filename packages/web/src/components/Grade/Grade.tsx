@@ -2,7 +2,6 @@ import { Image, type ImageProps } from '@mantine/core';
 
 import { GradePhoenix, getPhoenixGrade } from 'utils/scoring/grades';
 
-// The original grade images, and flat ones made by scripts/grades/generate.py
 const gradeVariants = {
   original: 'phoenix',
   flat: 'phoenix-flat',
@@ -19,7 +18,6 @@ const getFilename = (grade: GradePhoenix, isPass: boolean, variant: GradeVariant
 export const Grade = (
   props: ImageProps & {
     isPass: boolean;
-    /** Explicit grade, if not provided it is calculated from the score */
     grade?: GradePhoenix;
     score?: number;
     variant?: GradeVariant;

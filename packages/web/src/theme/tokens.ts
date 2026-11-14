@@ -1,34 +1,25 @@
-// Raw values of the design tokens. The only place in the app with hex colors.
-// theme.ts turns the named colors into Mantine colors, cssVariables.ts into --pk-* variables.
-// See DESIGN.md for when to use which.
 import type { GradePhoenix } from 'utils/scoring/grades';
 
-// Registered as Mantine colors: usable as c="single", color="gold", var(--mantine-color-single-filled)
 export const appColors = {
-  // Chart types
   single: '#903034',
   singlePerf: '#973894',
   halfDouble: '#3070d0',
   double: '#38a532',
   doublePerf: '#357497',
   coop: '#8e8b2a',
-  // Mixes (translucent, like the old badges)
   mix24: '#48283a99',
   mix25: '#432a4e99',
   mix26: '#2d2a4e99',
   mix27: '#2a434e99',
   mix28: '#2a4e4399',
-  // Step judgements
   perfect: '#6dd0e6',
   great: '#21d021',
   good: '#dede3a',
   bad: '#f278fc',
   miss: '#f48181',
-  // Medals
   gold: '#e8b923',
   silver: '#c0c0c0',
   bronze: '#cd7f32',
-  // Accents
   accent: '#88d3ff',
   fresh: '#afe488',
   latest: '#e4cd88',
@@ -39,7 +30,6 @@ export const appColors = {
 
 export type AppColor = keyof typeof appColors;
 
-// The Discord button's hover shade
 export const discordHover = '#4752c4';
 
 export const mixColor = (mix: number): AppColor | undefined => {
@@ -59,21 +49,17 @@ export const mixColor = (mix: number): AppColor | undefined => {
   }
 };
 
-// Max widths of a page (PageContainer). default is about 950px on desktop
 export const pageWidths = {
   default: '53rem',
   narrow: '27rem',
   wide: '82.5rem',
 } as const;
 
-// Side padding of a page (PageContainer), the top bar and the login screens
 export const pageSidePadding = { base: 'xs', sm: 'sm' } as const;
 
-// Color-scheme dependent values, written to CSS variables by cssVariables.ts
 export const darkScheme = {
   text: '#eeeeee',
   textStrong: '#ffffff',
-  // WCAG AA (4.5:1) on the page, every surface and the stripe
   dimmed: '#b3b3b3',
   placeholder: '#969696',
   surfacePage: '#1e1e1e',
@@ -98,7 +84,6 @@ export const darkScheme = {
   glowPurple: '#793ab1',
 };
 
-// One color per Phoenix grade, for the profile graphs. Use them through gradeColorVar()
 export const gradeColors: Record<GradePhoenix, string> = {
   'SSS+': '#32f1f1',
   SSS: '#16d4d4',
@@ -118,7 +103,6 @@ export const gradeColors: Record<GradePhoenix, string> = {
   F: '#480404',
 };
 
-// Colors of highlighted players on the leaderboard, in order: --pk-highlight-0, -1...
 export const highlightColors = [
   '#4DB3FF',
   '#80B300',
@@ -147,7 +131,6 @@ export const highlightColors = [
   '#FF4D4D',
 ];
 
-// 'SSS+' -> 'var(--pk-grade-sss-plus)'
 export const gradeVarName = (grade: GradePhoenix) =>
   `--pk-grade-${grade.toLowerCase().replace('+', '-plus')}`;
 export const gradeColorVar = (grade: GradePhoenix) => `var(${gradeVarName(grade)})`;

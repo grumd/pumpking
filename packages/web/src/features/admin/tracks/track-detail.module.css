@@ -12,11 +12,9 @@
   border-radius: var(--mantine-radius-md);
 }
 
-/* The shared chart's id down its left side, reading bottom to top */
 .sharedHeader {
   display: flex;
   align-items: center;
-  /* The end of the rotated line: the text sits at the top of the strip */
   justify-content: flex-end;
   gap: var(--mantine-spacing-xxs);
   writing-mode: vertical-rl;
@@ -63,7 +61,6 @@
   background: var(--mantine-color-red-light);
 }
 
-/* The instance id on top, a dashed line below it */
 .instanceId {
   padding: 0 var(--mantine-spacing-xs);
   border-bottom: rem(1px) dashed var(--pk-border);
@@ -102,7 +99,6 @@
   color: var(--mantine-color-dimmed);
 }
 
-/* A step range that changed since the previous card */
 .stepsChanged {
   color: var(--mantine-color-text);
 }

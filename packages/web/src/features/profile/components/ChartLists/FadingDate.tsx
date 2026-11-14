@@ -5,7 +5,6 @@ import { getLongTimeAgo } from 'utils/timeAgo';
 
 import css from './fading-date.module.css';
 
-// How long ago a result was gained: the last month in green, older dates fade
 export const FadingDate = ({ date }: { date: Date }): JSX.Element => {
   const lang = useLanguage();
   const daysAgo = Math.floor((Date.now() - date.getTime()) / (1000 * 60 * 60 * 24));

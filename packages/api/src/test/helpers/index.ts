@@ -6,5 +6,4 @@ export const req = (): SuperTest<Test> => {
   return request(app);
 };
 
-// Adding a result only queues its effects: this applies them, as the effects job would
 export const applyEffects = () => effectsConsumer.processBatch();

@@ -16,7 +16,6 @@ export const useRegister = () => {
   const registerMutation = useMutation(
     api.auth.register.mutationOptions({
       onSuccess: (data) => {
-        // Cookie expires in 14 days to match backend session validity
         cookies.set('session', data.session, { expires: 14 });
         queryClient.invalidateQueries(api.user.current.queryFilter());
       },

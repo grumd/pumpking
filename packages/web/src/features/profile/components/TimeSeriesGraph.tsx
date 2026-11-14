@@ -30,11 +30,8 @@ export type TimeSeries = {
   label: string;
   color: string;
   data: TimePoint[];
-  // pp history is a smooth line, places go in steps
   curve: 'smooth' | 'step';
-  // A fading fill under the line
   area: boolean;
-  // The y axis for the values shown: [bottom, top] (places put 1 on top)
   yDomain: (values: number[]) => [number, number];
   yTicks: (scale: LinearScale) => number[];
   formatValue: (value: number) => ReactNode;
@@ -45,14 +42,11 @@ const year = 365 * day;
 
 const accent = 'var(--mantine-color-accent-filled)';
 
-// The brush under the graph: a gap, the overview of the whole history, its year labels
 const brushGap = 16;
 const brushHeight = 36;
 const brushAxisHeight = 24;
-// Room for the second series' axis on the right
 const rightAxisWidth = 40;
 
-// Index of the last point at or before the date (0 when there is none)
 const lastIndexAtOrBefore = (data: TimePoint[], date: number) => {
   let low = 0;
   let high = data.length - 1;
@@ -67,11 +61,9 @@ const lastIndexAtOrBefore = (data: TimePoint[], date: number) => {
   return low;
 };
 
-// Where a series is on the date: its last point at or before it
 const pointAt = (data: TimePoint[], date: number) =>
   data.length && data[0].date <= date ? data[lastIndexAtOrBefore(data, date)] : undefined;
 
-// Years over a long span, months over a shorter one, days over a few weeks
 const formatDateTick = (date: Date, span: number) => {
   if (span > 3 * year) {
     return date.toLocaleDateString(undefined, { year: 'numeric' });
@@ -84,29 +76,21 @@ const formatDateTick = (date: Date, span: number) => {
   return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
 };
 
-// Keeps a fast drag on the brush going: visx ends it when the pointer leaves the brush strip
 const capturePointer = (event: PointerEvent<SVGGElement>) => {
   if (event.target instanceof Element) {
     event.target.setPointerCapture(event.pointerId);
   }
 };
 
-// A value tick as it is: visx's default pads every label to the precision of 10 ticks ("2.0")
 const formatValueTick = (value: { valueOf(): number }) => Number(value).toLocaleString();
 
 type TooltipData = { date: number; points: Array<TimePoint | undefined> };
 
-/**
- * One or two values over time (the second one on a right axis) with a brush under them that
- * picks the dates shown: the last year at first. Remount it (`key`) for another player: the
- * brush only reads its start position once
- */
 export const TimeSeriesGraph = ({
   series,
   aspect = 1.5,
 }: {
   series: [TimeSeries] | [TimeSeries, TimeSeries];
-  // Width / height of the graph with its brush
   aspect?: number;
 }) => {
   const id = useId().replace(/:/g, '');
@@ -123,7 +107,6 @@ export const TimeSeriesGraph = ({
 
   const first = Math.min(...series.map((one) => one.data[0]?.date ?? Infinity));
   const last = Math.max(...series.map((one) => one.data.at(-1)?.date ?? -Infinity));
-  // One point has no span: show a day around it
   const fullRange: [number, number] = first < last ? [first, last] : [first - day, last + day];
   const [range, setRange] = useState<[number, number]>(() => [
     Math.max(fullRange[0], fullRange[1] - year),
@@ -136,7 +119,6 @@ export const TimeSeriesGraph = ({
   const innerHeight = Math.max(0, mainHeight - margin.top - margin.bottom);
   const brushTop = mainHeight + brushGap;
 
-  // The points in the range, and one on each side so the lines reach the edges
   const visible = useMemo(
     () =>
       series.map((one) => {
@@ -163,14 +145,12 @@ export const TimeSeriesGraph = ({
       range: [brushHeight, 0],
     })
   );
-  // The brush only reads it when it mounts (with the first measured width)
   const initialBrushPosition = {
     start: { x: brushXScale(range[0]) },
     end: { x: brushXScale(range[1]) },
   };
 
   const onBrushChange = (bounds: { x0: number; x1: number } | null) => {
-    // Cleared (a click or a double click on the brush): the whole history
     setRange(bounds ? [Number(bounds.x0), Number(bounds.x1)] : fullRange);
   };
 
@@ -183,7 +163,6 @@ export const TimeSeriesGraph = ({
       return;
     }
     const date = xScale.invert(pointer.x - margin.left).getTime();
-    // The nearest point in the range, of the first series that has one there
     const nearest = visible
       .map((points) => {
         const index = lastIndexAtOrBefore(points, date);
@@ -211,14 +190,12 @@ export const TimeSeriesGraph = ({
   };
 
   const span = range[1] - range[0];
-  // With two axes, each one's labels take the color of its line (--series-color around it)
   const valueAxisProps = series[1]
     ? { ...axisProps, tickLabelProps: { className: classes.seriesTick } }
     : axisProps;
 
   return (
     <>
-      {/* Axis ticks in the caption size. The box's CSS sets its height, the svg fills it */}
       <Box
         fz="xs"
         ref={parentRef}
@@ -376,8 +353,6 @@ export const TimeSeriesGraph = ({
                   yScale={brushYScales[0]}
                   width={innerWidth}
                   height={brushHeight}
-                  // Where the brush is in the svg: a new range starts at the pointer's svg
-                  // position minus this
                   margin={{ left: margin.left, top: brushTop }}
                   handleSize={10}
                   brushDirection="horizontal"

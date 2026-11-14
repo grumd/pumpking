@@ -1,6 +1,5 @@
 import { z } from 'zod';
 
-// Arcade names by mix id; `maxLength` is the name column's length
 export const arcadeNames = (maxLength: number) =>
   z.record(
     z.coerce.number(),

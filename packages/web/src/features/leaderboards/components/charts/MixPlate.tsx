@@ -15,7 +15,6 @@ export const MixPlate = ({ mix }: MixPlateProps): JSX.Element | null => {
   const currentMix = mixes?.length ? Math.max(...mixes) : null;
 
   return isMixNumber(mix) && currentMix !== null && currentMix !== mix ? (
-    // Desktop only: on phones the name needs the room, and the result details show the mix
     <Badge size="xs" color={mixColor(mix)} visibleFrom="md">
       {
         {

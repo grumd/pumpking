@@ -8,7 +8,6 @@ import { EmptyState } from 'components/EmptyState/EmptyState';
 import { useActivity } from './activity';
 import css from './activity-drawer.module.css';
 
-// The button that opens the activity log, and the log itself
 export const ActivityDrawer = (): JSX.Element => {
   const activity = useActivity();
   const [opened, { open, close }] = useDisclosure(false);

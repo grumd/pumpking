@@ -11,7 +11,6 @@ export const searchChartsController = async (
     response.json(
       await searchCharts({
         ...request.query,
-        // TODO: This abomination is only for testing
         currentPlayerId: request.query.currentPlayerId
           ? Number(request.query.currentPlayerId)
           : undefined,

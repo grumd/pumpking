@@ -7,29 +7,22 @@ import { axisProps, graphMargin } from './graphAxis';
 import classes from './graphs.module.css';
 import { useGraph } from './useGraph';
 
-// Room a level label needs on the x axis, in pixels: with less, every other level is labelled
 const levelLabelWidth = 22;
 
 const formatPercent = (value: number) => `${Math.round(Math.abs(value))}%`;
 
 type LevelBarsGraphProps<Row extends { level: number }, Key extends string> = {
   data: Row[];
-  // Stacked from the zero line out: the first key is closest to it
   keys: readonly Key[];
-  // Percent; negative values stack under the zero line
   value: (row: Row, key: Key) => number;
   color: (key: Key) => string;
-  // Width / height of the graph, unless a fillCard (graphs.module.css) gives it a height
   aspect: number;
-  // Fixed y axis (0-100%). Without it the axis fits the bars, at least 10% each way
   yDomain?: [number, number];
   yTicks?: number[];
-  // Names of the parts above and under the zero line
   labels?: { above: string; below: string };
   renderTooltip: (row: Row) => ReactNode;
 };
 
-// Stacked bars by chart level, with a tooltip for the hovered level
 export const LevelBarsGraph = <Row extends { level: number }, Key extends string>({
   data,
   keys,
@@ -55,7 +48,6 @@ export const LevelBarsGraph = <Row extends { level: number }, Key extends string
   const innerWidth = Math.max(0, width - graphMargin.left - graphMargin.right);
   const innerHeight = Math.max(0, height - graphMargin.top - graphMargin.bottom);
 
-  // A level without charts of a type divides by zero: no bar
   const safeValue = (row: Row, key: Key) => {
     const result = value(row, key);
     return Number.isFinite(result) ? result : 0;
@@ -89,7 +81,6 @@ export const LevelBarsGraph = <Row extends { level: number }, Key extends string
 
   const showLevel = (event: PointerEvent<SVGRectElement>, row: Row) => {
     const point = Event.localPoint(event);
-    // At the top of the plot, like the bars are read from the top
     tooltip.showTooltip({ tooltipData: row, tooltipLeft: point?.x, tooltipTop: graphMargin.top });
   };
   const hideOnLeave = (event: PointerEvent<SVGRectElement>) => {
@@ -98,12 +89,9 @@ export const LevelBarsGraph = <Row extends { level: number }, Key extends string
     }
   };
 
-  // The column of a level, gaps included, for the hover highlight and the pointer
   const columnX = (row: Row) => (xScale(row.level) ?? 0) - (xScale.step() - xScale.bandwidth()) / 2;
 
   return (
-    // Axis ticks and the legend in the caption size. The box's CSS sets its height, the svg
-    // fills it
     <Box fz="xs" ref={parentRef} className={classes.levelBars} style={{ '--graph-aspect': aspect }}>
       {width > 0 && height > 0 && (
         <svg width={width} height={height} className={classes.svg}>

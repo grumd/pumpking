@@ -37,8 +37,6 @@ interface Search {
   chartLabel?: string;
 }
 
-// Finds results by id, score, player, track or chart: the newest 100 that match. The
-// search is kept in the URL
 export const ResultsTab = (): JSX.Element => {
   const navigate = useNavigate();
   const location = useLocation();

@@ -1,17 +1,13 @@
-/* Attached to every Mantine Table by the theme */
-
 .tr[data-clickable] {
   cursor: pointer;
 }
 
-/* A column as narrow as its content: places, numbers, icons. The other columns share the rest */
 .td[data-fit],
 .th[data-fit] {
   width: 0;
   white-space: nowrap;
 }
 
-/* The main number of a row: pp, play count */
 .td[data-main] {
   font-weight: 700;
   color: var(--pk-text-strong);
@@ -21,8 +17,6 @@
   background: var(--pk-surface-3);
 }
 
-/* variant="rows": every row is its own surface-2 tile with rounded ends.
-   Keep the first and last columns visible on every width, so the corners stay round */
 .table[data-variant='rows'] {
   border-collapse: separate;
   border-spacing: 0 var(--mantine-spacing-xxs);
@@ -43,7 +37,6 @@
 
   & .td {
     background: var(--pk-surface-2);
-    /* A name with a very long word wraps instead of pushing the table off a phone screen */
     overflow-wrap: anywhere;
   }
 

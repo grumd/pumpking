@@ -22,7 +22,6 @@ const STATUS_COLORS: Record<PhotoStatus, string> = {
   skipped: 'gray',
 };
 
-// In the user's time zone, e.g. "18 Oct, 14:05"
 const formatRetryAt = (date: Date) =>
   date.toLocaleString(undefined, {
     day: 'numeric',

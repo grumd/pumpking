@@ -3,9 +3,6 @@ import { initTRPC, TRPCError } from '@trpc/server';
 import superjson from 'superjson';
 import { StatusError } from 'utils/errors';
 
-/**
- * Map HTTP status codes to tRPC error codes
- */
 const statusToTrpcCode: Record<number, TRPCError['code']> = {
   400: 'BAD_REQUEST',
   401: 'UNAUTHORIZED',
@@ -21,10 +18,6 @@ const statusToTrpcCode: Record<number, TRPCError['code']> = {
   499: 'CLIENT_CLOSED_REQUEST',
 };
 
-/**
- * Initialization of tRPC backend
- * Should be done only once per backend!
- */
 const t = initTRPC.context<Context>().create({
   transformer: superjson,
   errorFormatter({ shape, error }) {
@@ -39,8 +32,6 @@ const t = initTRPC.context<Context>().create({
       };
     }
     if (error.code !== 'INTERNAL_SERVER_ERROR') {
-      // tRPC's own errors keep their status: input validation (Zod) errors are 400, and
-      // adminProcedure's UNAUTHORIZED is 401
       return shape;
     }
     return {
@@ -54,16 +45,9 @@ const t = initTRPC.context<Context>().create({
   },
 });
 
-/**
- * Export reusable router and procedure helpers
- * that can be used throughout the router
- */
 export const router = t.router;
 export const publicProcedure = t.procedure;
 
-/**
- * Admin procedure - requires user to be logged in and have is_admin=1
- */
 export const adminProcedure = t.procedure.use(async ({ ctx, next }) => {
   if (!ctx.user?.is_admin) {
     throw new TRPCError({ code: 'UNAUTHORIZED', message: 'Admin access required' });
@@ -71,9 +55,6 @@ export const adminProcedure = t.procedure.use(async ({ ctx, next }) => {
   return next({ ctx: { user: ctx.user } });
 });
 
-/**
- * Dev procedure - only available in development mode
- */
 export const devProcedure = t.procedure.use(async ({ next }) => {
   if (process.env.NODE_ENV !== 'development') {
     throw new TRPCError({ code: 'FORBIDDEN', message: 'Only available in development mode' });

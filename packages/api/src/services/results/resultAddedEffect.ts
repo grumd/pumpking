@@ -34,7 +34,6 @@ export const resultAddedEffect = async (resultId: number) => {
     .executeTakeFirst();
 
   if (!result) {
-    // Deleted before the effects job got to it
     debug(`Result ${resultId} not found, skipping`);
     return;
   }
@@ -63,7 +62,6 @@ export const resultAddedEffect = async (resultId: number) => {
     const { perfects, greats, goods, bads, misses, max_combo, mix, grade } = result;
     const { level, label } = chartInstance;
 
-    // Calculate score_phoenix if needed
     if (
       score_phoenix == null &&
       perfects != null &&
@@ -104,15 +102,12 @@ export const resultAddedEffect = async (resultId: number) => {
         .executeTakeFirst();
     }
 
-    // Calculate EXP
     if (score_phoenix != null && level != null) {
       const exp = getResultExp({ score: score_phoenix }, { level, label });
       await trx.updateTable('results').set({ exp }).where('id', '=', resultId).executeTakeFirst();
       await refreshPlayerTotalExp(playerId, trx);
     }
 
-    // Every result gets pp, not only a new best: a newer result can add more to the total
-    // than an older best on the same chart (see services/players/totalPp.ts)
     const pp = (await calculateResultsPp({ resultId, trx })).get(resultId);
     if (pp) {
       await trx.updateTable('results').set({ pp }).where('id', '=', resultId).executeTakeFirst();
@@ -137,7 +132,6 @@ export const resultAddedEffect = async (resultId: number) => {
       .executeTakeFirst();
 
     if (firstTopScore && firstTopScore.id === resultId) {
-      // This score is the new best score
       sharedChartIsChanged = true;
     }
 

@@ -26,8 +26,6 @@ import { formatDate, formatNumber } from '../scoring';
 type ChartInstance = ApiOutputs['admin']['tracks']['get']['charts'][number]['instances'][number];
 type ChartResult = ApiOutputs['admin']['tracks']['chartResults']['rows'][number];
 
-// A chart instance: its step range, and its newest results. A result opens in a window on
-// top of this one
 export const ChartInstanceDetail = ({ instance }: { instance: ChartInstance }): JSX.Element => {
   const [openResultId, setOpenResultId] = useState<number | null>(null);
 
@@ -122,7 +120,6 @@ const StepsForm = ({ instance }: { instance: ChartInstance }) => {
   );
 };
 
-// The sum of the result's steps, if it has them all
 const totalSteps = (result: ChartResult) => {
   const counts = [result.perfects, result.greats, result.goods, result.bads, result.misses];
   return counts.every((count) => count != null)
@@ -139,7 +136,6 @@ const ChartResults = ({
   openResultId: number | null;
   onOpenResult: (id: number) => void;
 }) => {
-  // The newest 200, then 500 more at a time
   const results = useInfiniteQuery(
     api.admin.tracks.chartResults.infiniteQueryOptions(
       { chartInstanceId: instance.id },

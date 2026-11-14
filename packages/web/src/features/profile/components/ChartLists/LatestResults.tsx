@@ -16,7 +16,6 @@ import { api } from 'utils/trpc';
 import { ResultScore } from './ResultScore';
 import { latestResultsInput, pageOptions } from './listQueries';
 
-// The player's results, newest first
 export const LatestResults = (): JSX.Element => {
   const params = useParams();
   const results = useInfiniteQuery(

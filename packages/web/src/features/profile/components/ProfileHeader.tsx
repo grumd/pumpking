@@ -51,7 +51,6 @@ export const ProfileHeader = (): JSX.Element => {
           />
         )}
       </Group>
-      {/* For admins: opens this player in the admin section */}
       {user.data?.is_admin && (
         <Tooltip label="Edit player">
           <ActionIcon

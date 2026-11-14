@@ -19,7 +19,6 @@ import { useAdminAction } from '../activity/activity';
 
 type TracklistFile = ApiInputs['admin']['tracks']['previewSync']['file'];
 
-// Keeps only what the sync reads, so a large tracklist file stays a small request
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const slimTracklist = (json: any): TracklistFile => ({
   mixes: Object.fromEntries(Object.keys(json.mixes ?? {}).map((mix) => [mix, {}])),
@@ -63,8 +62,6 @@ interface TracklistSyncModalProps {
   onClose: () => void;
 }
 
-// Replaces the legacy admin CLI's tracklist sync: pick the tracklist file, look at what
-// it would change, then apply it
 export const TracklistSyncModal = ({ opened, onClose }: TracklistSyncModalProps): JSX.Element => {
   const [file, setFile] = useState<TracklistFile | null>(null);
   const [readError, setReadError] = useState<string | null>(null);
@@ -84,8 +81,6 @@ export const TracklistSyncModal = ({ opened, onClose }: TracklistSyncModalProps)
       return;
     }
     try {
-      // The JSON round trip drops the fields a track doesn't have: sent as undefined, each
-      // would add an entry to superjson's metadata and make the request several times larger
       const slim = JSON.parse(JSON.stringify(slimTracklist(JSON.parse(await picked.text()))));
       setFile(slim);
       preview.mutate({ file: slim });

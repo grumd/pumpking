@@ -11,24 +11,17 @@ const debug = createDebug('bot:platform');
 
 export const EVENTS_CONSUMER = 'bot';
 const EVENTS_POLL_INTERVAL_MS = 1000;
-// After downtime, events older than this are skipped instead of notifying about them late
 const STALE_EVENT_SECONDS = 30 * 60;
-// A failing job pauses for this long, doubling with each failure in a row, up to the max
 const JOB_PAUSE_MS = 10 * 60 * 1000;
 const JOB_MAX_PAUSE_MS = 6 * 60 * 60 * 1000;
 
 const errorMessage = (error: unknown) => (error instanceof Error ? error.message : String(error));
 
-// The first word of a text, and the rest
 export const splitFirstWord = (text: string): [string, string] => {
   const words = text.trim().split(/\s+/);
   return [words[0] ?? '', words.slice(1).join(' ')];
 };
 
-/**
- * Starting from no cursor, the bot skips the events already stored: it would otherwise
- * replay the whole retention period (30 days) of notifications
- */
 export const initEventsCursor = async () => {
   await sql`
     INSERT IGNORE INTO event_cursors (consumer, event_id, updated_at)
@@ -75,7 +68,6 @@ export const createPlatform = (plugins: Plugin[], config: BotConfig, sender: Sen
     }
   };
 
-  // One line per incoming message or button press, to see later what a player asked
   const logIncoming = (ctx: ChatContext, what: string) =>
     console.log(`Bot: ${ctx.username ? `@${ctx.username}` : ctx.chatId} > ${what}`);
 
@@ -86,7 +78,6 @@ export const createPlatform = (plugins: Plugin[], config: BotConfig, sender: Sen
       .map((command) => `/${command.command} - ${command.description}`)
       .join('\n');
 
-  /** A `/command`; `ctx.text` is what follows it */
   const handleCommand = (name: string, ctx: ChatContext) => {
     logIncoming(ctx, `/${name} ${ctx.text}`.trim());
     const command = commands.find((c) => c.command === name);
@@ -99,7 +90,6 @@ export const createPlatform = (plugins: Plugin[], config: BotConfig, sender: Sen
     });
   };
 
-  /** A plain text message: its first word picks the command, like "rivals add Bob" */
   const handleText = (ctx: ChatContext) => {
     logIncoming(ctx, ctx.text);
     const [word, rest] = splitFirstWord(ctx.text);
@@ -115,7 +105,6 @@ export const createPlatform = (plugins: Plugin[], config: BotConfig, sender: Sen
     });
   };
 
-  /** A button press, with the data `<plugin>:<action>:<argument>` */
   const handleCallback = (data: string, ctx: ChatContext) => {
     logIncoming(ctx, `button ${data}`);
     const [pluginName, action, ...argument] = data.split(':');
@@ -129,7 +118,6 @@ export const createPlatform = (plugins: Plugin[], config: BotConfig, sender: Sen
     });
   };
 
-  // Each plugin's handler runs on its own: one failing doesn't repeat the others
   const handleEvent = async (event: Event) => {
     const handlers = plugins.flatMap((plugin) => {
       const handler = plugin.events?.[event.type] as
@@ -160,7 +148,6 @@ export const createPlatform = (plugins: Plugin[], config: BotConfig, sender: Sen
 
   const eventsConsumer = createEventConsumer(EVENTS_CONSUMER, handleEvent);
 
-  // Polls the events; the next poll is scheduled when the current one ends
   const startEvents = async () => {
     await initEventsCursor();
     let isStopped = false;
@@ -182,7 +169,6 @@ export const createPlatform = (plugins: Plugin[], config: BotConfig, sender: Sen
     };
   };
 
-  // A job runs every `intervalMs`. When it fails, the admin is told and it pauses
   const startJob = (job: Job) => {
     let isStopped = false;
     let timer: NodeJS.Timeout | undefined;

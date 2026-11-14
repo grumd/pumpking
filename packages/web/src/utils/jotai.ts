@@ -51,7 +51,6 @@ export const atomWithValidatedStorage = <Value>(
       },
     },
     {
-      // Maybe it will be stable one day :^)
       unstable_getOnInit: true,
     }
   );

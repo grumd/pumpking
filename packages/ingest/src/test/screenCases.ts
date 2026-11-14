@@ -5,15 +5,8 @@ import fs from 'fs';
 import { type Insertable, type Kysely, sql } from 'kysely';
 import path from 'path';
 
-/**
- * Real result screens, each with the answers and the stored rows that the legacy Python
- * API gave for it (see screens/README.md). screens.test.ts sends them to this service,
- * scripts/screenCases.ts makes and records them.
- */
-
 export const SCREENS_DIR = path.join(__dirname, 'screens');
 
-// Every case's agent uses this token
 export const AGENT_TOKEN = 'screen-cases-token';
 
 type Row = Record<string, unknown>;
@@ -27,31 +20,24 @@ export interface ChartSteps {
 export interface Stored {
   results: Row[];
   purgatory: Row[];
-  // The charts whose number of steps isn't the catalog's any more
   charts: ChartSteps[];
 }
 
 export interface Step {
-  // One of the result routes, e.g. /results/screen/submit
   path: string;
   agent: string;
   request: Row;
-  // Without the `report` lines
   answer?: Row;
 }
 
 export interface ScreenCase {
   about: string;
-  // Who gave the recorded answers: the legacy Python API, or this service where the
-  // legacy one fails on the screen (the `about` says why)
   answersFrom?: 'legacy' | 'ingest';
-  // Rows in the database before the first step, e.g. an older result of the same play
   before?: { results?: Row[]; charts?: ChartSteps[] };
   steps: Step[];
   stored?: Stored;
 }
 
-// The tables that ingestion reads, with only the rows the cases need (from the dev DB)
 export interface Catalog {
   agents: { id: number; name: string; title: string }[];
   players: Insertable<DB['players']>[];
@@ -66,7 +52,6 @@ export const CATALOG_FILE = path.join(SCREENS_DIR, 'catalog.json');
 
 export const readCatalog = (): Catalog => JSON.parse(fs.readFileSync(CATALOG_FILE, 'utf8'));
 
-// Every case file, as paths relative to the screens folder
 export const listCases = (): string[] =>
   fs
     .readdirSync(SCREENS_DIR, { recursive: true, encoding: 'utf8' })
@@ -82,8 +67,6 @@ export const writeCase = (file: string, screenCase: ScreenCase) => {
   fs.writeFileSync(fullPath, `${JSON.stringify(screenCase, null, 2)}\n`);
 };
 
-// The columns compared after a case. Not `token` and `added`, which are different on
-// every run
 export const RESULT_COLUMNS = [
   'id',
   'screen_file',
@@ -146,7 +129,6 @@ const PURGATORY_COLUMNS = [
   'calories',
 ] as const;
 
-// The datetimes as they're stored, and no columns that are null anyway
 const storedRows = async (database: Kysely<DB>, table: 'results' | 'purgatory') => {
   const columns = table === 'results' ? RESULT_COLUMNS : PURGATORY_COLUMNS;
   const rows = await database
@@ -165,7 +147,6 @@ const storedRows = async (database: Kysely<DB>, table: 'results' | 'purgatory') 
   );
 };
 
-// The charts whose number of steps isn't the catalog's
 const changedCharts = async (catalog: Catalog, database: Kysely<DB>) => {
   const catalogCharts = new Map(catalog.chart_instances.map((chart) => [chart.id, chart]));
   const charts = await database
@@ -188,7 +169,6 @@ export const readStored = async (catalog: Catalog, database = db): Promise<Store
   charts: await changedCharts(catalog, database),
 });
 
-// Large tables go in in batches, under MySQL's placeholder limit
 const insertRows = async (database: Kysely<DB>, table: keyof DB, rows: object[]) => {
   for (let i = 0; i < rows.length; i += 1000) {
     await database
@@ -198,7 +178,6 @@ const insertRows = async (database: Kysely<DB>, table: keyof DB, rows: object[])
   }
 };
 
-// The catalog, in an otherwise empty database
 export const seedCatalog = async (catalog: Catalog, database = db) => {
   await clearTables(database);
   await insertRows(
@@ -206,7 +185,6 @@ export const seedCatalog = async (catalog: Catalog, database = db) => {
     'agents',
     catalog.agents.map((agent) => ({ ...agent, token: AGENT_TOKEN }))
   );
-  // Aliases after the players they point to
   const players = [...catalog.players].sort(
     (a, b) => Number(a.actual_player_id != null) - Number(b.actual_player_id != null)
   );
@@ -222,10 +200,6 @@ export const seedCatalog = async (catalog: Catalog, database = db) => {
   }
 };
 
-/**
- * The seeded catalog as it was, and the case's `before` rows. Results and purgatory rows
- * get ids from 1, so the answers that name them are the same on every run
- */
 export const prepareCase = async (catalog: Catalog, screenCase: ScreenCase, database = db) => {
   await database.deleteFrom('results').execute();
   await database.deleteFrom('purgatory').execute();
@@ -251,5 +225,4 @@ export const prepareCase = async (catalog: Catalog, screenCase: ScreenCase, data
   }
 };
 
-// The answer as recorded: the report lines print datetimes differently in the legacy API
 export const withoutReport = ({ report: _report, ...answer }: Row) => answer;

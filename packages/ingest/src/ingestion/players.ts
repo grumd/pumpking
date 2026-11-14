@@ -3,16 +3,8 @@ import type { DB } from '@pumpking/database/database';
 import { distance } from 'fastest-levenshtein';
 import type { Kysely } from 'kysely';
 
-// Phoenix 2 shows player names as `NICKNAME #1234`: the spaces are part of the name there
 const MIX_NAMES_WITH_IDS_IN_PLAYER_NAMES = ['Phoenix2'];
 
-/**
- * The player whose arcade name on the mix is closest to the recognized one, within that
- * name's tolerance (`arcade_player_names.name_edist`). Two names nearly as close are too
- * ambiguous to pick from (edit distances are Levenshtein, as the legacy `editdistance`).
- * An alias account resolves to its actual player (one step).
- * Throws an UnrecognizedResult when no player fits
- */
 export const findPlayer = async (
   db: Kysely<DB>,
   mix: { id: number; name: string },

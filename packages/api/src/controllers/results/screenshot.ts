@@ -12,7 +12,6 @@ export const screenshotController = async (
     const resultId = parseInt(request.params.resultId, 10);
     const { filePath, fileName, isVideo } = await getScreenshot(resultId);
 
-    // Inline, so the browser still shows the image, but saving it uses this name
     const disposition = contentDisposition(fileName, { type: 'inline' });
 
     if (isVideo) {

@@ -3,8 +3,6 @@ import { recordStandings } from 'services/players/playersPp';
 import { resultAddedEffect } from 'services/results/resultAddedEffect';
 import { resultChangedEffect } from 'services/results/resultChangedEffect';
 
-// Computes what follows from new events: pp, exp, player totals, pp history. Polled by
-// jobs/effectsJob.ts
 export const effectsConsumer = createEventConsumer('effects', async (event) => {
   switch (event.type) {
     case 'resultAdded':

@@ -21,12 +21,10 @@ export interface RegisterInput {
 export async function registerPlayer(input: RegisterInput): Promise<{ session: string }> {
   const { registrationToken, nickname, region, arcadeName } = input;
 
-  // Verify the registration token and extract email
   const email = verifyRegistrationToken(registrationToken);
 
   debug(`Registration attempt for email: ${email}, nickname: ${nickname}`);
 
-  // Check if player with this email already exists (race condition check)
   const existingPlayer = await db
     .selectFrom('players')
     .select(['id'])
@@ -37,7 +35,6 @@ export async function registerPlayer(input: RegisterInput): Promise<{ session: s
     throw new StatusError(409, 'Player with this email already exists');
   }
 
-  // Check if nickname is already taken
   const existingNickname = await db
     .selectFrom('players')
     .select(['id'])
@@ -48,7 +45,6 @@ export async function registerPlayer(input: RegisterInput): Promise<{ session: s
     throw new StatusError(409, 'This nickname is already taken');
   }
 
-  // Create the player, with their arcade name on the current mix
   const playerId = await db.transaction().execute(async (trx) => {
     const result = await trx
       .insertInto('players')
@@ -72,7 +68,6 @@ export async function registerPlayer(input: RegisterInput): Promise<{ session: s
 
   debug(`Created new player: ${nickname} (${playerId})`);
 
-  // Create session for the new player
   const now = new Date();
   const sessionId = generateSessionId();
   const validUntil = new Date(now.getTime() + 14 * 24 * 60 * 60 * 1000);

@@ -35,7 +35,6 @@ export default function TopBar() {
     api.notices.unread.queryOptions(undefined, { enabled: !!user })
   );
 
-  // Same width and side padding as PageContainer, so the nav lines up with the page
   return (
     <Container
       component="header"

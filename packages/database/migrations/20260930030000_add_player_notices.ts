@@ -1,10 +1,5 @@
 import { Kysely } from 'kysely';
 
-/**
- * M9 of the tournament relaunch (docs/tournaments/PLAN.md): at most one pending
- * notice per player per scope ('tournament', ...), written by the job that
- * raises it and cleared when the player visits the page.
- */
 export async function up(db: Kysely<any>): Promise<void> {
   await db.schema
     .createTable('player_notices')

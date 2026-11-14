@@ -7,12 +7,9 @@ export type RowSizes = {
   change: MantineSize;
   badge: MantineSize;
   date: MantineSize;
-  /** The grade image's height */
   grade: string;
 };
 
-// Text, badge and grade sizes of a row. Phones have the room for larger ones: the step counts
-// are narrow
 const rowSizes: Record<'phone' | 'desktop', RowSizes> = {
   phone: {
     name: 'lg',
@@ -34,6 +31,5 @@ const rowSizes: Record<'phone' | 'desktop', RowSizes> = {
   },
 };
 
-// Once per chart card. Responsive props on the rows would add a <style> tag to each of them
 export const useRowSizes = (): RowSizes =>
   useMatches({ base: rowSizes.phone, md: rowSizes.desktop }, { getInitialValueInEffect: false });

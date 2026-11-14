@@ -1,8 +1,6 @@
 import { formatNumber, wrap } from '../../platform/texts';
 import type { BestResult, ChartInfo } from './results';
 
-// The texts of the rivals notifications, as in the legacy bot's rivals.py
-
 const byLang = (lang: string, texts: { RU: string; UA: string; EN: string }) =>
   lang === 'RU' ? texts.RU : lang === 'UA' ? texts.UA : texts.EN;
 
@@ -33,7 +31,6 @@ export const chartHeader = (chart: ChartInfo) =>
     chart.chartLabel
   )}</b></a>:`;
 
-// "best" marks a score that came from a personal / machine best, not from a play
 const scoreAndTimeAgo = (lang: string, res: BestResult, showBest = false) => {
   const best =
     showBest && !res.exactGainDate

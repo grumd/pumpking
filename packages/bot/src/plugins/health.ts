@@ -1,10 +1,6 @@
 import { wrap } from '../platform/texts';
 import type { Plugin } from '../platform/types';
 
-// Tells the admin when a service's /healthz stops answering, and when it's back. The
-// bot runs on its own, so it keeps watching when the API or ingestion is down
-
-// Checks in a row that have to fail before the service counts as down
 const FAILURES_TO_ALERT = 2;
 
 const checkHealth = async (url: string): Promise<string | undefined> => {

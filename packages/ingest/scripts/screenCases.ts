@@ -1,25 +1,3 @@
-/**
- * Makes the real screen cases in src/test/screens (see the README there):
- *
- *   npx tsx scripts/screenCases.ts new <case.json> --about "..." \
- *     (--result 123[,124] | --purgatory 5) [--path /results/manual/submit] [--before 120]
- *   npx tsx scripts/screenCases.ts catalog
- *   npx tsx scripts/screenCases.ts record --url http://127.0.0.1:5000 [--source ingest] \
- *     [--ts-port 3901] [case.json ...]
- *
- * `new` writes a case from rows of the dev DB (results, or a purgatory row): the screen
- * piu-spy sent for them, and with `--before` results that are stored before it's sent.
- *
- * `catalog` writes catalog.json from the dev DB: the tables that ingestion reads, with
- * only the cases' tracks, and without hidden players (but the guest).
- *
- * `record` sends the cases (all, or the ones named) to a running service on the test
- * database and saves its answers and stored rows into them. The service is the legacy
- * Python API (start it with `PIUTOP_DB_DATABASE` = DB_DATABASE_TEST and
- * `PIUTOP_TS_HOST=http://127.0.0.1:<ts-port>`, where this script answers its calls to the
- * TS API), or this service with `--source ingest` (`NODE_ENV=test npm run start:tsx`).
- * Don't run the ingest tests at the same time: they use the same database.
- */
 import '../src/env';
 import {
   type Catalog,
@@ -53,7 +31,6 @@ const args = minimist(process.argv.slice(2), {
 });
 const [command, ...files] = args._.map(String);
 
-// The fields of a stored row that piu-spy sent in the screen's result
 const SENT_FIELDS = [
   'player_name',
   'score',
@@ -71,7 +48,6 @@ const SENT_FIELDS = [
   'score_increase',
 ];
 
-// A stored row as the side of the screen that piu-spy sent
 const sentResult = (row: Row) => {
   const result: Row = {};
   for (const field of SENT_FIELDS) {
@@ -93,7 +69,6 @@ const datetimes = [
   sql<string>`CAST(added AS CHAR)`.as('added'),
 ];
 
-// Results of the dev DB, in the order of the ids
 const resultRows = async (ids: string): Promise<Row[]> => {
   const idList = ids.split(',').map(Number);
   const rows = await db
@@ -105,7 +80,6 @@ const resultRows = async (ids: string): Promise<Row[]> => {
   return idList.map((id) => rows.find((row) => row.id === id)!);
 };
 
-// The dev DB's rows: results (both sides of a screen) or a purgatory row
 const sourceRows = async (): Promise<Row[]> => {
   if (args.result) {
     return resultRows(args.result);
@@ -121,13 +95,11 @@ const sourceRows = async (): Promise<Row[]> => {
   throw new Error('Give --result or --purgatory');
 };
 
-// The guest account (PUMPITUP on the arcade): hidden, but not a person, and guests play a lot
 const GUEST_PLAYER_ID = 1;
 
 const isVisible = (player: { id: number; hidden: number }) =>
   !player.hidden || player.id === GUEST_PLAYER_ID;
 
-// Cases mustn't have the results of hidden players, also not as a misrecognized name
 const checkNotHidden = async (row: Row) => {
   if (row.recognized_player_id != null) {
     const player = await db
@@ -189,8 +161,6 @@ const newCase = async () => {
     for (const row of before) {
       await checkNotHidden(row);
     }
-    // The columns ingestion uses, with new ids from 1 and a made-up token
-    // (player_id is generated)
     const columns: string[] = [
       ...RESULT_COLUMNS.filter((column) => column !== 'id' && column !== 'player_id'),
       'added',
@@ -208,7 +178,6 @@ const newCase = async () => {
   console.log(`Wrote ${file}`);
 };
 
-// Each row on its own line, so that a change to the catalog is a readable diff
 const formatCatalog = (catalog: Catalog) =>
   `{\n${Object.entries(catalog)
     .map(
@@ -220,7 +189,6 @@ const formatCatalog = (catalog: Catalog) =>
 const writeCatalog = async () => {
   const cases = listCases().map(readCase);
 
-  // The tracks the cases' screens are on, matched as ingestion matches them
   const trackIds = new Set<number>();
   for (const step of cases.flatMap((screenCase) => screenCase.steps)) {
     const mixId = findMixId(String(step.request.mix_name));
@@ -251,7 +219,6 @@ const writeCatalog = async () => {
       .orderBy('name')
       .execute()
   ).filter((name) => visibleIds.has(name.player_id));
-  // The players with names on the mixes, and the players their aliases point to
   const neededIds = new Set(playerNames.map((name) => name.player_id));
   for (const player of visiblePlayers) {
     if (neededIds.has(player.id) && player.actual_player_id != null) {
@@ -322,7 +289,6 @@ const writeCatalog = async () => {
   );
 };
 
-// The legacy API tells the TS API about every result it stores: answer it with nothing
 const startTsStub = (port: number) =>
   new Promise<http.Server>((resolve) => {
     const server = http.createServer((_req, res) => res.end('{}'));
@@ -347,7 +313,6 @@ const record = async () => {
   if (!args.url) {
     throw new Error('Give --url of the service to record');
   }
-  // The test database, which the recorded service must use too
   process.env.NODE_ENV = 'test';
   await createTestDatabase();
   const tsStub = source === 'legacy' ? await startTsStub(Number(args['ts-port'] ?? 3901)) : null;
@@ -361,7 +326,6 @@ const record = async () => {
     for (const step of screenCase.steps) {
       answers.push(withoutReport(await post(args.url, step)));
     }
-    // A Python traceback: the case's answers have to come from ingest
     const failed = answers.find(
       (answer) => typeof answer.error === 'string' && answer.error.includes('Traceback')
     );

@@ -47,9 +47,6 @@ export const getInterpolatedDifficultyPerSharedChart = async () => {
     return result.score_phoenix ? result.score_phoenix / 10_000 : null;
   };
 
-  /**
-   * Recording accuracy of every player on different difficulty levels
-   */
   let profiles: Record<number, { accuracyPointsRaw: AccPoint[]; nickname: string }> = {};
   _.forEach((result) => {
     if (!result.score_phoenix || !result.player_id || !result.level) {
@@ -69,9 +66,6 @@ export const getInterpolatedDifficultyPerSharedChart = async () => {
     });
   }, bestResults);
 
-  /**
-   * Interpolating player's accuracy using logarithmic interpolation
-   */
   profiles = _.pickBy((profile) => profile.accuracyPointsRaw.length > 50, profiles);
 
   const profilesInterpolated: Record<number, null | { pointsInterpolated: DataPoint[] }> =
@@ -87,12 +81,10 @@ export const getInterpolatedDifficultyPerSharedChart = async () => {
       if (!maxLevelWithMaxPercent || !maxScorePercent) {
         return null;
       }
-      // Interpolating
       const points: DataPoint[] = profile.accuracyPointsRaw
         .filter(({ level }) => level >= maxLevelWithMaxPercent - 1)
         .map(({ level, scorePercent }) => [30 - level, 101 - scorePercent]);
       const regressed = regression.logarithmic(points);
-      // Creating an interpolated function
       const f = (x: number): number => {
         const calculated = 101 - regressed.predict(30 - x)[1];
         return Math.max(0, Math.min(calculated, 100));
@@ -105,12 +97,8 @@ export const getInterpolatedDifficultyPerSharedChart = async () => {
       return { pointsInterpolated: yx };
     }, profiles);
 
-  /**
-   * Finding interpolated difficulty of every chart
-   */
   const groupedBySharedChart = _.groupBy('shared_chart_id', bestResults);
   const groupedBySharedChartWithDiff = _.mapValues((chartResults) => {
-    // Looping through every chart result to find weights
     const resultsData = chartResults
       .filter((r) => r.player_id && !!profiles[r.player_id])
       .map((r) => {
@@ -158,8 +146,7 @@ export const getInterpolatedDifficultyPerSharedChart = async () => {
       { diffSum: 0, weightSum: 0 }
     );
 
-    // Using chart's built-in level as a contribution to the interpolated difficulty
-    const latestMixResult = _.maxBy('mix', chartResults)!; // chartResults is not empty
+    const latestMixResult = _.maxBy('mix', chartResults)!;
     sums.diffSum += 2 * _.toNumber(latestMixResult.level);
     sums.weightSum += 2;
 
@@ -199,14 +186,12 @@ export const updateChartsInterpolatedDifficulty = async (): Promise<number> => {
       .addColumn('difficulty', 'float8')
       .execute();
 
-    // Just for Typescript
     const tempDb = trx.withTables<{
       temp_chart_difficulty: { shared_chart: number; difficulty: number };
     }>();
 
     await tempDb.insertInto('temp_chart_difficulty').values(values).execute();
 
-    // Kysely doesn't support MySQL syntax for update-join-set, using raw SQL instead
     const updated = await sql`
       UPDATE shared_charts
       JOIN temp_chart_difficulty ON temp_chart_difficulty.shared_chart = shared_charts.id
@@ -221,8 +206,6 @@ export const updateChartsInterpolatedDifficulty = async (): Promise<number> => {
   return sharedChartsUpdated;
 };
 
-// Every result's pp from the current chart difficulties, then every player's total with
-// today's age factors
 export const updateAllPp = async () => {
   const allResultsPp = await calculateResultsPp();
   const idPpPairs = Array.from(allResultsPp.entries()).map(([id, pp]) => ({ id, pp }));
@@ -236,14 +219,12 @@ export const updateAllPp = async () => {
       .addColumn('pp', 'float8')
       .execute();
 
-    // Just for Typescript
     const tempDb = trx.withTables<{
       temp_results_pp: { id: number; pp: number | null };
     }>();
 
     await tempDb.insertInto('temp_results_pp').values(idPpPairs).execute();
 
-    // Kysely doesn't support MySQL syntax for update-join-set, using raw SQL instead
     await sql`
       UPDATE results
       LEFT JOIN temp_results_pp ON results.id = temp_results_pp.id
@@ -268,6 +249,5 @@ export const updateAllPp = async () => {
 export const updateChartsDifficulty = async () => {
   await updateChartsInterpolatedDifficulty();
   await updateAllPp();
-  // The effects job records the places and totals that changed
   await addEvent(db, 'ppRecalculated', {});
 };

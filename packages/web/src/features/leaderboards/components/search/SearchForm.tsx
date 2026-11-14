@@ -169,7 +169,6 @@ export const SearchForm = (): JSX.Element => {
   const isSortingChanged =
     (searchFilter.sortChartsBy && searchFilter.sortChartsBy !== 'date') ||
     (searchFilter.sortChartsDir && searchFilter.sortChartsDir !== 'desc');
-  // compare label sets (order in the stored array follows the user's toggles, not the default order)
   const isChartFilterChanged =
     (searchFilter.labels?.slice().sort().join('|') ?? '') !==
       initialFilter.labels?.slice().sort().join('|') ||

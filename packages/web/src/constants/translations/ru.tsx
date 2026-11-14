@@ -1,25 +1,21 @@
 import type { BaseTranslation } from './en';
 
 export const ru = {
-  // generic
   NOTHING_FOUND: 'Ничего не найдено',
   ERROR: 'Ошибка',
   SOMETHING_WENT_WRONG: 'Что-то пошло не так',
   CLEAR: 'Очистить',
   CLOSE: 'Закрыть',
   UNREAD: 'непрочитано',
-  // Main top menu
   LEADERBOARDS: 'лидерборды',
   RANKING: 'ранкинг',
   TOURNAMENTS: 'турниры',
   SONGS: 'треки',
   LOGOUT: 'выйти',
 
-  // Rankings
   ACCURACY: 'точность',
   UPDATE: 'обновить',
 
-  // Leaderboards buttons
   FILTERS: 'фильтры',
   SORTING: 'сортировка',
   PRESETS: 'пресеты',
@@ -37,14 +33,12 @@ export const ru = {
   SONG_NAME_LABEL: 'название',
   SONG_NAME_PLACEHOLDER: 'название песни...',
   PLAYERS_PLACEHOLDER: 'игроки...',
-  // Sorting
   BY_DATE_DESC: 'по дате (от новых к старым)',
   BY_DATE_ASC: 'по дате (от старых к новым)',
   BY_DIFFICULTY_ASC: 'по сложности (от легких к сложным)',
   BY_DIFFICULTY_DESC: 'по сложности (от сложных к легким)',
   BY_PP_DESC: 'от лучших результатов (pp)',
   BY_PP_ASC: 'от худших результатов (pp)',
-  // Presets overlay
   OPEN: 'открыть',
   OVERWRITE: 'перезаписать',
   DELETE: 'удалить',
@@ -54,7 +48,6 @@ export const ru = {
   EMPTY: 'пусто',
   SHOW_PRESETS_TABS: 'показывать табы с пресетами',
   PRESET_NAME_PLACEHOLDER: 'имя пресета...',
-  // Leaderboards Filters
   SHOW_CHARTS_PLAYED_BY: 'показывать чарты, которые сыграл:',
   EACH_OF_THESE: 'каждый из этих',
   AND_ANY_OF_THESE: 'и хоть один из этих',
@@ -65,12 +58,10 @@ export const ru = {
   RANK_FILTER_SHOW_RANK: 'только на ранке',
   RANK_FILTER_SHOW_NORANK: 'только без ранка',
   SHOW_HIDDEN_PLAYERS: 'показывать скрытых игроков',
-  // Leaderboards Sorting
   SORTING_LABEL: 'сортировка:',
   SORTING_PLACEHOLDER: 'выберите сортировку',
   PLAYER_LABEL: 'игрок:',
   EXCLUDE_FROM_COMPARISON: 'не учитывать в сравнении:',
-  // Sorting options
   NEW_TO_OLD_SCORES: 'от новых скоров',
   NEW_TO_OLD_SCORES_OF_A_PLAYER: 'от новых скоров конкретного игрока',
   SCORE_DIFFERENCE: 'отставанию от остальных',
@@ -80,14 +71,11 @@ export const ru = {
   BEST_TO_WORST_BY_PP: 'от лучших результатов (pp)',
   EASY_TO_HARD_CHARTS: 'от лёгких чартов',
   HARD_TO_EASY_CHARTS: 'от сложных чартов',
-  // Rank options
   SHOW_ALL_SCORES: 'показывать все скоры',
   BEST_SCORE: 'один лучший скор каждого игрока (ранк или нет)',
   RANK_ONLY: 'только на ранке',
   ONLY_NO_RANK: 'только без ранка',
-  // Results
   SHOW_MORE_RESULTS: (count: number) => `(показать еще ${count})`,
-  // Score details overlay
   PLAYER: 'игрок',
   EXP: 'опыт',
   ELO: 'эло',
@@ -103,21 +91,17 @@ export const ru = {
   SIGHTREAD: '* сайтрид',
   NEW_SCORE: 'НОВЫЙ',
   MY_BEST_SCORE_WARNING: 'рекорд взят с my best. часть данных недоступна',
-  // Other
   BACK_TO_ALL_CHARTS: 'ко всем чартам',
   NO_RESULTS: 'ничего не найдено',
   SHOW_MORE: 'показать больше',
   HIDDEN: 'скрыто',
-  // Profile Results by level
   ALL: 'все',
   DOUBLES: 'даблы',
   SINGLES: 'синглы',
   UNPLAYED: 'не сыграно',
   BACK_BUTTON: 'назад',
   LEVEL_PLACEHOLDER: 'уровень...',
-  // TODO: WIP, not finished
 
-  // played time ago
   TODAY: 'сегодня',
   YESTERDAY: 'вчера',
   YESTERDAY_NIGHT: 'вчера ночью',
@@ -127,7 +111,6 @@ export const ru = {
   MONTHS_SHORT: 'мес',
   NEVER: 'никогда',
 
-  // Tournaments
   START_DATE: 'Начало:',
   END_DATE: 'Окончание:',
   BRACKETS: 'Группы чартов:',
@@ -218,7 +201,6 @@ export const ru = {
 
   EXP_TITLES_LIST_HEADER: <>Список уровней и необходимый опыт для их получения:</>,
 
-  // score date tooltip
   EXACT_DATE_UNKNOWN: 'точная дата неизвестна',
   SCORE_WAS_TAKEN: 'скор был взят',
   DATE_RECORDED: 'дата записи',
@@ -228,7 +210,6 @@ export const ru = {
   ADDED: 'добавлено',
   PLAYED: 'сыграно',
 
-  // achievements
   COMBO_500: '500 комбо',
   COMBO_1000: '1000 комбо',
   COMBO_2000: '2000 комбо',
@@ -253,7 +234,6 @@ export const ru = {
   WEEK_LONG_TRAINING: 'Усердие',
   WEEK_LONG_TRAINING_DESC: 'Сыграть хотя бы один чарт 7 дней подряд',
 
-  // Add results from photos
   ADD_RESULTS_NAV: 'добавить',
   ADD_RESULTS: 'Добавить результаты',
   PHOTOS: 'Фото',
@@ -287,7 +267,6 @@ export const ru = {
   YES: 'Да',
   NO: 'Нет',
 
-  // Add Result / OCR
   CHART: 'Чарт',
   HEIC_NOT_SUPPORTED:
     'Файлы HEIC не поддерживаются. Пожалуйста, конвертируйте скриншот в JPG или PNG.',
@@ -299,7 +278,6 @@ export const ru = {
   NONE_NORMAL_MODE: 'Нет (обычный режим)',
   GRADE_REQUIRED: 'Оценка обязательна',
 
-  // Admin
   DELETE_RESULT: 'Удалить результат',
   DELETE_RESULT_CONFIRM:
     'Вы уверены, что хотите удалить этот результат? Это действие нельзя отменить.',
@@ -308,7 +286,6 @@ export const ru = {
   REGION: 'Регион',
   ADMIN: 'админ',
 
-  // Login / Registration
   SIGN_IN_WITH_DISCORD: 'Войти через Discord',
   SIGN_UP_WITH_DISCORD: 'Регистрация через Discord',
   CREATE_NEW_ACCOUNT: 'Создать новый аккаунт',

@@ -1,8 +1,5 @@
 import { NumberInput, Select, TextInput } from '@mantine/core';
 
-// Form fields for nullable DB columns: an empty input means null. `highlighted` marks
-// the field a purgatory reason is about
-
 interface FieldProps<T> {
   label: string;
   value: T | null;
@@ -30,7 +27,6 @@ export const NumberField = ({
     onChange={(next) => onChange(typeof next === 'number' ? next : null)}
     allowNegative={false}
     allowDecimal={false}
-    // Counts and scores read better as 1,234; ids don't
     thousandSeparator={isId ? undefined : ','}
     disabled={disabled}
     description={description}
@@ -71,7 +67,6 @@ export const SelectField = ({
   options: { value: string; label: string }[];
   clearable?: boolean;
 }): JSX.Element => {
-  // A stored value that isn't one of the options is still shown
   const data =
     value != null && !options.some((option) => option.value === value)
       ? [{ value, label: value }, ...options]

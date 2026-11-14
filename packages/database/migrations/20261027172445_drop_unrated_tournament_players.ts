@@ -1,10 +1,5 @@
 import { Kysely, sql } from 'kysely';
 
-/**
- * Unrated players are no longer put in Easy: they pick a bracket themselves. This takes
- * the unrated players without a result out of the ended tournaments, so their brackets
- * list only the players who played. `down` can't tell them apart any more and does nothing
- */
 export async function up(db: Kysely<any>): Promise<void> {
   await sql`
     DELETE tpb FROM tournament_player_brackets tpb

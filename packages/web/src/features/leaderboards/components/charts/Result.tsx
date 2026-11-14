@@ -47,7 +47,6 @@ import type { ChartApiOutput } from '../../hooks/useChartsQuery';
 import css from './chart-results.module.css';
 import type { RowSizes } from './useRowSizes';
 
-// The step count columns, left to right, with their place in result.stats
 const stepColumns = [
   { index: 4, className: css.miss },
   { index: 3, className: css.bad },
@@ -68,7 +67,6 @@ export type ResultExtended = ChartApiOutput['results'][number] & {
 
 const DEBUG = import.meta.env.VITE_DEBUG_RESULTS === 'true';
 
-// A score with its last three digits smaller: 1,000,000
 const Score = ({ score, fractionFz = 'xs' }: { score: number; fractionFz?: MantineSize }) => {
   return (
     <>
@@ -80,7 +78,6 @@ const Score = ({ score, fractionFz = 'xs' }: { score: number; fractionFz?: Manti
   );
 };
 
-// Places gained by the latest result (green), or lost to it (red)
 const PlaceChange = ({
   result,
   fz,
@@ -193,7 +190,6 @@ const Result = ({
     }
   };
 
-  // The chart on the result's mix, when it's an earlier mix than the chart's latest
   const originalChart = chart.otherChartInstances.find((instance) => instance.mix === result.mix);
 
   const playerRoute =
@@ -201,15 +197,12 @@ const Result = ({
 
   const place = chart.results.findIndex((res) => res.id === result.id) + 1;
 
-  // The latest result looks new (the tinted row, "NEW"). When it was played days before it was
-  // added, a star on its date tells why an old play is the latest
   const playedAgo = getShortTimeAgo(lang, new Date(result.gained));
   const isAddedLater =
     result.isLatestScore &&
     result.isExactGainedDate &&
     getShortTimeAgo(lang, new Date(result.added)) !== playedAgo;
 
-  // On the latest result: the player's first score here, or how much they improved
   const scoreChange = !result.isLatestScore
     ? null
     : result.scoreIncrease == null
@@ -225,7 +218,6 @@ const Result = ({
       data-latest={result.isLatestScore || undefined}
       data-mine={isCurrentPlayer || undefined}
       data-highlighted={isHighlighted || undefined}
-      // Read by the module only on highlighted rows
       style={{ '--pk-highlight': `var(--pk-highlight-${result.highlightIndex})` }}
     >
       <Table.Td visibleFrom="md">
@@ -234,7 +226,6 @@ const Result = ({
           <PlaceChange result={result} fz={sizes.change} />
         </Group>
       </Table.Td>
-      {/* The score is at the end of the name's cell, so a wide score widens only its own row */}
       <Table.Td className={css.player} fz={sizes.name}>
         <Group gap="xxs" align="center" wrap="nowrap">
           {result.region ? <Flag region={result.region} size="sm" /> : null}
@@ -247,7 +238,6 @@ const Result = ({
               <span>{result.playerName}</span>
             )}
           </Text>
-          {/* Phones have no place column */}
           <PlaceChange result={result} fz={sizes.change} hiddenFrom="md" />
           {(DEBUG || (isSortedByPp && isHighlighted)) && (
             <span> {result.pp && `${result.pp}pp`}</span>
@@ -279,7 +269,6 @@ const Result = ({
                 {scoreChange}
               </Badge>
             )}
-            {/* As wide as the longest row, the notes below wrap */}
             <Popover withArrow width="min-content" position="top" trapFocus>
               <Popover.Target>
                 <UnstyledButton className={css.scoreButton}>

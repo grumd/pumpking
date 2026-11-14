@@ -31,7 +31,6 @@ const MONTH_NAMES = [
   'December',
 ];
 
-// Naive wall-clock "YYYY-MM-DD HH:MM:SS" in the site timezone.
 export const siteNow = () => new Date().toLocaleString('sv-SE', { timeZone: SITE_TIMEZONE });
 
 export const currentSiteMonth = () => {
@@ -165,7 +164,6 @@ export const createTournament = async ({ year, month }: { year: number; month: n
         .execute();
     }
 
-    // Rated players start in their skill's bracket, unrated ones pick a bracket themselves.
     const skills = await getPlayerSkills(startDate, trx);
     const rated = skills.filter((s): s is { playerId: number; skill: number } => s.skill !== null);
     if (rated.length) {
@@ -194,7 +192,6 @@ export const createTournament = async ({ year, month }: { year: number; month: n
   });
 };
 
-// Ends Live tournaments past their end date and freezes their final results.
 export const endTournaments = async (now: string = siteNow()) =>
   db.transaction().execute(async (trx) => {
     const ending = await trx

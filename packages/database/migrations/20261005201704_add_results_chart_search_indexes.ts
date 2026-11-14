@@ -1,12 +1,5 @@
 import { Kysely, sql } from 'kysely';
 
-/**
- * The leaderboard search finds, for each chart, the latest best result (newest first by
- * added) and, sorting by pp, the best result with the most pp. Both read a chart's results
- * from these indexes alone, in that order, and stop at the first result that is a
- * player's best. Checking that a result is a player's best reads the player index, which
- * now has the mix and the date too. Built in place, without locking results for ingestion
- */
 export async function up(db: Kysely<any>): Promise<void> {
   await sql`
     ALTER TABLE results

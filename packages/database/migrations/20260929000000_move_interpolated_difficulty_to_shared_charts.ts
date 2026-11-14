@@ -1,9 +1,5 @@
 import { Kysely, sql } from 'kysely';
 
-/**
- * ID is one value per shared chart, so it lives on `shared_charts`. The
- * per-instance copy is dropped by the next migration.
- */
 export async function up(db: Kysely<any>): Promise<void> {
   await sql`
     ALTER TABLE shared_charts

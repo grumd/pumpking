@@ -1,9 +1,5 @@
 import { Kysely } from 'kysely';
 
-/**
- * Drops the daily pp and rank history, replaced by player_pp_history and
- * player_rank_history. `down` recreates the tables empty: their data is gone
- */
 export async function up(db: Kysely<any>): Promise<void> {
   await db.schema.dropTable('pp_history').execute();
   await db.schema.dropTable('pp_rank_history').execute();

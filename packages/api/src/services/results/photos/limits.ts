@@ -2,25 +2,16 @@ import { db } from '@pumpking/database/db';
 import { addEvent } from '@pumpking/database/events';
 import { sql } from 'kysely';
 
-/**
- * Per-player cost limits of reading photos (docs/photo-results/PLAN.md, "Cost limits").
- * Reads that ended in a result count only towards the overall ceiling, so players who
- * upload real results rarely meet a limit, and random images run into one soon
- */
-
 export type PhotoLimitKind = 'unproductive' | 'total';
 
 interface PhotoLimit {
   kind: PhotoLimitKind;
   windowHours: number;
-  // USD
   maxCost: number;
 }
 
 export const PHOTO_LIMITS: PhotoLimit[] = [
-  // Spend on photos that gave no result: about 20 random images
   { kind: 'unproductive', windowHours: 24, maxCost: 0.03 },
-  // All spend: about 400 real photos
   { kind: 'total', windowHours: 72, maxCost: 0.5 },
 ];
 
@@ -29,18 +20,15 @@ export const ADMIN_LIMIT_MULTIPLIER = 10;
 export interface PhotoReadSpend {
   cost: number;
   ageSeconds: number;
-  // A result with the photo's hash exists
   productive: boolean;
 }
 
 export interface LimitReached {
   kind: PhotoLimitKind;
   windowHours: number;
-  // When enough of the spend leaves the window for the player to be under the limit again
   retryInSeconds: number;
 }
 
-/** The limit the player is over, from the reads of the longest window; null when none */
 export const checkPhotoLimits = (
   reads: PhotoReadSpend[],
   isAdmin: boolean
@@ -49,7 +37,6 @@ export const checkPhotoLimits = (
   for (const limit of PHOTO_LIMITS) {
     const windowSeconds = limit.windowHours * 3600;
     const maxCost = limit.maxCost * (isAdmin ? ADMIN_LIMIT_MULTIPLIER : 1);
-    // Oldest first: they are the first to leave the window
     const counted = reads
       .filter((read) => read.ageSeconds < windowSeconds)
       .filter((read) => limit.kind === 'total' || !read.productive)
@@ -103,10 +90,6 @@ const getPhotoReadSpend = async (playerId: number): Promise<PhotoReadSpend[]> =>
   }));
 };
 
-/**
- * Whether the player may have a photo read: the limit they are over and when they can read
- * again, or null
- */
 export const getPhotoLimitReached = async (playerId: number, isAdmin: boolean) => {
   const reached = checkPhotoLimits(await getPhotoReadSpend(playerId), isAdmin);
   if (!reached) {
@@ -115,7 +98,6 @@ export const getPhotoLimitReached = async (playerId: number, isAdmin: boolean) =
   return { ...reached, retryAt: new Date(Date.now() + reached.retryInSeconds * 1000) };
 };
 
-/** Tells the admins about a refusal, the first time for the limit within its window */
 export const reportPhotoLimitReached = async (
   playerId: number,
   reached: { kind: PhotoLimitKind; windowHours: number; retryAt: Date }
@@ -137,7 +119,6 @@ export const reportPhotoLimitReached = async (
   }
 };
 
-/** Logs a paid read, for the limits */
 export const addPhotoRead = (playerId: number, photoHash: string, cost: number) =>
   db
     .insertInto('photo_reads')

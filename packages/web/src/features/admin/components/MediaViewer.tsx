@@ -20,7 +20,6 @@ import { useAdminFile } from '../hooks/useAdminFile';
 import { useObjectUrl } from '../hooks/useObjectUrl';
 import css from './media-viewer.module.css';
 
-// Copies the image, or the video's current frame, as a PNG
 const copyFrame = async (element: HTMLImageElement | HTMLVideoElement) => {
   const canvas = document.createElement('canvas');
   canvas.width = element instanceof HTMLVideoElement ? element.videoWidth : element.naturalWidth;
@@ -56,11 +55,6 @@ interface MediaViewerProps {
   id: number;
 }
 
-/**
- * The screen file of a result or purgatory row (a screenshot, or a video that plays),
- * with buttons to copy the frame and download the files, and its scan JSON (what piu-spy
- * recognized on it)
- */
 export const MediaViewer = ({ source, id }: MediaViewerProps): JSX.Element => {
   const screen = useAdminFile(source, id, 'screen');
   const scan = useAdminFile(source, id, 'scan');

@@ -3,10 +3,6 @@ import type { Response, Request, NextFunction } from 'express';
 import _ from 'lodash/fp';
 import { updateChartsDifficulty } from 'services/charts/chartDifficultyInterpolation';
 
-/**
- * Debug view: how far each shared chart's interpolated difficulty sits from the
- * official levels of its instances, biggest drift first.
- */
 export const difficultyInterpolationController = async (
   request: Request,
   response: Response,

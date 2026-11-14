@@ -11,7 +11,6 @@ function generateSessionId(): string {
 export async function devLogin(playerId: number): Promise<{ session: string }> {
   debug(`Dev login for player ID: ${playerId}`);
 
-  // Verify player exists
   const player = await db
     .selectFrom('players')
     .select(['id', 'nickname'])
@@ -24,10 +23,8 @@ export async function devLogin(playerId: number): Promise<{ session: string }> {
 
   debug(`Found player: ${player.nickname} (${player.id})`);
 
-  // Delete old sessions for this player
   await db.deleteFrom('sessions').where('player', '=', player.id).execute();
 
-  // Create new session (valid for 2 weeks)
   const now = new Date();
   const sessionId = generateSessionId();
   const validUntil = new Date(now.getTime() + 14 * 24 * 60 * 60 * 1000);

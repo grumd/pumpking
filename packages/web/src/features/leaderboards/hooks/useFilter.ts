@@ -15,11 +15,6 @@ const FILTER_STORAGE_KEY = 'filterAtom';
 const PHOENIX2_MIGRATION_FLAG_KEY = `${FILTER_STORAGE_KEY}_phoenix2MixMigrated`;
 const HD_LABELS_MIGRATION_FLAG_KEY = `${FILTER_STORAGE_KEY}_hdLabelsMigrated`;
 
-/**
- * One-time migration for the Phoenix 2 release: before it, the default mix filter was [26, 27].
- * Users who never changed the mix filter have exactly [26, 27] stored - add 28 for them.
- * Custom mix selections are left untouched.
- */
 const migrateStoredFilterForPhoenix2 = () => {
   if (typeof window === 'undefined' || !window.localStorage) {
     return;
@@ -49,11 +44,6 @@ const migrateStoredFilterForPhoenix2 = () => {
 
 migrateStoredFilterForPhoenix2();
 
-/**
- * One-time migration for the Phoenix 2 half-double release: before it, the default label
- * filter was ['S', 'D']. Users who never changed it have exactly ['S', 'D'] stored - add 'HD'.
- * Custom label selections are left untouched.
- */
 const migrateStoredFilterForHdLabels = () => {
   if (typeof window === 'undefined' || !window.localStorage) {
     return;

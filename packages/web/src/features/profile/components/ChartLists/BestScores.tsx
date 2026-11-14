@@ -17,7 +17,6 @@ import { PpButton } from './PpButton';
 import { ResultScore } from './ResultScore';
 import { bestScoresInput, pageOptions } from './listQueries';
 
-// All-time best: the player's best result on each chart by its full pp, however old
 export const BestScores = (): JSX.Element => {
   const params = useParams();
   const charts = useInfiniteQuery(

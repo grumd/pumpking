@@ -35,27 +35,17 @@ import { sql } from 'kysely';
 import { addResult } from 'services/results/addResult';
 import { StatusError } from 'utils/errors';
 
-/**
- * A result from a photo of its screen: read, checked against the database, and saved when
- * nothing is in doubt (docs/photo-results/PLAN.md). Nothing is kept while a photo waits
- * for the user: the web holds the photo and the reads, and adds the result itself
- */
-
 const debug = createDebug('backend-ts:service:photos:recognize');
 
-// The edit distance allowed between the read song title and the arcade name
 const TITLE_TOLERANCE = 0.25;
 
 export interface PhotoInput {
   playerId: number;
   isAdmin: boolean;
-  // Off for a single photo: it is read and checked, then the user confirms it
   autoSave: boolean;
   mix: PhotoMix;
-  // The photo sent to the readers (2048px), and the copy that is stored with the result
   image: PhotoImage;
   screenshotPath: string;
-  // SHA-256 of the original file
   hash: string;
   date: Date;
   isExactDate: boolean;
@@ -78,11 +68,9 @@ export type RecognizeOutcome =
       values: PhotoValues | null;
       readValues: PhotoValues[];
       fields: Field[];
-      // Why the result couldn't be saved, when the readers agreed
       message?: string;
     };
 
-// One reader's read, checked; the error when it failed
 interface ReaderOutcome {
   read: PhotoRead | null;
   check: ReadCheck | null;
@@ -96,7 +84,6 @@ const toPhotoChart = (chart: ChartCandidate): PhotoChart => ({
   label: chart.label,
 });
 
-/** The charts on the mix that a read's song title and difficulty badge point to */
 export const findReadCharts = async (mixId: number, read: PhotoRead): Promise<ChartCandidate[]> => {
   if (!read.song_title || !read.chart_type || read.level == null) {
     return [];
@@ -117,7 +104,6 @@ export const findReadCharts = async (mixId: number, read: PhotoRead): Promise<Ch
     return [];
   }
 
-  // The song names, and on Phoenix 2 the Phoenix step counts of the same charts
   const sharedCharts = await db
     .selectFrom('shared_charts')
     .innerJoin('tracks', 'tracks.id', 'shared_charts.track')
@@ -158,10 +144,6 @@ export const findReadCharts = async (mixId: number, read: PhotoRead): Promise<Ch
   });
 };
 
-/**
- * The charts on the mix whose song name and label contain the search words, for the chart
- * picker of a photo that matched none (also charts that nobody has played yet)
- */
 export const searchMixCharts = async (mixId: number, search: string): Promise<PhotoChart[]> => {
   const words = search
     .toLowerCase()
@@ -170,7 +152,6 @@ export const searchMixCharts = async (mixId: number, search: string): Promise<Ph
   if (words.length === 0) {
     return [];
   }
-  // The typed % and _ are matched as themselves
   const escape = (word: string) => word.replace(/[\\%_]/g, '\\$&');
   const pattern = `%${words.map(escape).join('%')}%`;
   const chartName = sql<string>`concat(lower(tracks.full_name), ' ', lower(chart_instances.label))`;
@@ -181,8 +162,6 @@ export const searchMixCharts = async (mixId: number, search: string): Promise<Ph
     .select(['chart_instances.shared_chart', 'tracks.full_name', 'chart_instances.label'])
     .where('chart_instances.mix', '=', mixId)
     .where(chartName, 'like', pattern)
-    // The closest matches first: "n d16" matches every D16 of a song with an n in its name,
-    // and the song N would be past the limit
     .orderBy(sql`${chartName} = ${words.join(' ')}`, 'desc')
     .orderBy(sql`lower(tracks.full_name) like ${`${escape(words[0])}%`}`, 'desc')
     .orderBy('tracks.full_name')
@@ -200,7 +179,6 @@ export const recognizePhoto = async (
   input: PhotoInput,
   readPhoto: ReadPhoto = defaultReadPhoto
 ): Promise<RecognizeOutcome> => {
-  // Checked before anything is sent to the readers: a file selected again costs nothing
   const photoResult = await findPhotoResult(input.hash);
   if (photoResult) {
     return { status: 'duplicate', resultId: photoResult.id };
@@ -214,7 +192,6 @@ export const recognizePhoto = async (
   const mixId = MIXES[input.mix];
   const millionScoring = isMillionScoringMix(mixId);
 
-  // A reader that fails (after its retry) or answers with invalid JSON reads nothing
   const readAndCheck = async (reader: Reader): Promise<ReaderOutcome> => {
     let cost = 0;
     try {
@@ -234,12 +211,10 @@ export const recognizePhoto = async (
 
   let results: ReaderOutcome[];
   if (millionScoring) {
-    // The same model mostly repeats its mistake: the second read is another vendor's
     const first = await readAndCheck(READER_A);
     results = passes(first.check) ? [first] : [first, await readAndCheck(READER_B)];
   } else {
     results = await Promise.all([readAndCheck(READER_A), readAndCheck(READER_B)]);
-    // A third reader from another vendor breaks the tie
     if (needsTiebreaker(mixId, [results[0].check, results[1].check])) {
       results.push(await readAndCheck(READER_C));
     }
@@ -256,7 +231,6 @@ export const recognizePhoto = async (
   const reads = results.flatMap((result) => (result.read ? [result.read] : []));
   const readerError = results.filter((result) => result.error).at(-1)?.error;
   if (readerError && checks.every((check) => check == null)) {
-    // Nothing was read: the web offers to try again
     throw readerError;
   }
 
@@ -272,7 +246,6 @@ export const recognizePhoto = async (
     };
   }
 
-  // A second photo of the same screen has another hash
   const { chart, values } = decision;
   const samePlay = await findSamePlay(input.playerId, chart.sharedChartId, values);
   if (samePlay) {
@@ -280,7 +253,6 @@ export const recognizePhoto = async (
     return { status: 'duplicate', resultId: samePlay.id };
   }
   if (!input.autoSave) {
-    // Nothing in doubt: the user only confirms
     return {
       status: 'needsInput',
       reads,
@@ -304,8 +276,6 @@ export const recognizePhoto = async (
     });
     return { status: 'saved', resultId, chart: toPhotoChart(chart), values };
   } catch (e) {
-    // The manual input's own checks can still refuse it (rank mode on a chart that can't
-    // have it, a score over the chart's maximum): the user decides
     if (e instanceof StatusError && e.status === 400) {
       return {
         status: 'needsInput',

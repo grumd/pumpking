@@ -4,7 +4,6 @@ import { updateChartsDifficulty } from 'services/charts/chartDifficultyInterpola
 
 const debug = createDebug('backend-ts:jobs:chart-difficulty');
 
-// Every day at 4 AM
 cron.schedule('0 4 * * *', async () => {
   debug('Starting job: Recalculate chart difficulty and all pp');
   await updateChartsDifficulty();

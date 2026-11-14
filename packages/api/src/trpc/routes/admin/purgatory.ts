@@ -36,8 +36,6 @@ export const purgatory = router({
   get: adminProcedure
     .input(z.object({ id: z.number() }))
     .query(({ input }) => getPurgatoryRow(input.id)),
-  // Saves the fixes, then rechecks the row (skipScoreCheck: without checking the score
-  // against the stats)
   updateAndRecheck: adminProcedure
     .input(
       z.object({ id: z.number(), edit: purgatoryEdit, skipScoreCheck: z.boolean().optional() })
@@ -45,7 +43,6 @@ export const purgatory = router({
     .mutation(({ input }) =>
       updateAndRecheckPurgatoryRow(input.id, input.edit, { skipScoreCheck: input.skipScoreCheck })
     ),
-  // One row, or all of them without an id
   recheck: adminProcedure
     .input(z.object({ id: z.number().optional() }))
     .mutation(({ input }) => recheckPurgatory(input.id)),

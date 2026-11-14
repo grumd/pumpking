@@ -2,7 +2,6 @@ import locale from 'relative-time-format/locale/uk';
 
 export default {
   ...locale,
-  // This was missing from relative-time-format
   tiny: {
     year: '{0} р',
     quarter: '{0} кв',

@@ -8,7 +8,6 @@ export interface LadderSlot {
 export interface BracketConfig {
   code: BracketCode;
   name: string;
-  // player skill range [minSkill, maxSkill); minSkill null = also collects unrated players
   minSkill: number | null;
   maxSkill: number;
   ladder: LadderSlot[];
@@ -77,7 +76,6 @@ export const TQ_QUALIFY_SCORE = 950_000;
 export const SKILL_CHARTS_REQUIRED = 5;
 export const SKILL_WINDOW_DAYS = 180;
 export const COUNTED_CHARTS = 3;
-// A player gets a place (and so a cup) only with scores on at least this many pool charts.
 export const RANKED_MIN_CHARTS = 3;
 export const FRESH_POOL_MONTHS = 2;
 export const TOURNAMENT_END_DAY = 25;

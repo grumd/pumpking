@@ -23,7 +23,6 @@ describe('Preferences', () => {
       migratePreferences({ version: 1, rivals: { list: [3], levels: [10, 20], track: false } }),
       { version: 2, rivals: { list: [3], levels: [10, 20], track: false, trackInferior: true } }
     );
-    // up to date: left as is
     const current = rivalsPreferences({ trackInferior: false });
     assert.deepEqual(migratePreferences(current), current);
   });

@@ -2,12 +2,6 @@ import type { ChartInstance } from '@pumpking/database/tracks';
 
 export type { ChartInstance };
 
-/**
- * A result as piu-spy recognized it: the `results` / `purgatory` columns it fills. A
- * missing (undefined) field wasn't sent and isn't written; null is written as NULL.
- * Datetimes are naive 'YYYY-MM-DD HH:MM:SS' strings, like the arcade shows them (`gained`)
- * and like `added` is stored (UTC), so they are never shifted by a time zone.
- */
 export interface ResultData {
   screen_file: string | null;
   recognition_notes: string;
@@ -35,40 +29,26 @@ export interface ResultData {
   plate?: string | null;
 }
 
-/** A result's `results` row: what was recognized, and what validation found */
 export interface ResultRow extends ResultData {
   score: number;
   recognized_player_id: number;
   mix: number;
   chart_instance: number;
   shared_chart: number;
-  // Every result gets one, so results of all mixes can be compared
   score_phoenix: number | null;
 }
 
-/** A result that passed validation, ready to store */
 export interface ValidResult {
   row: ResultRow;
   chart: ChartInstance;
-  // The result's number of steps, which fits the chart's
   steps: number;
 }
 
-/**
- * What validation decided about a result. An unrecognized result couldn't be matched to
- * a player / track / chart, or its stats don't add up: screen results go to purgatory,
- * where an admin can fix and recheck them, manual ones are rejected. A discarded result
- * isn't wanted at all, e.g. an empty score or a UCS chart. The reasons are shown to
- * admins and sent back to piu-spy
- */
 export type CheckedResult =
   | ({ outcome: 'valid' } & ValidResult)
   | { outcome: 'unrecognized'; reason: string }
   | { outcome: 'discarded'; reason: string };
 
 export interface CheckOptions {
-  // An admin rechecking a purgatory row vouches for its score: the check of a
-  // million-scoring score against the stats is skipped (the screen can be right where the
-  // formula isn't). Combo-scoring mixes ignore it
   skipScoreCheck?: boolean;
 }

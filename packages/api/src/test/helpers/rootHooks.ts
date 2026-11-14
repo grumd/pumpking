@@ -16,9 +16,7 @@ const beforeEach: AsyncFunc = async function (this: Context) {
   await initialSeed();
 };
 
-const afterEach: AsyncFunc = async function (this: Context) {
-  // do nothing for now
-};
+const afterEach: AsyncFunc = async function (this: Context) {};
 
 export const mochaHooks: RootHookObject = {
   beforeAll,

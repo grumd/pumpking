@@ -32,7 +32,6 @@ interface RankingListProps {
 export default function RankingList({ ranking, isLoading, preferences }: RankingListProps) {
   const lang = useLanguage();
   const preferencesMutation = usePreferencesMutation();
-  // Phones: the name column takes what the others leave, and long nicknames are cut
   const nameMaxWidth = useMatches({ base: 0, md: undefined });
 
   if (isLoading) {

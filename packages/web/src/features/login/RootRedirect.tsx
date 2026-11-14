@@ -6,12 +6,6 @@ import { routes } from 'constants/routes';
 
 import { LoginScreen } from './Login';
 
-/**
- * Handles Discord OAuth redirect by converting query params from window.location.search
- * to HashRouter-compatible format.
- *
- * This is necessary because Discord doesn't support redirecting to a hash-based URL
- */
 export function RootRedirect() {
   const navigate = useNavigate();
   const params = useMemo(() => new URLSearchParams(window.location.search), []);
@@ -21,11 +15,9 @@ export function RootRedirect() {
 
   useEffect(() => {
     if (isDiscordRedirect && code && redirectTo) {
-      // Remove 'discord' param as it was just a marker
       params.delete('discord');
-      window.history.replaceState({}, document.title, window.location.pathname); // clear existing params
+      window.history.replaceState({}, document.title, window.location.pathname);
 
-      // Navigate to HashRouter-compatible URL
       navigate(routes.discordCallback.getPath({ code, redirectTo }), { replace: true });
     }
   }, [navigate, isDiscordRedirect, params, code, redirectTo]);

@@ -55,7 +55,6 @@ interface ManualResult {
   isExactDate: boolean;
   sharedChartId: number;
   pass: boolean;
-  // SHA-256 of the photo the result was read from (results/photos)
   photoHash?: string;
 }
 
@@ -122,7 +121,6 @@ export const addResult = async (userId: number, result: ManualResult) => {
     throw error(409, 'Conflict: This result was already added');
   }
 
-  // Score is valid, add it to the database
   const token = generateToken();
 
   const screenshotPath = saveScreenshot(result.screenshotTempPath, {
@@ -142,7 +140,6 @@ export const addResult = async (userId: number, result: ManualResult) => {
     .where('player_id', '=', result.playerId)
     .executeTakeFirst();
 
-  // The result and its event are stored together; the effects job applies the effect
   const resultId = await db.transaction().execute(async (trx) => {
     const insertResult = await trx
       .insertInto('results')
@@ -166,8 +163,6 @@ export const addResult = async (userId: number, result: ManualResult) => {
         mods_list: result.mod,
         score: result.score,
         score_xx: result.score,
-        // Written here, not left to the effect, so the leaderboard can rank the result
-        // before the effects job gets to it
         score_phoenix: getPhoenixScore(
           {
             perfect: result.perfect,
@@ -185,7 +180,6 @@ export const addResult = async (userId: number, result: ManualResult) => {
         greats: result.great,
         perfects: result.perfect,
         grade:
-          // Add a + to the grade letter for XX and earlier if not already provided (A => A+)
           MIXES[result.mix] < MIXES.Phoenix &&
           result.pass &&
           ['A', 'B', 'C', 'D', 'F'].includes(result.grade)
@@ -222,20 +216,16 @@ const getScoreError = (
 ): string | null => {
   const { score, perfect, great, good, bad, miss, combo } = result;
 
-  // XX AND EARLIER CHECKS
   if (MIXES[result.mix] < MIXES.Phoenix) {
-    // Score must be multiples of 100
     if (score < 0 || score % 100 !== 0) {
       return 'Invalid score';
     }
 
-    // Rough check for min score
     const minScore = 1000 * perfect + 500 * great + 100 * good - 200 * bad - 500 * miss;
     if (score < minScore) {
       return 'Score is lower than minimum possible';
     }
 
-    // Rough estimate of a max score to catch mistakes in the input
     if (chart.max_possible_score_norank) {
       const maxScore = 1.5 * chart.max_possible_score_norank * (result.mod === 'VJ' ? 1.2 : 1);
       if (score > maxScore) {
@@ -243,13 +233,11 @@ const getScoreError = (
       }
     }
 
-    // Rough SS check
     if (result.grade.startsWith('SS') && combo !== perfect + great) {
       return 'Combo is not equal to perfect + great with SS or SSS';
     }
   }
 
-  // ONLY PHOENIX AND LATER CHECKS
   if (MIXES[result.mix] >= MIXES.Phoenix) {
     const expectedScore = getPhoenixScore(
       { perfect, great, good, bad, miss, combo },
@@ -259,8 +247,6 @@ const getScoreError = (
       return `Score ${score} doesn't match expected score ${expectedScore} (calculated from result stats)`;
     }
   }
-
-  // OTHER CHECKS FOR ALL MIXES
 
   const totalSteps = perfect + great + good + bad + miss;
   if (chart.max_total_steps && totalSteps > chart.max_total_steps) {

@@ -93,7 +93,6 @@ export async function loginWithDiscordCode(
   const email = discordUser.email;
   debug(`Discord login attempt for email: ${email}`);
 
-  // Find player by email
   const player = await db
     .selectFrom('players')
     .select(['id', 'nickname'])
@@ -106,7 +105,6 @@ export async function loginWithDiscordCode(
 
   debug(`Found player: ${player.nickname} (${player.id})`);
 
-  // Check for existing valid session
   const now = new Date();
   const existingSession = await db
     .selectFrom('sessions')
@@ -120,10 +118,8 @@ export async function loginWithDiscordCode(
     return { session: existingSession.id };
   }
 
-  // Delete old sessions for this player
   await db.deleteFrom('sessions').where('player', '=', player.id).execute();
 
-  // Create new session (valid for 2 weeks)
   const sessionId = generateSessionId();
   const validUntil = new Date(now.getTime() + 14 * 24 * 60 * 60 * 1000);
 

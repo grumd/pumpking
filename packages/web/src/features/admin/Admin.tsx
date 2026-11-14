@@ -15,9 +15,6 @@ import { PurgatoryTab } from './purgatory/PurgatoryTab';
 import { ResultsTab } from './results/ResultsTab';
 import { TracksTab } from './tracks/TracksTab';
 
-// The admin section: what the legacy desktop admin tool did, one tab per area. Only
-// admins get this page (see Root); the API checks is_admin on every call. Each tab keeps
-// its search and open row in the URL
 const Admin = (): JSX.Element => {
   const location = useLocation();
   const navigate = useNavigate();

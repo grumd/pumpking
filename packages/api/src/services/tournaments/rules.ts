@@ -6,7 +6,6 @@ import {
   type BracketCode,
 } from 'constants/tournaments';
 
-// The highest level L with SKILL_CHARTS_REQUIRED qualifying charts at L or harder.
 export const skillLevel = (qualifyingLevels: number[]): number | null => {
   const sorted = [...qualifyingLevels].sort((a, b) => b - a);
   return sorted[SKILL_CHARTS_REQUIRED - 1] ?? null;
@@ -20,7 +19,6 @@ export const bracketForSkill = (skill: number): BracketCode => {
 
 const bracketIndex = (code: BracketCode) => TOURNAMENT_BRACKETS.findIndex((b) => b.code === code);
 
-// Unrated players can join any bracket, rated ones their skill's bracket or a harder one.
 export const canJoinBracket = (skill: number | null, code: BracketCode) =>
   skill === null || bracketIndex(code) >= bracketIndex(bracketForSkill(skill));
 
@@ -36,7 +34,6 @@ export interface PlayerChartBests {
 
 export interface LeaderboardEntry {
   playerId: number;
-  // null: fewer than RANKED_MIN_CHARTS charts played, listed by total without a place
   rank: number | null;
   total: number;
   charts: { sharedChartId: number; score: number; counted: boolean }[];

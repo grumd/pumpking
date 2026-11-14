@@ -2,8 +2,6 @@ import { db, type Transaction } from '@pumpking/database/db';
 import { SUPPORTED_MIXES } from '@pumpking/utils/mixes';
 import { sql, type RawBuilder } from 'kysely';
 
-// Results that count for tournaments, shared by the skill rule and the scorer.
-// `from`/`to` are naive wall-clock bounds compared in SQL, `to` is exclusive.
 export const eligibleResults = (
   window: { from: RawBuilder<Date>; to: RawBuilder<Date> },
   trx?: Transaction
@@ -19,7 +17,6 @@ export const eligibleResults = (
     .where('r.gained', '>=', window.from)
     .where('r.gained', '<', window.to);
 
-// S/D shared charts that exist in every supported mix.
 export const poolChartIds = (trx?: Transaction) =>
   (trx ?? db)
     .selectFrom('chart_instances as ci')

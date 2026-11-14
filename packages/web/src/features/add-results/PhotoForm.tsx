@@ -57,12 +57,10 @@ interface PhotoFormProps {
   onSkip: () => void;
 }
 
-/** A photo that couldn't be saved as read: the fields in doubt, filled in by the user */
 export const PhotoForm = ({ item, onSubmit, onSkip }: PhotoFormProps) => {
   const lang = useLanguage();
   const { needsInput } = item;
   const read = needsInput.values;
-  // A single photo shows every field, to confirm
   const [showAll, setShowAll] = useState(item.review);
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setSubmitting] = useState(false);
@@ -108,7 +106,6 @@ export const PhotoForm = ({ item, onSubmit, onSkip }: PhotoFormProps) => {
     { value: 'HJ', label: 'HJ' },
   ];
   const modLabel = (mod: string) => modOptions.find((option) => option.value === mod)?.label;
-  // A value as the form shows it: yes / no for pass, the mod's name
   const valueLabel = (field: PhotoField, value: string | number | boolean) => {
     if (typeof value === 'boolean') {
       return value ? lang.YES : lang.NO;
@@ -120,7 +117,6 @@ export const PhotoForm = ({ item, onSubmit, onSkip }: PhotoFormProps) => {
   };
   const gradeOptions = item.mix === 'XX' ? XX_GRADES : phoenixGradeOrder;
 
-  // What each reader read, when they differ: a tap fills it in
   const readOptions = (field: Exclude<PhotoField, 'chart'>) => {
     const options = [...new Set(needsInput.readValues.map((values) => values[field]))];
     if (options.length < 2) {
@@ -145,8 +141,6 @@ export const PhotoForm = ({ item, onSubmit, onSkip }: PhotoFormProps) => {
     );
   };
 
-  // Under a field: what each reader read when they differ, or a note for a field in doubt
-  // among all the fields of a single photo that was read
   const fieldNote = (field: PhotoField) =>
     (field !== 'chart' && readOptions(field)) ||
     (item.review && read && needsInput.fields.includes(field) ? (
@@ -155,7 +149,6 @@ export const PhotoForm = ({ item, onSubmit, onSkip }: PhotoFormProps) => {
       </Text>
     ) : undefined);
 
-  // The values that were read with no doubt, shown until the user edits everything
   const values = form.values;
   const readItems = showAll
     ? []
@@ -185,7 +178,6 @@ export const PhotoForm = ({ item, onSubmit, onSkip }: PhotoFormProps) => {
       });
 
   const handleSubmit = async ({ chart, grade, ...formValues }: FormValues) => {
-    // Both are validated
     if (!chart || !grade) {
       return;
     }
@@ -206,7 +198,6 @@ export const PhotoForm = ({ item, onSubmit, onSkip }: PhotoFormProps) => {
       });
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
-      // The refused values may be among the ones that were hidden
       setShowAll(true);
     }
     setSubmitting(false);

@@ -17,7 +17,6 @@ import request from 'supertest';
 const submit = (body: object) => post('/results/screen/submit', body);
 const validate = (body: object) => post('/results/screen/validate', body);
 
-// The reason a changed Phoenix result is turned down with
 const rejection = async (change: (result: Record<string, unknown>) => void) => {
   const result: Record<string, unknown> = phoenixResult();
   change(result);
@@ -104,7 +103,6 @@ describe('Result submissions', () => {
     assert.deepEqual(again.body.updates, [{ status: `result #${result.id} is up-to-date` }]);
     assert.lengthOf(await getEvents(), 1);
 
-    // A few seconds later on another frame of the screen: the newer recognition wins
     const later = await submit(screen({ screen_file: 'other.mp4', gained: '2026-09-30 20:12:30' }));
     assert.deepEqual(later.body, {
       updates: [{ status: `result #${result.id} updated` }],
@@ -115,7 +113,6 @@ describe('Result submissions', () => {
     });
     assert.lengthOf(await getEvents(), 2);
 
-    // Much later, the same score is another play
     const another = await submit(screen({ gained: '2026-09-30 21:00:00' }));
     assert.deepEqual(another.body.updates, [{ status: 'result added' }]);
     assert.lengthOf(await getResults(), 2);
@@ -130,7 +127,6 @@ describe('Result submissions', () => {
     assert.deepEqual(vj.body.updates, [{ status: 'result added' }]);
 
     const [plain, rankMode] = await getResults();
-    // ⌈(995 × (1000 × 648 + 600 × 2 + 200 × 2 + 100 × 4) + 5000 × 216) / 658⌉
     assert.include(plain, { mix: 26, score_phoenix: 984_545, is_pass: 1, rank_mode: 0 });
     assert.include(rankMode, { is_pass: 0, rank_mode: 1, mods_list: 'VJ 2X' });
 
@@ -242,7 +238,6 @@ describe('Result submissions', () => {
       );
       return res.body.validation[0].reason ?? 'valid';
     };
-    // Real results: Phoenix #303067 (exactly 967,823) and Phoenix 2 #302569 (973,629)
     const phoenix = {
       score: 967_822,
       grade: 'AAA+',
@@ -334,7 +329,6 @@ describe('Result submissions', () => {
     };
 
     assert.deepEqual(await recognized('ALICEALT'), { status: 'result added' });
-    // The same play: only the recognized name is new
     assert.deepEqual(await recognized('AL ICE', 'Phoenix'), {
       status: `result #${(await getResults())[0].id} updated`,
     });
@@ -359,7 +353,6 @@ describe('Result submissions', () => {
     await submit(xxScreen());
     const [original] = await getResults();
 
-    // Imported later, from another screen, without the grade
     const manual = await post(
       '/results/manual/submit',
       xxScreen(
@@ -375,7 +368,6 @@ describe('Result submissions', () => {
       screen_file: 'test-arcade/import.jpg',
     });
 
-    // Other stats: another play with the same score
     const other = await post(
       '/results/manual/submit',
       xxScreen({ ...xxResult(), max_combo: 215 }, { screen_file: 'import2.jpg' })
@@ -442,7 +434,6 @@ describe('Result submissions', () => {
     assert.deepEqual((await submit(screen({ left: { result: phoenixResult() } }))).body, {
       error: "Expected field 'chart_label' not found",
     });
-    // A JSON body that isn't an object has no arguments
     assert.deepEqual((await submit([screen()])).body, {
       error: "Expected field 'screen_file' not found",
     });
@@ -466,7 +457,6 @@ describe('Result submissions', () => {
   });
 
   it("turn down charts that can't be told apart, and mixes without track names", async () => {
-    // Another track with the same arcade name and a chart with the same label
     await db
       .insertInto('shared_charts')
       .values({ id: 4, track: 3, index_in_track: 1, type: 'S' })
@@ -494,7 +484,6 @@ describe('Result submissions', () => {
       },
     ]);
 
-    // Alice has a name on Prime 2, whose tracks nobody added
     await db
       .insertInto('arcade_player_names')
       .values({ mix_id: 25, player_id: 1, name: 'ALICE', name_edist: 0 })
@@ -509,7 +498,6 @@ describe('Result submissions', () => {
   });
 
   it('take XX charts without a level as level 10 or below', async () => {
-    // The minimum score for the stats is 1.5 times higher on the seeded S15
     const result = { ...xxResult(), score: 400_000 };
     const tooLow = await validate(xxScreen(result));
     assert.deepEqual(tooLow.body.validation, [

@@ -32,7 +32,6 @@ export const tracks = router({
   updateChartSteps: adminProcedure
     .input(z.object({ chartInstanceId: z.number(), minTotalSteps: steps, maxTotalSteps: steps }))
     .mutation(({ input }) => updateChartInstanceSteps(input.chartInstanceId, input)),
-  // Tracklist sync: a preview of the changes a tracklist file makes, then applying them
   previewSync: adminProcedure
     .input(z.object({ file: tracklistFileSchema }))
     .mutation(({ input }) => previewTracklistSync(input.file)),

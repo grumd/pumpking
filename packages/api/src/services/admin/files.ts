@@ -5,8 +5,6 @@ import { StatusError } from 'utils/errors';
 
 export type AdminFileSource = 'results' | 'purgatory';
 
-// `screen`: the screenshot or video an agent uploaded; `scan`: its recognition JSON,
-// which piu-spy uploads next to it under the same name
 export type AdminFileKind = 'screen' | 'scan';
 
 export const getAdminFilePath = async (

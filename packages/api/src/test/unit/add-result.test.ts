@@ -7,7 +7,6 @@ import path from 'path';
 import { applyEffects, req } from 'test/helpers';
 import { addResultsSession } from 'test/helpers/sessions';
 
-// A date whose results count fully in the total pp (less than a year old)
 const recentDate = new Date(Date.now() - 10 * 86_400_000).toISOString().slice(0, 10);
 
 describe('Add new result manually', () => {
@@ -224,7 +223,6 @@ describe('Add new result manually', () => {
     let player = await db.selectFrom('players').selectAll().where('id', '=', 7).executeTakeFirst();
     assert.isNull(player?.exp, `player's exp is null by default`);
 
-    // add first result for this user
     await req()
       .post('/results/add-result')
       .set('session', addResultsSession)
@@ -262,7 +260,6 @@ describe('Add new result manually', () => {
     let player = await db.selectFrom('players').selectAll().where('id', '=', 7).executeTakeFirst();
     assert.isNull(player?.exp, `player's exp is null by default`);
 
-    // add two results for this user
     await req()
       .post('/results/add-result')
       .set('session', addResultsSession)
@@ -329,7 +326,6 @@ describe('Add new result manually', () => {
       `player's pp history is empty by default`
     );
 
-    // add first result for this user
     await req()
       .post('/results/add-result')
       .set('session', addResultsSession)
@@ -365,7 +361,6 @@ describe('Add new result manually', () => {
     assert.isAbove(firstPp ?? -1, 0, `player's pp is above 0`);
     assert.strictEqual(firstResult?.pp, firstPp, 'player pp and result pp are equal');
 
-    // add second result for this user
     await req()
       .post('/results/add-result')
       .set('session', addResultsSession)
@@ -429,7 +424,6 @@ describe('Add new result manually', () => {
       })
       .execute();
 
-    // add third result for this user, different chart
     await req()
       .post('/results/add-result')
       .set('session', addResultsSession)
@@ -460,7 +454,6 @@ describe('Add new result manually', () => {
       .executeTakeFirst();
     player = await db.selectFrom('players').selectAll().where('id', '=', 7).executeTakeFirst();
 
-    // Actual score is calculated as 872976.52 - should be rounded down
     assert.strictEqual(thirdResult?.score_phoenix, 872976, 'Phoenix score is calculated correctly');
 
     const thirdPp = player?.pp;
@@ -500,7 +493,6 @@ describe('Add new result manually', () => {
   });
 
   it('for XX results is_pass is set correctly', async () => {
-    // add two results, A- and S
     await req()
       .post('/results/add-result')
       .set('session', addResultsSession)
@@ -581,7 +573,6 @@ describe('Add new result manually', () => {
 });
 
 describe('Add a new Phoenix 2 result (mix 28) via tRPC', () => {
-  // The mix 28 instance of the second seeded chart
   const sharedChartId = 3;
   const screenshotDataUrl =
     'data:image/jpeg;base64,' +
@@ -619,7 +610,6 @@ describe('Add a new Phoenix 2 result (mix 28) via tRPC', () => {
       .orderBy('id', 'desc')
       .executeTakeFirst();
 
-  // tRPC responses are superjson-encoded, the error message lives in `error.json`
   const getErrorMessage = (res: { body: { error: { json: { message: string } } } }) =>
     res.body.error.json.message;
 
@@ -637,7 +627,6 @@ describe('Add a new Phoenix 2 result (mix 28) via tRPC', () => {
   });
 
   it('takes the score the arcade shows, one below the exact score for some stats', async () => {
-    // Exactly 948,955, but Phoenix 2 computes it in floating point and shows 948,954
     const belowStats = { perfect: 94, great: 0, good: 3, bad: 3, miss: 0, combo: 94 };
     const exact = await postPhoenix2Result({ ...belowStats, score: 948_955 }).expect(400);
     assert.match(

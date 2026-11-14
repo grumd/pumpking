@@ -15,7 +15,6 @@ describe('Charts search (Phoenix scoring only)', () => {
   });
 
   it('includes the original score, which differs for pre-Phoenix results', async () => {
-    // XX-scale original score (1.8M) back-calculated to Phoenix (1M)
     await db
       .insertInto('results')
       .values({
@@ -100,7 +99,6 @@ describe('Charts search (Phoenix scoring only)', () => {
     twoDaysAgo.setMilliseconds(0);
 
     beforeEach(async () => {
-      // Chart 1 was last played two days ago, chart 6 yesterday
       await db
         .updateTable('results')
         .set({ added: twoDaysAgo, gained: twoDaysAgo })

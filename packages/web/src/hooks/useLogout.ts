@@ -9,7 +9,6 @@ export const useLogout = () => {
   const onLoggedOut = () => {
     cookies.erase('session');
     queryClient.invalidateQueries(api.user.current.queryFilter());
-    // The own profile's latest results show every play, others get only the bests
     void queryClient.resetQueries(api.players.latestResults.pathFilter());
   };
 
@@ -18,7 +17,6 @@ export const useLogout = () => {
       onSuccess: onLoggedOut,
       onError: (err) => {
         console.error('Logout error:', err);
-        // Still clear the cookie on error since we want to log out regardless
         onLoggedOut();
       },
     })

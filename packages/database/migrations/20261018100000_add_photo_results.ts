@@ -1,14 +1,7 @@
 import { Kysely, sql } from 'kysely';
 
-/**
- * Results read from photos (docs/photo-results/PLAN.md): the SHA-256 of the photo a result
- * was added from, so the same file is never read twice, and what reading photos cost each
- * player in USD. ocr_cost starts from openai_cost; the openai_* columns are dropped later,
- * once the old screenshot recognition is removed
- */
 export async function up(db: Kysely<any>): Promise<void> {
   await db.schema.alterTable('results').addColumn('photo_sha256', 'char(64)').execute();
-  // A unique index allows any number of NULLs
   await db.schema
     .createIndex('results_photo_sha256_unique')
     .unique()

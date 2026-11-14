@@ -1,22 +1,13 @@
 import { db, type Transaction } from '@pumpking/database/db';
 import { ARCADE_NAME_MIXES, MIX_NAME_BY_ID } from '@pumpking/utils/mixes';
 
-/**
- * Arcade names: the names players and tracks have on the arcade screen, per mix
- * (`arcade_player_names`, `arcade_track_names`). Ingestion matches recognized names
- * against them
- */
-
 export interface ArcadeName {
   name: string;
-  // How many edits (Levenshtein distance) a recognized name may be off by and still match
   edist: number;
 }
 
-// Arcade names by mix id, for the mixes in ARCADE_NAME_MIXES
 export type ArcadeNames = Record<number, ArcadeName | null>;
 
-// Arcade names by mix of each id, from `arcade_player_names` or `arcade_track_names` rows
 const groupArcadeNames = (
   rows: { id: number; mix_id: number; name: string; name_edist: number }[]
 ) => {
@@ -52,8 +43,6 @@ export const getTrackArcadeNames = async (trackIds?: number[]) => {
   return groupArcadeNames(await query.execute());
 };
 
-// Trims the names; an empty one means no name on that mix. Player names are stored upper
-// case, like the recognized names they're matched with
 export const normalizeArcadeNames = (
   arcadeNames: ArcadeNames,
   { upperCase }: { upperCase: boolean }
@@ -67,10 +56,6 @@ export const normalizeArcadeNames = (
     })
   );
 
-/**
- * Saves a player's or track's arcade names: a name upserts the row for its mix, an empty
- * name deletes it (the columns are NOT NULL, so "no name" is no row)
- */
 export const saveArcadeNames = async (
   trx: Transaction,
   kind: 'player' | 'track',

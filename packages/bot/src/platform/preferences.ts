@@ -1,18 +1,9 @@
 import { db } from '@pumpking/database/db';
 
-/**
- * The bot preferences of a player, `players.telegram_bot_preferences`. The JSON is
- * versioned like in the legacy bot: `version` counts the updaters below that have run, so
- * the stored preferences keep working. Add an updater to change the shape.
- */
-
 export interface RivalsPreferences {
-  // Player ids
   list: number[];
-  // Chart levels [from, to] to be notified about
   levels: [number, number];
   track: boolean;
-  // "Smart" tracking: also players who aren't on the list
   trackInferior: boolean;
 }
 
@@ -49,7 +40,6 @@ export class NotRegisteredError extends Error {
   }
 }
 
-/** The preferences of the player linked to a chat; throws a NotRegisteredError if none is */
 export const getPreferences = async (telegramId: number): Promise<BotPreferences> => {
   const player = await db
     .selectFrom('players')

@@ -3,7 +3,6 @@ import { assert } from 'chai';
 import { errorMessage, output, trpcMutation, trpcQuery } from 'test/helpers/trpc';
 import { getResultDefaults } from 'test/seeds/initialSeed';
 
-// The legacy mix list: a tracklist file's `mixes` are in this order, so Phoenix2 is #28
 const MIX_NAMES = [
   '1st', '2nd', 'OBG', 'OBG_SE', 'Collection', 'Perfect', 'Extra', 'Premiere', 'Prex', 'Premiere2',
   'Rebirth', 'Prex2', 'Premiere3', 'Prex3', 'Exceed', 'Exceed2', 'Zero', 'NX', 'NX2', 'NXA', 'Fiesta',
@@ -92,7 +91,6 @@ describe('Admin tracks', () => {
     );
     assert.isNull(first.nextCursor);
 
-    // The results older than the cursor
     const older = output(
       await trpcQuery('admin.tracks.chartResults', {
         chartInstanceId: 3,
@@ -143,7 +141,6 @@ describe('Admin tracks', () => {
   });
 
   describe('tracklist sync', () => {
-    // The seeded track 1 ('1') with its 5 charts and their instances, as in the DB
     const seededTrack = {
       title: 'Track 1',
       duration: 'Standard',
@@ -236,8 +233,6 @@ describe('Admin tracks', () => {
         { track: newTrack.id, mix: 28, label: 'S5', level: 5 },
       ]);
 
-      // A track's first chart on a mix gives it an arcade name there: the previous mix's
-      // one, else its full name
       const names = await db
         .selectFrom('arcade_track_names')
         .select(['track_id', 'mix_id', 'name'])

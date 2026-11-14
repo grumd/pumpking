@@ -23,12 +23,8 @@ import {
   ppBreakdownInput,
 } from './listQueries';
 
-// Loads the tabs that aren't open once the page has loaded what it shows. Not together with
-// it: tRPC batches the queries started together into one request, which would then wait
-// for the hidden tabs too
 const usePrefetchOtherTabs = (playerId: number | undefined) => {
   const queryClient = useQueryClient();
-  // Re-renders when the page's queries finish, so the check below sees the latest results
   const isFetching = useIsFetching();
   const prefetchedFor = useRef<number | undefined>(undefined);
   const latestLoaded =
@@ -53,24 +49,18 @@ const usePrefetchOtherTabs = (playerId: number | undefined) => {
   }, [isFetching, latestLoaded, playerId, queryClient]);
 };
 
-// The player's charts: latest results (only the new bests on someone else's profile), what
-// makes up the total pp (current best), best scores by full pp (all-time best), most played
 export const ChartLists = (): JSX.Element => {
   const lang = useLanguage();
   const params = useParams();
   const user = useUser();
   const playerId = params.id ? Number(params.id) : undefined;
   usePrefetchOtherTabs(playerId);
-  // The API gives only the latest bests on someone else's profile
   const isOwnProfile = playerId === undefined || playerId === user.data?.id;
-  // The open tab is in the URL, so going back to the profile opens the same tab, and the
-  // browser can restore the scroll position
   const [searchParams, setSearchParams] = useSearchParams();
   const tab = searchParams.get('tab') ?? 'latest';
 
   return (
     <Card>
-      {/* Only the open tab is mounted; the others are prefetched */}
       <Tabs
         variant="pills"
         value={tab}

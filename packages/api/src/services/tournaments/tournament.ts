@@ -11,8 +11,6 @@ const tournamentWindow = {
   to: sql.ref<Date>('t.end_date'),
 };
 
-// Each bracket's ranking by the best eligible scores on its pool, for a Live tournament
-// (and for the end job, which freezes it into tournament_results).
 export const getLiveStandings = async (tournamentId: number, trx?: Transaction) => {
   const rows = await eligibleResults(tournamentWindow, trx)
     .innerJoin('tournament_player_brackets as tpb', 'tpb.player_id', 'p.id')
@@ -54,7 +52,6 @@ const getFinalStandings = (tournamentId: number) =>
       'charts',
     ])
     .where('tournament_id', '=', tournamentId)
-    // written in leaderboard order by the end job
     .orderBy('id')
     .execute();
 
@@ -166,7 +163,6 @@ export const getTournament = async ({
               .filter((instance) => instance.shared_chart === chart.sharedChartId)
               .map(({ mix, label, level }) => ({ mix, label, level })),
           })),
-        // Ranked players first, then the bracket's players without a score, unranked.
         leaderboard: [
           ...standings
             .filter((entry) => entry.bracketId === bracket.id && playerById.has(entry.playerId))
@@ -180,9 +176,6 @@ export const getTournament = async ({
   };
 };
 
-// Puts the player in a bracket of a Live tournament, or moves them to it. Their scores
-// from the whole tournament then count in the new bracket. Rated players can't go below
-// their skill's bracket.
 export const joinBracket = ({ playerId, bracketId }: { playerId: number; bracketId: number }) =>
   db.transaction().execute(async (trx) => {
     const bracket = await trx
@@ -190,7 +183,6 @@ export const joinBracket = ({ playerId, bracketId }: { playerId: number; bracket
       .innerJoin('tournaments as t', 't.id', 'b.tournament_id')
       .select(['b.tournament_id', 'b.code', 't.state'])
       .where('b.id', '=', bracketId)
-      // waits for the end job, which locks the tournament while it freezes the results
       .forUpdate()
       .executeTakeFirst();
     if (!bracket) {
@@ -241,7 +233,6 @@ export const getPlayerAwards = (playerId: number) =>
     .orderBy('t.start_date', 'desc')
     .execute();
 
-// Pool charts of the Live tournament, and which of the given results count for it.
 export const getLiveTournamentMarks = async (resultIds: number[]) => {
   const pool = await db
     .selectFrom('tournament_charts as tc')

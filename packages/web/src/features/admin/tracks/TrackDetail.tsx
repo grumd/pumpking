@@ -25,7 +25,6 @@ type ChartInstance = Track['charts'][number]['instances'][number];
 
 interface TrackDetailProps {
   id: number;
-  // A chart instance to point out and open, e.g. the one a purgatory reason is about
   highlightChartId?: number;
 }
 
@@ -46,7 +45,6 @@ const TrackView = ({ track, highlightChartId }: { track: Track; highlightChartId
     api.admin.tracks.saveArcadeNames.mutationOptions(),
     () => `Edit arcade names of track #${track.id}`
   );
-  // The chart the link points to (e.g. from purgatory) opens in its window
   const [editingId, setEditingId] = useState<number | null>(highlightChartId ?? null);
   useEffect(() => {
     setEditingId(highlightChartId ?? null);
@@ -75,7 +73,6 @@ const TrackView = ({ track, highlightChartId }: { track: Track; highlightChartId
             value={form.values.arcadeNames}
             onChange={(v) => form.set('arcadeNames', v)}
             defaultEdist={1}
-            // Only the mixes the track has charts on
             mixes={track.charts.flatMap((chart) => chart.instances.map((instance) => instance.mix))}
           />
           <Group justify="flex-end" gap="xs">
@@ -127,8 +124,6 @@ const TrackView = ({ track, highlightChartId }: { track: Track; highlightChartId
   );
 };
 
-// A shared chart, ticket style: its instances mix by mix, with arrows between them. The
-// instances of mixes with no name are folded into a "…" button that shows them
 const SharedChart = ({
   chart,
   highlightChartId,
@@ -139,7 +134,6 @@ const SharedChart = ({
   onEdit: (chartInstanceId: number) => void;
 }) => {
   const [showAll, setShowAll] = useState(false);
-  // An instance, or null for a run of folded ones
   const items: (ChartInstance | null)[] = [];
   for (const instance of chart.instances) {
     if (showAll || MIX_NAME_BY_ID[instance.mix] || instance.id === highlightChartId) {
@@ -167,7 +161,6 @@ const SharedChart = ({
               <ChartInstanceCard
                 instance={instance}
                 type={chart.type}
-                // The card before it: after a "…" button the label is bright
                 sameLabelAsPrevious={items[index - 1]?.label === instance.label}
                 sameStepsAsPrevious={
                   !!items[index - 1] &&
@@ -198,9 +191,7 @@ const SharedChart = ({
 interface ChartInstanceCardProps {
   instance: ChartInstance;
   type: Track['charts'][number]['type'];
-  // The label didn't change since the previous card: it's dimmed
   sameLabelAsPrevious: boolean;
-  // Same for the step range: dimmed when it didn't change, bright when it did
   sameStepsAsPrevious: boolean;
   highlighted: boolean;
   onClick: () => void;
@@ -234,7 +225,6 @@ const ChartInstanceCard = ({
       <div className={css.instanceBody}>
         <div className={css.instanceChart}>
           <span>{MIX_NAME_BY_ID[instance.mix] ?? `Mix #${instance.mix}`}</span>
-          {/* Older mixes' labels (e.g. NL-5) don't tell the type, the shared chart does */}
           <ChartLabel label={instance.label} typeLabel={type} same={sameLabelAsPrevious} />
         </div>
         <div className={css.instanceFooter}>

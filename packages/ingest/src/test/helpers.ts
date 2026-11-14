@@ -12,7 +12,6 @@ export const post = (path: string, body: object, agent: { name: string; token: s
     .send(body)
     .expect(200);
 
-// A valid Phoenix result on the seeded "Love Is A Danger Zone (Cranky Mix)" S16 (652 steps)
 export const phoenixResult = () => ({
   player_name: 'ALICE',
   recognition_notes: 'result',
@@ -43,7 +42,6 @@ export const screen = ({
   ...header,
 });
 
-// With the naive datetimes as they're stored
 export const getResults = async () => {
   const rows = await db
     .selectFrom('results')
@@ -61,7 +59,6 @@ export const getResults = async () => {
   }));
 };
 
-// A valid XX result on the seeded S15 (658 steps)
 export const xxResult = () => ({
   player_name: 'ALICE',
   recognition_notes: 'result',
@@ -82,7 +79,6 @@ export const xxScreen = (result: object = xxResult(), header: object = {}) =>
 
 export const getEvents = () => db.selectFrom('events').selectAll().orderBy('id').execute();
 
-// Runs `run` while the table is renamed away, so that the queries on it fail
 export const withoutTable = async (table: string, run: () => Promise<void>) => {
   await sql`RENAME TABLE ${sql.table(table)} TO ${sql.table(`${table}_away`)}`.execute(db);
   try {

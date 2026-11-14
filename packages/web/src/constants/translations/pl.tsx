@@ -1,7 +1,6 @@
 import type { BaseTranslation } from './en';
 
 export const pl: BaseTranslation = {
-  // generic
   NOTHING_FOUND: 'Nic nie znaleziono',
   ERROR: 'Bład',
   SOMETHING_WENT_WRONG: 'Coś poszło nie tak',
@@ -9,18 +8,15 @@ export const pl: BaseTranslation = {
   CLOSE: 'Zamknij',
   UNREAD: 'nieprzeczytane',
 
-  // menu
   LEADERBOARDS: 'tabele wyników',
   RANKING: 'ranking',
   TOURNAMENTS: 'turnieje',
   SONGS: 'piosenki',
   LOGOUT: 'wyloguj',
 
-  // Rankings
   ACCURACY: 'celność',
   UPDATE: 'odśwież',
 
-  // Leaderboards buttons
   FILTERS: 'filtry',
   SORTING: 'sortowanie',
   PRESETS: 'presety',
@@ -38,7 +34,6 @@ export const pl: BaseTranslation = {
   SONG_NAME_LABEL: 'nazwa piosenki',
   SONG_NAME_PLACEHOLDER: 'nazwa piosenki...',
   PLAYERS_PLACEHOLDER: 'gracze...',
-  // Sorting
   BY_DATE_DESC: 'wg daty (od nowych)',
   BY_DATE_ASC: 'wg daty (od starych)',
   BY_DIFFICULTY_ASC: 'wg trudności (od łatwych)',
@@ -46,7 +41,6 @@ export const pl: BaseTranslation = {
   BY_PP_DESC: 'wg pp (od dużych)',
   BY_PP_ASC: 'wg pp (od małych)',
 
-  // Presets overlay
   OPEN: 'otwórz',
   OVERWRITE: 'nadpisz',
   DELETE: 'usuń',
@@ -57,7 +51,6 @@ export const pl: BaseTranslation = {
   SHOW_PRESETS_TABS: 'pokaż zakładki presetów',
   PRESET_NAME_PLACEHOLDER: 'nazwa presetu...',
 
-  // Leaderboards Filters
   SHOW_CHARTS_PLAYED_BY: 'pokaż czarty grane przez:',
   EACH_OF_THESE: 'każdego z tych',
   AND_ANY_OF_THESE: 'i któregokolwiek z tych',
@@ -69,13 +62,11 @@ export const pl: BaseTranslation = {
   RANK_FILTER_SHOW_NORANK: 'tylko bez ranku',
   SHOW_HIDDEN_PLAYERS: 'pokaż ukrytych graczy',
 
-  // Leaderboards Sorting
   SORTING_LABEL: 'sortowanie:',
   SORTING_PLACEHOLDER: 'wybierz sortowanie',
   PLAYER_LABEL: 'gracz:',
   EXCLUDE_FROM_COMPARISON: 'wyklucz z porównania:',
 
-  // Sorting options
   NEW_TO_OLD_SCORES: 'od nowych do starych wyników',
   NEW_TO_OLD_SCORES_OF_A_PLAYER: 'od nowych do starych wyników gracza',
   SCORE_DIFFERENCE: 'różnica wyników',
@@ -86,16 +77,13 @@ export const pl: BaseTranslation = {
   EASY_TO_HARD_CHARTS: 'od łatwych do trudnych czartów',
   HARD_TO_EASY_CHARTS: 'od trudnych do łatwych czartów',
 
-  // Rank options
   SHOW_ALL_SCORES: 'pokaż wszystkie wyniki',
   BEST_SCORE: 'jeden najlepszy wynik każdego gracza (rank lub nie)',
   RANK_ONLY: 'tylko z rankiem',
   ONLY_NO_RANK: 'tylko bez ranku',
 
-  // Results
   SHOW_MORE_RESULTS: (count: number) => `(pokaż jeszcze ${count})`,
 
-  // Score details overlay
   PLAYER: 'gracz',
   EXP: 'exp',
   ELO: 'elo',
@@ -111,14 +99,12 @@ export const pl: BaseTranslation = {
   SIGHTREAD: '* sightread',
   NEW_SCORE: 'NOWY',
 
-  // Other
   MY_BEST_SCORE_WARNING: 'Dokładna data uzyskania wyniku nie jest znana',
   BACK_TO_ALL_CHARTS: 'powrót do wszystkich czartów',
   NO_RESULTS: 'nie znaleziono wyników',
   SHOW_MORE: 'pokaż więcej',
   HIDDEN: 'ukryty',
 
-  // Profile Results by level
   ALL: 'wszystkie',
   DOUBLES: 'double',
   SINGLES: 'single',
@@ -126,7 +112,6 @@ export const pl: BaseTranslation = {
   BACK_BUTTON: 'wstecz',
   LEVEL_PLACEHOLDER: 'poziom...',
 
-  // played time ago
   TODAY: 'dzisiaj',
   YESTERDAY: 'wczoraj',
   YESTERDAY_NIGHT: 'wczoraj w nocy',
@@ -136,7 +121,6 @@ export const pl: BaseTranslation = {
   MONTHS_SHORT: 'mies',
   NEVER: 'nigdy',
 
-  // Tournaments
   START_DATE: 'Początek:',
   END_DATE: 'Koniec:',
   BRACKETS: 'Drabinka:',
@@ -227,7 +211,6 @@ export const pl: BaseTranslation = {
   ),
   EXP_TITLES_LIST_HEADER: <>Możliwe rangi i doświadczenie potrzebne do ich zdobycia:</>,
 
-  // score date tooltip
   EXACT_DATE_UNKNOWN: 'dokładna data nieznana',
   SCORE_WAS_TAKEN: 'wynik został uzyskany',
   DATE_RECORDED: 'data zapisana',
@@ -237,7 +220,6 @@ export const pl: BaseTranslation = {
   ADDED: 'dodano',
   PLAYED: 'zagrano',
 
-  // achievements
   COMBO_500: '500 combo',
   COMBO_1000: '1000 combo',
   COMBO_2000: '2000 combo',
@@ -261,7 +243,6 @@ export const pl: BaseTranslation = {
   WEEK_LONG_TRAINING: 'Oddanie',
   WEEK_LONG_TRAINING_DESC: 'Zagraj przynajmniej jeden czart każdego dnia przez tydzień',
 
-  // Add results from photos
   ADD_RESULTS_NAV: 'dodaj',
   ADD_RESULTS: 'Dodaj wyniki',
   PHOTOS: 'Zdjęcia',
@@ -295,7 +276,6 @@ export const pl: BaseTranslation = {
   YES: 'Tak',
   NO: 'Nie',
 
-  // Add Result / OCR
   CHART: 'Czart',
   HEIC_NOT_SUPPORTED:
     'Pliki HEIC nie są obsługiwane. Proszę przekonwertować zrzut ekranu na JPG lub PNG.',
@@ -307,7 +287,6 @@ export const pl: BaseTranslation = {
   NONE_NORMAL_MODE: 'Brak (tryb normalny)',
   GRADE_REQUIRED: 'Ocena jest wymagana',
 
-  // Admin
   DELETE_RESULT: 'Usuń wynik',
   DELETE_RESULT_CONFIRM: 'Czy na pewno chcesz usunąć ten wynik? Tej akcji nie można cofnąć.',
   ENABLED: 'Włączone',
@@ -315,7 +294,6 @@ export const pl: BaseTranslation = {
   REGION: 'Region',
   ADMIN: 'admin',
 
-  // Login / Registration
   SIGN_IN_WITH_DISCORD: 'Zaloguj się przez Discord',
   SIGN_UP_WITH_DISCORD: 'Zarejestruj się przez Discord',
   CREATE_NEW_ACCOUNT: 'Utwórz nowe konto',

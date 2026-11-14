@@ -35,7 +35,6 @@ export const LeaderboardsChartsList = (): JSX.Element => {
           }}
           useWindowScroll
           data={chartsList}
-          // Padding, not margin: Virtuoso measures the item's own box
           itemContent={(index) => <Box pt={index > 0 ? 'sm' : 0}>{chartsList[index]}</Box>}
         />
       ) : null}

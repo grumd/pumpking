@@ -26,7 +26,6 @@ import { addResultsSession } from 'test/helpers/sessions';
 import { errorMessage, output, trpcMutation, trpcQuery } from 'test/helpers/trpc';
 import { getResultDefaults } from 'test/seeds/initialSeed';
 
-// 83 perfects and 17 greats on 100 steps: 932,340, AA+ on Phoenix but AA on Phoenix 2
 const phoenixStats = { perfect: 83, great: 17, good: 0, bad: 0, miss: 0, max_combo: 100 };
 const phoenixScore = getPhoenixScore(
   { ...phoenixStats, combo: phoenixStats.max_combo },
@@ -116,7 +115,6 @@ describe('Results from photos', () => {
         MIXES.Phoenix2
       );
       assert.deepEqual(unknownPlate.problems, ['pass']);
-      // Cut off at the edge of the screen: only one plate name fits
       const cutOff = checkRead(
         phoenixRead({ plate_text: 'TIMATE GAME' }),
         [chart()],
@@ -181,7 +179,6 @@ describe('Results from photos', () => {
         MIXES.Phoenix2
       );
       assert.isNull(check.chart);
-      // A known count that differs points to a misread judgement
       assert.deepEqual(check.problems, ['chart', 'perfect', 'great', 'good', 'bad', 'miss']);
     });
 
@@ -203,7 +200,6 @@ describe('Results from photos', () => {
       });
       assert.equal(exactStepCount(fallback), 100);
       assert.equal(checkRead(phoenixRead(), [fallback], MIXES.Phoenix2).chart, fallback);
-      // Only when its own count is unknown
       assert.isNull(exactStepCount({ ...fallback, minTotalSteps: 90, maxTotalSteps: 110 }));
     });
 
@@ -293,7 +289,6 @@ describe('Results from photos', () => {
       const decision = decide(MIXES.XX, [xx(), xx({ max_combo: 99 }), xx()]);
       assert.equal(decision.status, 'confident');
       assert.equal(decision.status === 'confident' && decision.values.combo, 100);
-      // Agreeing with a read that fails isn't enough
       assert.equal(
         decide(MIXES.XX, [xx({ score: 120_050 }), xx({ max_combo: 99 }), xx({ score: 120_050 })])
           .status,
@@ -302,7 +297,6 @@ describe('Results from photos', () => {
     });
 
     it('XX: reads that disagree on pass are asked, whatever the third read says', () => {
-      // Setsuna Trip D23: thin cracks on a silver A, only one reader saw the fail
       const decision = decide(MIXES.XX, [
         xx({ stage_failed: false }),
         xx({ stage_failed: true }),
@@ -316,7 +310,6 @@ describe('Results from photos', () => {
       );
     });
 
-    // Gargoyle D20: the numbers column a row off its labels, both readers shifted the same way
     const shifted = (read: Partial<PhotoRead> = {}) => xx({ perfect: 50, max_combo: 40, ...read });
 
     it('XX: counters the reads agree on but that miss the step count are asked too', () => {
@@ -332,7 +325,6 @@ describe('Results from photos', () => {
       const decision = decide(MIXES.XX, [shifted(), shifted({ max_combo: 45 }), xx()]);
       assert.equal(decision.status, 'needsInput');
       if (decision.status !== 'needsInput') return;
-      // All three reads point to the same chart by title and label: it isn't asked
       assert.deepEqual(decision.fields, ['perfect', 'combo']);
       assert.equal(decision.values?.perfect, 95);
       assert.equal(decision.chart?.sharedChartId, 1);
@@ -343,11 +335,9 @@ describe('Results from photos', () => {
     });
 
     it('XX: one judgement the reads differ on is settled by the step count', () => {
-      // District 1 D17: a "1" read as a "7" makes 6 steps too many
       const decision = decide(MIXES.XX, [xx({ great: 11 }), xx()]);
       assert.equal(decision.status, 'confident');
       assert.equal(decision.status === 'confident' && decision.values.great, 5);
-      // Also against the majority: two reads with the "7" and one with the "1"
       assert.equal(
         decide(MIXES.XX, [xx({ great: 11 }), xx({ great: 11 }), xx()]).status,
         'confident'
@@ -355,9 +345,7 @@ describe('Results from photos', () => {
     });
 
     it('XX: the step count settles nothing when the reads differ in more than one field', () => {
-      // Combo and score have no arithmetic to settle them
       assert.equal(decide(MIXES.XX, [xx({ great: 11, max_combo: 99 }), xx()]).status, 'needsInput');
-      // Two misread judgements could cancel out
       assert.equal(decide(MIXES.XX, [xx({ great: 11, good: 1 }), xx()]).status, 'needsInput');
     });
 
@@ -388,7 +376,6 @@ describe('Results from photos', () => {
       ...overrides,
     });
 
-    // A reader stub that answers per model, and counts the calls
     const stubReader = (reads: Record<string, PhotoRead | null>) => {
       const calls: string[] = [];
       const readPhoto: ReadPhoto = async (reader) => {
@@ -423,7 +410,6 @@ describe('Results from photos', () => {
       );
 
     it('saves a Phoenix 2 result after one read, with its hash and cost', async () => {
-      // A fuzzy title: within 25% of the arcade name
       const { readPhoto, calls } = stubReader({
         [READER_A.model]: phoenixRead({ song_title: 'TRAСK 1.' }),
       });
@@ -500,7 +486,6 @@ describe('Results from photos', () => {
       assert.equal(outcome.status, 'saved');
       assert.sameMembers(calls, [READER_A.model, READER_B.model]);
       if (outcome.status !== 'saved') return;
-      // A pass A is stored as A+
       assert.equal((await getResult(outcome.resultId)).grade, 'A+');
     });
 
@@ -564,7 +549,6 @@ describe('Results from photos', () => {
       assert.deepEqual(second.calls, [READER_A.model]);
     });
 
-    // A result added before by other means, without a photo hash: the play phoenixRead shows
     const addOlderResult = async (photoHash: string | null = null) => {
       const { insertId } = await db
         .insertInto('results')
@@ -594,8 +578,6 @@ describe('Results from photos', () => {
       const again = stubReader({ [READER_A.model]: phoenixRead() });
       assert.equal((await recognizePhoto(input(), again.readPhoto)).status, 'duplicate');
       assert.deepEqual(again.calls, []);
-      // Reads of this photo now count as productive: spend on it that would be over the
-      // limit doesn't stop another photo
       for (let i = 0; i < 25; i++) {
         await addPhotoRead(7, hash, 0.0015);
       }
@@ -645,7 +627,6 @@ describe('Results from photos', () => {
     });
 
     it('a result that the manual checks refuse goes to manual input with the reason', async () => {
-      // Over 1.5 times the chart's highest score
       const { readPhoto } = stubReader({
         [READER_A.model]: xxRead({ score: 1_600_000 }),
         [READER_B.model]: xxRead({ score: 1_600_000 }),
@@ -691,7 +672,6 @@ describe('Results from photos', () => {
     });
 
     describe('cost limits', () => {
-      // Paid reads `hoursAgo`, of photos that gave no result unless `photoHash` has one
       const addReads = async (
         count: number,
         cost: number,
@@ -721,7 +701,6 @@ describe('Results from photos', () => {
         assert.deepEqual(calls, []);
         if (outcome.status !== 'limited') return;
         assert.equal(outcome.limit, 'unproductive');
-        // The reads leave the 24 hours window in 22 hours
         const hours = (outcome.retryAt.getTime() - Date.now()) / 3_600_000;
         assert.closeTo(hours, 22, 0.1);
 
@@ -751,13 +730,11 @@ describe('Results from photos', () => {
           .execute();
         await addReads(1, 0.3, 60, 'e'.repeat(64));
         await addReads(1, 0.2, 10, 'e'.repeat(64));
-        // Over 3 days ago: not counted
         await addReads(1, 0.5, 73, 'e'.repeat(64));
         const outcome = await recognizePhoto(input(), stubReader({}).readPhoto);
         assert.equal(outcome.status, 'limited');
         if (outcome.status !== 'limited') return;
         assert.equal(outcome.limit, 'total');
-        // Under the ceiling once the oldest read leaves the window, in 12 hours
         assert.closeTo((outcome.retryAt.getTime() - Date.now()) / 3_600_000, 12, 0.1);
       });
 

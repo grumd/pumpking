@@ -201,7 +201,6 @@ const PlayerSummary = ({ tournament, playerId }: { tournament: Tournament; playe
   );
 };
 
-// Joins the selected bracket, or moves the player to it, while the tournament is Live.
 const JoinButton = ({ tournament, bracketId }: { tournament: Tournament; bracketId: number }) => {
   const lang = useLanguage();
   const queryClient = useQueryClient();

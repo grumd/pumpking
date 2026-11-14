@@ -29,7 +29,6 @@ const getCursor = async () =>
       .executeTakeFirst()
   )?.event_id;
 
-// Records the events it gets
 const recorder = () => {
   const received: number[] = [];
   const plugin: Plugin = {

@@ -3,17 +3,10 @@ import OpenAI from 'openai';
 import type { ChatCompletionCreateParamsNonStreaming } from 'openai/resources/chat/completions';
 import { error } from 'utils';
 
-/**
- * Reads a photo of a result screen with a vision model on OpenRouter (see
- * docs/photo-results/PLAN.md). Each reader is from another vendor, so the next one doesn't
- * repeat the first one's mistake
- */
-
 const debug = createDebug('backend-ts:service:photos:reader');
 
 export interface Reader {
   model: string;
-  // OpenRouter's reasoning options: Gemini's reasoning can't be turned off
   reasoning: { effort: 'minimal' } | { enabled: false };
 }
 
@@ -27,13 +20,11 @@ export const READER_B: Reader = {
   reasoning: { enabled: false },
 };
 
-// XX only, when A and B don't both pass and agree: breaks the tie
 export const READER_C: Reader = {
   model: 'openai/gpt-6-luna',
   reasoning: { enabled: false },
 };
 
-/** What a reader saw on the photo */
 export interface PhotoRead {
   song_title: string | null;
   chart_type: 'S' | 'D' | 'COOP' | null;
@@ -46,21 +37,16 @@ export interface PhotoRead {
   max_combo: number;
   score: number;
   grade: string;
-  // XX only: the grade letter is grey and cracked. Phoenix tells a fail by its missing plate
   stage_failed?: boolean;
   mod_badges: string[];
-  // Phoenix and later only: the text under the grade, null when there is none
   plate_text?: string | null;
 }
 
-// The mixes with arcade track names, which the song title is matched against
 export const PHOTO_MIXES = ['XX', 'Phoenix', 'Phoenix2'] as const;
 export type PhotoMix = (typeof PHOTO_MIXES)[number];
 
 export interface ReadResult {
-  // null when the answer wasn't valid JSON
   read: PhotoRead | null;
-  // USD, as OpenRouter charged it
   cost: number;
 }
 
@@ -71,16 +57,12 @@ export interface PhotoImage {
 
 export type ReadPhoto = (reader: Reader, image: PhotoImage, mix: PhotoMix) => Promise<ReadResult>;
 
-// One prompt per mix, so a small model only reads about the screen in front of it
-
 const TITLE_RULES =
   'Copy it as shown, including suffixes like "- FULL SONG" or "- SHORT CUT". Never use the artist, the big background text or the badges. null only if there is no song name in the photo.';
 
 const CHART_LINE =
   '- chart_type and level: from the round difficulty badge only (SINGLE = S, DOUBLE = D, plus the number in it). Not the stage number and not the player\'s title such as "EXPERT LV.1".';
 
-// The numbers column is often a whole row off its labels, and pairing by row then shifts
-// every value: it is read from the calories up
 const XX_PROMPT = `This is a photo of a Pump It Up XX result screen. Read it exactly, digit by digit.
 - song_title: the small text directly above the PERFECT row. The line above it may be the arcade's location name, never use that. ${TITLE_RULES}
 ${CHART_LINE}
@@ -90,7 +72,6 @@ ${CHART_LINE}
 - stage_failed: true if the stage was failed: the grade letter has no color, it is grey or silver-white, usually with thin dark cracks across it that can be hard to see. A silver-white letter is a failed stage even when you see no cracks. A passed grade letter is colored, e.g. a blue A or B, a gold S
 - mod_badges: every small square badge along the side of the result panel, as written (e.g. "AV 620", "BGA DARK", "HJ", "VJ")`;
 
-// Phoenix and Phoenix 2 screens look alike; each prompt names only its own mix
 const phoenixPrompt = (
   mixName: string
 ) => `This is a photo of a Pump It Up ${mixName} result screen. Read it exactly, digit by digit.
@@ -113,7 +94,6 @@ const integer = { type: 'integer' };
 const schema = (mix: PhotoMix) => {
   const properties: Record<string, object> = {
     song_title: { type: ['string', 'null'] },
-    // Anthropic rejects an enum on a type list such as ['string', 'null']
     chart_type: { anyOf: [{ type: 'string', enum: ['S', 'D', 'COOP'] }, { type: 'null' }] },
     level: { type: ['integer', 'null'] },
     perfect: integer,
@@ -137,7 +117,6 @@ const schema = (mix: PhotoMix) => {
   };
 };
 
-// The request parameters that OpenRouter adds to OpenAI's
 interface OpenRouterParams {
   reasoning: Reader['reasoning'];
   provider: { require_parameters: boolean; data_collection: 'deny' | 'allow' };
@@ -150,7 +129,6 @@ const getClient = () => {
   if (!process.env.OPENROUTER_API_KEY) {
     throw error(500, 'OpenRouter API key is not configured');
   }
-  // One call hung for 5 minutes during the tests: a timeout and one retry
   client ??= new OpenAI({
     apiKey: process.env.OPENROUTER_API_KEY,
     baseURL: 'https://openrouter.ai/api/v1',
@@ -188,7 +166,6 @@ export const readPhoto: ReadPhoto = async (reader, image, mix) => {
   };
 
   const response = await getClient().chat.completions.create(params);
-  // OpenRouter adds the cost in USD to the usage
   const cost = (response.usage as { cost?: number } | undefined)?.cost ?? 0;
   const content = response.choices[0]?.message.content;
   debug('%s read the photo for $%d: %s', reader.model, cost, content);

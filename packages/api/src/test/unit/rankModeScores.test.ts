@@ -10,14 +10,11 @@ import { applyEffects, req } from 'test/helpers';
 import { addResultsSession } from 'test/helpers/sessions';
 import { getResultDefaults } from 'test/seeds/initialSeed';
 
-// Rank mode (VJ) results get a phoenix score from their stats, like any other result
 describe('Rank mode scores', () => {
   const stats = { perfect: 90, great: 5, good: 3, bad: 1, miss: 1, combo: 95 };
   const expectedScore = getPhoenixScore(stats, MIXES.XX);
-  // The seeded chart instance 1: XX, S20
   const expectedExp = getResultExp({ score: expectedScore }, { level: 20, label: 'S20' });
 
-  // A rank mode result without a phoenix score, as the old ones are in the database
   const insertOldRankModeResult = async (playerId: number) => {
     const { insertId } = await db
       .insertInto('results')
@@ -98,8 +95,6 @@ describe('Rank mode scores', () => {
 
     await migrations['20260930060000_backfill_rank_mode_score_phoenix'].up(db);
 
-    // The migration computed the score in floating point, which lands one below this
-    // whole score (utils/phoenixScore.ts computes it exactly)
     const migrationScore = expectedScore - 1;
     const migrationExp = getResultExp({ score: migrationScore }, { level: 20, label: 'S20' });
     const result = await getResult(id);

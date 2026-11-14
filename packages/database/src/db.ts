@@ -4,7 +4,6 @@ import { Kysely, MysqlDialect, Transaction as ITransaction } from 'kysely';
 import { createPool } from 'mysql2';
 
 const dialect = new MysqlDialect({
-  // Created on the first query, so a missing variable fails there with a clear error
   pool: async () =>
     createPool({
       database: requireEnv(process.env.NODE_ENV === 'test' ? 'DB_DATABASE_TEST' : 'DB_DATABASE'),

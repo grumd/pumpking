@@ -1,8 +1,3 @@
-/**
- * Admin mutations return a `report`: lines saying what they changed, which the web shows
- * in the admin activity log (like the desktop tool's log panel).
- */
-
 const formatValue = (value: unknown) => {
   if (value == null || value === '') {
     return '—';
@@ -13,7 +8,6 @@ const formatValue = (value: unknown) => {
   return typeof value === 'string' ? `'${value}'` : String(value);
 };
 
-// One line per column whose value differs, e.g. "Result #5: score 900000 → 950000"
 export const describeChanges = (
   label: string,
   before: Record<string, unknown>,

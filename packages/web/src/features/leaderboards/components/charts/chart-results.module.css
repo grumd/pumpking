@@ -1,8 +1,3 @@
-/* The dense results table of a chart card */
-
-/* Desktop: the same column widths in every card (the <col>s), the name and score take the rest.
-   The widths are minimums: the place column grows in a card where a row has places gained or
-   lost. Phones have none, each column is as narrow as its content */
 @mixin larger-than $mantine-breakpoint-md {
   .placeCol {
     width: rem(36px);
@@ -29,10 +24,8 @@
   }
 }
 
-/* The name truncates instead of widening the table, its cell takes the room the other columns
-   leave */
 .row > td.player {
-    max-width: 0;
+  max-width: 0;
 }
 
 .score {
@@ -51,12 +44,10 @@
   white-space: nowrap;
 }
 
-/* A gap between the grade and the step counts */
 .row > td.grade {
   padding-inline-end: var(--mantine-spacing-sm);
 }
 
-/* The step counts: regular text with a hint of their judgement's color (zeros stay dimmed) */
 .number {
   color: color-mix(in srgb, var(--pk-judgement) 55%, var(--mantine-color-text));
 }
@@ -81,7 +72,6 @@
   --pk-judgement: var(--mantine-color-perfect-text);
 }
 
-/* A highlighted player: the row sets --pk-highlight */
 .row[data-highlighted] {
   background: color-mix(in srgb, var(--pk-highlight) 23%, transparent);
   outline: rem(1px) solid color-mix(in srgb, var(--pk-highlight) 63%, transparent);
@@ -91,9 +81,6 @@
   font-weight: 700;
 }
 
-/* The logged-in player's result, and the latest result on the chart (it wins when both).
-   A muted background over the stripes; on a highlighted player's row it replaces the
-   highlight's background, the outline stays */
 .row[data-mine] {
   background: color-mix(in srgb, var(--mantine-color-mine-filled) 20%, transparent);
 }
@@ -102,12 +89,10 @@
   background: color-mix(in srgb, var(--mantine-color-latest-filled) 20%, transparent);
 }
 
-/* White name, score and date on the tinted rows (the name link is anchor gray elsewhere) */
 .row:is([data-mine], [data-latest]) :is(.name, .name a, .score, .date) {
   color: var(--pk-text-strong);
 }
 
-/* Places gained or lost: an arrow and a number */
 .change {
   display: inline-flex;
   flex: none;
@@ -115,7 +100,6 @@
   gap: rem(2px);
 }
 
-/* The buttons take the cell's text */
 .score .scoreButton,
 .date .dateButton {
   font: inherit;
@@ -130,14 +114,12 @@
   }
 }
 
-/* "Show N more" */
 .collapser {
   &:hover {
     background: var(--pk-surface-3);
   }
 }
 
-/* The chart card and the card of its results table */
 .card {
   padding: var(--mantine-spacing-sm);
 }
@@ -146,7 +128,6 @@
   padding: var(--mantine-spacing-xxs) var(--mantine-spacing-xs);
 }
 
-/* Phones: dense, so names keep their room and the columns fit */
 @mixin smaller-than $mantine-breakpoint-md {
   .card {
     padding: var(--mantine-spacing-xs);
@@ -165,31 +146,26 @@
     padding-inline: var(--mantine-spacing-xxs) 0;
   }
 
-  /* Step counts: room on both sides so the numbers don't run together */
   .row > td.number {
     padding-inline: calc(var(--mantine-spacing-xxs) / 2);
   }
 
-  /* Gaps after the score and before the step counts */
   .row > td.grade {
     padding-inline: var(--mantine-spacing-xxs) var(--mantine-spacing-xxs);
   }
 }
 
 @mixin smaller-than $mantine-breakpoint-sm {
-  /* The card reaches the screen edges (over the page's side padding), the results get the room */
   .card {
     margin-inline: calc(-1 * var(--mantine-spacing-xs));
     padding-inline: var(--mantine-spacing-xxs);
     border-radius: 0;
   }
 
-  /* A gap between the date and the screen edge */
   .row > td.date {
     padding-inline-end: var(--mantine-spacing-xxs);
   }
 
-  /* The step counts were 10.4px on phones */
   .number {
     font-size: var(--mantine-font-size-xs);
   }

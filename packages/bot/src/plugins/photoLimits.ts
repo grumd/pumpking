@@ -2,10 +2,6 @@ import { wrap } from '../platform/texts';
 import type { Plugin } from '../platform/types';
 import { db } from '@pumpking/database/db';
 
-// Tells the admins when a player goes over a cost limit of reading result photos
-// (docs/photo-results/PLAN.md, "Cost limits"): the site's admins with a linked Telegram,
-// and the bot's admin chat
-
 const PROFILE_URL = 'https://pumpking.top/#/profiles/';
 
 const LIMIT_TEXTS = {
@@ -13,7 +9,6 @@ const LIMIT_TEXTS = {
   total: 'the spend ceiling of 3 days',
 };
 
-// "2026-10-18T14:05:00.000Z" -> "2026-10-18 14:05 UTC"
 const formatUtc = (iso: string) => `${iso.slice(0, 10)} ${iso.slice(11, 16)} UTC`;
 
 export const photoLimitsPlugin: Plugin = {

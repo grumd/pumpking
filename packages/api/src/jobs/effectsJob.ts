@@ -8,13 +8,11 @@ const debug = createDebug('backend-ts:jobs:effects');
 const POLL_INTERVAL_MS = 1000;
 const EVENTS_RETENTION_DAYS = 30;
 
-// Started from jobs/index.ts; the tests start and stop it themselves
 export const startEffectsJob = () => {
   let isStopped = false;
   let timer: NodeJS.Timeout | undefined;
   let currentPoll: Promise<void> | undefined;
 
-  // The next poll is scheduled when the current one ends, so they never overlap
   const poll = async () => {
     try {
       await effectsConsumer.processBatch();
@@ -27,7 +25,6 @@ export const startEffectsJob = () => {
   };
   currentPoll = poll();
 
-  // Every day at 5 AM
   const cleanup = cron.schedule('0 5 * * *', async () => {
     try {
       await deleteOldEvents(EVENTS_RETENTION_DAYS);
@@ -37,7 +34,6 @@ export const startEffectsJob = () => {
     }
   });
 
-  // Resolves once the poll that is running (if any) has finished
   const stop = async () => {
     isStopped = true;
     clearTimeout(timer);

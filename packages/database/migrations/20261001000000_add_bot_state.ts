@@ -1,10 +1,5 @@
 import { Kysely, sql } from 'kysely';
 
-/**
- * W9 of the Python API migration (docs/python-api-migration/PLAN.md): the Telegram bot's
- * own state, one JSON value per plugin and key. Replaces the legacy bot's bot.json and
- * pickle file.
- */
 export async function up(db: Kysely<any>): Promise<void> {
   await db.schema
     .createTable('bot_state')

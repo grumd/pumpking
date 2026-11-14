@@ -18,7 +18,6 @@ interface ChartPickerProps {
   error?: React.ReactNode;
 }
 
-/** Searches the mix's charts by song name and label, e.g. "vacuum s16" */
 export const ChartPicker = ({ mix, value, onChange, description, error }: ChartPickerProps) => {
   const lang = useLanguage();
   const [search, setSearch] = useState(value ? chartName(value) : '');
@@ -33,7 +32,6 @@ export const ChartPicker = ({ mix, value, onChange, description, error }: ChartP
 
   const charts = useMemo(() => {
     const found = query.data ?? [];
-    // The selected chart stays among the options, so the input can show it
     return value && !found.some((chart) => chart.sharedChartId === value.sharedChartId)
       ? [value, ...found]
       : found;
@@ -45,7 +43,6 @@ export const ChartPicker = ({ mix, value, onChange, description, error }: ChartP
       placeholder={lang.SEARCH_CHART}
       searchable
       withAsterisk
-      // The server already searched
       filter={({ options }) => options}
       searchValue={search}
       onSearchChange={setSearch}

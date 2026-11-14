@@ -2,13 +2,11 @@ import { Button, type ButtonProps, Group, Popover, Stack, Text } from '@mantine/
 import { useDisclosure } from '@mantine/hooks';
 
 interface ConfirmButtonProps extends ButtonProps {
-  // What will happen, shown before it does
   question: React.ReactNode;
   confirmLabel: string;
   onConfirm: () => void;
 }
 
-// A button for destructive actions, which asks first
 export const ConfirmButton = ({
   question,
   confirmLabel,

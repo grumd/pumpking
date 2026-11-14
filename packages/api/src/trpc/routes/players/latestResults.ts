@@ -2,7 +2,6 @@ import { getPlayerLatestResults } from 'services/players/playerLatestResults';
 import { publicProcedure } from 'trpc/trpc';
 import z from 'zod';
 
-// All of the logged-in player's own results; on someone else's profile only their new bests
 export const latestResults = publicProcedure
   .input(
     z.object({
@@ -23,7 +22,6 @@ export const latestResults = publicProcedure
     });
     return {
       items,
-      // A short page is the last one
       nextCursor: items.length < pageSize ? null : offset + pageSize,
     };
   });

@@ -10,7 +10,6 @@ const kyiv = 'Europe/Kyiv';
 
 describe('getDaysAgo', () => {
   const evening = new Date('2026-10-17T23:46:00+03:00');
-  // Reported at 02:46 in Kyiv: this evening's play and last evening's were both "1d"
   const afterMidnight = new Date('2026-10-18T02:46:00+03:00');
 
   it('starts the day at 5am', () => {
@@ -39,7 +38,6 @@ describe('getDaysAgo', () => {
 
   it('counts days, not hours passed', () => {
     const morning = new Date('2026-10-17T10:00:00+03:00');
-    // 35 hours ago, two days back
     assert.equal(getDaysAgo(new Date('2026-10-15T23:00:00+03:00'), morning, kyiv), 2);
     assert.equal(getDaysAgo(new Date('2026-10-11T05:00:00+03:00'), morning, kyiv), 6);
   });
@@ -50,7 +48,6 @@ describe('getDaysAgo', () => {
   });
 
   it('uses the days of the time zone', () => {
-    // Played the morning of the 17th in Kyiv, the evening of the 16th in Los Angeles
     const played = new Date('2026-10-17T03:30:00Z');
     const now = new Date('2026-10-17T20:00:00Z');
     assert.equal(getDaysAgo(played, now, kyiv), 'today');
@@ -58,7 +55,6 @@ describe('getDaysAgo', () => {
   });
 
   it('counts a day with a clock change as one', () => {
-    // Clocks go back on 2026-10-25 in Kyiv, that day has 25 hours
     const now = new Date('2026-10-27T10:00:00+02:00');
     assert.equal(getDaysAgo(new Date('2026-10-24T23:30:00+03:00'), now, kyiv), 3);
     assert.equal(getDaysAgo(new Date('2026-10-25T06:30:00+02:00'), now, kyiv), 2);
@@ -83,7 +79,6 @@ describe('formatTimeAgo', () => {
 
   it('formats whole days where timeAgo would round the hours', () => {
     mock.timers.enable({ apis: ['Date'], now: new Date('2026-10-17T10:00:00+03:00') });
-    // 35 hours: timeAgo alone says "1d"
     const twoDaysAgo = new Date('2026-10-15T23:00:00+03:00');
     assert.equal(timeAgo.format(twoDaysAgo.getTime(), style), '1d');
     assert.equal(format(twoDaysAgo.toISOString()), '2d');

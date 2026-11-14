@@ -38,7 +38,6 @@ export const createTestPlatform = (plugins: Plugin[]) => {
   return { platform: createPlatform(plugins, testConfig, sender), sent };
 };
 
-/** A private chat message; replies land in `replies` */
 export const chatContext = (
   bot: BotServices,
   { chatId = 1001, username, text = '' }: { chatId?: number; username?: string; text?: string }
@@ -105,7 +104,6 @@ export const addPlayer = (player: {
     })
     .execute();
 
-// Track 1 with a single chart: shared chart 1, S20 on Phoenix 2 (instance 1)
 export const addChart = async ({ level = 20 as number | null } = {}) => {
   await db
     .insertInto('tracks')
@@ -165,7 +163,6 @@ export const addResult = async (result: {
   return Number(insertId);
 };
 
-// Tournament 1, October 2026: the Easy bracket (10) has chart 1 and players 1-3, Mid (11) is empty
 export const seedTournament = async () => {
   await addChart();
   await db

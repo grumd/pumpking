@@ -1,8 +1,6 @@
 import { db } from '@pumpking/database/db';
 import { sql } from 'kysely';
 
-// Per-plugin persistent state: one JSON value per plugin and key (the `bot_state` table)
-
 export const getState = async <T>(plugin: string, key: string): Promise<T | undefined> => {
   const row = await db
     .selectFrom('bot_state')

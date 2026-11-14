@@ -9,8 +9,6 @@ export interface AdminFile {
   blob: Blob;
 }
 
-// Admin files are sent by a REST route, since tRPC doesn't send binary files. A link
-// can't send the session header, so the file is fetched here and shown from a blob
 const fetchAdminFile = async (
   source: AdminFileSource,
   id: number,
@@ -41,7 +39,6 @@ export const useAdminFile = (
   return useQuery({
     queryKey: [ADMIN_FILE_KEY, source, id, kind],
     queryFn: () => fetchAdminFile(source, id, kind),
-    // A missing file stays missing
     retry: false,
   });
 };

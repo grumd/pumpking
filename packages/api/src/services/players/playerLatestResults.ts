@@ -1,10 +1,6 @@
 import { Transaction, db } from '@pumpking/database/db';
 import { sql } from 'kysely';
 
-// The player's results, newest first, without hidden ones. With `onlyBests`, only the results
-// that were a new best score on their chart when played: no earlier result of the player on
-// that chart has the same or a higher score. Other players see only these, so they can't
-// follow every play
 export const getPlayerLatestResults = async (
   params: { playerId?: number; onlyBests: boolean; limit: number; offset: number },
   trx?: Transaction
@@ -24,8 +20,6 @@ export const getPlayerLatestResults = async (
     throw new Error('playerId is required');
   }
 
-  // The page of result ids first, read newest first from the (player_id, gained) index, which
-  // stops after a page. Joining the charts before the limit would join every result
   let page = (trx ?? db)
     .selectFrom('results as r')
     .select('r.id')

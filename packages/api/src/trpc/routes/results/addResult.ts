@@ -5,7 +5,6 @@ import { addResultProcedure } from 'trpc/trpc';
 import { base64 } from 'utils/zod';
 import { z } from 'zod';
 
-// Derived from the MIXES registry so new mixes only need to be added there
 const mixEnum = z.enum(MIX_NAMES);
 
 export const addResultMutation = addResultProcedure
@@ -28,7 +27,6 @@ export const addResultMutation = addResultProcedure
       isExactDate: z.boolean(),
       sharedChartId: z.number(),
       pass: z.boolean(),
-      // When the result was read from a photo (recognizePhotoMutation)
       photoHash: photoHash.optional(),
     })
   )

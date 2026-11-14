@@ -34,8 +34,6 @@ import { Stat } from 'components/Stat/Stat';
 
 import css from './design-system.module.css';
 
-// Dev-only visual reference of the tokens and blocks (DESIGN.md). Not translated on purpose
-
 const Swatch = ({ name, color }: { name: string; color: string }) => (
   <Stack gap="xxs" align="center">
     <Box className={css.swatch} bg={color} />

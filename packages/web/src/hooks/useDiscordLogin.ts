@@ -19,10 +19,8 @@ interface RegistrationTokenData {
 export const useDiscordLogin = ({ redirectTo = 'login', code }: UseDiscordLoginOptions = {}) => {
   const queryClient = useQueryClient();
 
-  // Note: We use query params on root URL because Discord OAuth strips the hash from HashRouter URLs
   const redirectUri = `${window.location.origin}/?discord=true&redirect_to=${redirectTo}`;
 
-  // For login, use a query (result is cached across StrictMode remounts)
   const loginQuery = useQuery({
     ...api.auth.loginDiscord.queryOptions({ code: code ?? '', redirectUri }),
     enabled: redirectTo === 'login' && !!code,
@@ -30,7 +28,6 @@ export const useDiscordLogin = ({ redirectTo = 'login', code }: UseDiscordLoginO
     retry: false,
   });
 
-  // Handle login success side effects
   useEffect(() => {
     if (loginQuery.data) {
       cookies.set('session', loginQuery.data.session, { expires: 14 });
@@ -38,7 +35,6 @@ export const useDiscordLogin = ({ redirectTo = 'login', code }: UseDiscordLoginO
     }
   }, [loginQuery.data, queryClient]);
 
-  // For registration, use a query (result is cached across StrictMode remounts)
   const registrationQuery = useQuery({
     ...api.auth.getDiscordRegToken.queryOptions({ code: code ?? '', redirectUri }),
     enabled: redirectTo === 'register' && !!code,

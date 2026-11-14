@@ -1,20 +1,5 @@
 import { Kysely, sql } from 'kysely';
 
-/**
- * Adds `shared_charts.type` - the canonical chart type (S/D/HD/COOP) per shared
- * chart. COOP is an explicit value, so the column is NOT NULL.
- *
- * Production already has this column: it was added and is maintained by the
- * manual tracklist update process. For such databases this migration is a
- * no-op. For fresh databases (test DBs, clones of older prod dumps) it adds
- * the column and backfills it from the latest-mix chart label - the label->type
- * mapping below reproduces the prod values 1:1 for all 8,543 charts
- * (verified 2026-09-28 against the 2026-09-27 prod dump).
- *
- * `chart_instances.type` is deliberately left alone: it is import-time data
- * that drifted (whole mixes left NULL, Dp co-op rows stamped 'D') and nothing
- * reads it anymore.
- */
 export async function up(db: Kysely<any>): Promise<void> {
   const { rows } = await sql<{ c: number }>`
     SELECT COUNT(*) AS c
@@ -24,14 +9,10 @@ export async function up(db: Kysely<any>): Promise<void> {
       AND column_name = 'type'
   `.execute(db);
   if (rows.length > 0 && Number(rows[0].c) > 0) {
-    return; // already added by the tracklist update process
+    return;
   }
 
-  // Nullable first so the ALTER works on non-empty tables, then backfill and enforce.
   await sql`ALTER TABLE shared_charts ADD COLUMN type ENUM('S','D','HD','COOP') NULL`.execute(db);
-  // Latest-mix label -> type. The experimental pre-Prime families resolve to the
-  // modern family the way prod does: HD-x/CZ-x/NL-x(a) -> S, FS-x(a)/NM-x(a) -> D,
-  // Dp/Sp keep their family, and the (xN) co-op placeholders are COOP.
   await sql`
     UPDATE shared_charts sc
     JOIN (
@@ -54,13 +35,10 @@ export async function up(db: Kysely<any>): Promise<void> {
       ELSE 'D'
     END
   `.execute(db);
-  // Safety net for orphan shared_charts without any instance (none in prod data).
   await sql`UPDATE shared_charts SET type = 'S' WHERE type IS NULL`.execute(db);
   await sql`ALTER TABLE shared_charts MODIFY type ENUM('S','D','HD','COOP') NOT NULL`.execute(db);
 }
 
 export async function down(db: Kysely<any>): Promise<void> {
-  // WARNING: on a prod-shaped database the column belongs to the tracklist
-  // update process, not to this migration - only roll back on dev/test DBs.
   await sql`ALTER TABLE shared_charts DROP COLUMN type`.execute(db);
 }

@@ -15,9 +15,6 @@ import { StatusError } from 'utils/errors';
 
 const debug = createDebug('backend-ts:app');
 
-/**
- * JSDoc Swagger options
- */
 const options = {
   info: {
     version: '0.1.0',
@@ -33,19 +30,13 @@ const options = {
   swaggerUiOptions: {},
 };
 
-/**
- * Create Express server
- */
 export const app = express();
-// Scans the TS sources for JSDoc, which only exist next to the code in development
 process.env.NODE_ENV === 'development' && jsdocSwagger(app)(options);
 const isTest = process.env.NODE_ENV === 'test';
 !isTest && app.use(logger('tiny'));
-// A photo for the readers (2048px JPEG) and its stored copy, in base64
 app.use(bodyParser.json({ limit: '4mb' }));
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(formData.parse());
-// app.use(formData.stream());
 app.use(lusca.xframe('SAMEORIGIN'));
 app.use(lusca.xssProtection(true));
 app.use(
@@ -53,13 +44,11 @@ app.use(
     origin:
       process.env.NODE_ENV === 'development' ? 'http://localhost:3000' : 'https://pumpking.top',
     credentials: true,
-    // Lets the web read the file name of admin file downloads
     exposedHeaders: ['Content-Disposition'],
-    optionsSuccessStatus: 200, // some legacy browsers (IE11, various SmartTVs) choke on 204
+    optionsSuccessStatus: 200,
   })
 );
 
-// Liveness + DB check for deploys; kept before auth so it never touches sessions
 app.get('/healthz', async (_req, res) => {
   try {
     await pingDb();
@@ -84,7 +73,6 @@ app.use((req, res, next) => {
   next(new StatusError(404, 'Not Found'));
 });
 
-// error handler
 app.use(
   (
     err: Error | StatusError<unknown>,

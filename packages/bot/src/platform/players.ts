@@ -2,17 +2,13 @@ import { migratePreferences, type BotPreferences } from './preferences';
 import { db } from '@pumpking/database/db';
 import { sql } from 'kysely';
 
-// The players the bot knows about: the visible ones, like the legacy /telegram/players
-
 export interface BotPlayer {
   id: number;
   nickname: string;
-  // RU / UA get their own texts
   region: string | null;
   pp: number;
   telegramId: number | null;
   telegramTag: string | null;
-  // Null for players who never set anything; they get no rivals notifications
   preferences: BotPreferences | null;
 }
 
@@ -64,13 +60,11 @@ export const getVisiblePlayers = async (ids?: number[]): Promise<BotPlayer[]> =>
   return (await query.execute()).map(toBotPlayer);
 };
 
-/** The visible player linked to a chat */
 export const findLinkedPlayer = async (telegramId: number): Promise<BotPlayer | undefined> => {
   const row = await visiblePlayers().where('telegram_id', '=', telegramId).executeTakeFirst();
   return row && toBotPlayer(row);
 };
 
-/** A visible player by nickname, ignoring case */
 export const findPlayerByNickname = async (nickname: string): Promise<BotPlayer | undefined> => {
   const row = await visiblePlayers()
     .where(sql`lower(nickname)`, '=', nickname.toLowerCase())

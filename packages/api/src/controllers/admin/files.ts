@@ -13,7 +13,6 @@ export const adminFileController = async (
       Number(request.params.id),
       request.params.kind as AdminFileKind
     );
-    // The web reads the file name from Content-Disposition when saving the file
     response.attachment(path.basename(filePath));
     response.sendFile(filePath, (error) => error && next(error));
   } catch (error) {

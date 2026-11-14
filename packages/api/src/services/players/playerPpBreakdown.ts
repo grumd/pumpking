@@ -4,11 +4,6 @@ import { db } from '@pumpking/database/db';
 import { sql } from 'kysely';
 import { getPpSteps } from 'services/results/resultsPp';
 
-/**
- * The charts that make up the player's total pp, by how much each one adds: its counted
- * result (the most pp after the age factor), the steps to its pp, the age factor and the
- * weight of its place. With the number of charts
- */
 export const getPlayerPpBreakdown = async (params: {
   playerId?: number;
   limit: number;
@@ -38,7 +33,6 @@ export const getPlayerPpBreakdown = async (params: {
           .limit(1)
       )
     )
-    // The result's own chart instance, whose level pp falls back to
     .innerJoin('chart_instances as ri', 'ri.id', 'r.chart_instance')
     .innerJoin('tracks as t', 't.id', 'sc.track')
     .select([

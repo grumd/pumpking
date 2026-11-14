@@ -7,16 +7,10 @@ export type ArcadeNames = Record<number, { name: string; edist: number } | null>
 interface ArcadeNamesEditorProps {
   value: ArcadeNames;
   onChange: (value: ArcadeNames) => void;
-  // The edit distance a new name starts with
   defaultEdist: number;
-  // The mixes to show, if not all of them. A mix that has a name is shown anyway, so it can
-  // be removed
   mixes?: number[];
 }
 
-// A player's or track's name on each mix's arcade screen, which ingestion matches the
-// recognized name against. "Edit dist" is how far (Levenshtein distance) a recognized name
-// may be off and still match. An empty name means none on that mix
 export const ArcadeNamesEditor = ({
   value,
   onChange,

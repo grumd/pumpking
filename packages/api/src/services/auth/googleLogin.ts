@@ -7,12 +7,10 @@ import { generateSessionId } from 'utils/session';
 
 const debug = createDebug('backend-ts:auth');
 
-// Public client ID, safe to expose
 const GOOGLE_CLIENT_ID = '197132042723-cmibep21qf6dald9l2l01rif7l5dtd4s.apps.googleusercontent.com';
 
 const oauth2Client = new OAuth2Client(GOOGLE_CLIENT_ID);
 
-// Secret for signing registration tokens - in production this should be in env vars
 const REGISTRATION_SECRET = process.env.REGISTRATION_SECRET || 'pumpking-registration-secret-key';
 
 export interface RegistrationToken {
@@ -21,7 +19,7 @@ export interface RegistrationToken {
 }
 
 export function createRegistrationToken(email: string): RegistrationToken {
-  const expires = Date.now() + 10 * 60 * 1000; // 10 minutes
+  const expires = Date.now() + 10 * 60 * 1000;
   const data = `${email}:${expires}`;
   const signature = crypto.createHmac('sha256', REGISTRATION_SECRET).update(data).digest('hex');
   const token = Buffer.from(`${data}:${signature}`).toString('base64');
@@ -55,7 +53,6 @@ export function verifyRegistrationToken(token: string): string {
 }
 
 export async function loginWithGoogleCredential(credential: string): Promise<{ session: string }> {
-  // Verify the credential (JWT ID token) from Google One Tap
   const ticket = await oauth2Client.verifyIdToken({
     idToken: credential,
     audience: GOOGLE_CLIENT_ID,
@@ -73,7 +70,6 @@ export async function loginWithGoogleCredential(credential: string): Promise<{ s
 
   debug(`Login attempt for email: ${email}`);
 
-  // Find player by email
   const player = await db
     .selectFrom('players')
     .select(['id', 'nickname'])
@@ -86,7 +82,6 @@ export async function loginWithGoogleCredential(credential: string): Promise<{ s
 
   debug(`Found player: ${player.nickname} (${player.id})`);
 
-  // Check for existing valid session
   const now = new Date();
   const existingSession = await db
     .selectFrom('sessions')
@@ -100,10 +95,8 @@ export async function loginWithGoogleCredential(credential: string): Promise<{ s
     return { session: existingSession.id };
   }
 
-  // Delete old sessions for this player
   await db.deleteFrom('sessions').where('player', '=', player.id).execute();
 
-  // Create new session (valid for 2 weeks)
   const sessionId = generateSessionId();
   const validUntil = new Date(now.getTime() + 14 * 24 * 60 * 60 * 1000);
 

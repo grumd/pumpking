@@ -96,7 +96,6 @@ describe('pp history replay', () => {
       today
     );
 
-    // Player 1's 300pp is 250pp at 1 year and 2/3 old
     const overtake = rankRows.filter((row) => row.player_id === 2 && row.rank === 1);
     assert.lengthOf(overtake, 1);
     assert.strictEqual(overtake[0].recorded_at.getTime() % 86_400_000, 0, 'at midnight');
@@ -133,7 +132,6 @@ describe('recordStandings', () => {
     const first = await countRows();
     assert.isAbove(first.ranks, 1);
 
-    // Player 4 goes from last to first
     await db.updateTable('players').set({ pp: 10_000 }).where('id', '=', 4).execute();
     await recordStandings();
 

@@ -2,12 +2,6 @@ import { type AgentCall, type Args, requireArg } from './agentApi';
 import { utcNow } from './ingestion/format';
 import type { ResultData } from './ingestion/types';
 
-/**
- * A result screen as piu-spy sends it (the legacy `splitResults`): up to two sides, left
- * and right, each with the result and possibly the personal / machine best shown next to
- * it. Only the results are stored: the bests aren't plays made now.
- */
-
 const SIDES = ['left', 'right'] as const;
 const PASS_GRADES = ['S', 'SS', 'SSS'];
 
@@ -31,7 +25,6 @@ const RESULT_FIELDS = [
 const isObject = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null && !Array.isArray(value);
 
-// 'YYYY-MM-DD HH:MM:SS', the only format piu-spy sends
 const parseGained = (value: unknown): string => {
   const match = String(value).match(/^(\d{4})-(\d{1,2})-(\d{1,2}) (\d{1,2}):(\d{1,2}):(\d{1,2})$/);
   const [year, month, day, hours, minutes, seconds] = (match ?? []).slice(1).map(Number);
@@ -44,7 +37,6 @@ const parseGained = (value: unknown): string => {
 
 const toFlag = (value: unknown) => (typeof value === 'boolean' ? Number(value) : value);
 
-/** The results of a screen, as rows to validate and store */
 export const splitResults = ({ args, agent }: AgentCall): ResultData[] => {
   const header = {
     screen_file: `${agent.name}/${requireArg(args, 'screen_file')}`,
@@ -93,7 +85,6 @@ export const splitResults = ({ args, agent }: AgentCall): ResultData[] => {
       rank_mode: fields.rank_mode ?? 0,
       exact_gain_date: 1,
     };
-    // XX's grades say whether the chart was passed
     if (data.mix_name === 'XX' && data.is_pass === undefined && data.grade && data.grade !== '?') {
       data.is_pass = Number(data.grade.includes('+') || PASS_GRADES.includes(data.grade));
     }
