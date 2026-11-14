@@ -5,6 +5,7 @@ import type { Insertable } from 'kysely';
 import {
   type ChartViewModel,
   type ChartsSearchParams,
+  getChart,
   searchCharts,
 } from 'services/charts/chartsSearch';
 import { output, trpcQuery } from 'test/helpers/trpc';
@@ -348,7 +349,7 @@ describe('Charts search cases', () => {
       await addResult({ player: 1, chart: 102, score: 900000, added: at(1) });
       await addResult({ player: 2, chart: 102, score: 950000, added: at(2), mix: 26 });
 
-      const [chart] = await search({ sharedChartId: 102 });
+      const [chart] = await search();
       assert.deepEqual(players(chart), [1]);
     });
 
@@ -511,128 +512,87 @@ describe('Charts search cases', () => {
       );
     });
 
-    describe('the focused player', () => {
-      it('shows the focused player the viewer hides, marked, and lets them count', async () => {
+    describe('one chart by its id', () => {
+      const chart = (sharedChartId: number, currentPlayerId?: number) =>
+        getChart({ sharedChartId, currentPlayerId });
+
+      it('returns the same chart the search does', async () => {
+        await addResult({ player: 1, chart: 101, score: 900000, added: at(1) });
+        await addResult({ player: 2, chart: 101, score: 950000, added: at(5) });
+        await addResult({ player: 1, chart: 102, score: 900000, added: at(6) });
+
+        const [listed] = await search({ songName: 'Song 101' });
+        assert.deepEqual(await chart(101), listed);
+        assert.isNull(await chart(999), 'and nothing for a chart that does not exist');
+      });
+
+      it("shows the viewer's hidden players, marked, without moving the chart", async () => {
         await setPreferences(6, { playersHiddenStatus: { 2: true } });
         await addResult({ player: 1, chart: 101, score: 900000, added: at(1) });
         await addResult({ player: 2, chart: 101, score: 950000, added: at(5) });
 
-        const charts = await search({ sharedChartId: 101, currentPlayerId: 6 });
-        assert.equal(
-          charts[0].updatedOn.getTime(),
-          at(1).getTime(),
-          'without the param the hidden player does not move the chart'
-        );
-
-        const focused = await search({
-          sharedChartId: 101,
-          currentPlayerId: 6,
-          focusedPlayerId: 2,
-        });
+        const found = await chart(101, 6);
         assert.deepEqual(
-          focused[0].results.map((r) => [r.playerId, r.isHidden]),
+          found?.results.map((r) => [r.playerId, r.isHidden]),
           [
             [2, true],
             [1, false],
-          ],
-          'with it the page shows every player, the hidden ones still marked'
+          ]
         );
-        assert.equal(
-          focused[0].updatedOn.getTime(),
-          at(5).getTime(),
-          'and they count for the chart, as they do for anyone else'
-        );
+        assert.equal(found?.updatedOn.getTime(), at(1).getTime());
       });
 
-      it("lists a chart whose only result is the focused hidden player's", async () => {
-        await setPreferences(6, { playersHiddenStatus: { 2: true } });
+      it('returns a chart that only players the viewer hides played, which the search leaves out', async () => {
+        await setRegion(3, 'PL');
+        await setPreferences(6, { playersHiddenStatus: { 2: true }, hiddenRegions: { PL: true } });
         await addResult({ player: 2, chart: 101, score: 900000, added: at(1) });
-
-        assert.deepEqual(
-          ids(await search({ currentPlayerId: 6 })),
-          [],
-          'a hidden player does not list a chart'
-        );
-        assert.deepEqual(
-          ids(await search({ currentPlayerId: 6, focusedPlayerId: 2 })),
-          [101],
-          'the page opened for them does list it'
-        );
-      });
-
-      it("lists the chart of a focused player from the viewer's hidden region", async () => {
-        await setRegion(2, 'PL');
-        await setPreferences(6, { hiddenRegions: { PL: true } });
-        await addResult({ player: 2, chart: 101, score: 900000, added: at(1) });
+        await addResult({ player: 3, chart: 101, score: 950000, added: at(5) });
 
         assert.deepEqual(ids(await search({ currentPlayerId: 6 })), []);
-        const charts = await search({ currentPlayerId: 6, focusedPlayerId: 2 });
-        assert.deepEqual(players(charts[0]), [2]);
-        assert.equal(charts[0].results[0].isHidden, true, 'still marked hidden');
+        const found = await chart(101, 6);
+        assert.deepEqual(
+          found?.results.map((r) => [r.playerId, r.isHidden]),
+          [
+            [3, true],
+            [2, true],
+          ]
+        );
+        assert.equal(found?.updatedOn.getTime(), at(5).getTime(), 'their latest best then');
       });
 
-      it('never shows a hidden player, even on a page opened for them', async () => {
-        await setPreferences(6, { playersHiddenStatus: { 5: true, 2: true } });
+      it('never shows a hidden player', async () => {
         await addResult({ player: 1, chart: 101, score: 900000, added: at(1) });
-        await addResult({ player: 2, chart: 101, score: 920000, added: at(3) });
         await addResult({ player: 5, chart: 101, score: 950000, added: at(2) });
         await addResult({ player: 5, chart: 102, score: 950000, added: at(4) });
 
-        const anonymous = await search({ focusedPlayerId: 5 });
-        assert.deepEqual(ids(anonymous), [101], 'their charts are not listed');
-        assert.deepEqual(players(anonymous[0]), [2, 1], 'and their results are not returned');
-
-        const viewer = await search({ currentPlayerId: 6, focusedPlayerId: 5 });
-        assert.deepEqual(ids(viewer), [101]);
-        assert.deepEqual(players(viewer[0]), [2, 1]);
-        assert.equal(
-          viewer[0].updatedOn.getTime(),
-          at(1).getTime(),
-          "nor do they lift the viewer's own filters"
-        );
-
-        const single = await search({ sharedChartId: 102, focusedPlayerId: 5 });
-        assert.deepEqual(single, [], 'a chart only they played is not returned');
-      });
-
-      it("keeps the viewer's filters when the focused player is one they don't hide", async () => {
-        await setPreferences(6, { playersHiddenStatus: { 2: true } });
-        await addResult({ player: 1, chart: 101, score: 900000, added: at(1) });
-        await addResult({ player: 2, chart: 102, score: 950000, added: at(5) });
-
-        const charts = await search({ currentPlayerId: 6, focusedPlayerId: 1 });
-        assert.deepEqual(ids(charts), [101], 'the hidden player still does not list their chart');
+        assert.deepEqual(players((await chart(101))!), [1]);
+        assert.deepEqual(players((await chart(101, 6))!), [1]);
+        assert.isNull(await chart(102), 'a chart only they played is not returned');
+        assert.isNull(await chart(102, 6));
       });
 
       it('shows a hidden viewer only their own results, not as hidden', async () => {
         await addResult({ player: 1, chart: 101, score: 950000, added: at(1) });
         await addResult({ player: 5, chart: 101, score: 900000, added: at(2) });
+        await addResult({ player: 1, chart: 102, score: 900000, added: at(3) });
 
-        const charts = await search({ currentPlayerId: 5, focusedPlayerId: 1 });
-        assert.deepEqual(players(charts[0]), [5], "their own, not the focused player's");
-        assert.equal(
-          charts[0].results[0].isHidden,
-          false,
-          'and a hidden player is not hidden from themselves'
-        );
+        const found = await chart(101, 5);
+        assert.deepEqual(players(found!), [5]);
+        assert.equal(found?.results[0].isHidden, false);
+        assert.isNull(await chart(102, 5), 'nor a chart only others played');
       });
 
-      it('reaches the search through the chart page request', async () => {
+      it('is what the chart page request returns', async () => {
         await setPreferences(6, { playersHiddenStatus: { 2: true } });
-        await addResult({ player: 1, chart: 101, score: 900000, added: at(1) });
         await addResult({ player: 2, chart: 101, score: 950000, added: at(5) });
 
-        const plain = output(await trpcQuery('charts.chart', { sharedChartId: 101 }).expect(200));
-        assert.equal(new Date(plain.items[0].updatedOn).getTime(), at(1).getTime());
-
-        const focused = output(
-          await trpcQuery('charts.chart', { sharedChartId: 101, focusedPlayerId: 2 }).expect(200)
+        const res = output(await trpcQuery('charts.chart', { sharedChartId: 101 }).expect(200));
+        assert.equal(res.id, 101);
+        assert.deepEqual(
+          res.results.map((r: { playerId: number; isHidden: boolean }) => [r.playerId, r.isHidden]),
+          [[2, true]]
         );
-        assert.equal(
-          new Date(focused.items[0].updatedOn).getTime(),
-          at(5).getTime(),
-          'the route passes the player on'
-        );
+        assert.isNull(output(await trpcQuery('charts.chart', { sharedChartId: 999 }).expect(200)));
       });
     });
 
@@ -861,18 +821,6 @@ describe('Charts search cases', () => {
           [103, 104]
         );
       });
-    });
-
-    it('one chart by its id, with the other filters still applied', async () => {
-      await addS20(101);
-      await addChart({ id: 102, instances: [{ mix: 27, label: 'S20', level: 20 }] });
-      await addResult({ player: 1, chart: 101, score: 900000, added: at(1) });
-      await addResult({ player: 1, chart: 102, score: 900000, added: at(2), mix: 27 });
-
-      assert.deepEqual(ids(await search({ sharedChartId: 101 })), [101]);
-      assert.deepEqual(ids(await search({ sharedChartId: 101, labels: ['D'] })), []);
-      assert.deepEqual(ids(await search({ sharedChartId: 102, mixes: [28] })), []);
-      assert.deepEqual(ids(await search({ sharedChartId: 999 })), []);
     });
   });
 
