@@ -2,7 +2,7 @@ import { db } from '@pumpking/database/db';
 import { assert } from 'chai';
 import { TOURNAMENT_BRACKETS, type BracketCode } from 'constants/tournaments';
 import { sql } from 'kysely';
-import { searchCharts } from 'services/charts/chartsSearch';
+import { getChart } from 'services/charts/chartsSearch';
 import { getPlayersStats } from 'services/players/players';
 import { poolChartIds } from 'services/tournaments/eligibility';
 import { createTournament, endTournaments } from 'services/tournaments/lifecycle';
@@ -523,7 +523,7 @@ describe('Tournaments', () => {
       await addResult(6, chart, 999000, '2026-10-10 12:00:00');
 
       const marks = async () => {
-        const [item] = await searchCharts({ sharedChartId: chart });
+        const item = (await getChart({ sharedChartId: chart }))!;
         return {
           inTournament: item.inTournament,
           counting: item.results.filter((r) => r.countsForTournament).map((r) => r.playerId),
@@ -531,8 +531,8 @@ describe('Tournaments', () => {
       };
 
       assert.deepEqual(await marks(), { inTournament: true, counting: [2] });
-      const [unrelated] = await searchCharts({ sharedChartId: 1 });
-      assert.isFalse(unrelated.inTournament);
+      const unrelated = await getChart({ sharedChartId: 1 });
+      assert.isFalse(unrelated?.inTournament);
 
       await endTournaments('2026-10-25 00:00:00');
       assert.deepEqual(await marks(), { inTournament: false, counting: [] });

@@ -17,13 +17,8 @@ const LeaderboardsChartsList = (): JSX.Element => {
   const focusedPlayerId = Number(searchParams.get('focusedPlayerId')) || undefined;
   const chart = useSingleChartQuery({
     sharedChartId: params.sharedChartId ? Number(params.sharedChartId) : 0,
-    focusedPlayerId,
   });
   const lang = useLanguage();
-
-  const chartsList = chart.data?.items.map((chart) => {
-    return <Chart key={chart.id} chart={chart} focusedPlayerId={focusedPlayerId} />;
-  });
 
   return (
     <PageContainer>
@@ -31,10 +26,10 @@ const LeaderboardsChartsList = (): JSX.Element => {
         <ErrorAlert>
           {chart.error instanceof Error ? chart.error.message : lang.SOMETHING_WENT_WRONG}
         </ErrorAlert>
-      ) : chart.isFetched && !chartsList?.length ? (
+      ) : chart.data ? (
+        <Chart key={chart.data.id} chart={chart.data} focusedPlayerId={focusedPlayerId} />
+      ) : chart.isFetched ? (
         <EmptyState>{lang.NOTHING_FOUND}</EmptyState>
-      ) : chartsList?.length ? (
-        chartsList
       ) : null}
       {chart.isLoading && <Loader />}
     </PageContainer>

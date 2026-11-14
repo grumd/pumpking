@@ -1,6 +1,6 @@
 import { db } from '@pumpking/database/db';
 import { assert } from 'chai';
-import { searchCharts } from 'services/charts/chartsSearch';
+import { getChart, searchCharts } from 'services/charts/chartsSearch';
 import { getResultDefaults } from 'test/seeds/initialSeed';
 
 describe('Charts search (Phoenix scoring only)', () => {
@@ -165,12 +165,11 @@ describe('Charts search (Phoenix scoring only)', () => {
       })
       .executeTakeFirstOrThrow();
 
-    const items = await searchCharts({ limit: 10, offset: 0, sharedChartId: 1 });
-    assert.lengthOf(items, 1);
+    const chart = await getChart({ sharedChartId: 1 });
     assert.deepEqual(
-      items[0].results.map((r) => r.score),
+      chart?.results.map((r) => r.score),
       [1000000, 850000, 800000, 700000]
     );
-    assert.equal(items[0].results[1].originalScore, 1489300);
+    assert.equal(chart?.results[1].originalScore, 1489300);
   });
 });

@@ -8,14 +8,12 @@ export type SingleChartFilter = ApiInputs['charts']['chart'];
 
 export const useSingleChartQuery = ({
   sharedChartId,
-  focusedPlayerId,
 }: {
   sharedChartId: number;
-  focusedPlayerId?: number;
 }): UseQueryResult<ApiOutputs['charts']['chart'], unknown> => {
   const input = useMemo(() => {
-    return { sharedChartId, focusedPlayerId };
-  }, [sharedChartId, focusedPlayerId]);
+    return { sharedChartId };
+  }, [sharedChartId]);
 
   return useQuery(api.charts.chart.queryOptions(input));
 };
