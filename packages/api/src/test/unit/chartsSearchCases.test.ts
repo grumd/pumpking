@@ -571,24 +571,28 @@ describe('Charts search cases', () => {
         assert.equal(charts[0].results[0].isHidden, true, 'still marked hidden');
       });
 
-      it('shows every player when the focused player is hidden as a player', async () => {
+      it('never shows a hidden player, even on a page opened for them', async () => {
+        await setPreferences(6, { playersHiddenStatus: { 5: true, 2: true } });
         await addResult({ player: 1, chart: 101, score: 900000, added: at(1) });
+        await addResult({ player: 2, chart: 101, score: 920000, added: at(3) });
         await addResult({ player: 5, chart: 101, score: 950000, added: at(2) });
+        await addResult({ player: 5, chart: 102, score: 950000, added: at(4) });
 
-        assert.deepEqual(
-          players((await search({ sharedChartId: 101 }))[0]),
-          [1],
-          'a hidden player is not shown by default'
+        const anonymous = await search({ focusedPlayerId: 5 });
+        assert.deepEqual(ids(anonymous), [101], 'their charts are not listed');
+        assert.deepEqual(players(anonymous[0]), [2, 1], 'and their results are not returned');
+
+        const viewer = await search({ currentPlayerId: 6, focusedPlayerId: 5 });
+        assert.deepEqual(ids(viewer), [101]);
+        assert.deepEqual(players(viewer[0]), [2, 1]);
+        assert.equal(
+          viewer[0].updatedOn.getTime(),
+          at(1).getTime(),
+          "nor do they lift the viewer's own filters"
         );
-        const charts = await search({ sharedChartId: 101, focusedPlayerId: 5 });
-        assert.deepEqual(players(charts[0]), [5, 1], 'a page opened for them shows every player');
-        assert.deepEqual(
-          charts[0].results.map((r) => [r.playerId, r.isHidden]),
-          [
-            [5, true],
-            [1, false],
-          ]
-        );
+
+        const single = await search({ sharedChartId: 102, focusedPlayerId: 5 });
+        assert.deepEqual(single, [], 'a chart only they played is not returned');
       });
 
       it("keeps the viewer's filters when the focused player is one they don't hide", async () => {

@@ -129,9 +129,9 @@ export const searchCharts = async (params: ChartsSearchParams) => {
       .where('id', '=', focusedPlayerId)
       .executeTakeFirst();
     showAllPlayers =
-      focusedPlayer?.hidden === 1 ||
-      !!hiddenPlayerIds?.includes(focusedPlayerId) ||
-      (!!focusedPlayer?.region && !!hiddenRegions?.includes(focusedPlayer.region));
+      focusedPlayer?.hidden === 0 &&
+      (!!hiddenPlayerIds?.includes(focusedPlayerId) ||
+        (!!focusedPlayer.region && !!hiddenRegions?.includes(focusedPlayer.region)));
   }
 
   const bestResult = (column: 'added' | 'pp', index: string) => {
@@ -167,7 +167,7 @@ export const searchCharts = async (params: ChartsSearchParams) => {
         )
       );
 
-    if (!isCurrentPlayerHidden && !showAllPlayers) {
+    if (!isCurrentPlayerHidden) {
       subQuery = subQuery.where('players.hidden', '=', 0);
     }
     if (isCurrentPlayerHidden && currentPlayerId) {
@@ -379,7 +379,6 @@ export const searchCharts = async (params: ChartsSearchParams) => {
           'chart_update_date',
           'players.nickname',
           'players.region',
-          'players.hidden as player_hidden',
           'arcade_player_names.name as arcade_nickname',
           `${scoreField} as score`,
           'r.score as original_score',
@@ -395,7 +394,7 @@ export const searchCharts = async (params: ChartsSearchParams) => {
         .where(scoreField, 'is not', null)
         .where('r.mix', 'in', mixes);
 
-      if (!isCurrentPlayerHidden && !showAllPlayers) {
+      if (!isCurrentPlayerHidden) {
         subQuery = subQuery.where('players.hidden', '=', 0);
       }
       if (isCurrentPlayerHidden && currentPlayerId) {
@@ -459,8 +458,7 @@ export const searchCharts = async (params: ChartsSearchParams) => {
 
       const isResultHidden =
         !!(r.player_id && hiddenPlayerIds && hiddenPlayerIds.includes(r.player_id)) ||
-        !!(r.region && hiddenRegions && hiddenRegions.includes(r.region)) ||
-        (r.player_hidden === 1 && r.player_id !== currentPlayerId);
+        !!(r.region && hiddenRegions && hiddenRegions.includes(r.region));
 
       const result: ResultViewModel = {
         id: r.result_id,
