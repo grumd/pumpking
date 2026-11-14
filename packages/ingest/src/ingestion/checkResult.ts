@@ -114,6 +114,7 @@ const validateResult = async (
   const chart = await findResultChartInstance(db, mixId, data);
   const steps = checkNumberOfSteps(chart, data);
 
+  // On million-scoring mixes, rank mode comes from piu-spy, not from the mods
   const rankMode = millionScoring ? data.rank_mode : validateComboStats(chart, data);
 
   return {

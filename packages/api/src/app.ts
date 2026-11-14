@@ -45,7 +45,7 @@ app.use(
       process.env.NODE_ENV === 'development' ? 'http://localhost:3000' : 'https://pumpking.top',
     credentials: true,
     exposedHeaders: ['Content-Disposition'],
-    optionsSuccessStatus: 200,
+    optionsSuccessStatus: 200, // some legacy browsers (IE11, various SmartTVs) choke on 204
   })
 );
 

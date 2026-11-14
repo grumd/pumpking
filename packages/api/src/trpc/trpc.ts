@@ -32,6 +32,8 @@ const t = initTRPC.context<Context>().create({
       };
     }
     if (error.code !== 'INTERNAL_SERVER_ERROR') {
+      // tRPC's own errors keep their status: input validation (Zod) errors are 400, and
+      // adminProcedure's UNAUTHORIZED is 401
       return shape;
     }
     return {

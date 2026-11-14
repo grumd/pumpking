@@ -29,6 +29,7 @@ export interface ChatContext {
 
 export interface Command {
   command: string;
+  // Shown in Telegram's command menu; commands without one aren't listed
   description?: string;
   aliases?: string[];
   handle(ctx: ChatContext): Promise<void>;

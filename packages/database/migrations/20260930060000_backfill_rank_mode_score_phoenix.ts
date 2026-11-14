@@ -20,6 +20,7 @@ export async function up(db: Kysely<any>): Promise<void> {
     AND perfects + greats + goods + bads + misses > 0
   `.execute(db);
 
+  // "update .. inner join .. set" is not supported by kysely, using raw sql
   await sql`
     UPDATE results AS r
     INNER JOIN chart_instances AS ci ON ci.id = r.chart_instance

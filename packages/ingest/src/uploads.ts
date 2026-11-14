@@ -8,10 +8,18 @@ import path from 'path';
 
 const debug = createDebug('ingest:uploads');
 
+/**
+ * piu-spy's uploads (the legacy `uploads.py`): the result screens (video or image) and
+ * the scan JSON, stored as `<uploads root>/<agent name>/<path>`. `results.screen_file` is
+ * that path without the root, which the API serves the screenshots from.
+ */
+
+// Like the legacy Flask app's request limit
 export const MAX_UPLOAD_BYTES = 512 * 1024;
 
 const ALLOWED_TYPES = ['image/jpeg', 'application/json', 'video/mp4'];
 
+// A path inside the agent's folder, as sent by piu-spy (which may run on Windows)
 const relativeUploadPath = (filePath: string) => {
   const normalized = path.posix.normalize(filePath.replaceAll('\\', '/'));
   if (normalized.startsWith('..') || normalized.startsWith('/')) {

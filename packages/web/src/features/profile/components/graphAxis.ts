@@ -1,5 +1,6 @@
 import classes from './graphs.module.css';
 
+// Props for every visx axis on the profile
 export const axisProps = {
   stroke: 'var(--pk-graph-axis)',
   tickStroke: 'var(--pk-graph-axis)',

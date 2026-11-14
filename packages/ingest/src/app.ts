@@ -45,6 +45,9 @@ app.post(
   agentRoute((call) => validateResults(call, 'manual'))
 );
 
+// For the API's admin purgatory recheck (body `{ id?, skipScoreCheck? }`): rechecks one row
+// or all of them, optionally without checking the score against the stats.
+// Internal: nginx forwards only piu-spy's paths here
 app.post('/internal/purgatory/recheck', async (req, res) => {
   try {
     const id = req.body?.id;
@@ -59,6 +62,8 @@ app.post('/internal/purgatory/recheck', async (req, res) => {
   }
 });
 
+// express.json's errors: a body that isn't JSON (400) or is too large (413). The routes
+// answer their own errors
 const bodyError: ErrorRequestHandler = (error, _req, res, _next) => {
   res.status(error.status).json({ error: error.message });
 };

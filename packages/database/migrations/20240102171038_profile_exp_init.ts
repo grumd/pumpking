@@ -4,6 +4,7 @@ export async function up(db: Kysely<any>): Promise<void> {
   await db.schema.alterTable('results').addColumn('exp', 'decimal(7, 2)').execute();
   await db.schema.alterTable('players').addColumn('exp', 'decimal(10, 2)').execute();
 
+  // "update .. inner join .. set" is not supported by kysely
   await sql`WITH ranked_results AS (
     SELECT
       r.id AS result_id,

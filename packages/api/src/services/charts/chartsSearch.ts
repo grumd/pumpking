@@ -123,6 +123,7 @@ export const searchCharts = async (params: ChartsSearchParams) => {
     let subQuery = db
       .selectFrom('results as r')
       .innerJoin('players', 'players.id', 'r.player_id')
+      // Without the hints MySQL reads other indexes of results, and runs several times slower
       .modifyFront(sql.raw(`/*+ INDEX(r ${index}) */`))
       .select(column === 'added' ? 'r.added' : 'r.pp')
       .where('r.shared_chart', '=', sql.ref('latest_mix.shared_chart'))
@@ -169,6 +170,7 @@ export const searchCharts = async (params: ChartsSearchParams) => {
       subQuery = subQuery.where('r.player_id', 'in', sortChartsByPlayers);
     }
 
+    // By shared_chart too, so MySQL reads the index backwards instead of sorting
     return subQuery.orderBy('r.shared_chart', 'desc').orderBy(`r.${column}`, 'desc').limit(1);
   };
 

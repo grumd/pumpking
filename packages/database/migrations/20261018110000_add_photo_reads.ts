@@ -6,9 +6,11 @@ export async function up(db: Kysely<any>): Promise<void> {
     .addColumn('id', 'integer', (col) => col.unsigned().autoIncrement().primaryKey())
     .addColumn('player_id', 'integer', (col) => col.notNull())
     .addColumn('photo_sha256', 'char(64)', (col) => col.notNull())
+    // USD, as OpenRouter charged it
     .addColumn('cost', sql`decimal(10, 6)`, (col) => col.notNull())
     .addColumn('created_at', sql`datetime(3)`, (col) => col.notNull())
     .addColumn('duplicate_result_id', 'integer')
+    // A table-level constraint: MySQL 8 ignores `references` on a column
     .addForeignKeyConstraint(
       'photo_reads_player_id_foreign',
       ['player_id'],

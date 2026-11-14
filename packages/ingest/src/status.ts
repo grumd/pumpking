@@ -18,6 +18,7 @@ export const saveStatus = async ({ args, agent }: AgentCall) => {
     .onDuplicateKeyUpdate({ last_updated_at: sql`UTC_TIMESTAMP()`, status: statusJson })
     .executeTakeFirstOrThrow();
 
+  // MySQL counts 1 for an inserted row, 2 for an updated one
   if (numInsertedOrUpdatedRows === BigInt(1)) {
     await db
       .deleteFrom('agent_sessions')

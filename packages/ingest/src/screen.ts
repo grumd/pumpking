@@ -25,6 +25,7 @@ const RESULT_FIELDS = [
 const isObject = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null && !Array.isArray(value);
 
+// 'YYYY-MM-DD HH:MM:SS', the only format piu-spy sends
 const parseGained = (value: unknown): string => {
   const match = String(value).match(/^(\d{4})-(\d{1,2})-(\d{1,2}) (\d{1,2}):(\d{1,2}):(\d{1,2})$/);
   const [year, month, day, hours, minutes, seconds] = (match ?? []).slice(1).map(Number);

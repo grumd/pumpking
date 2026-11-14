@@ -192,6 +192,7 @@ export const updateChartsInterpolatedDifficulty = async (): Promise<number> => {
 
     await tempDb.insertInto('temp_chart_difficulty').values(values).execute();
 
+    // Kysely doesn't support MySQL syntax for update-join-set, using raw SQL instead
     const updated = await sql`
       UPDATE shared_charts
       JOIN temp_chart_difficulty ON temp_chart_difficulty.shared_chart = shared_charts.id
@@ -225,6 +226,7 @@ export const updateAllPp = async () => {
 
     await tempDb.insertInto('temp_results_pp').values(idPpPairs).execute();
 
+    // Kysely doesn't support MySQL syntax for update-join-set, using raw SQL instead
     await sql`
       UPDATE results
       LEFT JOIN temp_results_pp ON results.id = temp_results_pp.id

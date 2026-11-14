@@ -1,6 +1,8 @@
 import { ExpressionBuilder, Kysely, sql } from 'kysely';
 
 export async function up(db: Kysely<any>): Promise<void> {
+  // "update .. inner join .. set" is not supported by kysely, using raw sql
+  // NOT COOP
   await sql`
     UPDATE
       results AS r

@@ -148,6 +148,7 @@ const rowScreen = (source: string, row: Json): Screen => {
       screen_file: String(row.screen_file ?? '').replace(`${agent.name}/`, ''),
       mix_name: row.mix_name,
       track_name: row.track_name,
+      // mysql2 reads the naive datetimes as local time
       gained: formatNaive(row.gained as Date),
       left: { chart_label: row.chart_label, result },
     },
@@ -221,6 +222,7 @@ const validate = async (baseUrl: string, screen: Screen) => {
     body: JSON.stringify(screen.payload),
   });
   const body = (await response.json()) as Json;
+  // Python's errors are tracebacks: compare their last line
   if (typeof body.error === 'string') {
     body.error = body.error.trim().split('\n').pop();
   }
