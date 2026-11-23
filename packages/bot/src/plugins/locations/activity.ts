@@ -59,8 +59,15 @@ export interface AgentStatus {
   title: string;
   startedAt: string;
   lastUpdatedAt: string;
+  // From the status piu-spy sends with its heartbeat; undefined when it doesn't send one
+  fps?: number;
   players: Record<string, string>;
 }
+
+const fpsOf = (status: unknown) => {
+  const fps = (status as { fps?: unknown } | null)?.fps;
+  return typeof fps === 'number' ? fps : undefined;
+};
 
 export const getAgentsStatus = async (): Promise<Record<string, AgentStatus>> => {
   const sessions = await db
@@ -70,26 +77,31 @@ export const getAgentsStatus = async (): Promise<Record<string, AgentStatus>> =>
       'agent_sessions.agent_id',
       'agents.name',
       'agents.title',
-      sql<string>`DATE_FORMAT(MAX(agent_sessions.added_at), '%Y-%m-%d %H:%i:%s')`.as('startedAt'),
-      sql<string>`DATE_FORMAT(MAX(agent_sessions.last_updated_at), '%Y-%m-%d %H:%i:%s')`.as(
+      'agent_sessions.status',
+      sql<string>`DATE_FORMAT(agent_sessions.added_at, '%Y-%m-%d %H:%i:%s')`.as('startedAt'),
+      sql<string>`DATE_FORMAT(agent_sessions.last_updated_at, '%Y-%m-%d %H:%i:%s')`.as(
         'lastUpdatedAt'
       ),
     ])
-    .groupBy('agent_sessions.agent_id')
+    .orderBy('agent_sessions.last_updated_at', 'desc')
     .execute();
 
+  // The latest session of each agent: its start, last heartbeat and status
   const agents: Record<string, AgentStatus> = {};
+  for (const session of sessions) {
+    if (!agents[session.agent_id]) {
+      agents[session.agent_id] = {
+        name: session.name,
+        title: session.title,
+        startedAt: session.startedAt,
+        lastUpdatedAt: session.lastUpdatedAt,
+        fps: fpsOf(session.status),
+        players: {},
+      };
+    }
+  }
   if (sessions.length === 0) {
     return agents;
-  }
-  for (const session of sessions) {
-    agents[session.agent_id] = {
-      name: session.name,
-      title: session.title,
-      startedAt: session.startedAt,
-      lastUpdatedAt: session.lastUpdatedAt,
-      players: {},
-    };
   }
 
   const players = await db
@@ -101,11 +113,7 @@ export const getAgentsStatus = async (): Promise<Record<string, AgentStatus>> =>
       'players.nickname',
       'players.hidden',
     ])
-    .where(
-      'results.agent',
-      'in',
-      sessions.map((session) => session.agent_id)
-    )
+    .where('results.agent', 'in', Object.keys(agents).map(Number))
     .where('results.exact_gain_date', '=', 1)
     .where('results.gained', '>', recentThreshold)
     .groupBy(['results.agent', 'players.id'])
