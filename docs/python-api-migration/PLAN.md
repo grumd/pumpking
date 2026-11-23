@@ -636,8 +636,10 @@ Earlier sections say "core" for what is now `database` + `utils`.
     shown as on Phoenix 2, and charts without a level are skipped, as in the legacy
     feed. The settings commands are ported, with the admin-only `rivals test N name`.
   - `locations`: the 60 s monitor, with its state in `bot_state`, so a restart doesn't
-    lose it. The `/locations` dialog uses C6 in-process
-    (`plugins/locations/activity.ts`).
+    lose it. It tells the watchers of the tracked location also when the `fps` of its
+    latest status goes to 0 or above 60, the game's rate (a failing capture; `MAX_FPS` is
+    61 to allow for rounding), and when it comes back. The `/locations` dialog uses C6
+    in-process (`plugins/locations/activity.ts`).
   - `kasa`: the TP-Link cloud through fetch, with the same 5 minute debounce and
     messages. On with all three `TRACKED_KASA_*`.
   - `health` (new): tells the admin when `INGEST_HEALTH_URL` or `API_HEALTH_URL` fails
@@ -660,6 +662,8 @@ Earlier sections say "core" for what is now `database` + `utils`.
   - A null pp counts as 0, and a missing `TRACKED_LOCATION_NAME` no longer stops the
     locations job.
   - The buttons of old `/locations` messages (`location_…` data) don't work any more.
+  - The tracked location's watchers also hear when its fps goes to 0 or
+    above 60 and comes back.
 - **Same as the legacy bot, on purpose**: every linked player gets the message about
   their own new best, even with rivals tracking off.
 - **Retention**: while the bot runs, its cursor holds back the deletion of old events,

@@ -9,11 +9,18 @@ const AGENT_TIMEOUT_MINUTES = 3;
 const STALL_FROM_SECONDS = 5 * 60;
 const STALL_TO_SECONDS = 10 * 60;
 const DIALOG_MAX_AGE_SECONDS = 7 * 24 * 60 * 60;
+// A failing capture reports 0 fps, or an anomaly high one (no frames to wait for). The
+// game runs at 60 fps; 1 more allows for the agent's rounding
+const MAX_FPS = 61;
 
 export interface Location {
   state: AgentStatus;
   stalled: boolean;
+  // The latest status of the agent reports a failing capture's fps
+  fpsBad?: boolean;
 }
+
+const isBadFps = (fps: number | undefined) => fps !== undefined && (fps <= 0 || fps > MAX_FPS);
 
 type Locations = Record<string, Location>;
 
@@ -67,6 +74,18 @@ export const updateLocation = (
     }
   }
 
+  if (isBadFps(state.fps) && !location.fpsBad) {
+    console.log(`Bot: Location <${state.name}> reports ${state.fps} fps`);
+    notify(
+      `⚠️  Location <b>${name}</b> reports ${state.fps} fps${prev.fps ? ` (was ${prev.fps})` : ''}`
+    );
+    location.fpsBad = true;
+  } else if (state.fps !== undefined && !isBadFps(state.fps) && location.fpsBad) {
+    console.log(`Bot: Location <${state.name}> fps is back: ${state.fps}`);
+    notify(`✅  Location <b>${name}</b> fps is back: ${state.fps}`);
+    location.fpsBad = false;
+  }
+
   location.state = state;
   return messages;
 };
@@ -82,7 +101,7 @@ export const checkLocations = async (trackedName: string | undefined) => {
     if (locations[id]) {
       messages.push(...updateLocation(locations[id], state, trackedName));
     } else {
-      locations[id] = { state, stalled: false };
+      locations[id] = { state, stalled: false, fpsBad: isBadFps(state.fps) };
     }
   }
   await setState(PLUGIN, 'agents', locations);

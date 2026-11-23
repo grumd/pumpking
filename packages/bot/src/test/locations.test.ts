@@ -1,6 +1,7 @@
 import {
   checkLocations,
   lastPlayersText,
+  locationsPlugin,
   updateLocation,
   type Location,
 } from '../plugins/locations';
@@ -9,7 +10,7 @@ import {
   getAgentsStatus,
   type AgentStatus,
 } from '../plugins/locations/activity';
-import { addChart, addPlayer, addResult } from './helpers';
+import { ADMIN_ID, addChart, addPlayer, addResult, createFakeSender, testConfig } from './helpers';
 import { db } from '@pumpking/database/db';
 import { assert } from 'chai';
 import { sql } from 'kysely';
@@ -69,6 +70,40 @@ describe('Locations', () => {
     assert.deepEqual(updateLocation({ ...location }, next, 'other', at('2026-10-01 12:00:30')), []);
   });
 
+  it('tells the watchers when the fps of the tracked location goes bad and comes back', () => {
+    const location: Location = { state: status({ fps: 60 }), stalled: false };
+
+    assert.deepEqual(updateLocation(location, status({ fps: 30 }), 'arcade'), []);
+    assert.deepEqual(updateLocation(location, status({ fps: 61 }), 'arcade'), []);
+    assert.deepEqual(updateLocation(location, status({ fps: 0 }), 'arcade'), [
+      '⚠️  Location <b>arcade</b> reports 0 fps (was 61)',
+    ]);
+    assert.isTrue(location.fpsBad);
+    assert.deepEqual(updateLocation(location, status({ fps: 0 }), 'arcade'), []);
+    assert.deepEqual(updateLocation(location, status({ fps: 1500 }), 'arcade'), []);
+    assert.deepEqual(updateLocation(location, status(), 'arcade'), []);
+    assert.isTrue(location.fpsBad);
+    assert.deepEqual(updateLocation(location, status({ fps: 58 }), 'arcade'), [
+      '✅  Location <b>arcade</b> fps is back: 58',
+    ]);
+    assert.isFalse(location.fpsBad);
+
+    assert.deepEqual(updateLocation(location, status({ fps: 62 }), 'arcade'), [
+      '⚠️  Location <b>arcade</b> reports 62 fps (was 58)',
+    ]);
+    assert.deepEqual(updateLocation(location, status({ fps: 60 }), 'arcade'), [
+      '✅  Location <b>arcade</b> fps is back: 60',
+    ]);
+
+    const fresh: Location = { state: status(), stalled: false };
+    assert.deepEqual(updateLocation(fresh, status({ fps: 0 }), 'arcade'), [
+      '⚠️  Location <b>arcade</b> reports 0 fps',
+    ]);
+    const other: Location = { state: status({ fps: 60 }), stalled: false };
+    assert.deepEqual(updateLocation(other, status({ fps: 0 }), 'other'), []);
+    assert.isTrue(other.fpsBad);
+  });
+
   describe('with agent sessions', () => {
     beforeEach(async () => {
       await db
@@ -86,7 +121,14 @@ describe('Locations', () => {
             client_session_mark: 'a',
             added_at: sql`UTC_TIMESTAMP() - INTERVAL 90 MINUTE`,
             last_updated_at: sql`UTC_TIMESTAMP() - INTERVAL 1 MINUTE`,
-            status: '{}',
+            status: '{"fps":60}',
+          },
+          {
+            agent_id: 1,
+            client_session_mark: 'previous',
+            added_at: sql`UTC_TIMESTAMP() - INTERVAL 1 DAY`,
+            last_updated_at: sql`UTC_TIMESTAMP() - INTERVAL 20 HOUR`,
+            status: '{"fps":0}',
           },
           {
             agent_id: 2,
@@ -118,6 +160,8 @@ describe('Locations', () => {
       assert.deepEqual(Object.keys(statuses), ['1', '2']);
       assert.deepEqual(Object.keys(statuses['1'].players), ['PUMP IT UP', 'Alice']);
       assert.deepEqual(statuses['2'].players, {});
+      assert.equal(statuses['1'].fps, 60);
+      assert.isUndefined(statuses['2'].fps);
     });
 
     it('describes a location for the dialog', async () => {
@@ -134,6 +178,32 @@ describe('Locations', () => {
         "❗️ <b>Нема зв'язку 24 години 0 хвилин</b>\n\n" +
           'В локації "<i>Quiet Place</i>" давно нікого нема  😞\n'
       );
+    });
+
+    it("sends the tracked location's messages to its watchers", async () => {
+      const { sender, sent } = createFakeSender();
+      const bot = {
+        config: testConfig,
+        sender,
+        sendToAdmin: (html: string) => sender.send(ADMIN_ID, html),
+      };
+      const [job] = locationsPlugin.jobs!;
+      await job.run(bot);
+      assert.deepEqual(sent, []);
+
+      await db
+        .updateTable('agent_sessions')
+        .set({ status: '{"fps":0}' })
+        .where('client_session_mark', '=', 'a')
+        .execute();
+      await job.run(bot);
+      assert.deepEqual(sent, [
+        {
+          chatId: 9001,
+          html: '⚠️  Location <b>arcade</b> reports 0 fps (was 60)',
+          keyboard: undefined,
+        },
+      ]);
     });
 
     it('keeps the locations between checks and fails when the tracked one is missing', async () => {
